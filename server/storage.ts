@@ -365,14 +365,21 @@ export class MemStorage implements IStorage {
           id: "aircraftType",
           label: "Aircraft Type",
           type: "select",
-          options: ["C-130 Hercules", "C-17 Globemaster III", "Boeing 747 Freighter", "Airbus A400M"],
+          options: ["C-130 Hercules", "C-17 Globemaster III", "C-27J Spartan", "KC-30A"],
+          required: true
+        },
+        {
+          id: "missionNumber",
+          label: "Mission Number",
+          type: "text",
+          placeholder: "e.g. M4321",
           required: true
         },
         {
           id: "registration",
           label: "Registration",
           type: "text",
-          placeholder: "e.g. N12345",
+          placeholder: "e.g. A97-123",
           required: true
         },
         {
@@ -391,6 +398,27 @@ export class MemStorage implements IStorage {
         {
           id: "emptyMoment",
           label: "Empty Weight Moment (kg-in)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "crewNumber",
+          label: "Number of Crew",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "crewWeight",
+          label: "Crew Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "crewMoment",
+          label: "Crew Moment (kg-in)",
           type: "number",
           placeholder: "0",
           required: true
@@ -431,8 +459,29 @@ export class MemStorage implements IStorage {
           required: true
         },
         {
+          id: "maximumAllowedWeight",
+          label: "Maximum Allowed Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
           id: "centerOfGravity",
           label: "Center of Gravity (inches)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "forwardLimit",
+          label: "Forward CG Limit (inches)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "aftLimit",
+          label: "Aft CG Limit (inches)",
           type: "number",
           placeholder: "0",
           required: true
@@ -451,11 +500,349 @@ export class MemStorage implements IStorage {
           required: true
         },
         {
+          id: "loadmasterSignature",
+          label: "Loadmaster Signature Required",
+          type: "checkbox",
+          required: true
+        },
+        {
           id: "notes",
           label: "Notes",
           type: "textarea",
           placeholder: "Enter any additional notes",
           required: false
+        }
+      ]
+    });
+    
+    this.createDocument({
+      title: "Cargo Floor Loading Plan",
+      description: "Detailed diagram and specifications for floor-loaded cargo.",
+      type: "Form",
+      fields: [
+        {
+          id: "missionNumber",
+          label: "Mission Number",
+          type: "text",
+          placeholder: "e.g. M4321",
+          required: true
+        },
+        {
+          id: "aircraftType",
+          label: "Aircraft Type",
+          type: "select",
+          options: ["C-130 Hercules", "C-17 Globemaster III", "C-27J Spartan", "KC-30A"],
+          required: true
+        },
+        {
+          id: "date",
+          label: "Date",
+          type: "date",
+          required: true
+        },
+        {
+          id: "totalItems",
+          label: "Total Number of Items",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "totalWeight",
+          label: "Total Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "item1Description",
+          label: "Item 1 Description",
+          type: "text",
+          placeholder: "Enter cargo description",
+          required: true
+        },
+        {
+          id: "item1Length",
+          label: "Item 1 Length (cm)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "item1Width",
+          label: "Item 1 Width (cm)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "item1Height",
+          label: "Item 1 Height (cm)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "item1Weight",
+          label: "Item 1 Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "item1Position",
+          label: "Item 1 Position",
+          type: "text",
+          placeholder: "FS #### to FS ####",
+          required: true
+        },
+        {
+          id: "item1TiedownMethod",
+          label: "Item 1 Tiedown Method",
+          type: "select",
+          options: ["CGU-1/B Straps", "Chains", "MB-1 Chains", "MB-2 Chains", "Combined Methods"],
+          required: true
+        },
+        {
+          id: "item1RestraintRequired",
+          label: "Item 1 Required Restraint (G forces)",
+          type: "text",
+          placeholder: "e.g. 3G FWD, 1.5G AFT, 1.5G LAT",
+          required: true
+        },
+        {
+          id: "item2Description",
+          label: "Item 2 Description",
+          type: "text",
+          placeholder: "Enter cargo description",
+          required: false
+        },
+        {
+          id: "item2Length",
+          label: "Item 2 Length (cm)",
+          type: "number",
+          placeholder: "0",
+          required: false
+        },
+        {
+          id: "item2Width",
+          label: "Item 2 Width (cm)",
+          type: "number",
+          placeholder: "0",
+          required: false
+        },
+        {
+          id: "item2Height",
+          label: "Item 2 Height (cm)",
+          type: "number",
+          placeholder: "0",
+          required: false
+        },
+        {
+          id: "item2Weight",
+          label: "Item 2 Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: false
+        },
+        {
+          id: "item2Position",
+          label: "Item 2 Position",
+          type: "text",
+          placeholder: "FS #### to FS ####",
+          required: false
+        },
+        {
+          id: "item2TiedownMethod",
+          label: "Item 2 Tiedown Method",
+          type: "select",
+          options: ["CGU-1/B Straps", "Chains", "MB-1 Chains", "MB-2 Chains", "Combined Methods"],
+          required: false
+        },
+        {
+          id: "item2RestraintRequired",
+          label: "Item 2 Required Restraint (G forces)",
+          type: "text",
+          placeholder: "e.g. 3G FWD, 1.5G AFT, 1.5G LAT",
+          required: false
+        },
+        {
+          id: "specialInstructions",
+          label: "Special Instructions",
+          type: "textarea",
+          placeholder: "Enter any special handling or loading instructions",
+          required: false
+        },
+        {
+          id: "loadmasterName",
+          label: "Loadmaster Name",
+          type: "text",
+          placeholder: "Enter your full name",
+          required: true
+        },
+        {
+          id: "loadmasterSignature",
+          label: "Loadmaster Signature Required",
+          type: "checkbox",
+          required: true
+        }
+      ]
+    });
+    
+    this.createDocument({
+      title: "Pallet Build-Up Form",
+      description: "Documentation for the configuration and build-up of air cargo pallets.",
+      type: "Form",
+      fields: [
+        {
+          id: "palletSerialNumber",
+          label: "Pallet Serial Number",
+          type: "text",
+          placeholder: "Enter pallet serial number",
+          required: true
+        },
+        {
+          id: "date",
+          label: "Build-up Date",
+          type: "date",
+          required: true
+        },
+        {
+          id: "aircraftType",
+          label: "Target Aircraft Type",
+          type: "select",
+          options: ["C-130 Hercules", "C-17 Globemaster III", "C-27J Spartan", "KC-30A"],
+          required: true
+        },
+        {
+          id: "palletType",
+          label: "Pallet Type",
+          type: "select",
+          options: ["463L", "HCU-6/E", "ISU 60", "ISU 90", "Special"],
+          required: true
+        },
+        {
+          id: "palletPosition",
+          label: "Target Pallet Position",
+          type: "text",
+          placeholder: "e.g. P1, P2, etc.",
+          required: true
+        },
+        {
+          id: "tareWeight",
+          label: "Pallet Tare Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "netWeight",
+          label: "Net Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "totalWeight",
+          label: "Total Weight (kg)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "cg",
+          label: "Center of Gravity (inches from forward edge)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "hasDangerousGoods",
+          label: "Contains Dangerous Goods",
+          type: "checkbox",
+          required: false
+        },
+        {
+          id: "dgDetails",
+          label: "Dangerous Goods Details",
+          type: "textarea",
+          placeholder: "Enter UN numbers and proper shipping names if applicable",
+          required: false
+        },
+        {
+          id: "cargoHeight",
+          label: "Total Cargo Height (cm)",
+          type: "number",
+          placeholder: "0",
+          required: true
+        },
+        {
+          id: "cargoSecurityCheck",
+          label: "Cargo Security Check Complete",
+          type: "checkbox",
+          required: true
+        },
+        {
+          id: "loadingPriority",
+          label: "Loading Priority",
+          type: "select",
+          options: ["Priority 1 - Mission Essential", "Priority 2 - Critical", "Priority 3 - Standard", "Priority 4 - Space Available"],
+          required: true
+        },
+        {
+          id: "contentsDescription",
+          label: "Contents Description",
+          type: "textarea",
+          placeholder: "List major contents and any special handling requirements",
+          required: true
+        },
+        {
+          id: "netType",
+          label: "Restraint Net Type",
+          type: "select",
+          options: ["Standard 463L", "Heavy Duty", "Special Purpose", "None"],
+          required: true
+        },
+        {
+          id: "restraintMethod",
+          label: "Additional Restraint Method",
+          type: "text",
+          placeholder: "Enter additional restraint methods if used",
+          required: false
+        },
+        {
+          id: "buildupLocation",
+          label: "Build-up Location",
+          type: "text",
+          placeholder: "Enter location where pallet was built",
+          required: true
+        },
+        {
+          id: "inspectionNotes",
+          label: "Inspection Notes",
+          type: "textarea",
+          placeholder: "Enter any inspection findings or notes",
+          required: false
+        },
+        {
+          id: "inspectorName",
+          label: "Inspector Name",
+          type: "text",
+          placeholder: "Enter inspector's full name",
+          required: true
+        },
+        {
+          id: "loadmasterName",
+          label: "Loadmaster Name",
+          type: "text",
+          placeholder: "Enter loadmaster's full name",
+          required: true
+        },
+        {
+          id: "loadmasterSignature",
+          label: "Loadmaster Signature Required",
+          type: "checkbox",
+          required: true
         }
       ]
     });
