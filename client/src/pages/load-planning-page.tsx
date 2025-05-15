@@ -45,14 +45,8 @@ export default function LoadPlanningPage() {
   const [draggedPallet, setDraggedPallet] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerBounds, setContainerBounds] = useState({ left: 0, top: 0 });
   
   useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setContainerBounds({ left: rect.left, top: rect.top });
-    }
-    
     // Calculate total weight of placed pallets in cargo area only
     const weight = pallets.reduce((total, pallet) => {
       // Find if this pallet is in a cargo drop zone
@@ -140,7 +134,32 @@ export default function LoadPlanningPage() {
         }));
       }
     } else {
-      // Dropping in an unspecified area - do nothing
+      // Dropping outside a zone - if it's a placed pallet, unplace it
+      const pallet = pallets.find(p => p.id === draggedPallet);
+      if (pallet && pallet.placed) {
+        // Find the zone this pallet was in and mark it as unoccupied
+        const oldZone = dropZones.find(z => 
+          z.position.x === pallet.position.x && 
+          z.position.y === pallet.position.y
+        );
+        
+        if (oldZone) {
+          setDropZones(prev => prev.map(z => {
+            if (z.id === oldZone.id) {
+              return { ...z, occupied: false };
+            }
+            return z;
+          }));
+        }
+        
+        // Reset pallet position
+        setPallets(prev => prev.map(p => {
+          if (p.id === draggedPallet) {
+            return { ...p, position: { x: 0, y: 0 }, placed: false };
+          }
+          return p;
+        }));
+      }
     }
     
     setDraggedPallet(null);
@@ -172,7 +191,7 @@ export default function LoadPlanningPage() {
             <h2 className="text-2xl font-bold">C27J Spartan Load Planning</h2>
           </div>
 
-          {/* Aircraft Diagram */}
+          {/* Load Planning Area */}
           <div 
             className="bg-card rounded-lg p-6 shadow-lg" 
             ref={containerRef}
@@ -180,126 +199,131 @@ export default function LoadPlanningPage() {
             onDrop={(e) => handleDrop(e)}
           >
             <div className="relative w-full" style={{ maxWidth: "800px", margin: "0 auto" }}>
-              {/* Aircraft Outline Container */}
               <div className="relative">
-                <svg 
-                  viewBox="0 0 800 400" 
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full"
-                >
-                  {/* Cargo area (filled with 20% opacity green) */}
-                  <rect 
-                    x="180" 
-                    y="120" 
-                    width="440" 
-                    height="120" 
-                    fill="rgba(0,255,0,0.2)" 
-                    stroke="rgba(0,255,0,0.5)" 
-                    strokeWidth="2"
-                    rx="5"
-                    ry="5"
-                  />
-                  
-                  {/* Label for cargo area */}
-                  <text 
-                    x="400" 
-                    y="110" 
-                    textAnchor="middle" 
-                    fill="white" 
-                    fontSize="16"
-                    fontWeight="bold"
+                {/* SVG Container */}
+                <div className="relative mb-6">
+                  <svg 
+                    viewBox="0 0 800 400" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-full"
                   >
-                    Cargo Area
-                  </text>
-                  
-                  {/* Grid lines within cargo area */}
-                  <line x1="280" y1="120" x2="280" y2="240" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  <line x1="380" y1="120" x2="380" y2="240" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  <line x1="480" y1="120" x2="480" y2="240" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  <line x1="180" y1="180" x2="620" y2="180" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  
-                  {/* Storage area */}
-                  <rect 
-                    x="180" 
-                    y="280" 
-                    width="440" 
-                    height="80" 
-                    fill="rgba(100,100,100,0.2)" 
-                    stroke="rgba(100,100,100,0.5)" 
-                    strokeWidth="2"
-                    rx="5"
-                    ry="5"
-                  />
-                  
-                  {/* Label for storage area */}
-                  <text 
-                    x="400" 
-                    y="270" 
-                    textAnchor="middle" 
-                    fill="white" 
-                    fontSize="16"
-                    fontWeight="bold"
-                  >
-                    Storage Area
-                  </text>
-                  
-                  {/* Grid lines within storage area */}
-                  <line x1="280" y1="280" x2="280" y2="360" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  <line x1="380" y1="280" x2="380" y2="360" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  <line x1="480" y1="280" x2="480" y2="360" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
-                  
-                  {/* Drop zones - both cargo and storage */}
-                  {dropZones.map((zone) => (
-                    <rect
-                      key={zone.id}
-                      x={zone.position.x}
-                      y={zone.position.y}
-                      width={80}
-                      height={60}
-                      fill={zone.occupied ? "rgba(0,0,0,0)" : (
-                        zone.area === "cargo" ? "rgba(0,255,0,0.1)" : "rgba(255,255,255,0.1)"
-                      )}
-                      stroke={zone.occupied ? "rgba(0,0,0,0)" : (
-                        zone.area === "cargo" ? "rgba(0,255,0,0.3)" : "rgba(255,255,255,0.3)"
-                      )}
-                      strokeWidth="2"
-                      strokeDasharray={zone.occupied ? "0" : "5,5"}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, zone.id)}
+                    {/* Background cargo floor diagram */}
+                    <image 
+                      href="/attached_assets/{D0501969-2858-4ED7-8B7B-5C07DCF79F7F}_1747281870002.png"
+                      x="100" 
+                      y="70" 
+                      width="600" 
+                      height="180"
+                      opacity="0.4"
                     />
-                  ))}
-                  
-                  {/* Placed pallets */}
-                  {pallets.map((pallet) => pallet.placed && (
-                    <g
-                      key={pallet.id}
-                      transform={`translate(${pallet.position.x},${pallet.position.y})`}
+                    
+                    {/* Cargo area */}
+                    <rect 
+                      x="180" 
+                      y="120" 
+                      width="440" 
+                      height="120" 
+                      fill="rgba(0,255,0,0.2)" 
+                      stroke="rgba(0,255,0,0.5)" 
+                      strokeWidth="2"
+                      rx="5"
+                      ry="5"
+                    />
+                    
+                    {/* Label for cargo area */}
+                    <text 
+                      x="400" 
+                      y="110" 
+                      textAnchor="middle" 
+                      fill="white" 
+                      fontSize="16"
+                      fontWeight="bold"
                     >
+                      Cargo Area
+                    </text>
+                    
+                    {/* Grid lines within cargo area */}
+                    <line x1="280" y1="120" x2="280" y2="240" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    <line x1="380" y1="120" x2="380" y2="240" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    <line x1="480" y1="120" x2="480" y2="240" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    <line x1="180" y1="180" x2="620" y2="180" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    
+                    {/* Storage area */}
+                    <rect 
+                      x="180" 
+                      y="280" 
+                      width="440" 
+                      height="80" 
+                      fill="rgba(100,100,100,0.2)" 
+                      stroke="rgba(100,100,100,0.5)" 
+                      strokeWidth="2"
+                      rx="5"
+                      ry="5"
+                    />
+                    
+                    {/* Label for storage area */}
+                    <text 
+                      x="400" 
+                      y="270" 
+                      textAnchor="middle" 
+                      fill="white" 
+                      fontSize="16"
+                      fontWeight="bold"
+                    >
+                      Storage Area
+                    </text>
+                    
+                    {/* Grid lines within storage area */}
+                    <line x1="280" y1="280" x2="280" y2="360" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    <line x1="380" y1="280" x2="380" y2="360" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    <line x1="480" y1="280" x2="480" y2="360" stroke="rgba(255,255,255,0.3)" strokeWidth="1" strokeDasharray="5,5" />
+                    
+                    {/* Drop zones - both cargo and storage */}
+                    {dropZones.map((zone) => (
                       <rect
-                        width={pallet.size.width}
-                        height={pallet.size.height}
-                        fill="rgba(255,165,0,0.7)"
-                        stroke="rgba(255,165,0,1)"
+                        key={zone.id}
+                        x={zone.position.x}
+                        y={zone.position.y}
+                        width={80}
+                        height={60}
+                        fill={zone.occupied ? "rgba(0,0,0,0)" : (
+                          zone.area === "cargo" ? "rgba(0,255,0,0.1)" : "rgba(255,255,255,0.1)"
+                        )}
+                        stroke={zone.occupied ? "rgba(0,0,0,0)" : (
+                          zone.area === "cargo" ? "rgba(0,255,0,0.3)" : "rgba(255,255,255,0.3)"
+                        )}
                         strokeWidth="2"
-                        rx="4"
-                        ry="4"
-                        draggable
-                        onDragStart={() => handleDragStart(pallet.id)}
-                        style={{ cursor: 'move' }}
+                        strokeDasharray={zone.occupied ? "0" : "5,5"}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, zone.id)}
                       />
-                      <text
-                        x="40"
-                        y="35"
-                        textAnchor="middle"
-                        fill="white"
-                        fontSize="14"
-                        fontWeight="bold"
-                      >
-                        {`${pallet.weight} kg`}
-                      </text>
-                    </g>
+                    ))}
+                  </svg>
+                </div>
+                
+                {/* Pallets Container (outside SVG) */}
+                <div className="relative" style={{ height: "400px" }}>
+                  {pallets.filter(pallet => pallet.placed).map((pallet) => (
+                    <div
+                      key={pallet.id}
+                      draggable
+                      onDragStart={() => handleDragStart(pallet.id)}
+                      className="absolute cursor-move flex items-center justify-center font-bold text-white"
+                      style={{
+                        left: `${pallet.position.x}px`,
+                        top: `${pallet.position.y}px`,
+                        width: `${pallet.size.width}px`,
+                        height: `${pallet.size.height}px`,
+                        backgroundColor: 'rgba(255,165,0,0.7)',
+                        border: '2px solid rgba(255,165,0,1)',
+                        borderRadius: '4px',
+                        userSelect: 'none',
+                      }}
+                    >
+                      {`${pallet.weight} kg`}
+                    </div>
                   ))}
-                </svg>
+                </div>
                 
                 {/* Legend */}
                 <div className="mt-6 text-center">
@@ -407,10 +431,10 @@ export default function LoadPlanningPage() {
               
               <div className="mt-6 p-4 bg-card border border-border rounded-md">
                 <p className="text-sm">
-                  <strong>Instructions:</strong> Drag and drop pallets into the cargo area. 
-                  Adjust the weight of each pallet using the input fields. 
-                  Pallets can be moved between cargo and storage areas. 
-                  Only pallets in the cargo area count toward the total load weight.
+                  <strong>Instructions:</strong> Drag and drop pallets into the cargo area or storage area.
+                  Edit the weight of each pallet using the input fields.
+                  Pallets in the cargo area count toward the total load weight.
+                  Pallets can be moved between cargo and storage areas as needed.
                 </p>
               </div>
             </div>
