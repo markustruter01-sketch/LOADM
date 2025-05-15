@@ -14,6 +14,7 @@ import ScenarioPage from "@/pages/scenario-page";
 import DocumentsPage from "@/pages/documents-page";
 import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
+import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
@@ -34,7 +35,11 @@ function Router() {
           <Route path="/documents/:id" component={DocumentFormPage} />
           <Route path="/scenarios" component={ScenariosPage} />
           <Route path="/scenarios/:id" component={ScenarioPage} />
-          <Route path="/load-planning" component={LoadPlanningPage} />
+          <Route path="/load-planning" component={LoadPlanningSelectionPage} />
+          <Route path="/load-planning/c27j" component={LoadPlanningPage} />
+          <Route path="/load-planning/c17" component={LoadPlanningPage} />
+          <Route path="/load-planning/c130" component={LoadPlanningPage} />
+          <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
