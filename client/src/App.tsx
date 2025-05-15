@@ -15,6 +15,7 @@ import DocumentsPage from "@/pages/documents-page";
 import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
+import CargoManifestPage from "@/pages/cargo-manifest-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
@@ -40,6 +41,7 @@ function Router() {
           <Route path="/load-planning/c17" component={LoadPlanningPage} />
           <Route path="/load-planning/c130" component={LoadPlanningPage} />
           <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
+          <Route path="/cargo-manifest" component={CargoManifestPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, FileText, ClipboardList, UserCircle, Package2 } from "lucide-react";
+import { Home, FileText, ClipboardList, UserCircle, Package2, FileCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -29,6 +29,12 @@ export default function BottomNav() {
       label: "Load Plan",
       icon: Package2,
       active: location.startsWith("/load-planning")
+    },
+    {
+      href: "/cargo-manifest",
+      label: "Manifest",
+      icon: FileCheck,
+      active: location === "/cargo-manifest"
     },
     {
       href: "/auth",
