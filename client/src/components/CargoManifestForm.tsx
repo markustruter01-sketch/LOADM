@@ -108,8 +108,8 @@ export function CargoManifestForm() {
       
 
 
-      <div id="cargo-manifest-form" className="px-4 py-4">
-        <div className="max-w-4xl mx-auto">
+      <div id="cargo-manifest-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
           <div className="flex items-center mb-6 no-print">
             <h2 className="text-2xl font-bold text-foreground">Passenger / Crew and Cargo Manifest</h2>
           </div>

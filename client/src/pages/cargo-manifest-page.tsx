@@ -72,12 +72,69 @@ export default function DocumentsPage() {
         <DocumentMenu />
       </div>
       
-      {/* The cargo manifest form (shown if specifically requested) */}
+      {/* Document forms */}
+      
+      {/* Cargo Manifest Form */}
       {window.location.hash === '#cargo-manifest-form' && (
         <div className="container mx-auto pb-20">
           <CargoManifestForm />
         </div>
       )}
+      
+      {/* Load Planning Form */}
+      <div id="load-planning-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-6">Load Planning Form</h2>
+          <p className="text-muted-foreground mb-4">Complete detailed load planning documentation for cargo aircraft operations.</p>
+          <div className="bg-secondary/20 p-6 rounded-md text-center">
+            <p>Load Planning Form will be implemented here.</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Dangerous Goods Declaration */}
+      <div id="dangerous-goods-declaration-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-6">Dangerous Goods Declaration</h2>
+          <p className="text-muted-foreground mb-4">Complete DG documentation for hazardous materials transportation.</p>
+          <div className="bg-secondary/20 p-6 rounded-md text-center">
+            <p>Dangerous Goods Declaration form will be implemented here.</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Weight & Balance Sheet */}
+      <div id="weight-balance-sheet-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-6">Weight & Balance Sheet</h2>
+          <p className="text-muted-foreground mb-4">Calculate and document aircraft weight distribution and balance.</p>
+          <div className="bg-secondary/20 p-6 rounded-md text-center">
+            <p>Weight & Balance Sheet form will be implemented here.</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Cargo Floor Loading Plan */}
+      <div id="cargo-floor-loading-plan-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-6">Cargo Floor Loading Plan</h2>
+          <p className="text-muted-foreground mb-4">Detailed diagram and specifications for floor-loaded cargo.</p>
+          <div className="bg-secondary/20 p-6 rounded-md text-center">
+            <p>Cargo Floor Loading Plan form will be implemented here.</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Pallet Build-Up Form */}
+      <div id="pallet-build-up-form-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-6">Pallet Build-Up Form</h2>
+          <p className="text-muted-foreground mb-4">Documentation for the configuration and build-up of air cargo pallets.</p>
+          <div className="bg-secondary/20 p-6 rounded-md text-center">
+            <p>Pallet Build-Up Form will be implemented here.</p>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

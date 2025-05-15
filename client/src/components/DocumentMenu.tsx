@@ -73,7 +73,7 @@ export default function DocumentMenu() {
       id: 1,
       title: "Load Planning Form",
       description: "Complete detailed load planning documentation for cargo aircraft operations.",
-      path: "/documents/load-planning",
+      path: "/cargo-manifest#load-planning-form",
     },
     {
       id: 2,
@@ -85,25 +85,25 @@ export default function DocumentMenu() {
       id: 3,
       title: "Dangerous Goods Declaration",
       description: "Complete DG documentation for hazardous materials transportation.",
-      path: "/documents/dangerous-goods",
+      path: "/cargo-manifest#dangerous-goods-declaration-form",
     },
     {
       id: 4,
       title: "Weight & Balance Sheet",
       description: "Calculate and document aircraft weight distribution and balance.",
-      path: "/documents/weight-balance",
+      path: "/cargo-manifest#weight-balance-sheet-form",
     },
     {
       id: 5,
       title: "Cargo Floor Loading Plan",
       description: "Detailed diagram and specifications for floor-loaded cargo.",
-      path: "/documents/floor-loading",
+      path: "/cargo-manifest#cargo-floor-loading-plan-form",
     },
     {
       id: 6,
       title: "Pallet Build-Up Form",
       description: "Documentation for the configuration and build-up of air cargo pallets.",
-      path: "/documents/pallet-build",
+      path: "/cargo-manifest#pallet-build-up-form-form",
     },
   ];
 
