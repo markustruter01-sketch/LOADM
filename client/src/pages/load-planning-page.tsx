@@ -639,16 +639,10 @@ export default function LoadPlanningPage() {
             </div>
           </div>
 
-          {/* Main content grid */}
-          <div className={`grid grid-cols-1 ${
-            currentAircraftId === 'c17' 
-              ? 'lg:grid-cols-1 xl:grid-cols-3' 
-              : 'lg:grid-cols-3'
-          } gap-4`}>
+          {/* Main content grid - Consistent across all aircraft types */}
+          <div className="space-y-4">
             {/* Load Summary Card */}
-            <Card className={`${
-              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-3' : 'lg:col-span-3'
-            }`}>
+            <Card>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center">
@@ -691,271 +685,271 @@ export default function LoadPlanningPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Cargo Area */}
-            <Card className={`${
-              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-2' : 'lg:col-span-2'
-            }`}>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center">
-                  <Plane className="h-5 w-5 mr-2 text-primary" />
-                  Cargo Area
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div 
-                  ref={cargoRef}
-                  className={`relative bg-green-900/20 border border-green-500/40 rounded-lg w-full ${
-                    currentAircraftId === 'c17' 
-                      ? 'h-[400px]' 
-                      : currentAircraftId === 'c130' 
-                        ? 'h-[250px]' 
-                        : 'h-[150px]'
-                  } overflow-hidden`}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, "cargo")}
-                >
-                  {/* Grid lines */}
-                  {currentAircraftId === 'c17' ? (
-                    <div className="absolute inset-0 pointer-events-none">
-                      {/* Custom grid for 9x2 layout with 88x108 pallets */}
-                      
-                      {/* Grid cells - First row */}
-                      {[...Array(9)].map((_, i) => (
-                        <div 
-                          key={`cell-row1-${i}`} 
-                          className="absolute border border-white/20"
-                          style={{
-                            left: i * 100,
-                            top: 10,
-                            width: 96,
-                            height: 116,
-                          }}
-                        ></div>
-                      ))}
-                      
-                      {/* Grid cells - Second row */}
-                      {[...Array(9)].map((_, i) => (
-                        <div 
-                          key={`cell-row2-${i}`} 
-                          className="absolute border border-white/20"
-                          style={{
-                            left: i * 100,
-                            top: 136, 
-                            width: 96,
-                            height: 116,
-                          }}
-                        ></div>
-                      ))}
-                    </div>
-                  ) : currentAircraftId === 'c130' ? (
-                    <div className="absolute inset-0 grid grid-cols-4 gap-0 pointer-events-none">
-                      {[...Array(3)].map((_, i) => (
-                        <div key={i} className="border-r border-white/20 h-full"></div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
-                      <div className="border-r border-white/20 h-full"></div>
-                      <div className="border-r border-white/20 h-full"></div>
-                    </div>
-                  )}
-                  
-                  {/* Pallets in cargo area */}
-                  {pallets.filter(pallet => pallet.location === "cargo").map((pallet) => (
-                    <div
-                      key={pallet.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, pallet.id)}
-                      className="absolute cursor-move flex items-center justify-center font-bold text-white bg-orange-500/70 border-2 border-orange-500 rounded-md"
-                      style={{
-                        left: `${pallet.position.x}px`,
-                        top: `${pallet.position.y}px`,
-                        width: "88px",  // Force the exact width
-                        height: "108px", // Force the exact height
-                        zIndex: 10
-                      }}
-                    >
-                      <div className="flex flex-col items-center">
-                        {pallet.weight !== null ? 
-                          <span>{pallet.weight} kg</span> : 
-                          <span className="text-white/80">No weight</span>
-                        }
-                        <span className="text-xs text-white/60 mt-1">(88×108)</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Drag pallets here to position them in the cargo area.
-                </div>
-                
-                {/* Balance Indicator */}
-                <div className="mt-6">
-                  <div className="flex justify-between items-center mb-1">
-                    <h3 className="text-sm font-medium">Balance</h3>
-                    <span className={`text-xs font-medium ${
-                      balanceStatus === 'safe' ? 'text-green-500' : 
-                      balanceStatus === 'warning' ? 'text-yellow-500' : 'text-red-500'
-                    }`}>
-                      {balanceStatus === 'safe' ? 'Safe' : 
-                       balanceStatus === 'warning' ? 'Warning' : 'Danger'}
+            
+            {/* Cargo Area and Configure Pallets side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Cargo Area - Always on the left */}
+              <Card className="lg:col-span-8">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center">
+                    <Plane className="h-5 w-5 mr-2 text-primary" />
+                    Cargo Area
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
                     </span>
-                  </div>
-                  
-                  {/* Balance Meter */}
-                  <div className="h-6 relative mb-1 rounded-md overflow-hidden">
-                    {/* Background gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-yellow-400 to-red-500"></div>
-                    
-                    {/* Center line */}
-                    <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/50"></div>
-                    
-                    {/* Indicator needle */}
-                    <div 
-                      className="absolute top-0 bottom-0 w-1 bg-white"
-                      style={{ 
-                        left: `${(balanceValue + 100) / 2}%`,
-                        transform: 'translateX(-50%)',
-                        transition: 'left 0.3s ease-out'
-                      }}
-                    ></div>
-                    
-                    {/* Labels */}
-                    <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
-                      <span>FWD</span>
-                      <span className="mx-auto">BALANCED</span>
-                      <span>AFT</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-                    <span>Heavy Forward</span>
-                    <span>Center of Gravity</span>
-                    <span>Heavy Aft</span>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <Button 
-                      variant="outline" 
-                      className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" 
-                      onClick={handleReset}
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Reset All Pallets
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Configure Pallets */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center">
-                  <Package2 className="h-5 w-5 mr-2 text-primary" />
-                  Configure Pallets
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    (Max: {currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Template Pallet */}
-                <div className="mb-6 p-4 border-2 border-dashed border-primary rounded-lg">
-                  <h3 className="text-sm font-medium flex items-center mb-3">
-                    <Package2 className="h-4 w-4 mr-2 text-primary" />
-                    Template Pallet
-                  </h3>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Drag this template pallet to the cargo or storage areas to create new pallets.
-                    You can add up to {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'} pallets
-                    for the {currentAircraft.name}.
-                  </p>
-                  
-                  {/* Draggable template pallet */}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                   <div 
-                    className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
-                    style={{ width: '88px', height: '108px' }}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, null)}
+                    ref={cargoRef}
+                    className={`relative bg-green-900/20 border border-green-500/40 rounded-lg w-full ${
+                      currentAircraftId === 'c17' 
+                        ? 'h-[320px]' 
+                        : currentAircraftId === 'c130' 
+                          ? 'h-[220px]' 
+                          : 'h-[150px]'
+                    } overflow-hidden`}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, "cargo")}
                   >
-                    <div className="flex flex-col items-center justify-center">
-                      <Package2 className="h-5 w-5 mb-2" />
-                      <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
-                      <span className="text-xs mt-1">(88×108)</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* List of existing pallets */}
-                <div className="space-y-4" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
-                  <h3 className="font-medium text-sm">
-                    Current Pallets ({pallets.length})
-                  </h3>
-                  
-                  {pallets.length === 0 ? (
-                    <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground">
-                      No pallets created yet. Drag the template pallet above to create new pallets.
-                    </div>
-                  ) : (
-                    pallets.map((pallet) => (
-                      <div 
-                        key={pallet.id} 
-                        className="bg-card border border-border rounded-md p-3"
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="flex items-center">
-                            <Package2 className="h-4 w-4 mr-2 text-primary" />
-                            <span className="font-medium text-sm">Pallet {pallet.id}</span>
-                          </div>
-                          <Badge 
-                            variant={
-                              pallet.location === "cargo" ? "default" : 
-                              pallet.location === "storage" ? "secondary" : "outline"
-                            }
-                            className="text-xs"
-                          >
-                            {pallet.location === "cargo" ? "In Cargo" : 
-                             pallet.location === "storage" ? "In Storage" : "Configure"}
-                          </Badge>
-                        </div>
+                    {/* Grid lines */}
+                    {currentAircraftId === 'c17' ? (
+                      <div className="absolute inset-0 pointer-events-none">
+                        {/* Custom grid for 9x2 layout with 88x108 pallets */}
                         
-                        <div className="space-y-1">
-                          <div className="flex items-center">
-                            <Label htmlFor={`weight-${pallet.id}`} className="text-xs mr-2 w-16">
-                              Weight:
-                            </Label>
-                            <div className="flex-1">
-                              <Input
-                                id={`weight-${pallet.id}`}
-                                type="number"
-                                min="0"
-                                max={MAX_PAYLOAD}
-                                value={pallet.weight === null ? '' : pallet.weight.toString()}
-                                onChange={(e) => handleWeightChange(pallet.id, e.target.value)}
-                                className={`h-7 text-sm`}
-                                placeholder="Enter weight"
-                              />
-                            </div>
-                            <div className="ml-1 text-xs text-muted-foreground">kg</div>
-                          </div>
+                        {/* Grid cells - First row */}
+                        {[...Array(9)].map((_, i) => (
+                          <div 
+                            key={`cell-row1-${i}`} 
+                            className="absolute border border-white/20"
+                            style={{
+                              left: i * 100,
+                              top: 10,
+                              width: 96,
+                              height: 116,
+                            }}
+                          ></div>
+                        ))}
+                        
+                        {/* Grid cells - Second row */}
+                        {[...Array(9)].map((_, i) => (
+                          <div 
+                            key={`cell-row2-${i}`} 
+                            className="absolute border border-white/20"
+                            style={{
+                              left: i * 100,
+                              top: 136, 
+                              width: 96,
+                              height: 116,
+                            }}
+                          ></div>
+                        ))}
+                      </div>
+                    ) : currentAircraftId === 'c130' ? (
+                      <div className="absolute inset-0 grid grid-cols-4 gap-0 pointer-events-none">
+                        {[...Array(3)].map((_, i) => (
+                          <div key={i} className="border-r border-white/20 h-full"></div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
+                        <div className="border-r border-white/20 h-full"></div>
+                        <div className="border-r border-white/20 h-full"></div>
+                      </div>
+                    )}
+                    
+                    {/* Pallets in cargo area */}
+                    {pallets.filter(pallet => pallet.location === "cargo").map((pallet) => (
+                      <div
+                        key={pallet.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, pallet.id)}
+                        className="absolute cursor-move flex items-center justify-center font-bold text-white bg-orange-500/70 border-2 border-orange-500 rounded-md"
+                        style={{
+                          left: `${pallet.position.x}px`,
+                          top: `${pallet.position.y}px`,
+                          width: "88px",  // Force the exact width
+                          height: "108px", // Force the exact height
+                          zIndex: 10
+                        }}
+                      >
+                        <div className="flex flex-col items-center">
+                          {pallet.weight !== null ? 
+                            <span>{pallet.weight} kg</span> : 
+                            <span className="text-white/80">No weight</span>
+                          }
+                          <span className="text-xs text-white/60 mt-1">(88×108)</span>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    Drag pallets here to position them in the cargo area.
+                  </div>
+                  
+                  {/* Balance Indicator */}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="text-sm font-medium">Balance</h3>
+                      <span className={`text-xs font-medium ${
+                        balanceStatus === 'safe' ? 'text-green-500' : 
+                        balanceStatus === 'warning' ? 'text-yellow-500' : 'text-red-500'
+                      }`}>
+                        {balanceStatus === 'safe' ? 'Safe' : 
+                         balanceStatus === 'warning' ? 'Warning' : 'Danger'}
+                      </span>
+                    </div>
+                    
+                    {/* Balance Meter */}
+                    <div className="h-6 relative mb-1 rounded-md overflow-hidden">
+                      {/* Background gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-yellow-400 to-red-500"></div>
+                      
+                      {/* Center line */}
+                      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/50"></div>
+                      
+                      {/* Indicator needle */}
+                      <div 
+                        className="absolute top-0 bottom-0 w-1 bg-white"
+                        style={{ 
+                          left: `${(balanceValue + 100) / 2}%`,
+                          transform: 'translateX(-50%)',
+                          transition: 'left 0.3s ease-out'
+                        }}
+                      ></div>
+                      
+                      {/* Labels */}
+                      <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
+                        <span>FWD</span>
+                        <span className="mx-auto">BALANCED</span>
+                        <span>AFT</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                      <span>Heavy Forward</span>
+                      <span>Center of Gravity</span>
+                      <span>Heavy Aft</span>
+                    </div>
+                    
+                    {/* Reset Button */}
+                    <div className="mt-4">
+                      <Button 
+                        variant="outline" 
+                        className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" 
+                        onClick={handleReset}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reset All Pallets
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Storage Area */}
-            <Card className={`${
-              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-3' : 'lg:col-span-3'
-            }`}>
+              {/* Configure Pallets - Always on the right */}
+              <Card className="lg:col-span-4">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center">
+                    <Package2 className="h-5 w-5 mr-2 text-primary" />
+                    Configure Pallets
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      (Max: {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'})
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Template Pallet */}
+                  <div className="mb-6 p-4 border-2 border-dashed border-primary rounded-lg">
+                    <h3 className="text-sm font-medium flex items-center mb-3">
+                      <Package2 className="h-4 w-4 mr-2 text-primary" />
+                      Template Pallet
+                    </h3>
+                    
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Drag this template pallet to the cargo or storage areas to create new pallets.
+                      You can add up to {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'} pallets
+                      for the {currentAircraft.name}.
+                    </p>
+                    
+                    {/* Draggable template pallet */}
+                    <div 
+                      className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
+                      style={{ width: '88px', height: '108px' }}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, null)}
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <Package2 className="h-5 w-5 mb-2" />
+                        <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
+                        <span className="text-xs mt-1">(88×108)</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* List of existing pallets */}
+                  <div className="space-y-4 h-[400px] overflow-y-auto pr-2" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
+                    <h3 className="font-medium text-sm">
+                      Current Pallets ({pallets.length})
+                    </h3>
+                    
+                    {pallets.length === 0 ? (
+                      <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground">
+                        No pallets created yet. Drag the template pallet above to create new pallets.
+                      </div>
+                    ) : (
+                      pallets.map((pallet) => (
+                        <div 
+                          key={pallet.id} 
+                          className="bg-card border border-border rounded-md p-3"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center">
+                              <Package2 className="h-4 w-4 mr-2 text-primary" />
+                              <span className="font-medium text-sm">Pallet {pallet.id}</span>
+                            </div>
+                            <Badge 
+                              variant={
+                                pallet.location === "cargo" ? "default" : 
+                                pallet.location === "storage" ? "secondary" : "outline"
+                              }
+                              className="text-xs"
+                            >
+                              {pallet.location === "cargo" ? "In Cargo" : 
+                               pallet.location === "storage" ? "In Storage" : "Configure"}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="flex items-center">
+                              <Label htmlFor={`weight-${pallet.id}`} className="text-xs mr-2 w-16">
+                                Weight:
+                              </Label>
+                              <div className="flex-1">
+                                <Input
+                                  id={`weight-${pallet.id}`}
+                                  type="number"
+                                  min="0"
+                                  max={MAX_PAYLOAD}
+                                  value={pallet.weight === null ? '' : pallet.weight.toString()}
+                                  onChange={(e) => handleWeightChange(pallet.id, e.target.value)}
+                                  className={`h-7 text-sm`}
+                                  placeholder="Enter weight"
+                                />
+                              </div>
+                              <div className="ml-1 text-xs text-muted-foreground">kg</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Storage Area Below */}
+            <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center">
                   <Package2 className="h-5 w-5 mr-2 text-primary" />
@@ -970,9 +964,9 @@ export default function LoadPlanningPage() {
                   ref={storageRef}
                   className={`relative bg-gray-800/30 border border-gray-500/30 rounded-lg w-full ${
                     currentAircraftId === 'c17' 
-                      ? 'h-[300px]' 
+                      ? 'h-[280px]' 
                       : currentAircraftId === 'c130' 
-                        ? 'h-[200px]' 
+                        ? 'h-[180px]' 
                         : 'h-[120px]'
                   }`}
                   onDragOver={handleDragOver}
@@ -1056,9 +1050,7 @@ export default function LoadPlanningPage() {
             </Card>
             
             {/* Instructions */}
-            <Card className={`${
-              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-3' : 'lg:col-span-3'
-            }`}>
+            <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center">
                   <Package2 className="h-5 w-5 mr-2 text-primary" />
@@ -1067,7 +1059,8 @@ export default function LoadPlanningPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm">
-                  <strong>How to use:</strong> Drag the template pallet to the cargo or storage area to create new pallets.
+                  <strong>How to use:</strong> Drag the template pallet from the Configure Pallets section on the right to create new pallets.
+                  Drop them in the cargo area on the left to position them for transport.
                   You can edit the weight of each pallet using the input fields.
                   Only pallets in the cargo area count toward the total weight.
                 </p>
