@@ -1831,7 +1831,12 @@ export default function LoadPlanningPage() {
                                     key={`c130-row2-${i}`} 
                                     draggable={assignedPallet ? true : false}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                    onClick={assignedPallet ? () => showPalletInput(assignedPallet.id, positionLabel) : undefined}
+                                    onClick={(e) => {
+                                      if (assignedPallet) {
+                                        console.log("CLICKING C-130 ROW2 PALLET", assignedPallet.id, positionLabel);
+                                        handlePalletCellClick(e, assignedPallet, positionLabel);
+                                      }
+                                    }}
                                     className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
