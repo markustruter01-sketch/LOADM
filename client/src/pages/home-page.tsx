@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import DocumentCard from "@/components/DocumentCard";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Loader2, FileText, ClipboardList, BarChart3 } from "lucide-react";
+import cargoBayImage from "../assets/cargo-bay.png";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function HomePage() {
@@ -74,8 +75,8 @@ export default function HomePage() {
             {/* Featured Section Banner */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
               <img
-                src="https://pixabay.com/get/gf072876aa3b430280d49278783214995ecc68ab38621f3d55b9bc7463c63b94edc78cd06c528f4d416da65fc74c979a893ac56dfcf7b58b8707fdee6a90a83e0_1280.jpg"
-                alt="Aircraft cargo loading"
+                src={cargoBayImage}
+                alt="Military cargo loadmaster in aircraft bay"
                 className="w-full h-full object-cover"
               />
               <div className="gradient-overlay flex items-end">
