@@ -106,20 +106,7 @@ export function CargoManifestForm() {
         </style>
       </Helmet>
       
-      <div className="bg-primary w-full py-3 px-4 no-print">
-        <div className="container mx-auto">
-          {/* Back Button */}
-          <Button 
-            variant="link" 
-            size="sm" 
-            className="text-white hover:text-white/90 p-0"
-            onClick={() => window.location.href = "/"}
-          >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Back
-          </Button>
-        </div>
-      </div>
+
 
       <div id="cargo-manifest-form" className="px-4 py-4">
         <div className="max-w-4xl mx-auto">
