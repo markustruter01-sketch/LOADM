@@ -1854,6 +1854,29 @@ export default function LoadPlanningPage() {
                       </span>
                     </div>
                     
+                    {/* Dynamic Balance Position Box */}
+                    {totalWeightInCargo > 0 && (
+                      <div className="mb-2 relative">
+                        <div className="flex justify-center w-full">
+                          <div className="px-3 py-1 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 shadow-md">
+                            <div className="text-center text-sm font-medium">
+                              {Math.abs(balanceValue) < 15 ? (
+                                <span className="text-green-500">Balanced</span>
+                              ) : Math.abs(balanceValue) < 40 ? (
+                                balanceValue < 0 ? 
+                                  <span className="text-yellow-500">Forward Heavy</span> : 
+                                  <span className="text-yellow-500">Aft Heavy</span>
+                              ) : (
+                                balanceValue < 0 ? 
+                                  <span className="text-red-500">Dangerously Forward</span> : 
+                                  <span className="text-red-500">Dangerously Aft</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Balance Meter */}
                     <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md overflow-hidden">
                       {/* Background gradient */}
@@ -1861,12 +1884,12 @@ export default function LoadPlanningPage() {
                         background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
                       }}></div>
                       
-                      {/* Center line */}
-                      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80"></div>
+                      {/* Center line - Now half as thick */}
+                      <div className="absolute inset-y-0 left-1/2 w-px bg-white/80"></div>
                       
                       {/* Indicator needle */}
                       <div 
-                        className="absolute top-0 bottom-0 w-2 bg-white shadow-md"
+                        className="absolute top-0 bottom-0 w-1 bg-white shadow-md"
                         style={{ 
                           left: `${(balanceValue + 100) / 2}%`,
                           transform: 'translateX(-50%)',
@@ -1875,7 +1898,7 @@ export default function LoadPlanningPage() {
                       >
                         {/* Current CG value above the needle */}
                         <div 
-                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium"
+                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium shadow-sm"
                         >
                           {balanceCG}°
                         </div>
