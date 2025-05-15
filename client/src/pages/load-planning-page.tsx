@@ -162,31 +162,71 @@ export default function LoadPlanningPage() {
     let rect;
     let offsetX = 0;
     let offsetY = 0;
+    let areaWidth = 0;
+    let areaHeight = 0;
     
     if (dropArea === "cargo" && cargoRef.current) {
       rect = cargoRef.current.getBoundingClientRect();
       offsetX = rect.left;
       offsetY = rect.top;
+      areaWidth = rect.width;
+      areaHeight = rect.height;
     } else if (dropArea === "storage" && storageRef.current) {
       rect = storageRef.current.getBoundingClientRect();
       offsetX = rect.left;
       offsetY = rect.top;
+      areaWidth = rect.width;
+      areaHeight = rect.height;
     } else if (dropArea === "configure" && configureRef.current) {
       rect = configureRef.current.getBoundingClientRect();
       offsetX = rect.left;
       offsetY = rect.top;
+      areaWidth = rect.width;
+      areaHeight = rect.height;
     } else {
       return;
     }
     
     // Calculate drop position relative to the container
-    let newX = e.clientX - offsetX - (draggedPallet.size.width / 2);
-    let newY = e.clientY - offsetY - (draggedPallet.size.height / 2);
+    let dropX = e.clientX - offsetX;
+    let dropY = e.clientY - offsetY;
     
-    // Keep within bounds
-    if (rect) {
-      newX = Math.max(0, Math.min(newX, rect.width - draggedPallet.size.width));
-      newY = Math.max(0, Math.min(newY, rect.height - draggedPallet.size.height));
+    // For cargo and storage areas, snap to grid cells
+    let newX = 0;
+    let newY = 0;
+    
+    if (dropArea === "cargo" || dropArea === "storage") {
+      // Calculate the cell size based on the 3-column grid
+      const cellWidth = areaWidth / 3;
+      const cellHeight = areaHeight;
+      
+      // Determine which cell the pallet was dropped in (0, 1, or 2)
+      const cellColumn = Math.floor(dropX / cellWidth);
+      
+      // Calculate the position to center the pallet in that cell
+      // Use 90% of the cell size for the pallet
+      const palletWidth = cellWidth * 0.9;
+      const palletHeight = cellHeight * 0.9;
+      
+      // Center in the cell
+      newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+      newY = (cellHeight - palletHeight) / 2;
+      
+      // Update the pallet size to fit the grid cell
+      draggedPallet.size = {
+        width: palletWidth,
+        height: palletHeight
+      };
+    } else {
+      // For configure area, use the original drop calculation
+      newX = dropX - (draggedPallet.size.width / 2);
+      newY = dropY - (draggedPallet.size.height / 2);
+      
+      // Keep within bounds
+      if (rect) {
+        newX = Math.max(0, Math.min(newX, areaWidth - draggedPallet.size.width));
+        newY = Math.max(0, Math.min(newY, areaHeight - draggedPallet.size.height));
+      }
     }
     
     // Update the pallet's position and area
@@ -195,6 +235,7 @@ export default function LoadPlanningPage() {
         return {
           ...pallet,
           position: { x: newX, y: newY },
+          size: dropArea === "configure" ? { width: 70, height: 50 } : draggedPallet.size,
           location: dropArea
         };
       }
@@ -327,13 +368,12 @@ export default function LoadPlanningPage() {
                   </div>
                   
                   <div className="relative h-8 w-full bg-muted rounded-md overflow-hidden">
-                    {/* Balance scale background with color zones */}
-                    <div className="absolute inset-0 flex">
-                      <div className="w-1/4 bg-destructive/80 h-full"></div>
-                      <div className="w-1/4 bg-yellow-500/80 h-full"></div>
-                      <div className="w-1/4 bg-green-500/80 h-full"></div>
-                      <div className="w-1/4 bg-yellow-500/80 h-full"></div>
-                      <div className="w-1/4 bg-destructive/80 h-full"></div>
+                    {/* Balance scale background with smooth color gradient */}
+                    <div className="absolute inset-0" 
+                      style={{ 
+                        background: 'linear-gradient(to right, #f87171, #fbbf24, #4ade80, #fbbf24, #f87171)',
+                        backgroundSize: '100% 100%'
+                      }}>
                     </div>
                     
                     {/* Center line */}
