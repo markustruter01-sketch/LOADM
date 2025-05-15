@@ -1944,23 +1944,24 @@ export default function LoadPlanningPage() {
                     {/* Balance Meter */}
                     <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md">
                       {/* Container for the gradient background with overflow hidden */}
+                      {/* Updated gradient to remove red and use green-centered colors */}
                       <div className="absolute inset-0 overflow-hidden" style={{ 
-                        background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
+                        background: 'linear-gradient(to right, #ea580c 0%, #f59e0b 20%, #84cc16 40%, #22c55e 50%, #84cc16 60%, #f59e0b 80%, #ea580c 100%)'
                       }}></div>
                       
-                      {/* Indicator needle - 0.85px width (15% thinner), white color, 100% longer */}
+                      {/* Indicator needle - white needle, twice as tall as the container */}
                       <div 
                         className="absolute shadow-md"
                         style={{ 
                           backgroundColor: 'white',
-                          width: '0.85px',
+                          width: '1px',
                           left: `${(balanceValue + 100) / 2}%`,
-                          top: '-50%', // Extended 50% above
-                          bottom: '-50%', // Extended 50% below
-                          height: '200%', // Makes it 2x as tall as the container (20% shorter than before)
+                          top: '-100%', // Extended above to make it twice as tall
+                          height: '200%', // Makes it 2x as tall as the container
                           transform: 'translateX(-50%)',
                           transition: 'left 0.3s ease-out',
-                          zIndex: 10 // Bring forward
+                          zIndex: 10, // Bring forward
+                          boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.3)' // Add slight shadow for better visibility
                         }}
                       >
                         {/* Current CG value above the needle */}
