@@ -1627,13 +1627,16 @@ export default function LoadPlanningPage() {
                                 return (
                                   <div 
                                     key={`c130-row2-${i}`} 
-                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    draggable={assignedPallet ? true : false}
+                                    onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 100,
                                       width: config.cellWidth,
                                       height: config.cellHeight,
-                                      backgroundColor: bgColor
+                                      backgroundColor: bgColor,
+                                      zIndex: assignedPallet ? 10 : 1
                                     }}
                                   >
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -1710,14 +1713,17 @@ export default function LoadPlanningPage() {
                             
                             return (
                               <div 
-                                key={`spartan-${i}`} 
-                                className={`absolute border-2 ${borderColor} rounded-sm`}
+                                key={`spartan-${i}`}
+                                draggable={assignedPallet ? true : false}
+                                onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                 style={{
                                   left: i * cellSpacing,
                                   top: 20,
                                   width: config.cellWidth,
                                   height: config.cellHeight,
-                                  backgroundColor: bgColor
+                                  backgroundColor: bgColor,
+                                  zIndex: assignedPallet ? 10 : 1
                                 }}
                               >
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
