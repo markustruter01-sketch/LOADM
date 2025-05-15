@@ -103,7 +103,7 @@ export default function DocumentMenu() {
         {/* No view all button needed as this is now the documents page */}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
         {documents.map((doc) => (
           <DocumentCard
             key={doc.id}

@@ -93,7 +93,7 @@ export default function DocumentsPage() {
       
       {/* Load Planning Form - C-17 Load Plan */}
       <div id="load-planning-form" className="container mx-auto pb-20 pt-4">
-        <div className="max-w-5xl mx-auto bg-card p-6 rounded-lg shadow-md">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-6">Load Planning Form</h2>
           <p className="text-muted-foreground mb-4">Complete detailed load planning documentation for cargo aircraft operations.</p>
           
