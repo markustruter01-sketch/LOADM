@@ -11,7 +11,7 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import DocumentFormPage from "@/pages/document-form-page";
 import ScenarioPage from "@/pages/scenario-page";
-import DocumentsPage from "@/pages/documents-page";
+import DocsListPage from "@/pages/docs-list-page";
 import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
@@ -32,7 +32,7 @@ function Router() {
         <Switch>
           <Route path="/" component={HomePage} />
           <Route path="/auth" component={AuthPage} />
-          <Route path="/documents" component={DocumentsPage} />
+          <Route path="/documents" component={DocsListPage} />
           <Route path="/documents/:id" component={DocumentFormPage} />
           <Route path="/scenarios" component={ScenariosPage} />
           <Route path="/scenarios/:id" component={ScenarioPage} />
