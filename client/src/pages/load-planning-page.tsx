@@ -185,13 +185,19 @@ export default function LoadPlanningPage() {
   
   // Show pallet input dialog
   const showPalletInput = (palletId: number, position?: string) => {
+    console.log("showPalletInput called with ID:", palletId, "position:", position);
+    console.log("Current pallets:", pallets); // Debug log
+    
     const pallet = pallets.find(p => p.id === palletId);
     if (pallet) {
+      console.log("Pallet found:", pallet); // Debug log
       setEditingPalletId(palletId);
       setPalletWeight(pallet.weight ? pallet.weight.toString() : "");
       setPalletCargoType(pallet.cargoType || "C");
       setPalletPosition(position || pallet.positionLabel || "");
       setPalletInputOpen(true);
+    } else {
+      console.log("Pallet not found with ID:", palletId); // Debug log
     }
   };
   
@@ -535,22 +541,36 @@ export default function LoadPlanningPage() {
         }
       }
       
+      // Store the current pallet ID before incrementing
+      const currentId = nextPalletId;
+      
       // Create the new pallet with position
       const newPallet: Pallet = {
-        id: nextPalletId,
+        id: currentId,
         position: { x: newX, y: newY },
         location: dropArea,
         weight: null,
         size: palletSize
       };
       
-      // Add the new pallet to the pallets array first
-      setPallets(prev => [...prev, newPallet]);
+      // Add the new pallet to the pallets array and set a callback to show the dialog after state update
+      setPallets(prev => {
+        const updatedPallets = [...prev, newPallet];
+        
+        // After the next render when the state is updated, we can reliably reference the new pallet
+        setTimeout(() => {
+          if (dropArea === "cargo") {
+            showPalletInput(currentId, newPallet.positionLabel || "");
+          }
+        }, 0);
+        
+        return updatedPallets;
+      });
       
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
       
-      // If pallet is being placed in cargo area, find nearest position label and open dialog
+      // If pallet is being placed in cargo area, find nearest position label and position
       if (dropArea === "cargo") {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
@@ -675,14 +695,8 @@ export default function LoadPlanningPage() {
         newPallet.position.y = snapY;
         newPallet.positionLabel = positionLabel;
         
-        // Open pallet input dialog immediately
-        // Store current ID to ensure we're referencing the correct pallet
-        const currentPalletId = nextPalletId;
-        
-        // Use a small timeout to ensure React has updated the state
-        setTimeout(() => {
-          showPalletInput(currentPalletId - 1, positionLabel);
-        }, 10);
+        // No need to call showPalletInput here anymore
+        // We've already set it up in the setPallets callback above
       }
       
     } else {
