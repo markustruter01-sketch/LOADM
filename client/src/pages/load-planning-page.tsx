@@ -1864,18 +1864,20 @@ export default function LoadPlanningPage() {
                       {/* Center line */}
                       <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80"></div>
                       
-                      {/* Indicator needle - reduced to 1px width (half of 2px) */}
+                      {/* Indicator needle - light grey and 50% longer */}
                       <div 
-                        className="absolute top-0 bottom-0 w-1 bg-white shadow-md"
+                        className="absolute w-1 bg-gray-300 dark:bg-gray-400 shadow-md"
                         style={{ 
                           left: `${(balanceValue + 100) / 2}%`,
                           transform: 'translateX(-50%)',
-                          transition: 'left 0.3s ease-out'
+                          transition: 'left 0.3s ease-out',
+                          top: '-25%', /* Extended 25% above */
+                          bottom: '-25%' /* Extended 25% below */
                         }}
                       >
-                        {/* Current CG value above the needle */}
+                        {/* Current CG value above the needle - position adjusted for longer needle */}
                         <div 
-                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium"
+                          className="absolute -top-9 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium"
                         >
                           {balanceCG}°
                         </div>
