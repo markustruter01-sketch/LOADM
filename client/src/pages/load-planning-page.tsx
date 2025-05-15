@@ -1595,23 +1595,78 @@ export default function LoadPlanningPage() {
                               })}
                               
                               {/* Second row */}
-                              {[...Array(config.cols)].map((_, i) => (
-                                <div 
-                                  key={`c130-row2-${i}`} 
-                                  className="absolute border-2 border-green-800/80 rounded-sm"
-                                  style={{
-                                    left: i * cellSpacing,
-                                    top: 100,
-                                    width: config.cellWidth,
-                                    height: config.cellHeight,
-                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                                  }}
-                                >
-                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
-                                    P{i + 5}
+                              {[...Array(config.cols)].map((_, i) => {
+                                // Calculate position label for this grid cell (second row of C-130 starts with P5)
+                                const positionLabel = `P${i + 5}`;
+                                
+                                // Find if a pallet is assigned to this position
+                                const assignedPallet = pallets.find(p => 
+                                  p.location === "cargo" && 
+                                  p.positionLabel === positionLabel
+                                );
+                                
+                                // Determine cell background color based on occupation
+                                const bgColor = assignedPallet ? 
+                                  'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                  'rgba(20, 83, 45, 0.15)';   // Green for empty
+                                
+                                // Determine border color based on occupation
+                                const borderColor = assignedPallet ?
+                                  'border-orange-500' :      // Orange border for occupied
+                                  'border-green-800/80';     // Green border for empty
+                                
+                                return (
+                                  <div 
+                                    key={`c130-row2-${i}`} 
+                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    style={{
+                                      left: i * cellSpacing,
+                                      top: 100,
+                                      width: config.cellWidth,
+                                      height: config.cellHeight,
+                                      backgroundColor: bgColor
+                                    }}
+                                  >
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                      {/* Position label - always shown */}
+                                      <div className="absolute top-1 left-1">
+                                        <span className="text-xs font-medium bg-white/20 px-1 rounded text-white">
+                                          {positionLabel}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* If no pallet is assigned, show pale label in center */}
+                                      {!assignedPallet && (
+                                        <div className="text-white/50 font-bold text-xl">
+                                          {positionLabel}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Weight info - only if position is occupied */}
+                                      {assignedPallet && (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                          {assignedPallet.weight !== null ? 
+                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span className="text-white/80">No weight</span>
+                                          }
+                                        </div>
+                                      )}
+                                      
+                                      {/* Cargo type badge - only if position is occupied */}
+                                      {assignedPallet && assignedPallet.cargoType && (
+                                        <div className="absolute top-1 right-1">
+                                          <Badge 
+                                            variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                            className="text-xs px-1"
+                                          >
+                                            {assignedPallet.cargoType}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </>
                           );
                         })()}
@@ -1624,71 +1679,83 @@ export default function LoadPlanningPage() {
                           const config = getAircraftGridConfig(currentAircraftId);
                           const cellSpacing = config.cellWidth + config.cellPadding;
                           
-                          return [...Array(config.cols)].map((_, i) => (
-                            <div 
-                              key={`spartan-${i}`} 
-                              className="absolute border-2 border-green-800/80 rounded-sm"
-                              style={{
-                                left: i * cellSpacing,
-                                top: 20,
-                                width: config.cellWidth,
-                                height: config.cellHeight,
-                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                              }}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
-                                P{i + 1}
+                          return [...Array(config.cols)].map((_, i) => {
+                            // Calculate position label for this grid cell
+                            const positionLabel = `P${i + 1}`;
+                            
+                            // Find if a pallet is assigned to this position
+                            const assignedPallet = pallets.find(p => 
+                              p.location === "cargo" && 
+                              p.positionLabel === positionLabel
+                            );
+                            
+                            // Determine cell background color based on occupation
+                            const bgColor = assignedPallet ? 
+                              'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                              'rgba(20, 83, 45, 0.15)';   // Green for empty
+                            
+                            // Determine border color based on occupation
+                            const borderColor = assignedPallet ?
+                              'border-orange-500' :      // Orange border for occupied
+                              'border-green-800/80';     // Green border for empty
+                            
+                            return (
+                              <div 
+                                key={`spartan-${i}`} 
+                                className={`absolute border-2 ${borderColor} rounded-sm`}
+                                style={{
+                                  left: i * cellSpacing,
+                                  top: 20,
+                                  width: config.cellWidth,
+                                  height: config.cellHeight,
+                                  backgroundColor: bgColor
+                                }}
+                              >
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  {/* Position label - always shown */}
+                                  <div className="absolute top-1 left-1">
+                                    <span className="text-xs font-medium bg-white/20 px-1 rounded text-white">
+                                      {positionLabel}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* If no pallet is assigned, show pale label in center */}
+                                  {!assignedPallet && (
+                                    <div className="text-white/50 font-bold text-xl">
+                                      {positionLabel}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Weight info - only if position is occupied */}
+                                  {assignedPallet && (
+                                    <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                      {assignedPallet.weight !== null ? 
+                                        <span>{assignedPallet.weight} kg</span> : 
+                                        <span className="text-white/80">No weight</span>
+                                      }
+                                    </div>
+                                  )}
+                                  
+                                  {/* Cargo type badge - only if position is occupied */}
+                                  {assignedPallet && assignedPallet.cargoType && (
+                                    <div className="absolute top-1 right-1">
+                                      <Badge 
+                                        variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                        className="text-xs px-1"
+                                      >
+                                        {assignedPallet.cargoType}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ));
+                            );
+                          });
                         })()}
                       </div>
                     )}
                     
-                    {/* Pallets in cargo area */}
-                    {pallets.filter(pallet => pallet.location === "cargo").map((pallet) => (
-                      <div
-                        key={pallet.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, pallet.id)}
-                        className="absolute cursor-move flex items-center justify-center font-bold text-white bg-orange-500/70 border-2 border-orange-500 rounded-md"
-                        style={{
-                          left: `${pallet.position.x}px`,
-                          top: `${pallet.position.y}px`,
-                          width: "120px",  // Force the exact width
-                          height: "90px", // Force the exact height
-                          zIndex: 10
-                        }}
-                      >
-                        <div className="flex flex-col items-center w-full h-full">
-                          <div className="absolute top-1 left-1">
-                            {pallet.positionLabel && (
-                              <span className="text-xs font-medium bg-white/20 px-1 rounded">
-                                {pallet.positionLabel}
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 flex flex-col items-center justify-center">
-                            {pallet.weight !== null ? 
-                              <span>{pallet.weight} kg</span> : 
-                              <span className="text-white/80">No weight</span>
-                            }
-                          </div>
-                          
-                          <div className="absolute top-1 right-1">
-                            {pallet.cargoType && (
-                              <Badge 
-                                variant={pallet.cargoType === "C" ? "outline" : "destructive"}
-                                className="text-xs px-1"
-                              >
-                                {pallet.cargoType}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                    {/* We no longer need separate pallets rendering as the cargo information is shown in the grid cells */}
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">
                     Drag pallets here to position them in the cargo area.
