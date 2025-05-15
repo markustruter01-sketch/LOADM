@@ -75,6 +75,7 @@ export default function LoadPlanningPage() {
   
   // Balance state: -100 (fully left/forward) to 100 (fully right/aft), 0 is perfectly balanced
   const [balanceValue, setBalanceValue] = useState(0);
+  const [balanceCG, setBalanceCG] = useState(53); // Centre of Gravity value (18-88 degrees)
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
   
   // Keep track of the balance scale width to make cargo area match it
@@ -492,6 +493,11 @@ export default function LoadPlanningPage() {
     }
     
     setBalanceValue(balance);
+    
+    // Calculate Centre of Gravity value (18-88 degrees)
+    // Map from -100:100 to 18:88 (70 degree range)
+    const cg = Math.round(((balance + 100) / 200) * 70 + 18);
+    setBalanceCG(cg);
     
     // Determine balance status
     if (Math.abs(balance) < 20) {
@@ -1866,7 +1872,14 @@ export default function LoadPlanningPage() {
                           transform: 'translateX(-50%)',
                           transition: 'left 0.3s ease-out'
                         }}
-                      ></div>
+                      >
+                        {/* Current CG value above the needle */}
+                        <div 
+                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium"
+                        >
+                          {balanceCG}°
+                        </div>
+                      </div>
                       
                       {/* Labels */}
                       <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
@@ -1876,7 +1889,49 @@ export default function LoadPlanningPage() {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    {/* CG Scale Markings */}
+                    <div className="relative h-6 mb-2">
+                      {/* Generate tick marks and labels */}
+                      {[...Array(71)].map((_, i) => {
+                        const position = i * (100 / 70); // 0-100% across the width
+                        const value = 18 + i; // 18-88 degrees
+                        const isMajorTick = value % 5 === 0; // Every 5th tick is major
+                        
+                        return (
+                          <div key={`tick-${i}`}>
+                            {/* Tick mark */}
+                            <div 
+                              className="absolute top-0 w-px bg-gray-400 dark:bg-gray-600" 
+                              style={{ 
+                                left: `${position}%`,
+                                height: isMajorTick ? '8px' : '5px'
+                              }}
+                            ></div>
+                            
+                            {/* Label (only on major ticks) */}
+                            {isMajorTick && (
+                              <div 
+                                className="absolute text-[9px] text-gray-500 dark:text-gray-400 font-medium"
+                                style={{ 
+                                  left: `${position}%`, 
+                                  top: '10px',
+                                  transform: 'translateX(-50%)'
+                                }}
+                              >
+                                {value}°
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      
+                      {/* C of G label */}
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-[9px] text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
+                        Centre of Gravity (degrees)
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-3">
                       <span>Heavy Forward</span>
                       <span>Center of Gravity</span>
                       <span>Heavy Aft</span>
