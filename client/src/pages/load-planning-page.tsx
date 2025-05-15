@@ -81,31 +81,6 @@ export default function LoadPlanningPage() {
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
   const balanceScaleRef = useRef<HTMLDivElement>(null);
   
-  // Update balance scale width on mount and window resize
-  useEffect(() => {
-    // Function to update balance scale width measurement
-    const updateBalanceScaleWidth = () => {
-      if (balanceScaleRef.current) {
-        const width = balanceScaleRef.current.clientWidth;
-        // Only update if it's a valid measurement and different from current
-        if (width > 0 && width !== balanceScaleWidth) {
-          setBalanceScaleWidth(width);
-        }
-      }
-    };
-    
-    // Initial measurement
-    updateBalanceScaleWidth();
-    
-    // Set up resize handler
-    window.addEventListener('resize', updateBalanceScaleWidth);
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('resize', updateBalanceScaleWidth);
-    };
-  }, [balanceScaleWidth]);
-  
   // Helper function to get aircraft grid configuration
   const getAircraftGridConfig = (aircraft: string): {
     rows: number;
@@ -117,15 +92,13 @@ export default function LoadPlanningPage() {
     palletHeight: number;
   } => {
     // Calculate the optimal cell dimensions based on the balance scale width
-    // This ensures cargo area pallets always match the width of the balance scale
     const totalWidth = balanceScaleWidth || 715; // Default if not measured yet
     
     switch (aircraft) {
       case 'c17':
         // C-17 has 9 columns in 2 rows
         const c17CellWidth = Math.floor(totalWidth / 9);
-        // Maintain fixed cell aspect ratio for consistency
-        const c17CellHeight = Math.floor(c17CellWidth * 1.15); // Keep height proportional to width
+        const c17CellHeight = 87;
         return {
           rows: 2,
           cols: 9,
@@ -139,8 +112,7 @@ export default function LoadPlanningPage() {
       case 'c130':
         // C-130 has 4 columns in 2 rows
         const c130CellWidth = Math.floor(totalWidth / 4);
-        // Maintain fixed cell aspect ratio for consistency
-        const c130CellHeight = Math.floor(c130CellWidth * 0.8); // Slightly wider than tall
+        const c130CellHeight = 80;
         return {
           rows: 2,
           cols: 4,
@@ -154,8 +126,7 @@ export default function LoadPlanningPage() {
       default: // c27j, kc30a
         // C-27J/KC30-A has 3 columns in 1 row
         const spartanCellWidth = Math.floor(totalWidth / 3);
-        // Maintain fixed cell aspect ratio for consistency
-        const spartanCellHeight = Math.floor(spartanCellWidth * 0.9); // Slightly wider than tall
+        const spartanCellHeight = 96;
         return {
           rows: 1,
           cols: 3,
@@ -191,7 +162,7 @@ export default function LoadPlanningPage() {
     xSpacing?: number,
     yOffset?: number
   ) => {
-    // Apply 10% size reduction for all pallets - ensure pallets fit perfectly within grid cells
+    // Apply 10% size reduction for all pallets
     const width = Math.floor(cellWidth * 0.9);
     const height = Math.floor(cellHeight * 0.9);
     
@@ -818,17 +789,11 @@ export default function LoadPlanningPage() {
           }
         } else {
           // For C-27J/KC30-A with 3x1 grid
-          // Get current aircraft configuration
-          const config = getAircraftGridConfig(currentAircraftId);
-          // Calculate cell spacing based on balance scale width
-          const cellSpacing = Math.floor(balanceScaleWidth / 3);
-          
           for (let col = 0; col < 3; col++) {
-            // Use the dimensions from aircraft configuration
-            const cellWidth = config.cellWidth;
-            const cellHeight = config.cellHeight;
-            // Calculate center of each cell
-            const cellX = col * cellSpacing + cellWidth/2;
+            // Make positions 120% bigger for Spartan cargo area
+            const cellWidth = 132; // 110 * 1.2
+            const cellHeight = 96; // 80 * 1.2
+            const cellX = col * 144 + cellWidth/2; // center of cell (120 * 1.2 = 144)
             const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
@@ -840,13 +805,23 @@ export default function LoadPlanningPage() {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
               
-              // Get pallet dimensions directly from configuration
-              palletSize.width = config.palletWidth;
-              palletSize.height = config.palletHeight;
+              // Calculate dimensions using helper function for consistent sizing
+              const dimensions = calculatePalletDimensions(
+                cellWidth, 
+                cellHeight, 
+                col,
+                0,    // No row for C-27J
+                144,  // x spacing of 144 for Spartan
+                0     // No additional offset
+              );
+              
+              // Update pallet size to be 10% smaller
+              palletSize.width = dimensions.width;
+              palletSize.height = dimensions.height;
               
               // Calculate snap position (centered in cell)
-              snapX = col * cellSpacing + (cellWidth - config.palletWidth) / 2;
-              snapY = 20 + (cellHeight - config.palletHeight) / 2;
+              snapX = col * 144 + (cellWidth - dimensions.width) / 2;
+              snapY = 20 + (cellHeight - dimensions.height) / 2;
             }
           }
         }
@@ -972,17 +947,10 @@ export default function LoadPlanningPage() {
           }
         } else {
           // For C-27J/KC30-A with 3x1 grid
-          // Get current aircraft configuration
-          const config = getAircraftGridConfig(currentAircraftId);
-          // Calculate cell spacing based on balance scale width
-          const cellSpacing = Math.floor(balanceScaleWidth / 3);
-          
           for (let col = 0; col < 3; col++) {
-            // Use the dimensions from aircraft configuration
-            const cellWidth = config.cellWidth;
-            const cellHeight = config.cellHeight;
-            // Calculate center of each cell
-            const cellX = col * cellSpacing + cellWidth/2;
+            const cellWidth = 132;
+            const cellHeight = 96;
+            const cellX = col * 144 + cellWidth/2; // center of cell
             const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
@@ -994,14 +962,24 @@ export default function LoadPlanningPage() {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
               
-              // Calculate snap position (centered in cell)
-              snapX = col * cellSpacing + (cellWidth - config.palletWidth) / 2;
-              snapY = 20 + (cellHeight - config.palletHeight) / 2;
+              // Calculate dimensions using helper function for consistent sizing
+              const dimensions = calculatePalletDimensions(
+                cellWidth,
+                cellHeight,
+                col,
+                0,     // No row for C-27J
+                144,   // x spacing of 144 for Spartan
+                0      // No additional offset
+              );
               
-              // Update the pallet size using config values
+              // Calculate snap position (centered in cell)
+              snapX = col * 144 + (cellWidth - dimensions.width) / 2;
+              snapY = 20 + (cellHeight - dimensions.height) / 2;
+              
+              // Update the pallet size to be consistently 10% smaller
               draggedPallet.size = {
-                width: config.palletWidth,
-                height: config.palletHeight
+                width: dimensions.width,
+                height: dimensions.height
               };
             }
           }
@@ -1150,16 +1128,10 @@ export default function LoadPlanningPage() {
       // Update the pallet's position and area
       setPallets(prev => prev.map(pallet => {
         if (pallet.id === id) {
-          // Get the proper dimensions based on aircraft type
-          const config = getAircraftGridConfig(currentAircraftId);
-          const palletSize = dropArea === "configure" 
-            ? { width: 88, height: 108 } // Fixed size in config area
-            : { width: config.palletWidth, height: config.palletHeight }; // Dynamic size in cargo area
-            
           return {
             ...pallet,
             position: { x: newX, y: newY },
-            size: palletSize,
+            size: dropArea === "configure" ? { width: 88, height: 108 } : draggedPallet.size,
             location: dropArea
           };
         }
@@ -1485,7 +1457,7 @@ export default function LoadPlanningPage() {
                         {(() => {
                           // Get configuration for current aircraft (C-27J or KC30-A)
                           const config = getAircraftGridConfig(currentAircraftId);
-                          const cellSpacing = Math.floor(balanceScaleWidth / 3); // Evenly distribute across available width
+                          const cellSpacing = config.cellWidth + config.cellPadding;
                           
                           return [...Array(config.cols)].map((_, i) => (
                             <div 
@@ -1518,8 +1490,8 @@ export default function LoadPlanningPage() {
                         style={{
                           left: `${pallet.position.x}px`,
                           top: `${pallet.position.y}px`,
-                          width: `${pallet.size.width}px`,  // Dynamic width based on aircraft
-                          height: `${pallet.size.height}px`, // Dynamic height based on aircraft
+                          width: "120px",  // Force the exact width
+                          height: "90px", // Force the exact height
                           zIndex: 10
                         }}
                       >
@@ -1648,15 +1620,15 @@ export default function LoadPlanningPage() {
                     <div 
                       className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
                       style={{ 
-                        width: getAircraftGridConfig(currentAircraftId).palletWidth, 
-                        height: getAircraftGridConfig(currentAircraftId).palletHeight 
+                        width: currentAircraftId === 'c17' ? '71px' : '110px', 
+                        height: currentAircraftId === 'c17' ? '87px' : '80px' 
                       }}
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
                       <div className="flex flex-col items-center justify-center">
-                        <Package2 className="h-5 w-5 mb-1" />
-                        <span className="font-medium text-center text-[10px]">Drag to Create</span>
+                        <Package2 className="h-5 w-5 mb-2" />
+                        <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
                       </div>
                     </div>
                   </div>
