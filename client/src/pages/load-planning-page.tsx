@@ -1381,14 +1381,17 @@ export default function LoadPlanningPage() {
                                 
                                 return (
                                   <div 
-                                    key={`cell-row1-${i}`} 
-                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    key={`cell-row1-${i}`}
+                                    draggable={assignedPallet ? true : false}
+                                    onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 10,
                                       width: config.cellWidth,
                                       height: config.cellHeight,
-                                      backgroundColor: bgColor
+                                      backgroundColor: bgColor,
+                                      zIndex: assignedPallet ? 10 : 1
                                     }}
                                   >
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -1455,14 +1458,17 @@ export default function LoadPlanningPage() {
                                 
                                 return (
                                   <div 
-                                    key={`cell-row2-${i}`} 
-                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    key={`cell-row2-${i}`}
+                                    draggable={assignedPallet ? true : false}
+                                    onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 105, 
                                       width: config.cellWidth,
                                       height: config.cellHeight,
-                                      backgroundColor: bgColor
+                                      backgroundColor: bgColor,
+                                      zIndex: assignedPallet ? 10 : 1
                                     }}
                                   >
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -1543,14 +1549,17 @@ export default function LoadPlanningPage() {
                                 
                                 return (
                                   <div 
-                                    key={`c130-row1-${i}`} 
-                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    key={`c130-row1-${i}`}
+                                    draggable={assignedPallet ? true : false}
+                                    onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 10,
                                       width: config.cellWidth,
                                       height: config.cellHeight,
-                                      backgroundColor: bgColor
+                                      backgroundColor: bgColor,
+                                      zIndex: assignedPallet ? 10 : 1
                                     }}
                                   >
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
