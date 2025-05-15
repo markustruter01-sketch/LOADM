@@ -254,9 +254,12 @@ export default function LoadPlanningPage() {
                 <CardTitle>Configure Pallets</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-4 relative" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
                   {pallets.map((pallet) => (
-                    <div key={pallet.id} className="bg-card border border-border rounded-md p-2">
+                    <div 
+                      key={pallet.id} 
+                      className="bg-card border border-border rounded-md p-2"
+                    >
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center">
                           <Package2 className="h-4 w-4 mr-2 text-primary" />
@@ -292,6 +295,16 @@ export default function LoadPlanningPage() {
                           </div>
                           <div className="ml-1 text-xs text-muted-foreground">kg</div>
                         </div>
+                      </div>
+                      
+                      {/* Draggable pallet representation */}
+                      <div 
+                        className="mt-2 bg-orange-500/70 border-2 border-orange-500 rounded p-2 flex items-center justify-center cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, pallet.id)}
+                      >
+                        <Package2 className="h-4 w-4 mr-1" />
+                        <span className="text-xs font-medium">Drag Pallet {pallet.id} ({pallet.weight} kg)</span>
                       </div>
                     </div>
                   ))}
