@@ -170,7 +170,7 @@ export default function LoadPlanningPage() {
   }, [pallets]);
   
   const handleBackClick = () => {
-    navigate("/");
+    navigate("/load-planning");
   };
   
   const handleDragStart = (e: React.DragEvent, id: number) => {
@@ -230,6 +230,12 @@ export default function LoadPlanningPage() {
     
     // Check if the new weight would exceed the maximum payload
     if (weightValue + otherPalletsWeight > MAX_PAYLOAD) {
+      showAlert(
+        'error',
+        'Aircraft Payload Limit Exceeded',
+        `The total weight exceeds the maximum payload capacity of ${currentAircraft.name} (${MAX_PAYLOAD.toLocaleString()} kg).`
+      );
+      
       // Limit the weight to the maximum allowed
       weightValue = Math.max(0, MAX_PAYLOAD - otherPalletsWeight);
     }
