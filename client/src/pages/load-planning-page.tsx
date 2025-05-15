@@ -626,9 +626,10 @@ export default function LoadPlanningPage() {
         } else {
           // For C-27J/KC30-A with 3x1 grid
           for (let col = 0; col < 3; col++) {
-            const cellWidth = 132;
-            const cellHeight = 80;
-            const cellX = col * 120 + cellWidth/2; // center of cell
+            // Make positions 120% bigger for Spartan cargo area
+            const cellWidth = 132; // 110 * 1.2
+            const cellHeight = 96; // 80 * 1.2
+            const cellX = col * 144 + cellWidth/2; // center of cell (120 * 1.2 = 144)
             const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
@@ -649,7 +650,7 @@ export default function LoadPlanningPage() {
               palletSize.height = reducedHeight;
               
               // Calculate snap position (centered in cell)
-              snapX = col * 120 + (cellWidth - reducedWidth) / 2;
+              snapX = col * 144 + (cellWidth - reducedWidth) / 2;
               snapY = 20 + (cellHeight - reducedHeight) / 2;
             }
           }
@@ -772,9 +773,9 @@ export default function LoadPlanningPage() {
         } else {
           // For C-27J/KC30-A with 3x1 grid
           for (let col = 0; col < 3; col++) {
-            const cellWidth = 110;
-            const cellHeight = 80;
-            const cellX = col * 120 + cellWidth/2; // center of cell
+            const cellWidth = 132;
+            const cellHeight = 96;
+            const cellX = col * 144 + cellWidth/2; // center of cell
             const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
