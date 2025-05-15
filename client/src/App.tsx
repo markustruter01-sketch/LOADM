@@ -13,7 +13,7 @@ import DocumentFormPage from "@/pages/document-form-page";
 import ScenarioPage from "@/pages/scenario-page";
 import DocumentsPage from "@/pages/documents-page";
 import ScenariosPage from "@/pages/scenarios-page";
-import LoadPlanningPage from "@/pages/load-planning-page";
+import LoadPlanningPage from "@/pages/load-planning-page-new";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import CargoManifestPage from "@/pages/cargo-manifest-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
