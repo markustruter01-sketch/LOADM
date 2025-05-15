@@ -1560,7 +1560,8 @@ export default function LoadPlanningPage() {
                                     key={`cell-row1-${i}`}
                                     draggable={assignedPallet ? true : false}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                    onClick={assignedPallet ? () => showPalletInput(assignedPallet.id, positionLabel) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 10,
@@ -1632,7 +1633,8 @@ export default function LoadPlanningPage() {
                                     key={`cell-row2-${i}`}
                                     draggable={assignedPallet ? true : false}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                    onClick={assignedPallet ? () => showPalletInput(assignedPallet.id, positionLabel) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 105, 
@@ -1718,7 +1720,8 @@ export default function LoadPlanningPage() {
                                     key={`c130-row1-${i}`}
                                     draggable={assignedPallet ? true : false}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                    onClick={assignedPallet ? () => showPalletInput(assignedPallet.id, positionLabel) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 10,
@@ -1790,7 +1793,8 @@ export default function LoadPlanningPage() {
                                     key={`c130-row2-${i}`} 
                                     draggable={assignedPallet ? true : false}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                    onClick={assignedPallet ? () => showPalletInput(assignedPallet.id, positionLabel) : undefined}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 100,
