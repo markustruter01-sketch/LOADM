@@ -16,13 +16,13 @@ export default function InstructorsPortal() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Redirect if not admin
+  // Welcome toast for new instructors (optional)
   useEffect(() => {
-    if (user && !user.isAdmin) {
+    if (user && !sessionStorage.getItem('instructorWelcomed')) {
+      sessionStorage.setItem('instructorWelcomed', 'true');
       toast({
-        title: "Access Denied",
-        description: "You need instructor privileges to access this portal",
-        variant: "destructive"
+        title: "Welcome to the Instructors Portal",
+        description: "You can create and manage training scenarios here",
       });
     }
   }, [user, toast]);
@@ -37,12 +37,12 @@ export default function InstructorsPortal() {
 
   const { data: documentSubmissions } = useQuery<DocumentSubmission[]>({
     queryKey: ["/api/document-submissions"],
-    enabled: !!user?.isAdmin,
+    enabled: !!user,
   });
 
   const { data: scenarioSubmissions } = useQuery<ScenarioSubmission[]>({
     queryKey: ["/api/scenario-submissions"],
-    enabled: !!user?.isAdmin,
+    enabled: !!user,
   });
 
   return (
@@ -56,8 +56,8 @@ export default function InstructorsPortal() {
         <div className="mb-8 max-w-3xl">
           <h2 className="text-3xl font-bold mb-2 text-foreground">Instructors Portal</h2>
           <p className="text-muted-foreground">
-            Welcome to the instructor management portal. As an authorized instructor, you can 
-            create, edit, and manage training scenarios to support loadmaster training.
+            Welcome to the instructor management portal. You can create, edit, and manage 
+            training scenarios to support loadmaster training and assessments.
           </p>
         </div>
 

@@ -156,6 +156,7 @@ export type FormField = {
 export type ScenarioQuestion = {
   id: string;
   question: string;
+  questionType: "multiple-choice" | "free-text";
   options: string[];
   correctAnswer: string;
 };
