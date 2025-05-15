@@ -92,13 +92,15 @@ export default function LoadPlanningPage() {
     palletHeight: number;
   } => {
     // Calculate the optimal cell dimensions based on the balance scale width
+    // This ensures cargo area pallets always match the width of the balance scale
     const totalWidth = balanceScaleWidth || 715; // Default if not measured yet
     
     switch (aircraft) {
       case 'c17':
         // C-17 has 9 columns in 2 rows
         const c17CellWidth = Math.floor(totalWidth / 9);
-        const c17CellHeight = 87;
+        // Maintain fixed cell aspect ratio for consistency
+        const c17CellHeight = Math.floor(c17CellWidth * 1.15); // Keep height proportional to width
         return {
           rows: 2,
           cols: 9,
@@ -112,7 +114,8 @@ export default function LoadPlanningPage() {
       case 'c130':
         // C-130 has 4 columns in 2 rows
         const c130CellWidth = Math.floor(totalWidth / 4);
-        const c130CellHeight = 80;
+        // Maintain fixed cell aspect ratio for consistency
+        const c130CellHeight = Math.floor(c130CellWidth * 0.8); // Slightly wider than tall
         return {
           rows: 2,
           cols: 4,
@@ -126,7 +129,8 @@ export default function LoadPlanningPage() {
       default: // c27j, kc30a
         // C-27J/KC30-A has 3 columns in 1 row
         const spartanCellWidth = Math.floor(totalWidth / 3);
-        const spartanCellHeight = 96;
+        // Maintain fixed cell aspect ratio for consistency
+        const spartanCellHeight = Math.floor(spartanCellWidth * 0.9); // Slightly wider than tall
         return {
           rows: 1,
           cols: 3,
@@ -162,7 +166,7 @@ export default function LoadPlanningPage() {
     xSpacing?: number,
     yOffset?: number
   ) => {
-    // Apply 10% size reduction for all pallets
+    // Apply 10% size reduction for all pallets - ensure pallets fit perfectly within grid cells
     const width = Math.floor(cellWidth * 0.9);
     const height = Math.floor(cellHeight * 0.9);
     
@@ -1128,10 +1132,16 @@ export default function LoadPlanningPage() {
       // Update the pallet's position and area
       setPallets(prev => prev.map(pallet => {
         if (pallet.id === id) {
+          // Get the proper dimensions based on aircraft type
+          const config = getAircraftGridConfig(currentAircraftId);
+          const palletSize = dropArea === "configure" 
+            ? { width: 88, height: 108 } // Fixed size in config area
+            : { width: config.palletWidth, height: config.palletHeight }; // Dynamic size in cargo area
+            
           return {
             ...pallet,
             position: { x: newX, y: newY },
-            size: dropArea === "configure" ? { width: 88, height: 108 } : draggedPallet.size,
+            size: palletSize,
             location: dropArea
           };
         }
@@ -1457,7 +1467,7 @@ export default function LoadPlanningPage() {
                         {(() => {
                           // Get configuration for current aircraft (C-27J or KC30-A)
                           const config = getAircraftGridConfig(currentAircraftId);
-                          const cellSpacing = config.cellWidth + config.cellPadding;
+                          const cellSpacing = Math.floor(balanceScaleWidth / 3); // Evenly distribute across available width
                           
                           return [...Array(config.cols)].map((_, i) => (
                             <div 
@@ -1490,8 +1500,8 @@ export default function LoadPlanningPage() {
                         style={{
                           left: `${pallet.position.x}px`,
                           top: `${pallet.position.y}px`,
-                          width: "120px",  // Force the exact width
-                          height: "90px", // Force the exact height
+                          width: `${pallet.size.width}px`,  // Dynamic width based on aircraft
+                          height: `${pallet.size.height}px`, // Dynamic height based on aircraft
                           zIndex: 10
                         }}
                       >
@@ -1620,15 +1630,15 @@ export default function LoadPlanningPage() {
                     <div 
                       className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
                       style={{ 
-                        width: currentAircraftId === 'c17' ? '71px' : '110px', 
-                        height: currentAircraftId === 'c17' ? '87px' : '80px' 
+                        width: getAircraftGridConfig(currentAircraftId).palletWidth, 
+                        height: getAircraftGridConfig(currentAircraftId).palletHeight 
                       }}
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
                       <div className="flex flex-col items-center justify-center">
-                        <Package2 className="h-5 w-5 mb-2" />
-                        <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
+                        <Package2 className="h-5 w-5 mb-1" />
+                        <span className="font-medium text-center text-[10px]">Drag to Create</span>
                       </div>
                     </div>
                   </div>
