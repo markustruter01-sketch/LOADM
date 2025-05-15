@@ -1292,7 +1292,7 @@ export default function LoadPlanningPage() {
                             </Badge>
                           </div>
                           
-                          <div className="space-y-1">
+                          <div className="space-y-2">
                             <div className="flex items-center">
                               <Label htmlFor={`weight-${pallet.id}`} className="text-xs mr-2 w-16">
                                 Weight:
@@ -1310,6 +1310,52 @@ export default function LoadPlanningPage() {
                                 />
                               </div>
                               <div className="ml-1 text-xs text-muted-foreground">kg</div>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              <Label className="text-xs mr-2 w-16">
+                                Type:
+                              </Label>
+                              <div className="flex gap-3">
+                                <div className="flex items-center">
+                                  <input
+                                    type="radio"
+                                    id={`cargo-normal-${pallet.id}`}
+                                    className="h-3 w-3"
+                                    checked={!pallet.cargoType || pallet.cargoType === "C"}
+                                    onChange={() => {
+                                      setPallets(prev => prev.map(p => {
+                                        if (p.id === pallet.id) {
+                                          return { ...p, cargoType: "C" };
+                                        }
+                                        return p;
+                                      }));
+                                    }}
+                                  />
+                                  <Label htmlFor={`cargo-normal-${pallet.id}`} className="text-xs ml-1">
+                                    Normal (C)
+                                  </Label>
+                                </div>
+                                <div className="flex items-center">
+                                  <input
+                                    type="radio"
+                                    id={`cargo-dg-${pallet.id}`}
+                                    className="h-3 w-3"
+                                    checked={pallet.cargoType === "DG"}
+                                    onChange={() => {
+                                      setPallets(prev => prev.map(p => {
+                                        if (p.id === pallet.id) {
+                                          return { ...p, cargoType: "DG" };
+                                        }
+                                        return p;
+                                      }));
+                                    }}
+                                  />
+                                  <Label htmlFor={`cargo-dg-${pallet.id}`} className="text-xs ml-1">
+                                    Dangerous (DG)
+                                  </Label>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
