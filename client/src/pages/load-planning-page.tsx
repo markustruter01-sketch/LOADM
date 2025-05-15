@@ -1890,7 +1890,7 @@ export default function LoadPlanningPage() {
                     </div>
                     
                     {/* CG Scale Markings */}
-                    <div className="relative h-6 mb-2">
+                    <div className="relative h-8 mb-4">
                       {/* Generate tick marks and labels */}
                       {[...Array(71)].map((_, i) => {
                         const position = i * (100 / 70); // 0-100% across the width
@@ -1915,7 +1915,7 @@ export default function LoadPlanningPage() {
                                 className={`absolute text-[9px] ${isEndpoint ? 'font-bold' : 'font-medium'} ${isEndpoint ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}
                                 style={{ 
                                   left: `${position}%`, 
-                                  top: '10px',
+                                  top: '12px',
                                   transform: 'translateX(-50%)'
                                 }}
                               >
@@ -1927,12 +1927,12 @@ export default function LoadPlanningPage() {
                       })}
                       
                       {/* C of G label */}
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-[9px] text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
+                      <div className="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-[9px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
                         Centre of Gravity (degrees)
                       </div>
                     </div>
                     
-                    <div className="flex justify-between text-[10px] text-muted-foreground mt-3">
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-7">
                       <span>Heavy Forward</span>
                       <span>Center of Gravity</span>
                       <span>Heavy Aft</span>
@@ -1988,9 +1988,8 @@ export default function LoadPlanningPage() {
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
-                      <div className="flex flex-col items-center justify-center">
-                        <Package2 className="h-5 w-5 mb-2" />
-                        <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
+                      <div className="flex items-center justify-center">
+                        <Package2 className="h-6 w-6" />
                       </div>
                     </div>
                   </div>
