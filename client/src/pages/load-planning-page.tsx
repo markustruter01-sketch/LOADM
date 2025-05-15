@@ -17,6 +17,8 @@ interface Pallet {
   weight: number | null;
   size: { width: number; height: number };
   cargoType?: "C" | "DG"; // C = Normal Cargo, DG = Dangerous Goods
+  cargoCategory?: string; // Like "Pax Bags", "Mechanical", "Medical Equipment", etc.
+  dgClass?: string; // Class of dangerous goods (1-9)
   positionLabel?: string; // Store position label like "P1", "P2", etc.
 }
 
@@ -1877,15 +1879,18 @@ export default function LoadPlanningPage() {
                         background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
                       }}></div>
                       
-                      {/* Indicator needle - 0.85px width (15% thinner) and bright teal color */}
+                      {/* Indicator needle - 0.85px width (15% thinner), white color, 50% longer */}
                       <div 
-                        className="absolute top-0 bottom-0 shadow-md"
+                        className="absolute shadow-md"
                         style={{ 
-                          backgroundColor: '#00D1D1', // Bright teal color
+                          backgroundColor: 'white',
                           width: '0.85px',
                           left: `${(balanceValue + 100) / 2}%`,
+                          top: '-25%', // Extended 25% above
+                          bottom: '-25%', // Extended 25% below
                           transform: 'translateX(-50%)',
-                          transition: 'left 0.3s ease-out'
+                          transition: 'left 0.3s ease-out',
+                          zIndex: 10 // Bring forward
                         }}
                       >
                         {/* Current CG value above the needle */}
