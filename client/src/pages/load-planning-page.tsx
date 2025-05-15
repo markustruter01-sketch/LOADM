@@ -80,7 +80,11 @@ export default function LoadPlanningPage() {
   // Helper function to calculate pallet dimensions with 10% reduction and consistent positioning
   const calculatePalletDimensions = (
     cellWidth: number,
-    cellHeight: number
+    cellHeight: number,
+    col?: number,
+    row?: number,
+    xSpacing?: number,
+    yOffset?: number
   ) => {
     // Apply 10% size reduction for all pallets
     const width = Math.floor(cellWidth * 0.9);
@@ -201,7 +205,7 @@ export default function LoadPlanningPage() {
   // Calculate position based on aircraft grid layout
   const calculatePalletPosition = (cellWidth: number, cellHeight: number, col: number, row: number = 0, xOffset: number = 0, yOffset: number = 0) => {
     // Use existing calculatePalletDimensions for sizing
-    const dimensions = calculatePalletDimensions(cellWidth, cellHeight);
+    const dimensions = calculatePalletDimensions(cellWidth, cellHeight, col, row, xOffset, yOffset);
     
     // Calculate center position for perfect snapping
     const xCenter = col * xOffset + (cellWidth - dimensions.width) / 2 + (col * cellWidth);
