@@ -1458,7 +1458,7 @@ export default function LoadPlanningPage() {
                       }
                     </p>
                   </div>
-                  <div className="rounded-md p-3 relative" style={{ backgroundColor: 'rgba(0, 209, 209, 0.15)' }}>
+                  <div className="rounded-md p-3 relative w-1/2" style={{ backgroundColor: 'rgba(0, 209, 209, 0.15)' }}>
                     <p className="text-xs font-medium">Centre of Gravity</p>
                     <p className="flex items-center gap-2">
                       <span style={{ 
