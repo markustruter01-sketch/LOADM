@@ -183,22 +183,18 @@ export default function LoadPlanningPage() {
     );
   };
   
-  // Show pallet input dialog
+  // Show pallet input dialog - completely rebuilt
   const showPalletInput = (palletId: number, position?: string) => {
+    // Always open the dialog when called, even if pallet ID doesn't match yet
+    // The pallet ID is often correct but the state update hasn't completed
     console.log("showPalletInput called with ID:", palletId, "position:", position);
-    console.log("Current pallets:", pallets); // Debug log
     
-    const pallet = pallets.find(p => p.id === palletId);
-    if (pallet) {
-      console.log("Pallet found:", pallet); // Debug log
-      setEditingPalletId(palletId);
-      setPalletWeight(pallet.weight ? pallet.weight.toString() : "");
-      setPalletCargoType(pallet.cargoType || "C");
-      setPalletPosition(position || pallet.positionLabel || "");
-      setPalletInputOpen(true);
-    } else {
-      console.log("Pallet not found with ID:", palletId); // Debug log
-    }
+    // Set defaults even if pallet is not found yet
+    setEditingPalletId(palletId);
+    setPalletWeight("");
+    setPalletCargoType("C");
+    setPalletPosition(position || "");
+    setPalletInputOpen(true);
   };
   
   // Handle pallet input confirmation
@@ -553,19 +549,8 @@ export default function LoadPlanningPage() {
         size: palletSize
       };
       
-      // Add the new pallet to the pallets array and set a callback to show the dialog after state update
-      setPallets(prev => {
-        const updatedPallets = [...prev, newPallet];
-        
-        // After the next render when the state is updated, we can reliably reference the new pallet
-        setTimeout(() => {
-          if (dropArea === "cargo") {
-            showPalletInput(currentId, newPallet.positionLabel || "");
-          }
-        }, 0);
-        
-        return updatedPallets;
-      });
+      // Add the new pallet to the pallets array first
+      setPallets(prev => [...prev, newPallet]);
       
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
@@ -695,8 +680,9 @@ export default function LoadPlanningPage() {
         newPallet.position.y = snapY;
         newPallet.positionLabel = positionLabel;
         
-        // No need to call showPalletInput here anymore
-        // We've already set it up in the setPallets callback above
+        // Directly show pallet input dialog when pallet is placed in cargo area
+        // This simpler approach should work more reliably with the improved function
+        showPalletInput(currentId, positionLabel);
       }
       
     } else {
