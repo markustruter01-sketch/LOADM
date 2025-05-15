@@ -68,12 +68,63 @@ export default function LoadPlanningPage() {
   const currentAircraftId = match ? params.aircraftId : 'c27j';
   const currentAircraft = aircraftConfigs[currentAircraftId] || aircraftConfigs.c27j;
   
-  // Initial pallet configuration for reset functionality
-  const initialPallets: Pallet[] = [
-    { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
-    { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
-    { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
-  ];
+  // Generate pallets based on aircraft type
+  const generatePallets = (aircraftId: string): Pallet[] => {
+    // Default size for all pallets
+    const palletSize = { width: 70, height: 50 };
+    
+    // Generate pallets based on aircraft type
+    switch (aircraftId) {
+      case 'c17':
+        // Globemaster C-17 with 18 pallets
+        return Array.from({ length: 18 }, (_, index) => {
+          // Position pallets in a grid within configure area
+          // 6 pallets per row, 3 rows
+          const row = Math.floor(index / 6);
+          const col = index % 6;
+          return {
+            id: index + 1,
+            position: { 
+              x: 50 + (col * (palletSize.width + 10)), 
+              y: 50 + (row * (palletSize.height + 15)) 
+            },
+            location: "configure",
+            weight: null,
+            size: palletSize
+          };
+        });
+        
+      case 'c130':
+        // Hercules C-130 with 8 pallets
+        return Array.from({ length: 8 }, (_, index) => {
+          // Position pallets in a grid within configure area
+          // 4 pallets per row, 2 rows
+          const row = Math.floor(index / 4);
+          const col = index % 4;
+          return {
+            id: index + 1,
+            position: { 
+              x: 70 + (col * (palletSize.width + 20)), 
+              y: 70 + (row * (palletSize.height + 20)) 
+            },
+            location: "configure",
+            weight: null,
+            size: palletSize
+          };
+        });
+        
+      default:
+        // C-27J Spartan (default) with 3 pallets
+        return [
+          { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: null, size: palletSize },
+          { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: null, size: palletSize },
+          { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: null, size: palletSize },
+        ];
+    }
+  };
+  
+  // Generate initial pallets based on aircraft type
+  const initialPallets: Pallet[] = generatePallets(currentAircraftId);
   
   const [pallets, setPallets] = useState<Pallet[]>(initialPallets);
   
@@ -81,23 +132,66 @@ export default function LoadPlanningPage() {
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
   
+  // Generate drop zones based on aircraft type
+  const generateDropZones = (aircraftId: string, pallets: Pallet[]): DropZone[] => {
+    // Common drop zone creation function
+    const createDropZones = (count: number, areaType: "cargo" | "storage", startX: number, startY: number, spacingX: number) => {
+      return Array.from({ length: count }, (_, index) => ({
+        id: areaType === "cargo" ? index + 1 : count + index + 1,
+        position: { x: startX + (index * spacingX), y: startY },
+        occupied: false,
+        area: areaType
+      }));
+    };
+    
+    // Create configure area drop zones based on existing pallets
+    const createConfigureDropZones = (existingPallets: Pallet[], startId: number) => {
+      return existingPallets.map((pallet, index) => ({
+        id: startId + index,
+        position: { ...pallet.position },
+        occupied: true,
+        area: "configure" as const
+      }));
+    };
+    
+    switch (aircraftId) {
+      case 'c17':
+        // C-17 Globemaster - 18 slots
+        const c17CargoZones = createDropZones(18, "cargo", 40, 50, 80);
+        const c17StorageZones = createDropZones(18, "storage", 40, 250, 80);
+        const c17ConfigureZones = createConfigureDropZones(pallets, 37);
+        return [...c17CargoZones, ...c17StorageZones, ...c17ConfigureZones];
+        
+      case 'c130':
+        // C-130 Hercules - 8 slots
+        const c130CargoZones = createDropZones(8, "cargo", 60, 60, 90);
+        const c130StorageZones = createDropZones(8, "storage", 60, 150, 90);
+        const c130ConfigureZones = createConfigureDropZones(pallets, 17);
+        return [...c130CargoZones, ...c130StorageZones, ...c130ConfigureZones];
+        
+      default:
+        // C-27J Spartan (default) - 3 slots
+        return [
+          // Cargo area - where the pallets are loaded for transport
+          { id: 1, position: { x: 80, y: 60 }, occupied: false, area: "cargo" },
+          { id: 2, position: { x: 160, y: 60 }, occupied: false, area: "cargo" },
+          { id: 3, position: { x: 240, y: 60 }, occupied: false, area: "cargo" },
+          
+          // Storage area - temporary holding area
+          { id: 4, position: { x: 80, y: 60 }, occupied: false, area: "storage" },
+          { id: 5, position: { x: 160, y: 60 }, occupied: false, area: "storage" },
+          { id: 6, position: { x: 240, y: 60 }, occupied: false, area: "storage" },
+          
+          // Configure area - pallet visualization spots
+          { id: 7, position: { x: 90, y: 70 }, occupied: true, area: "configure" },
+          { id: 8, position: { x: 170, y: 70 }, occupied: true, area: "configure" },
+          { id: 9, position: { x: 250, y: 70 }, occupied: true, area: "configure" },
+        ];
+    }
+  };
+  
   // Drop zones for the cargo and storage areas
-  const [dropZones, setDropZones] = useState<DropZone[]>([
-    // Cargo area drop zones - 3 positions
-    { id: 1, position: { x: 80, y: 60 }, occupied: false, area: "cargo" },
-    { id: 2, position: { x: 160, y: 60 }, occupied: false, area: "cargo" },
-    { id: 3, position: { x: 240, y: 60 }, occupied: false, area: "cargo" },
-    
-    // Storage area drop zones - 3 positions
-    { id: 4, position: { x: 80, y: 60 }, occupied: false, area: "storage" },
-    { id: 5, position: { x: 160, y: 60 }, occupied: false, area: "storage" },
-    { id: 6, position: { x: 240, y: 60 }, occupied: false, area: "storage" },
-    
-    // Configure area - pallet visualization spots
-    { id: 7, position: { x: 90, y: 70 }, occupied: true, area: "configure" },
-    { id: 8, position: { x: 170, y: 70 }, occupied: true, area: "configure" },
-    { id: 9, position: { x: 250, y: 70 }, occupied: true, area: "configure" },
-  ]);
+  const [dropZones, setDropZones] = useState<DropZone[]>(generateDropZones(currentAircraftId, initialPallets));
   
   const [draggedPallet, setDraggedPallet] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState(0);
@@ -353,7 +447,10 @@ export default function LoadPlanningPage() {
   
   // Reset all pallets to initial state
   const handleReset = () => {
-    setPallets(initialPallets);
+    // Generate fresh pallets and drop zones based on current aircraft
+    const freshPallets = generatePallets(currentAircraftId);
+    setPallets(freshPallets);
+    setDropZones(generateDropZones(currentAircraftId, freshPallets));
     setBalanceValue(0);
     setBalanceStatus('safe');
   };
@@ -478,20 +575,45 @@ export default function LoadPlanningPage() {
             {/* Cargo Area */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2">
-                <CardTitle>Cargo Area</CardTitle>
+                <CardTitle>
+                  Cargo Area
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
+                  </span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div 
                   ref={cargoRef}
-                  className="relative bg-green-900/20 border border-green-500/40 rounded-lg h-[160px] w-full"
+                  className={`relative bg-green-900/20 border border-green-500/40 rounded-lg w-full ${
+                    currentAircraftId === 'c17' 
+                      ? 'h-[480px]' 
+                      : currentAircraftId === 'c130' 
+                        ? 'h-[280px]' 
+                        : 'h-[160px]'
+                  }`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, "cargo")}
                 >
                   {/* Grid lines */}
-                  <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
-                    <div className="border-r border-white/20 h-full"></div>
-                    <div className="border-r border-white/20 h-full"></div>
-                  </div>
+                  {currentAircraftId === 'c17' ? (
+                    <div className="absolute inset-0 grid grid-cols-6 gap-0 pointer-events-none">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="border-r border-white/20 h-full"></div>
+                      ))}
+                    </div>
+                  ) : currentAircraftId === 'c130' ? (
+                    <div className="absolute inset-0 grid grid-cols-4 gap-0 pointer-events-none">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="border-r border-white/20 h-full"></div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
+                      <div className="border-r border-white/20 h-full"></div>
+                      <div className="border-r border-white/20 h-full"></div>
+                    </div>
+                  )}
                   
                   {/* Pallets in cargo area */}
                   {pallets.filter(pallet => pallet.location === "cargo").map((pallet) => (
