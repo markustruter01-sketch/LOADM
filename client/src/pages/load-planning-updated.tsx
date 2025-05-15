@@ -403,7 +403,7 @@ export default function LoadPlanningPage() {
       }
       
       // Create a new pallet with current nextPalletId
-      const palletSize = { width: 88, height: 108 };
+      const palletSize = { width: 120, height: 90 };
       
       // Position the new pallet
       if (dropArea === "cargo" || dropArea === "storage") {
@@ -425,8 +425,8 @@ export default function LoadPlanningPage() {
           newY = rowTopOffset;
           
           // Set the pallet size
-          palletSize.width = 88;
-          palletSize.height = 108;
+          palletSize.width = 120;
+          palletSize.height = 90;
         } else {
           // For other aircraft types
           const columns = currentAircraftId === 'c130' ? 4 : 3;
@@ -436,9 +436,9 @@ export default function LoadPlanningPage() {
           // Determine which cell the pallet was dropped in
           const cellColumn = Math.floor(dropX / cellWidth);
           
-          // Use fixed pallet dimensions of 88x108
-          const palletWidth = 88;
-          const palletHeight = 108;
+          // Use fixed pallet dimensions of 120x90
+          const palletWidth = 120;
+          const palletHeight = 90;
           
           // Center in the cell
           newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
@@ -513,8 +513,8 @@ export default function LoadPlanningPage() {
           
           // Update the pallet size to fit the grid cell
           draggedPallet.size = {
-            width: 88,
-            height: 108
+            width: 120,
+            height: 90
           };
         } else {
           // For other aircraft types
@@ -525,9 +525,9 @@ export default function LoadPlanningPage() {
           // Determine which cell the pallet was dropped in
           const cellColumn = Math.floor(dropX / cellWidth);
           
-          // Use fixed pallet dimensions of 88x108
-          const palletWidth = 88;
-          const palletHeight = 108;
+          // Use fixed pallet dimensions of 120x90
+          const palletWidth = 120;
+          const palletHeight = 90;
           
           // Center in the cell
           newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
@@ -566,7 +566,7 @@ export default function LoadPlanningPage() {
           return {
             ...pallet,
             position: { x: newX, y: newY },
-            size: dropArea === "configure" ? { width: 88, height: 108 } : draggedPallet.size,
+            size: dropArea === "configure" ? { width: 120, height: 90 } : draggedPallet.size,
             location: dropArea
           };
         }
@@ -721,7 +721,7 @@ export default function LoadPlanningPage() {
                   {/* Grid lines */}
                   {currentAircraftId === 'c17' ? (
                     <div className="absolute inset-0 pointer-events-none">
-                      {/* Custom grid for 9x2 layout with 88x108 pallets */}
+                      {/* Custom grid for 9x2 layout with 120x90 pallets */}
                       
                       {/* Grid cells - First row */}
                       {[...Array(9)].map((_, i) => (
@@ -774,8 +774,8 @@ export default function LoadPlanningPage() {
                       style={{
                         left: `${pallet.position.x}px`,
                         top: `${pallet.position.y}px`,
-                        width: "88px",  // Force the exact width
-                        height: "108px", // Force the exact height
+                        width: "120px",  // Force the exact width
+                        height: "90px", // Force the exact height
                         zIndex: 10
                       }}
                     >
@@ -784,7 +784,7 @@ export default function LoadPlanningPage() {
                           <span>{pallet.weight} kg</span> : 
                           <span className="text-white/80">No weight</span>
                         }
-                        <span className="text-xs text-white/60 mt-1">(88×108)</span>
+                        <span className="text-xs text-white/60 mt-1">(120×90)</span>
                       </div>
                     </div>
                   ))}
@@ -880,14 +880,14 @@ export default function LoadPlanningPage() {
                   {/* Draggable template pallet */}
                   <div 
                     className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
-                    style={{ width: '88px', height: '108px' }}
+                    style={{ width: '120px', height: '90px' }}
                     draggable
                     onDragStart={(e) => handleDragStart(e, null)}
                   >
                     <div className="flex flex-col items-center justify-center">
                       <Package2 className="h-5 w-5 mb-2" />
                       <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
-                      <span className="text-xs mt-1">(88×108)</span>
+                      <span className="text-xs mt-1">(120×90)</span>
                     </div>
                   </div>
                 </div>
@@ -981,7 +981,7 @@ export default function LoadPlanningPage() {
                   {/* Grid lines */}
                   {currentAircraftId === 'c17' ? (
                     <div className="absolute inset-0 pointer-events-none">
-                      {/* Custom grid for 9x2 layout with 88x108 pallets */}
+                      {/* Custom grid for 9x2 layout with 120x90 pallets */}
                       
                       {/* Grid cells - First row */}
                       {[...Array(9)].map((_, i) => (
@@ -1034,8 +1034,8 @@ export default function LoadPlanningPage() {
                       style={{
                         left: `${pallet.position.x}px`,
                         top: `${pallet.position.y}px`,
-                        width: "88px",  // Force the exact width
-                        height: "108px", // Force the exact height
+                        width: "120px",  // Force the exact width
+                        height: "90px", // Force the exact height
                         zIndex: 10
                       }}
                     >
@@ -1044,7 +1044,7 @@ export default function LoadPlanningPage() {
                           <span>{pallet.weight} kg</span> : 
                           <span className="text-white/80">No weight</span>
                         }
-                        <span className="text-xs text-white/60 mt-1">(88×108)</span>
+                        <span className="text-xs text-white/60 mt-1">(120×90)</span>
                       </div>
                     </div>
                   ))}
