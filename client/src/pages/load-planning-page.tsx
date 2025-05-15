@@ -1399,8 +1399,13 @@ export default function LoadPlanningPage() {
                   </div>
                   <div className="rounded-md p-3 relative" style={{ backgroundColor: 'rgba(0, 209, 209, 0.15)' }}>
                     <p className="text-xs font-medium">Centre of Gravity</p>
-                    <p className="text-lg flex items-center gap-2">
-                      <span style={{ color: '#00D1D1', fontWeight: 600 }}>{balanceCG.toFixed(2)}°</span>
+                    <p className="flex items-center gap-2">
+                      <span style={{ 
+                        color: balanceStatus === 'safe' ? '#22c55e' : 
+                               balanceStatus === 'warning' ? '#f59e0b' : '#dc2626',
+                        fontWeight: 600,
+                        fontSize: '1.8rem', // 50% larger than text-lg (1.2rem)
+                      }}>{balanceCG.toFixed(2)}°</span>
                       <span className={`inline-block w-2 h-2 rounded-full ${
                         balanceStatus === 'safe' ? 'bg-green-500' : 
                         balanceStatus === 'warning' ? 'bg-amber-500' : 'bg-red-500'
@@ -1872,10 +1877,7 @@ export default function LoadPlanningPage() {
                         background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
                       }}></div>
                       
-                      {/* Center line */}
-                      <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80"></div>
-                      
-                      {/* Indicator needle - further reduced to 0.85px width (15% thinner) and changed to bright teal color */}
+                      {/* Indicator needle - 0.85px width (15% thinner) and bright teal color */}
                       <div 
                         className="absolute top-0 bottom-0 shadow-md"
                         style={{ 
