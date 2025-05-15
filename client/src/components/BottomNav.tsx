@@ -13,12 +13,6 @@ export default function BottomNav() {
       active: location === "/"
     },
     {
-      href: "/documents",
-      label: "Documents",
-      icon: FileText,
-      active: location.startsWith("/documents")
-    },
-    {
       href: "/scenarios",
       label: "Scenarios",
       icon: ClipboardList,
@@ -32,9 +26,9 @@ export default function BottomNav() {
     },
     {
       href: "/cargo-manifest",
-      label: "Manifest",
+      label: "Documents",
       icon: FileCheck,
-      active: location === "/cargo-manifest"
+      active: location === "/cargo-manifest" || location.startsWith("/documents")
     },
     {
       href: "/auth",
