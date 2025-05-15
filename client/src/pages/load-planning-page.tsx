@@ -1272,42 +1272,56 @@ export default function LoadPlanningPage() {
                         {/* Custom grid for 9x2 layout with 88x108 pallets */}
                         
                         {/* Grid cells - First row */}
-                        {[...Array(9)].map((_, i) => (
-                          <div 
-                            key={`cell-row1-${i}`} 
-                            className="absolute border-2 border-green-800/80 rounded-sm"
-                            style={{
-                              left: i * 76,
-                              top: 10,
-                              width: 71,
-                              height: 87,
-                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                            }}
-                          >
-                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
-                              P{i + 1}
+                        {(() => {
+                          // Use our dynamic cell width calculation
+                          const cellWidth = calculateCellWidth('c17');
+                          const cellSpacing = Math.ceil(cellWidth * 1.07); // Add 7% spacing between cells
+                          const cellHeight = 87; // Keep the same height
+                          
+                          return [...Array(9)].map((_, i) => (
+                            <div 
+                              key={`cell-row1-${i}`} 
+                              className="absolute border-2 border-green-800/80 rounded-sm"
+                              style={{
+                                left: i * cellSpacing,
+                                top: 10,
+                                width: cellWidth,
+                                height: cellHeight,
+                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                              }}
+                            >
+                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
+                                P{i + 1}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ));
+                        })()}
                         
                         {/* Grid cells - Second row */}
-                        {[...Array(9)].map((_, i) => (
-                          <div 
-                            key={`cell-row2-${i}`} 
-                            className="absolute border-2 border-green-800/80 rounded-sm"
-                            style={{
-                              left: i * 76,
-                              top: 105, 
-                              width: 71,
-                              height: 87,
-                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                            }}
-                          >
-                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
-                              P{i + 10}
+                        {(() => {
+                          // Use our dynamic cell width calculation
+                          const cellWidth = calculateCellWidth('c17');
+                          const cellSpacing = Math.ceil(cellWidth * 1.07); // Add 7% spacing between cells
+                          const cellHeight = 87; // Keep the same height
+                          
+                          return [...Array(9)].map((_, i) => (
+                            <div 
+                              key={`cell-row2-${i}`} 
+                              className="absolute border-2 border-green-800/80 rounded-sm"
+                              style={{
+                                left: i * cellSpacing,
+                                top: 105, 
+                                width: cellWidth,
+                                height: cellHeight,
+                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                              }}
+                            >
+                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
+                                P{i + 10}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                     ) : currentAircraftId === 'c130' ? (
                       <div className="absolute inset-0 pointer-events-none">
