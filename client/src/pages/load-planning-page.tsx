@@ -608,9 +608,18 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                
+                // Make pallet 10% smaller than grid cell
+                const reducedWidth = Math.floor(cellWidth * 0.9);
+                const reducedHeight = Math.floor(cellHeight * 0.9);
+                
+                // Update pallet size to be 10% smaller
+                palletSize.width = reducedWidth;
+                palletSize.height = reducedHeight;
+                
                 // Calculate snap position (centered in cell)
-                snapX = col * 120 + (cellWidth - palletSize.width) / 2;
-                snapY = (row === 0 ? 10 : 100) + (cellHeight - palletSize.height) / 2;
+                snapX = col * 120 + (cellWidth - reducedWidth) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - reducedHeight) / 2;
               }
             }
           }
@@ -630,16 +639,40 @@ export default function LoadPlanningPage() {
             if (distance < closestDistance) {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
+              
+              // Make pallet 10% smaller than grid cell
+              const reducedWidth = Math.floor(cellWidth * 0.9);
+              const reducedHeight = Math.floor(cellHeight * 0.9);
+              
+              // Update pallet size to be 10% smaller
+              palletSize.width = reducedWidth;
+              palletSize.height = reducedHeight;
+              
               // Calculate snap position (centered in cell)
-              snapX = col * 120 + (cellWidth - palletSize.width) / 2;
-              snapY = 20 + (cellHeight - palletSize.height) / 2;
+              snapX = col * 120 + (cellWidth - reducedWidth) / 2;
+              snapY = 20 + (cellHeight - reducedHeight) / 2;
             }
           }
+        }
+        
+        // Check if position is already occupied by another pallet
+        if (isPositionOccupied(positionLabel)) {
+          // Remove the pallet we just added since the position is occupied
+          setPallets(prev => prev.filter(p => p.id !== nextPalletId));
+          
+          // Show alert
+          showAlert(
+            'warning',
+            'Position Already Occupied',
+            `Position ${positionLabel} is already occupied by another pallet. Please choose a different position.`
+          );
+          return;
         }
         
         // Update the position to snap to the grid
         newPallet.position.x = snapX;
         newPallet.position.y = snapY;
+        newPallet.positionLabel = positionLabel;
         
         // Open pallet input dialog AFTER pallet is added to the array
         setTimeout(() => {
@@ -658,49 +691,116 @@ export default function LoadPlanningPage() {
       // Position the existing pallet in the cargo area
       if (dropArea === "cargo") {
         // Special handling for C-17 with 9x2 grid
+        // Extract position label based on nearest grid cell
+        let positionLabel = "";
+        let closestDistance = Number.MAX_VALUE;
+        let snapX = newX;
+        let snapY = newY;
+        
         if (currentAircraftId === 'c17') {
           // Fixed cell dimensions to match our custom grid (reduced and adjusted by 12%)
           const cellWidth = 76; // Fixed cell width (matches grid in UI)
           const rowHeight = 98; // Fixed cell height (matches grid in UI)
           
-          // Determine which cell the pallet was dropped in
-          const cellRow = dropY > rowHeight ? 1 : 0;
-          const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellWidth)));
-          
-          // Position pallet in the appropriate cell with proper spacing
-          const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
-          
-          // Position within grid cell
-          newX = (cellColumn * cellWidth) + 2;
-          newY = rowTopOffset;
-          
-          // Update the pallet size to fit the grid cell
-          draggedPallet.size = {
-            width: 71,
-            height: 87
-          };
+          // Calculate position based on closest grid cell
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 9; col++) {
+              const originalCellWidth = 71;
+              const originalCellHeight = 87;
+              const cellX = col * cellWidth + originalCellWidth/2; // center of cell
+              const cellY = row * 95 + originalCellHeight/2 + (row === 0 ? 10 : 105); // center of cell
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                
+                // Make pallet 10% smaller than grid cell
+                const reducedWidth = Math.floor(originalCellWidth * 0.9);
+                const reducedHeight = Math.floor(originalCellHeight * 0.9);
+                
+                // Calculate snap position (centered in cell)
+                snapX = col * cellWidth + (originalCellWidth - reducedWidth) / 2;
+                snapY = (row === 0 ? 10 : 105) + (originalCellHeight - reducedHeight) / 2;
+                
+                // Update the pallet size to be 10% smaller
+                draggedPallet.size = {
+                  width: reducedWidth,
+                  height: reducedHeight
+                };
+              }
+            }
+          }
+        } else if (currentAircraftId === 'c130') {
+          // For C-130 with 4x2 grid
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 4; col++) {
+              const cellWidth = 110;
+              const cellHeight = 80;
+              const cellX = col * 120 + cellWidth/2; // center of cell
+              const cellY = row * 90 + cellHeight/2 + (row === 0 ? 10 : 100); // center of cell
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                
+                // Make pallet 10% smaller than grid cell
+                const reducedWidth = Math.floor(cellWidth * 0.9);
+                const reducedHeight = Math.floor(cellHeight * 0.9);
+                
+                // Calculate snap position (centered in cell)
+                snapX = col * 120 + (cellWidth - reducedWidth) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - reducedHeight) / 2;
+                
+                // Update the pallet size to be 10% smaller
+                draggedPallet.size = {
+                  width: reducedWidth,
+                  height: reducedHeight
+                };
+              }
+            }
+          }
         } else {
-          // For other aircraft types
-          const columns = currentAircraftId === 'c130' ? 4 : 3;
-          const cellWidth = areaWidth / columns;
-          const cellHeight = areaHeight;
-          
-          // Determine which cell the pallet was dropped in
-          const cellColumn = Math.floor(dropX / cellWidth);
-          
-          // Use fixed pallet dimensions of 88x108
-          const palletWidth = 88;
-          const palletHeight = 108;
-          
-          // Center in the cell
-          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
-          newY = (cellHeight - palletHeight) / 2;
-          
-          // Update the pallet size to fit the grid cell
-          draggedPallet.size = {
-            width: palletWidth,
-            height: palletHeight
-          };
+          // For C-27J/KC30-A with 3x1 grid
+          for (let col = 0; col < 3; col++) {
+            const cellWidth = 110;
+            const cellHeight = 80;
+            const cellX = col * 120 + cellWidth/2; // center of cell
+            const cellY = 20 + cellHeight/2; // center of cell
+            
+            const distance = Math.sqrt(
+              Math.pow(dropX - cellX, 2) + 
+              Math.pow(dropY - cellY, 2)
+            );
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              positionLabel = `P${col + 1}`;
+              
+              // Make pallet 10% smaller than grid cell
+              const reducedWidth = Math.floor(cellWidth * 0.9);
+              const reducedHeight = Math.floor(cellHeight * 0.9);
+              
+              // Calculate snap position (centered in cell)
+              snapX = col * 120 + (cellWidth - reducedWidth) / 2;
+              snapY = 20 + (cellHeight - reducedHeight) / 2;
+              
+              // Update the pallet size to be 10% smaller
+              draggedPallet.size = {
+                width: reducedWidth,
+                height: reducedHeight
+              };
+            }
+          }
         }
       } else {
         // For configure area, use the original drop calculation
@@ -714,7 +814,7 @@ export default function LoadPlanningPage() {
         }
       }
       
-      // If pallet is being moved to cargo area, prompt for details
+      // If pallet is being moved to cargo area
       if (dropArea === "cargo") {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
@@ -722,7 +822,6 @@ export default function LoadPlanningPage() {
         let snapX = newX;
         let snapY = newY;
         
-        // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
           // For C-17 with 9x2 grid
           for (let row = 0; row < 2; row++) {
@@ -740,9 +839,20 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                
+                // Make pallet 10% smaller than grid cell
+                const reducedWidth = Math.floor(cellWidth * 0.9);
+                const reducedHeight = Math.floor(cellHeight * 0.9);
+                
+                // Update the pallet size to be 10% smaller
+                draggedPallet.size = {
+                  width: reducedWidth,
+                  height: reducedHeight
+                };
+                
                 // Calculate snap position (centered in cell)
-                snapX = col * 76 + (cellWidth - draggedPallet.size.width) / 2;
-                snapY = (row === 0 ? 10 : 105) + (cellHeight - draggedPallet.size.height) / 2;
+                snapX = col * 76 + (cellWidth - reducedWidth) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - reducedHeight) / 2;
               }
             }
           }
@@ -792,9 +902,23 @@ export default function LoadPlanningPage() {
           }
         }
         
+        // Check if position is already occupied by another pallet
+        if (isPositionOccupied(positionLabel, draggedPallet.id)) {
+          // Show alert
+          showAlert(
+            'warning',
+            'Position Already Occupied',
+            `Position ${positionLabel} is already occupied by another pallet. Please choose a different position.`
+          );
+          return;
+        }
+        
         // Set the snapped coordinates
         newX = snapX;
         newY = snapY;
+        
+        // Update the position label
+        draggedPallet.positionLabel = positionLabel;
         
         // Open pallet input dialog
         showPalletInput(id, positionLabel);
