@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, Store, ClipboardCheck } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -802,9 +802,12 @@ export default function LoadPlanningPage() {
             </Card>
 
             {/* Storage Area */}
-            <Card className="lg:col-span-3">
+            <Card className={`${
+              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-3' : 'lg:col-span-3'
+            }`}>
               <CardHeader className="pb-2">
-                <CardTitle>
+                <CardTitle className="flex items-center">
+                  <Store className="h-5 w-5 mr-2 text-primary" />
                   Storage Area
                   <span className="text-sm font-normal text-muted-foreground ml-2">
                     (Temporary holding)
@@ -870,21 +873,30 @@ export default function LoadPlanningPage() {
             </Card>
             
             {/* Instructions */}
-            <Card className="lg:col-span-3">
-              <CardContent className="pt-4">
+            <Card className={`${
+              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-3' : 'lg:col-span-3'
+            }`}>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center">
+                  <ClipboardCheck className="h-5 w-5 mr-2 text-primary" />
+                  Instructions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <p className="text-sm">
-                  <strong>Instructions:</strong> Drag and drop pallets between the cargo area, storage area, and configuration section.
+                  <strong>How to use:</strong> Drag and drop pallets between the cargo area, storage area, and configuration section.
                   Edit pallet weights using the input fields.
                   Only pallets in the cargo area count toward the total weight.
-                  <br />
-                  <span className="text-primary font-medium">
+                </p>
+                <div className="mt-2 p-2 bg-primary/10 border border-primary/20 rounded-md">
+                  <p className="text-sm font-medium text-primary">
                     {currentAircraftId === 'c17' 
                       ? 'C-17 Globemaster maximum payload is 77,500 kg with 18 pallet positions.'
                       : currentAircraftId === 'c130'
                         ? 'C-130 Hercules maximum payload is 20,000 kg with 8 pallet positions.'
                         : 'C-27J Spartan maximum payload is 11,300 kg with 3 pallet positions.'}
-                  </span>
-                </p>
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </div>
