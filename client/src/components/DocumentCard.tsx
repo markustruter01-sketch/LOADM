@@ -32,11 +32,9 @@ export default function DocumentCard({ document }: DocumentCardProps) {
             Last updated: {formattedDate}
           </span>
           <Link href={`/documents/${document.id}`}>
-            <a>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                Open
-              </Button>
-            </a>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
+              Open
+            </Button>
           </Link>
         </div>
       </div>

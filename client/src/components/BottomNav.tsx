@@ -33,11 +33,11 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 w-full border-t border-border bg-muted z-50 lg:hidden">
+    <div className="fixed bottom-0 left-0 w-full border-t border-border bg-background shadow-lg z-50">
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href}>
-            <div className="flex flex-col items-center justify-center flex-1 h-full cursor-pointer">
+            <div className="flex flex-col items-center justify-center w-full p-2 cursor-pointer">
               <div 
                 className={cn(
                   "flex flex-col items-center justify-center",

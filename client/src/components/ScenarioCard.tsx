@@ -27,11 +27,9 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
             {scenario.numberOfQuestions} questions
           </span>
           <Link href={`/scenarios/${scenario.id}`}>
-            <a>
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                Start
-              </Button>
-            </a>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
+              Start
+            </Button>
           </Link>
         </div>
       </div>
