@@ -378,7 +378,7 @@ export default function LoadPlanningPage() {
                         zIndex: 10
                       }}
                     >
-                      {pallet.weight} kg
+                      {pallet.weight !== null ? `${pallet.weight} kg` : "No weight"}
                     </div>
                   ))}
                 </div>
@@ -512,7 +512,9 @@ export default function LoadPlanningPage() {
                         <Package2 className={`h-4 w-4 mr-1 ${pallet.location !== "configure" ? "text-gray-400" : ""}`} />
                         <span className="text-xs font-medium">
                           {pallet.location === "configure" 
-                            ? `Drag Pallet ${pallet.id} (${pallet.weight} kg)` 
+                            ? (pallet.weight !== null 
+                                ? `Drag Pallet ${pallet.id} (${pallet.weight} kg)` 
+                                : `Drag Pallet ${pallet.id}`)
                             : `Pallet ${pallet.id} is ${pallet.location === "cargo" ? "in cargo" : "in storage"}`}
                         </span>
                       </div>
@@ -555,7 +557,7 @@ export default function LoadPlanningPage() {
                         zIndex: 10
                       }}
                     >
-                      {pallet.weight} kg
+                      {pallet.weight !== null ? `${pallet.weight} kg` : "No weight"}
                     </div>
                   ))}
                 </div>
