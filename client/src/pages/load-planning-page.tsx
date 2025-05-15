@@ -536,9 +536,15 @@ export default function LoadPlanningPage() {
           </div>
 
           {/* Main content grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 ${
+            currentAircraftId === 'c17' 
+              ? 'lg:grid-cols-1 xl:grid-cols-3' 
+              : 'lg:grid-cols-3'
+          } gap-4`}>
             {/* Load Summary Card */}
-            <Card className="lg:col-span-3">
+            <Card className={`${
+              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-3' : 'lg:col-span-3'
+            }`}>
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center">
@@ -571,16 +577,24 @@ export default function LoadPlanningPage() {
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Storage Positions</p>
-                    <p className="text-lg">{pallets.filter(p => p.location === "storage").length} of 3</p>
+                    <p className="text-lg">
+                      {pallets.filter(p => p.location === "storage").length} of {
+                        currentAircraftId === 'c17' ? '18' : 
+                        currentAircraftId === 'c130' ? '8' : '3'
+                      }
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Cargo Area */}
-            <Card className="lg:col-span-2">
+            <Card className={`${
+              currentAircraftId === 'c17' ? 'lg:col-span-1 xl:col-span-2' : 'lg:col-span-2'
+            }`}>
               <CardHeader className="pb-2">
-                <CardTitle>
+                <CardTitle className="flex items-center">
+                  <Plane className="h-5 w-5 mr-2 text-primary" />
                   Cargo Area
                   <span className="text-sm font-normal text-muted-foreground ml-2">
                     ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
@@ -709,9 +723,15 @@ export default function LoadPlanningPage() {
             {/* Configure Pallets */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle>Configure Pallets</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Package2 className="h-5 w-5 mr-2 text-primary" />
+                  Configure Pallets
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
+                  </span>
+                </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className={currentAircraftId === 'c17' ? 'max-h-[600px] overflow-y-auto' : ''}>
                 <div className="space-y-4 relative" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
                   {pallets.map((pallet) => (
                     <div 
