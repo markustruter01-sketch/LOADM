@@ -1859,27 +1859,27 @@ export default function LoadPlanningPage() {
                       </span>
                     </div>
                     
-                    {/* Complete Balance Meter with Status Box and CG Scale */}
-                    <div className="relative mb-6">
-                      {/* Status box above the meter - 100% bigger with padding */}
-                      {totalWeightInCargo > 0 && (
-                        <div className="w-full rounded-md bg-black border border-white/20 py-5 mb-4 flex justify-center shadow-lg">
-                          <div className="text-2xl uppercase font-bold tracking-wider">
-                            {Math.abs(balanceValue) < 15 ? (
-                              <span className="text-green-500">Balanced</span>
-                            ) : Math.abs(balanceValue) < 40 ? (
-                              balanceValue < 0 ? 
-                                <span className="text-yellow-500">Forward Heavy</span> : 
-                                <span className="text-yellow-500">Aft Heavy</span>
-                            ) : (
-                              balanceValue < 0 ? 
-                                <span className="text-red-500">Dangerously Forward</span> : 
-                                <span className="text-red-500">Dangerously Aft</span>
-                            )}
-                          </div>
+                    {/* FIRST: Large Status Box */}
+                    {totalWeightInCargo > 0 && (
+                      <div className="w-full rounded-md bg-black border border-white/20 py-5 mb-5 flex justify-center shadow-lg">
+                        <div className="text-2xl uppercase font-bold tracking-wider">
+                          {Math.abs(balanceValue) < 15 ? (
+                            <span className="text-green-500">Balanced</span>
+                          ) : Math.abs(balanceValue) < 40 ? (
+                            balanceValue < 0 ? 
+                              <span className="text-yellow-500">Forward Heavy</span> : 
+                              <span className="text-yellow-500">Aft Heavy</span>
+                          ) : (
+                            balanceValue < 0 ? 
+                              <span className="text-red-500">Dangerously Forward</span> : 
+                              <span className="text-red-500">Dangerously Aft</span>
+                          )}
                         </div>
-                      )}
-                      
+                      </div>
+                    )}
+                    
+                    {/* SECOND: Complete Balance Meter with CG Scale */}
+                    <div className="relative mb-6">
                       {/* Gradient balance meter */}
                       <div ref={balanceScaleRef} className="h-8 relative rounded-md overflow-hidden border border-white/20">
                         {/* Background gradient */}
