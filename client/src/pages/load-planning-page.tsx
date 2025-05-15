@@ -174,6 +174,15 @@ export default function LoadPlanningPage() {
     setAlertOpen(true);
   };
   
+  // Check if a position is already occupied
+  const isPositionOccupied = (positionLabel: string, excludePalletId?: number) => {
+    return pallets.some(p => 
+      p.location === "cargo" && 
+      p.positionLabel === positionLabel && 
+      (excludePalletId === undefined || p.id !== excludePalletId)
+    );
+  };
+  
   // Show pallet input dialog
   const showPalletInput = (palletId: number, position?: string) => {
     const pallet = pallets.find(p => p.id === palletId);
@@ -567,9 +576,18 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                
+                // Make pallet 10% smaller than grid cell
+                const reducedWidth = Math.floor(cellWidth * 0.9);
+                const reducedHeight = Math.floor(cellHeight * 0.9);
+                
+                // Update pallet size to be 10% smaller
+                palletSize.width = reducedWidth;
+                palletSize.height = reducedHeight;
+                
                 // Calculate snap position (centered in cell)
-                snapX = col * 76 + (cellWidth - palletSize.width) / 2;
-                snapY = (row === 0 ? 10 : 105) + (cellHeight - palletSize.height) / 2;
+                snapX = col * 76 + (cellWidth - reducedWidth) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - reducedHeight) / 2;
               }
             }
           }
