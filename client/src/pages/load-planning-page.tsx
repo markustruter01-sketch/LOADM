@@ -626,7 +626,7 @@ export default function LoadPlanningPage() {
         } else {
           // For C-27J/KC30-A with 3x1 grid
           for (let col = 0; col < 3; col++) {
-            const cellWidth = 110;
+            const cellWidth = 132;
             const cellHeight = 80;
             const cellX = col * 120 + cellWidth/2; // center of cell
             const cellY = 20 + cellHeight/2; // center of cell
