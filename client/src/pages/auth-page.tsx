@@ -94,7 +94,7 @@ export default function AuthPage() {
           <div className="w-full max-w-md space-y-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-foreground mb-2">
-                Welcome to <span className="text-primary">LOADMdocs</span>
+                Welcome to <span className="text-white">LOADM</span><span className="text-primary">workflow</span>
               </h2>
               <p className="text-muted-foreground">
                 Sign in to your account or create a new one
@@ -238,7 +238,7 @@ export default function AuthPage() {
             <div className="max-w-lg p-6 text-white">
               <h3 className="text-3xl font-bold mb-4">Streamline Your Workflow</h3>
               <p className="text-lg mb-6">
-                LOADMdocs provides professional documentation tools and training scenarios for loadmasters.
+                <span className="text-white">LOADM</span><span className="text-primary">workflow</span> provides professional documentation tools and training scenarios for loadmasters.
                 Access all required documentation in one central location.
               </p>
               <ul className="space-y-2">
