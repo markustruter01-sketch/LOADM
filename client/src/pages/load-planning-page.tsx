@@ -489,8 +489,17 @@ export default function LoadPlanningPage() {
         return;
       }
       
-      // Create a new pallet with current nextPalletId
-      const palletSize = { width: 120, height: 90 };
+      // Create a new pallet with size based on aircraft type
+      let palletSize;
+      
+      // Define pallet sizes based on aircraft to match grid cells exactly
+      if (currentAircraftId === 'c17') {
+        palletSize = { width: 71, height: 87 }; // C-17 Globemaster
+      } else if (currentAircraftId === 'c130') {
+        palletSize = { width: 110, height: 80 }; // C-130 Hercules
+      } else {
+        palletSize = { width: 110, height: 80 }; // C-27J Spartan/KC30-A
+      }
       
       // Position the new pallet
       if (dropArea === "cargo" || dropArea === "storage") {
@@ -567,14 +576,18 @@ export default function LoadPlanningPage() {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
         let closestDistance = Number.MAX_VALUE;
+        let snapX = newX;
+        let snapY = newY;
         
         // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
           // For C-17 with 9x2 grid
           for (let row = 0; row < 2; row++) {
             for (let col = 0; col < 9; col++) {
-              const cellX = col * 76 + 71/2; // center of cell
-              const cellY = row * 95 + 87/2 + (row === 0 ? 10 : 105); // center of cell
+              const cellWidth = 71;
+              const cellHeight = 87;
+              const cellX = col * 76 + cellWidth/2; // center of cell
+              const cellY = row * 95 + cellHeight/2 + (row === 0 ? 10 : 105); // center of cell
               
               const distance = Math.sqrt(
                 Math.pow(dropX - cellX, 2) + 
@@ -584,6 +597,9 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                // Calculate snap position (centered in cell)
+                snapX = col * 76 + (cellWidth - palletSize.width) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - palletSize.height) / 2;
               }
             }
           }
@@ -591,8 +607,10 @@ export default function LoadPlanningPage() {
           // For C-130 with 4x2 grid
           for (let row = 0; row < 2; row++) {
             for (let col = 0; col < 4; col++) {
-              const cellX = col * 120 + 110/2; // center of cell
-              const cellY = row * 90 + 80/2 + (row === 0 ? 10 : 100); // center of cell
+              const cellWidth = 110;
+              const cellHeight = 80;
+              const cellX = col * 120 + cellWidth/2; // center of cell
+              const cellY = row * 90 + cellHeight/2 + (row === 0 ? 10 : 100); // center of cell
               
               const distance = Math.sqrt(
                 Math.pow(dropX - cellX, 2) + 
@@ -602,14 +620,19 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                // Calculate snap position (centered in cell)
+                snapX = col * 120 + (cellWidth - palletSize.width) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - palletSize.height) / 2;
               }
             }
           }
         } else {
           // For C-27J/KC30-A with 3x1 grid
           for (let col = 0; col < 3; col++) {
-            const cellX = col * 120 + 110/2; // center of cell
-            const cellY = 20 + 80/2; // center of cell
+            const cellWidth = 110;
+            const cellHeight = 80;
+            const cellX = col * 120 + cellWidth/2; // center of cell
+            const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
               Math.pow(dropX - cellX, 2) + 
@@ -619,9 +642,16 @@ export default function LoadPlanningPage() {
             if (distance < closestDistance) {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
+              // Calculate snap position (centered in cell)
+              snapX = col * 120 + (cellWidth - palletSize.width) / 2;
+              snapY = 20 + (cellHeight - palletSize.height) / 2;
             }
           }
         }
+        
+        // Update the position to snap to the grid
+        newPallet.position.x = snapX;
+        newPallet.position.y = snapY;
         
         // Open pallet input dialog AFTER pallet is added to the array
         setTimeout(() => {
@@ -701,14 +731,18 @@ export default function LoadPlanningPage() {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
         let closestDistance = Number.MAX_VALUE;
+        let snapX = newX;
+        let snapY = newY;
         
         // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
           // For C-17 with 9x2 grid
           for (let row = 0; row < 2; row++) {
             for (let col = 0; col < 9; col++) {
-              const cellX = col * 76 + 71/2; // center of cell
-              const cellY = row * 95 + 87/2 + (row === 0 ? 10 : 105); // center of cell
+              const cellWidth = 71;
+              const cellHeight = 87;
+              const cellX = col * 76 + cellWidth/2; // center of cell
+              const cellY = row * 95 + cellHeight/2 + (row === 0 ? 10 : 105); // center of cell
               
               const distance = Math.sqrt(
                 Math.pow(dropX - cellX, 2) + 
@@ -718,6 +752,9 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                // Calculate snap position (centered in cell)
+                snapX = col * 76 + (cellWidth - draggedPallet.size.width) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - draggedPallet.size.height) / 2;
               }
             }
           }
@@ -725,8 +762,10 @@ export default function LoadPlanningPage() {
           // For C-130 with 4x2 grid
           for (let row = 0; row < 2; row++) {
             for (let col = 0; col < 4; col++) {
-              const cellX = col * 120 + 110/2; // center of cell
-              const cellY = row * 90 + 80/2 + (row === 0 ? 10 : 100); // center of cell
+              const cellWidth = 110;
+              const cellHeight = 80;
+              const cellX = col * 120 + cellWidth/2; // center of cell
+              const cellY = row * 90 + cellHeight/2 + (row === 0 ? 10 : 100); // center of cell
               
               const distance = Math.sqrt(
                 Math.pow(dropX - cellX, 2) + 
@@ -736,14 +775,19 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                // Calculate snap position (centered in cell)
+                snapX = col * 120 + (cellWidth - draggedPallet.size.width) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - draggedPallet.size.height) / 2;
               }
             }
           }
         } else {
           // For C-27J/KC30-A with 3x1 grid
           for (let col = 0; col < 3; col++) {
-            const cellX = col * 120 + 110/2; // center of cell
-            const cellY = 20 + 80/2; // center of cell
+            const cellWidth = 110;
+            const cellHeight = 80;
+            const cellX = col * 120 + cellWidth/2; // center of cell
+            const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
               Math.pow(dropX - cellX, 2) + 
@@ -753,9 +797,16 @@ export default function LoadPlanningPage() {
             if (distance < closestDistance) {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
+              // Calculate snap position (centered in cell)
+              snapX = col * 120 + (cellWidth - draggedPallet.size.width) / 2;
+              snapY = 20 + (cellHeight - draggedPallet.size.height) / 2;
             }
           }
         }
+        
+        // Set the snapped coordinates
+        newX = snapX;
+        newY = snapY;
         
         // Open pallet input dialog
         showPalletInput(id, positionLabel);
