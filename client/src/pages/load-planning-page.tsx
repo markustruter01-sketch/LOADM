@@ -1460,8 +1460,8 @@ export default function LoadPlanningPage() {
                       }
                     </p>
                   </div>
-                  <div className="rounded-md p-3 relative w-1/2" style={{ 
-                    background: 'linear-gradient(to right, rgba(132, 204, 22, 0.15), rgba(34, 197, 94, 0.15), rgba(132, 204, 22, 0.15), rgba(245, 158, 11, 0.15))'
+                  <div className="rounded-md p-3 relative w-1/2 bg-background border border-border" style={{ 
+                    backgroundColor: 'hsl(var(--background))'
                   }}>
                     <p className="text-xs font-medium">Centre of Gravity</p>
                     <p className="flex items-center gap-2">
