@@ -403,7 +403,7 @@ export default function LoadPlanningPage() {
       }
       
       // Create a new pallet with current nextPalletId
-      const palletSize = { width: 88, height: 108 };
+      const palletSize = { width: 120, height: 90 };
       
       // Position the new pallet
       if (dropArea === "cargo" || dropArea === "storage") {
@@ -770,8 +770,8 @@ export default function LoadPlanningPage() {
                         style={{
                           left: `${pallet.position.x}px`,
                           top: `${pallet.position.y}px`,
-                          width: "88px",  // Force the exact width
-                          height: "108px", // Force the exact height
+                          width: "120px",  // Force the exact width
+                          height: "90px", // Force the exact height
                           zIndex: 10
                         }}
                       >
@@ -879,7 +879,7 @@ export default function LoadPlanningPage() {
                     {/* Draggable template pallet */}
                     <div 
                       className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
-                      style={{ width: '88px', height: '108px' }}
+                      style={{ width: '120px', height: '90px' }}
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
@@ -1033,8 +1033,8 @@ export default function LoadPlanningPage() {
                       style={{
                         left: `${pallet.position.x}px`,
                         top: `${pallet.position.y}px`,
-                        width: "88px",  // Force the exact width
-                        height: "108px", // Force the exact height
+                        width: "120px",  // Force the exact width
+                        height: "90px", // Force the exact height
                         zIndex: 10
                       }}
                     >
