@@ -77,6 +77,7 @@ export default function LoadPlanningPage() {
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceCG, setBalanceCG] = useState(53); // Centre of Gravity value (18-88 degrees)
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
+  const [totalWeightInCargo, setTotalWeightInCargo] = useState(0);
   
   // Keep track of the balance scale width to make cargo area match it
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
@@ -498,6 +499,8 @@ export default function LoadPlanningPage() {
     // Map from -100:100 to 18:88 (70 degree range)
     const cg = Math.round(((balance + 100) / 200) * 70 + 18);
     setBalanceCG(cg);
+    
+    console.log(`Balance: ${balance.toFixed(2)}, CG: ${cg}°`); // Debugging line
     
     // Determine balance status
     if (Math.abs(balance) < 20) {
