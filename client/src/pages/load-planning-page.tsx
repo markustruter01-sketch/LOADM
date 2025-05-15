@@ -1859,104 +1859,97 @@ export default function LoadPlanningPage() {
                       </span>
                     </div>
                     
-                    {/* Balance Meter */}
-                    <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md overflow-hidden">
-                      {/* Background gradient */}
-                      <div className="absolute inset-0" style={{ 
-                        background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
-                      }}></div>
-                      
-                      {/* Dynamic Balance Position Box - above the meter */}
+                    {/* Complete Balance Meter with Status Box and CG Scale */}
+                    <div className="relative mb-6">
+                      {/* Status box above the meter */}
                       {totalWeightInCargo > 0 && (
-                        <div className="absolute top-0 left-0 right-0 -mt-8 pointer-events-none">
-                          <div className="flex justify-center w-full">
-                            <div className="px-4 py-1 rounded-md bg-black/70 backdrop-blur-sm border border-white/10 shadow-md">
-                              <div className="text-center text-sm font-semibold uppercase tracking-wide">
-                                {Math.abs(balanceValue) < 15 ? (
-                                  <span className="text-green-500">Balanced</span>
-                                ) : Math.abs(balanceValue) < 40 ? (
-                                  balanceValue < 0 ? 
-                                    <span className="text-yellow-500">Forward Heavy</span> : 
-                                    <span className="text-yellow-500">Aft Heavy</span>
-                                ) : (
-                                  balanceValue < 0 ? 
-                                    <span className="text-red-500">Dangerously Forward</span> : 
-                                    <span className="text-red-500">Dangerously Aft</span>
-                                )}
-                              </div>
-                            </div>
+                        <div className="w-full rounded-t-md bg-black border-t border-x border-white/20 py-2 flex justify-center">
+                          <div className="text-base uppercase font-bold">
+                            {Math.abs(balanceValue) < 15 ? (
+                              <span className="text-green-500">Balanced</span>
+                            ) : Math.abs(balanceValue) < 40 ? (
+                              balanceValue < 0 ? 
+                                <span className="text-yellow-500">Forward Heavy</span> : 
+                                <span className="text-yellow-500">Aft Heavy</span>
+                            ) : (
+                              balanceValue < 0 ? 
+                                <span className="text-red-500">Dangerously Forward</span> : 
+                                <span className="text-red-500">Dangerously Aft</span>
+                            )}
                           </div>
                         </div>
                       )}
                       
-                      {/* Center line - Now half as thick */}
-                      <div className="absolute inset-y-0 left-1/2 w-px bg-white/80"></div>
-                      
-                      {/* Indicator needle */}
-                      <div 
-                        className="absolute top-0 bottom-0 w-1 bg-white shadow-md"
-                        style={{ 
-                          left: `${(balanceValue + 100) / 2}%`,
-                          transform: 'translateX(-50%)',
-                          transition: 'left 0.3s ease-out'
-                        }}
-                      >
-                        {/* Current CG value above the needle */}
+                      {/* Gradient balance meter */}
+                      <div ref={balanceScaleRef} className="h-8 relative rounded-md overflow-hidden border border-white/20">
+                        {/* Background gradient */}
+                        <div className="absolute inset-0" style={{ 
+                          background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
+                        }}></div>
+                        
+                        {/* Center line - Now half as thick */}
+                        <div className="absolute inset-y-0 left-1/2 w-px bg-white/80"></div>
+                        
+                        {/* Indicator needle */}
                         <div 
-                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium shadow-sm"
+                          className="absolute top-0 bottom-0 w-1 bg-white shadow-md"
+                          style={{ 
+                            left: `${(balanceValue + 100) / 2}%`,
+                            transform: 'translateX(-50%)',
+                            transition: 'left 0.3s ease-out'
+                          }}
+                        ></div>
+                      </div>
+                      
+                      {/* CG Scale Markings Below Meter */}
+                      <div className="relative h-6 pt-1">
+                        {/* Current CG value at current needle position */}
+                        <div 
+                          className="absolute top-0 text-center text-xs font-medium bg-black/70 rounded px-1.5 py-0.5 leading-tight transform -translate-x-1/2"
+                          style={{ left: `${(balanceValue + 100) / 2}%` }}
                         >
                           {balanceCG}°
                         </div>
-                      </div>
-                      
-                      {/* Labels */}
-                      <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
-                        <span>FWD</span>
-                        <span className="mx-auto">BALANCED</span>
-                        <span>AFT</span>
-                      </div>
-                    </div>
-                    
-                    {/* CG Scale Markings */}
-                    <div className="relative h-6 mb-2">
-                      {/* Generate tick marks and labels */}
-                      {[...Array(71)].map((_, i) => {
-                        const position = i * (100 / 70); // 0-100% across the width
-                        const value = 18 + i; // 18-88 degrees
-                        const isMajorTick = value % 5 === 0; // Every 5th tick is major
-                        const isEndpoint = value === 18 || value === 88; // First or last value
                         
-                        return (
-                          <div key={`tick-${i}`}>
-                            {/* Tick mark - thicker for every 5th mark */}
-                            <div 
-                              className={`absolute top-0 ${isMajorTick ? 'w-0.5' : 'w-px'} ${isMajorTick ? 'bg-gray-500 dark:bg-gray-500' : 'bg-gray-400 dark:bg-gray-600'}`}
-                              style={{ 
-                                left: `${position}%`,
-                                height: isMajorTick ? '8px' : '5px'
-                              }}
-                            ></div>
-                            
-                            {/* Label (only on major ticks or endpoints) */}
-                            {(isMajorTick || isEndpoint) && (
+                        {/* Tick marks with labels at major positions */}
+                        {[...Array(71)].map((_, i) => {
+                          const position = i * (100 / 70); // 0-100% across the width
+                          const value = 18 + i; // 18-88 degrees
+                          const isMajorTick = value % 5 === 0; // Every 5th tick is major
+                          const isEndpoint = value === 18 || value === 88; // First or last value
+                          
+                          return (
+                            <div key={`tick-${i}`}>
+                              {/* Tick mark - thicker for every 5th mark */}
                               <div 
-                                className={`absolute text-[9px] ${isEndpoint ? 'font-bold' : 'font-medium'} ${isEndpoint ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}
+                                className={`absolute top-4 ${isMajorTick ? 'w-0.5' : 'w-px'} ${isMajorTick ? 'bg-gray-500 dark:bg-gray-500' : 'bg-gray-400 dark:bg-gray-600'}`}
                                 style={{ 
-                                  left: `${position}%`, 
-                                  top: '10px',
-                                  transform: 'translateX(-50%)'
+                                  left: `${position}%`,
+                                  height: isMajorTick ? '8px' : '5px'
                                 }}
-                              >
-                                {value}°
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      
-                      {/* C of G label */}
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-[9px] text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
-                        Centre of Gravity (degrees)
+                              ></div>
+                              
+                              {/* Label (only on major ticks or endpoints) */}
+                              {(isMajorTick || isEndpoint) && (
+                                <div 
+                                  className={`absolute text-[9px] ${isEndpoint ? 'font-bold' : 'font-medium'} ${isEndpoint ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}
+                                  style={{ 
+                                    left: `${position}%`, 
+                                    top: '14px',
+                                    transform: 'translateX(-50%)'
+                                  }}
+                                >
+                                  {value}°
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                        
+                        {/* C of G label */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-[9px] text-gray-500 dark:text-gray-400 mt-1 whitespace-nowrap">
+                          Centre of Gravity (degrees)
+                        </div>
                       </div>
                     </div>
                     
