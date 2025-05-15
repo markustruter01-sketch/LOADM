@@ -6,9 +6,12 @@ import { Document, Scenario } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import DocumentCard from "@/components/DocumentCard";
 import ScenarioCard from "@/components/ScenarioCard";
-import { Loader2, FileText, ClipboardList } from "lucide-react";
+import { Loader2, FileText, ClipboardList, BarChart3 } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function HomePage() {
+  const [activeSection, setActiveSection] = useState<string>("documents");
+  
   const { data: documents, isLoading: isLoadingDocuments } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
     staleTime: 30000, // 30 seconds
@@ -40,30 +43,30 @@ export default function HomePage() {
               Professional documentation and scenario tools for loadmasters
             </p>
 
-            {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
-              <Link href="/documents">
-                <div className="flex-1">
-                  <Button 
-                    className="w-full bg-primary hover:bg-primary/90 text-white h-16"
-                    size="lg"
-                  >
-                    <FileText className="mr-2 h-5 w-5" />
-                    Documents
-                  </Button>
-                </div>
-              </Link>
-              <Link href="/scenarios">
-                <div className="flex-1">
-                  <Button 
-                    className="w-full bg-primary hover:bg-primary/90 text-white h-16"
-                    size="lg"
-                  >
-                    <ClipboardList className="mr-2 h-5 w-5" />
-                    Scenarios
-                  </Button>
-                </div>
-              </Link>
+            {/* Toggle Buttons */}
+            <div className="flex justify-center mb-6">
+              <ToggleGroup type="single" value={activeSection} onValueChange={(value) => value && setActiveSection(value)}>
+                <ToggleGroupItem value="documents" aria-label="Documents">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Documents
+                </ToggleGroupItem>
+                <ToggleGroupItem value="scenarios" aria-label="Scenarios">
+                  <ClipboardList className="h-4 w-4 mr-2" />
+                  Scenarios
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            {/* Load Planning Feature Button */}
+            <div className="mb-10">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+              >
+                <BarChart3 className="mr-2 h-5 w-5" />
+                Load Planning
+              </Button>
             </div>
 
             {/* Featured Section Banner */}
@@ -86,10 +89,10 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Recent Documents Section */}
-          <section className="mb-10">
+          {/* Documents Section */}
+          <section className={`mb-10 ${activeSection === 'documents' ? 'block' : 'hidden'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Recent Documents</h3>
+              <h3 className="text-xl font-bold">Documents</h3>
               <Link href="/documents">
                 <span className="text-primary hover:underline text-sm cursor-pointer">View All</span>
               </Link>
@@ -100,17 +103,17 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {documents?.slice(0, 2).map((document) => (
+                {documents?.map((document) => (
                   <DocumentCard key={document.id} document={document} />
                 ))}
               </div>
             )}
           </section>
 
-          {/* Recent Scenarios Section */}
-          <section>
+          {/* Scenarios Section */}
+          <section className={`${activeSection === 'scenarios' ? 'block' : 'hidden'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Recent Scenarios</h3>
+              <h3 className="text-xl font-bold">Scenarios</h3>
               <Link href="/scenarios">
                 <span className="text-primary hover:underline text-sm cursor-pointer">View All</span>
               </Link>
@@ -121,7 +124,7 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {scenarios?.slice(0, 2).map((scenario) => (
+                {scenarios?.map((scenario) => (
                   <ScenarioCard key={scenario.id} scenario={scenario} />
                 ))}
               </div>
