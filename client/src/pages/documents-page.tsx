@@ -12,7 +12,7 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Documents - LOADMdocs</title>
+        <title>Documents - LOADMworkflow</title>
         <meta 
           name="description" 
           content="Browse and complete document templates for loadmaster operations." 

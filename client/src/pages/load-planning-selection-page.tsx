@@ -37,7 +37,7 @@ export default function LoadPlanningSelectionPage() {
   return (
     <>
       <Helmet>
-        <title>Load Planning - LOADMdocs</title>
+        <title>Load Planning - LOADMworkflow</title>
         <meta 
           name="description" 
           content="Select an aircraft for load planning simulation." 

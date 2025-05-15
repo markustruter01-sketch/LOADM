@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileCheck, ClipboardList, Package2, UserCircle } from "lucide-react";
-import cargoLoadingImage from "/cargo-loading.png";
+import cargoBayImage from "../assets/cargo-bay.png";
 
 export default function HomePage() {
 
@@ -30,8 +30,8 @@ export default function HomePage() {
             {/* Featured Section Banner */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
               <img
-                src={cargoLoadingImage}
-                alt="Military cargo loadmaster preparing pallet"
+                src={cargoBayImage}
+                alt="Military cargo loadmaster in aircraft bay"
                 className="w-full h-full object-cover"
               />
               <div className="gradient-overlay flex items-end">

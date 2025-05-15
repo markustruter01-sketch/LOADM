@@ -19,7 +19,7 @@ export default function ScenariosPage() {
   return (
     <>
       <Helmet>
-        <title>Scenarios - LOADMdocs</title>
+        <title>Scenarios - LOADMworkflow</title>
         <meta 
           name="description" 
           content="Access and complete loadmaster training scenarios." 
