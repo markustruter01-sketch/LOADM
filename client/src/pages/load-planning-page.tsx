@@ -742,12 +742,18 @@ export default function LoadPlanningPage() {
                       style={{
                         left: `${pallet.position.x}px`,
                         top: `${pallet.position.y}px`,
-                        width: `${pallet.size.width}px`,
-                        height: `${pallet.size.height}px`,
+                        width: "88px",  // Force the exact width
+                        height: "108px", // Force the exact height
                         zIndex: 10
                       }}
                     >
-                      {pallet.weight !== null ? `${pallet.weight} kg` : "No weight"}
+                      <div className="flex flex-col items-center">
+                        {pallet.weight !== null ? 
+                          <span>{pallet.weight} kg</span> : 
+                          <span className="text-white/80">No weight</span>
+                        }
+                        <span className="text-xs text-white/60 mt-1">(88×108)</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -975,12 +981,18 @@ export default function LoadPlanningPage() {
                       style={{
                         left: `${pallet.position.x}px`,
                         top: `${pallet.position.y}px`,
-                        width: `${pallet.size.width}px`,
-                        height: `${pallet.size.height}px`,
+                        width: "88px",  // Force the exact width
+                        height: "108px", // Force the exact height
                         zIndex: 10
                       }}
                     >
-                      {pallet.weight !== null ? `${pallet.weight} kg` : "No weight"}
+                      <div className="flex flex-col items-center">
+                        {pallet.weight !== null ? 
+                          <span>{pallet.weight} kg</span> : 
+                          <span className="text-white/80">No weight</span>
+                        }
+                        <span className="text-xs text-white/60 mt-1">(88×108)</span>
+                      </div>
                     </div>
                   ))}
                 </div>
