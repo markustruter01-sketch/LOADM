@@ -805,9 +805,7 @@ export default function LoadPlanningPage() {
                     {/* Balance Meter */}
                     <div className="h-6 relative mb-1 rounded-md overflow-hidden">
                       {/* Background gradient */}
-                      <div className="absolute inset-0" style={{ 
-                        background: 'linear-gradient(to right, #ef4444 0%, #ef4444 15%, #facc15 15%, #facc15 35%, #22c55e 35%, #22c55e 65%, #facc15 65%, #facc15 85%, #ef4444 85%, #ef4444 100%)'
-                      }}></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-yellow-400 to-red-500"></div>
                       
                       {/* Center line */}
                       <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/50"></div>
