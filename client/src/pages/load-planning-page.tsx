@@ -167,6 +167,14 @@ export default function LoadPlanningPage() {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<'warning' | 'error'>('warning');
   
+  // Show alert dialog
+  const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
+    setAlertType(type);
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertOpen(true);
+  };
+  
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
     const weight = pallets.reduce((total, pallet) => {
@@ -384,27 +392,51 @@ export default function LoadPlanningPage() {
       
       // Position the new pallet
       if (dropArea === "cargo" || dropArea === "storage") {
-        // Calculate the cell size based on the column grid
-        const columns = currentAircraftId === 'c17' ? 6 : 
-                        currentAircraftId === 'c130' ? 4 : 3;
-        const cellWidth = areaWidth / columns;
-        const cellHeight = areaHeight;
-        
-        // Determine which cell the pallet was dropped in
-        const cellColumn = Math.floor(dropX / cellWidth);
-        
-        // Calculate the position to center the pallet in that cell
-        // Use 90% of the cell size for the pallet
-        const palletWidth = cellWidth * 0.9;
-        const palletHeight = cellHeight * 0.9;
-        
-        // Center in the cell
-        newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
-        newY = (cellHeight - palletHeight) / 2;
-        
-        // Set the pallet size to fit the grid cell
-        palletSize.width = palletWidth;
-        palletSize.height = palletHeight;
+        // Special handling for C-17 with 9x2 grid
+        if (currentAircraftId === 'c17') {
+          const columns = 9;
+          const rows = 2;
+          const cellWidth = areaWidth / columns;
+          const cellHeight = areaHeight / rows;
+          
+          // Determine which cell the pallet was dropped in (row and column)
+          const cellRow = Math.floor(dropY / cellHeight);
+          const cellColumn = Math.floor(dropX / cellWidth);
+          
+          // Calculate the position to center the pallet in that cell
+          // Use 90% of the cell size for the pallet
+          const palletWidth = cellWidth * 0.9;
+          const palletHeight = cellHeight * 0.9;
+          
+          // Center in the cell
+          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+          newY = (cellRow * cellHeight) + (cellHeight - palletHeight) / 2;
+          
+          // Set the pallet size
+          palletSize.width = palletWidth;
+          palletSize.height = palletHeight;
+        } else {
+          // For other aircraft types
+          const columns = currentAircraftId === 'c130' ? 4 : 3;
+          const cellWidth = areaWidth / columns;
+          const cellHeight = areaHeight;
+          
+          // Determine which cell the pallet was dropped in
+          const cellColumn = Math.floor(dropX / cellWidth);
+          
+          // Calculate the position to center the pallet in that cell
+          // Use 90% of the cell size for the pallet
+          const palletWidth = cellWidth * 0.9;
+          const palletHeight = cellHeight * 0.9;
+          
+          // Center in the cell
+          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+          newY = (cellHeight - palletHeight) / 2;
+          
+          // Set the pallet size
+          palletSize.width = palletWidth;
+          palletSize.height = palletHeight;
+        }
       } else {
         // For configure area, use the original drop calculation
         newX = dropX - (palletSize.width / 2);
@@ -451,29 +483,55 @@ export default function LoadPlanningPage() {
       
       // Position the existing pallet
       if (dropArea === "cargo" || dropArea === "storage") {
-        // Calculate the cell size based on the column grid
-        const columns = currentAircraftId === 'c17' ? 6 : 
-                        currentAircraftId === 'c130' ? 4 : 3;
-        const cellWidth = areaWidth / columns;
-        const cellHeight = areaHeight;
-        
-        // Determine which cell the pallet was dropped in
-        const cellColumn = Math.floor(dropX / cellWidth);
-        
-        // Calculate the position to center the pallet in that cell
-        // Use 90% of the cell size for the pallet
-        const palletWidth = cellWidth * 0.9;
-        const palletHeight = cellHeight * 0.9;
-        
-        // Center in the cell
-        newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
-        newY = (cellHeight - palletHeight) / 2;
-        
-        // Update the pallet size to fit the grid cell
-        draggedPallet.size = {
-          width: palletWidth,
-          height: palletHeight
-        };
+        // Special handling for C-17 with 9x2 grid
+        if (currentAircraftId === 'c17') {
+          const columns = 9;
+          const rows = 2;
+          const cellWidth = areaWidth / columns;
+          const cellHeight = areaHeight / rows;
+          
+          // Determine which cell the pallet was dropped in (row and column)
+          const cellRow = Math.floor(dropY / cellHeight);
+          const cellColumn = Math.floor(dropX / cellWidth);
+          
+          // Calculate the position to center the pallet in that cell
+          // Use 90% of the cell size for the pallet
+          const palletWidth = cellWidth * 0.9;
+          const palletHeight = cellHeight * 0.9;
+          
+          // Center in the cell
+          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+          newY = (cellRow * cellHeight) + (cellHeight - palletHeight) / 2;
+          
+          // Update the pallet size to fit the grid cell
+          draggedPallet.size = {
+            width: palletWidth,
+            height: palletHeight
+          };
+        } else {
+          // For other aircraft types
+          const columns = currentAircraftId === 'c130' ? 4 : 3;
+          const cellWidth = areaWidth / columns;
+          const cellHeight = areaHeight;
+          
+          // Determine which cell the pallet was dropped in
+          const cellColumn = Math.floor(dropX / cellWidth);
+          
+          // Calculate the position to center the pallet in that cell
+          // Use 90% of the cell size for the pallet
+          const palletWidth = cellWidth * 0.9;
+          const palletHeight = cellHeight * 0.9;
+          
+          // Center in the cell
+          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+          newY = (cellHeight - palletHeight) / 2;
+          
+          // Update the pallet size to fit the grid cell
+          draggedPallet.size = {
+            width: palletWidth,
+            height: palletHeight
+          };
+        }
       } else {
         // For configure area, use the original drop calculation
         newX = dropX - (draggedPallet.size.width / 2);
@@ -518,14 +576,6 @@ export default function LoadPlanningPage() {
     setDropZones(generateDropZones(currentAircraftId));
     setBalanceValue(0);
     setBalanceStatus('safe');
-  };
-  
-  // Show alert dialog
-  const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
-    setAlertType(type);
-    setAlertTitle(title);
-    setAlertMessage(message);
-    setAlertOpen(true);
   };
 
   // Get constants for current aircraft
@@ -959,7 +1009,7 @@ export default function LoadPlanningPage() {
                 <div className="mt-2 p-2 bg-primary/10 border border-primary/20 rounded-md">
                   <p className="text-sm font-medium text-primary">
                     {currentAircraftId === 'c17' 
-                      ? 'C-17 Globemaster maximum payload is 77,500 kg with 18 pallet positions.'
+                      ? 'C-17 Globemaster maximum payload is 77,500 kg with 18 pallet positions (9×2 grid).'
                       : currentAircraftId === 'c130'
                         ? 'C-130 Hercules maximum payload is 20,000 kg with 8 pallet positions.'
                         : 'C-27J Spartan maximum payload is 11,300 kg with 3 pallet positions.'}
