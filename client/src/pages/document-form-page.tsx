@@ -163,80 +163,174 @@ export default function DocumentFormPage() {
           <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {fields?.map((field) => (
-                  <FormField
-                    key={field.id}
-                    control={form.control}
-                    name={field.id}
-                    render={({ field: formField }) => (
-                      <FormItem>
-                        <FormLabel>{field.label}</FormLabel>
-                        <FormControl>
-                          {field.type === "text" && (
-                            <Input
-                              placeholder={field.placeholder}
-                              {...formField}
-                            />
-                          )}
-                          {field.type === "number" && (
-                            <Input
-                              type="number"
-                              placeholder={field.placeholder}
-                              {...formField}
-                              onChange={(e) => formField.onChange(e.target.valueAsNumber)}
-                            />
-                          )}
-                          {field.type === "date" && (
-                            <Input
-                              type="date"
-                              {...formField}
-                            />
-                          )}
-                          {field.type === "textarea" && (
-                            <Textarea
-                              placeholder={field.placeholder}
-                              rows={3}
-                              {...formField}
-                            />
-                          )}
-                          {field.type === "select" && field.options && (
-                            <Select
-                              onValueChange={formField.onChange}
-                              defaultValue={formField.value.toString()}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select an option" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {field.options.map((option) => (
-                                  <SelectItem key={option} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                          {field.type === "checkbox" && (
-                            <div className="flex items-center space-x-2">
+                {fields?.map((field) => {
+                  // Handle each field type with proper FormControl usage
+                  if (field.type === "text") {
+                    return (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={field.id}
+                        render={({ field: formField }) => (
+                          <FormItem>
+                            <FormLabel>{field.label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder={field.placeholder}
+                                {...formField}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                  }
+                  
+                  if (field.type === "number") {
+                    return (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={field.id}
+                        render={({ field: formField }) => (
+                          <FormItem>
+                            <FormLabel>{field.label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder={field.placeholder}
+                                {...formField}
+                                onChange={(e) => formField.onChange(e.target.valueAsNumber)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                  }
+                  
+                  if (field.type === "date") {
+                    return (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={field.id}
+                        render={({ field: formField }) => (
+                          <FormItem>
+                            <FormLabel>{field.label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...formField}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                  }
+                  
+                  if (field.type === "textarea") {
+                    return (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={field.id}
+                        render={({ field: formField }) => (
+                          <FormItem>
+                            <FormLabel>{field.label}</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder={field.placeholder}
+                                rows={3}
+                                {...formField}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                  }
+                  
+                  if (field.type === "select" && field.options) {
+                    return (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={field.id}
+                        render={({ field: formField }) => (
+                          <FormItem>
+                            <FormLabel>{field.label}</FormLabel>
+                            <FormControl>
+                              <Select
+                                onValueChange={formField.onChange}
+                                defaultValue={formField.value ? formField.value.toString() : undefined}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select an option" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {field.options?.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                  }
+                  
+                  if (field.type === "checkbox") {
+                    return (
+                      <FormField
+                        key={field.id}
+                        control={form.control}
+                        name={field.id}
+                        render={({ field: formField }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
+                            <FormControl>
                               <Checkbox
-                                id={field.id}
                                 checked={formField.value}
                                 onCheckedChange={formField.onChange}
                               />
-                              <label
-                                htmlFor={field.id}
-                                className="text-sm text-muted-foreground"
-                              >
-                                {field.label}
-                              </label>
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>{field.label}</FormLabel>
                             </div>
-                          )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    );
+                  }
+                  
+                  // Default fallback for unrecognized field types
+                  return (
+                    <FormField
+                      key={field.id}
+                      control={form.control}
+                      name={field.id}
+                      render={({ field: formField }) => (
+                        <FormItem>
+                          <FormLabel>{field.label}</FormLabel>
+                          <FormControl>
+                            <Input {...formField} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  );
+                })}
 
                 <div className="flex justify-end space-x-4">
                   <Button
