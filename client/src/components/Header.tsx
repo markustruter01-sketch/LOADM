@@ -33,7 +33,7 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
-                  <UserCircle style={{ height: '2.5rem', width: '2.5rem' }} />
+                  <UserCircle style={{ height: '2rem', width: '2rem' }} />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -61,7 +61,7 @@ export default function Header() {
             location !== "/auth" && (
               <Link href="/auth">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
-                  <UserCircle style={{ height: '2.5rem', width: '2.5rem' }} />
+                  <UserCircle style={{ height: '2rem', width: '2rem' }} />
                   <span className="sr-only">Login</span>
                 </Button>
               </Link>
