@@ -442,12 +442,7 @@ export default function LoadPlanningPage() {
       offsetY = rect.top;
       areaWidth = rect.width;
       areaHeight = rect.height;
-    } else if (dropArea === "storage" && storageRef.current) {
-      rect = storageRef.current.getBoundingClientRect();
-      offsetX = rect.left;
-      offsetY = rect.top;
-      areaWidth = rect.width;
-      areaHeight = rect.height;
+    // Storage area removed
     } else if (dropArea === "configure" && configureRef.current) {
       rect = configureRef.current.getBoundingClientRect();
       offsetX = rect.left;
@@ -1130,10 +1125,10 @@ export default function LoadPlanningPage() {
                             key={`spartan-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 120,
-                              top: 20,
-                              width: 110,
-                              height: 80,
+                              left: i * 130,
+                              top: 10,
+                              width: 121, /* 110px * 1.1 = 121px */
+                              height: 88, /* 80px * 1.1 = 88px */
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           >
@@ -1291,9 +1286,8 @@ export default function LoadPlanningPage() {
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
-                      <div className="flex flex-col items-center justify-center">
-                        <Package2 className="h-5 w-5 mb-2" />
-                        <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
+                      <div className="flex items-center justify-center">
+                        <Package2 className="h-6 w-6" />
                       </div>
                     </div>
                   </div>
