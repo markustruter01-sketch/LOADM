@@ -1263,7 +1263,22 @@ export default function LoadPlanningPage() {
                           <div className="flex justify-between items-center mb-2">
                             <div className="flex items-center">
                               <Package2 className="h-4 w-4 mr-2 text-primary" />
-                              <span className="font-medium text-sm">Pallet {pallet.id}</span>
+                              <span className="font-medium text-sm">
+                                Pallet {pallet.id}
+                                {pallet.positionLabel && (
+                                  <span className="ml-1 text-xs text-muted-foreground">
+                                    ({pallet.positionLabel})
+                                  </span>
+                                )}
+                              </span>
+                              {pallet.cargoType && (
+                                <Badge 
+                                  variant={pallet.cargoType === "C" ? "outline" : "destructive"}
+                                  className="text-xs ml-2 px-1"
+                                >
+                                  {pallet.cargoType}
+                                </Badge>
+                              )}
                             </div>
                             <Badge 
                               variant={
