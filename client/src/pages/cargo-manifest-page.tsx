@@ -5,8 +5,8 @@ export default function CargoManifestPage() {
   return (
     <>
       <Helmet>
-        <title>Cargo Manifest - LOADMdocs</title>
-        <meta name="description" content="Cargo Manifest form for military cargo load planning" />
+        <title>Passenger / Crew and Cargo Manifest - LOADMdocs</title>
+        <meta name="description" content="Passenger / Crew and Cargo Manifest form for military cargo load planning" />
       </Helmet>
       
       <CargoManifestForm />

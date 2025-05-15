@@ -82,7 +82,7 @@ export function CargoManifestForm() {
   return (
     <>
       <Helmet>
-        <title>Cargo Manifest - LOADMdocs</title>
+        <title>Passenger / Crew and Cargo Manifest - LOADMdocs</title>
         <style>
           {`
             @media print {
