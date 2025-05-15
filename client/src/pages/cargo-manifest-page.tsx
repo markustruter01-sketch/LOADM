@@ -1,4 +1,5 @@
 import { CargoManifestForm } from "@/components/CargoManifestForm";
+import DocumentMenu from "@/components/DocumentMenu";
 import { Helmet } from "react-helmet";
 
 export default function CargoManifestPage() {
@@ -9,7 +10,13 @@ export default function CargoManifestPage() {
         <meta name="description" content="Cargo Manifest form for military cargo load planning" />
       </Helmet>
       
-      <CargoManifestForm />
+      {/* Document menu showing all available document forms */}
+      <DocumentMenu />
+      
+      {/* The cargo manifest form */}
+      <div className="container mx-auto pb-20">
+        <CargoManifestForm />
+      </div>
     </>
   );
 }
