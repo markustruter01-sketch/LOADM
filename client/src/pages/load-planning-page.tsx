@@ -901,19 +901,18 @@ export default function LoadPlanningPage() {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
                 
-                // Make pallet 10% smaller than grid cell
-                const reducedWidth = Math.floor(cellWidth * 0.9);
-                const reducedHeight = Math.floor(cellHeight * 0.9);
+                // Use helper functions for consistent sizing and positioning
+                const dimensions = calculatePalletDimensions(cellWidth, cellHeight);
                 
-                // Update the pallet size to be 10% smaller
+                // Update the pallet size to be consistently 10% smaller
                 draggedPallet.size = {
-                  width: reducedWidth,
-                  height: reducedHeight
+                  width: dimensions.width,
+                  height: dimensions.height
                 };
                 
                 // Calculate snap position (centered in cell)
-                snapX = col * 76 + (cellWidth - reducedWidth) / 2;
-                snapY = (row === 0 ? 10 : 105) + (cellHeight - reducedHeight) / 2;
+                snapX = col * 76 + (cellWidth - dimensions.width) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - dimensions.height) / 2;
               }
             }
           }
@@ -934,9 +933,19 @@ export default function LoadPlanningPage() {
               if (distance < closestDistance) {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                
+                // Use helper functions for consistent sizing
+                const dimensions = calculatePalletDimensions(cellWidth, cellHeight);
+                
+                // Update the pallet size to be consistently 10% smaller
+                draggedPallet.size = {
+                  width: dimensions.width,
+                  height: dimensions.height
+                };
+                
                 // Calculate snap position (centered in cell)
-                snapX = col * 120 + (cellWidth - draggedPallet.size.width) / 2;
-                snapY = (row === 0 ? 10 : 100) + (cellHeight - draggedPallet.size.height) / 2;
+                snapX = col * 120 + (cellWidth - dimensions.width) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - dimensions.height) / 2;
               }
             }
           }
@@ -956,9 +965,19 @@ export default function LoadPlanningPage() {
             if (distance < closestDistance) {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
+              
+              // Use helper functions for consistent sizing
+              const dimensions = calculatePalletDimensions(cellWidth, cellHeight);
+              
+              // Update the pallet size to be consistently 10% smaller
+              draggedPallet.size = {
+                width: dimensions.width,
+                height: dimensions.height
+              };
+              
               // Calculate snap position (centered in cell)
-              snapX = col * 144 + (cellWidth - draggedPallet.size.width) / 2;
-              snapY = 20 + (cellHeight - draggedPallet.size.height) / 2;
+              snapX = col * 144 + (cellWidth - dimensions.width) / 2;
+              snapY = 20 + (cellHeight - dimensions.height) / 2;
             }
           }
         }
