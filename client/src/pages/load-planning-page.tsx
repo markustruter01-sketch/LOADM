@@ -1896,22 +1896,23 @@ export default function LoadPlanningPage() {
                         const position = i * (100 / 70); // 0-100% across the width
                         const value = 18 + i; // 18-88 degrees
                         const isMajorTick = value % 5 === 0; // Every 5th tick is major
+                        const isEndpoint = value === 18 || value === 88; // First or last value
                         
                         return (
                           <div key={`tick-${i}`}>
-                            {/* Tick mark */}
+                            {/* Tick mark - thicker for every 5th mark */}
                             <div 
-                              className="absolute top-0 w-px bg-gray-400 dark:bg-gray-600" 
+                              className={`absolute top-0 ${isMajorTick ? 'w-0.5' : 'w-px'} ${isMajorTick ? 'bg-gray-500 dark:bg-gray-500' : 'bg-gray-400 dark:bg-gray-600'}`}
                               style={{ 
                                 left: `${position}%`,
                                 height: isMajorTick ? '8px' : '5px'
                               }}
                             ></div>
                             
-                            {/* Label (only on major ticks) */}
-                            {isMajorTick && (
+                            {/* Label (only on major ticks or endpoints) */}
+                            {(isMajorTick || isEndpoint) && (
                               <div 
-                                className="absolute text-[9px] text-gray-500 dark:text-gray-400 font-medium"
+                                className={`absolute text-[9px] ${isEndpoint ? 'font-bold' : 'font-medium'} ${isEndpoint ? 'text-gray-600 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}
                                 style={{ 
                                   left: `${position}%`, 
                                   top: '10px',
