@@ -1861,10 +1861,10 @@ export default function LoadPlanningPage() {
                     
                     {/* Complete Balance Meter with Status Box and CG Scale */}
                     <div className="relative mb-6">
-                      {/* Status box above the meter */}
+                      {/* Status box above the meter - 100% bigger with padding */}
                       {totalWeightInCargo > 0 && (
-                        <div className="w-full rounded-t-md bg-black border-t border-x border-white/20 py-2 flex justify-center">
-                          <div className="text-base uppercase font-bold">
+                        <div className="w-full rounded-md bg-black border border-white/20 py-5 mb-4 flex justify-center shadow-lg">
+                          <div className="text-2xl uppercase font-bold tracking-wider">
                             {Math.abs(balanceValue) < 15 ? (
                               <span className="text-green-500">Balanced</span>
                             ) : Math.abs(balanceValue) < 40 ? (
