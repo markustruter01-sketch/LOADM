@@ -566,13 +566,15 @@ export default function LoadPlanningPage() {
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
       
-      // If pallet is being placed in cargo area, find nearest position label and open dialog
+      // If pallet is being placed in cargo area, find nearest position label and check if position is occupied
       if (dropArea === "cargo") {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
         let closestDistance = Number.MAX_VALUE;
         let snapX = newX;
         let snapY = newY;
+        let cellFound = false;
+        let isPositionOccupied = false;
         
         // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
@@ -590,11 +592,23 @@ export default function LoadPlanningPage() {
               );
               
               if (distance < closestDistance) {
-                closestDistance = distance;
-                positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
-                // Calculate snap position (centered in cell)
-                snapX = col * 76 + (cellWidth - palletSize.width) / 2;
-                snapY = (row === 0 ? 10 : 105) + (cellHeight - palletSize.height) / 2;
+                const currentPosLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                
+                // Check if this position is already occupied by another pallet
+                const existingPallet = pallets.find(p => 
+                  p.location === "cargo" && p.positionLabel === currentPosLabel
+                );
+                
+                if (!existingPallet) {
+                  closestDistance = distance;
+                  positionLabel = currentPosLabel;
+                  // Calculate snap position (centered in cell)
+                  snapX = col * 76 + (cellWidth - palletSize.width) / 2;
+                  snapY = (row === 0 ? 10 : 105) + (cellHeight - palletSize.height) / 2;
+                  cellFound = true;
+                } else {
+                  isPositionOccupied = true;
+                }
               }
             }
           }
@@ -613,11 +627,23 @@ export default function LoadPlanningPage() {
               );
               
               if (distance < closestDistance) {
-                closestDistance = distance;
-                positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
-                // Calculate snap position (centered in cell)
-                snapX = col * 120 + (cellWidth - palletSize.width) / 2;
-                snapY = (row === 0 ? 10 : 100) + (cellHeight - palletSize.height) / 2;
+                const currentPosLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                
+                // Check if this position is already occupied by another pallet
+                const existingPallet = pallets.find(p => 
+                  p.location === "cargo" && p.positionLabel === currentPosLabel
+                );
+                
+                if (!existingPallet) {
+                  closestDistance = distance;
+                  positionLabel = currentPosLabel;
+                  // Calculate snap position (centered in cell)
+                  snapX = col * 120 + (cellWidth - palletSize.width) / 2;
+                  snapY = (row === 0 ? 10 : 100) + (cellHeight - palletSize.height) / 2;
+                  cellFound = true;
+                } else {
+                  isPositionOccupied = true;
+                }
               }
             }
           }
