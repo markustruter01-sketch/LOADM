@@ -805,7 +805,9 @@ export default function LoadPlanningPage() {
                     {/* Balance Meter */}
                     <div className="h-6 relative mb-1 rounded-md overflow-hidden">
                       {/* Background gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-yellow-400 to-red-500"></div>
+                      <div className="absolute inset-0" style={{ 
+                        background: 'linear-gradient(to right, #ef4444 0%, #ef4444 15%, #facc15 15%, #facc15 35%, #22c55e 35%, #22c55e 65%, #facc15 65%, #facc15 85%, #ef4444 85%, #ef4444 100%)'
+                      }}></div>
                       
                       {/* Center line */}
                       <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/50"></div>
@@ -982,12 +984,13 @@ export default function LoadPlanningPage() {
                       {[...Array(9)].map((_, i) => (
                         <div 
                           key={`storage-row1-${i}`} 
-                          className="absolute border border-white/10"
+                          className="absolute border-2 border-green-800/80 rounded-sm"
                           style={{
-                            left: i * 100,
+                            left: i * 95,
                             top: 10,
-                            width: 96,
-                            height: 116,
+                            width: 90,
+                            height: 110,
+                            backgroundColor: 'rgba(20, 83, 45, 0.15)'
                           }}
                         ></div>
                       ))}
@@ -996,12 +999,13 @@ export default function LoadPlanningPage() {
                       {[...Array(9)].map((_, i) => (
                         <div 
                           key={`storage-row2-${i}`} 
-                          className="absolute border border-white/10"
+                          className="absolute border-2 border-green-800/80 rounded-sm"
                           style={{
-                            left: i * 100,
-                            top: 136, 
-                            width: 96,
-                            height: 116,
+                            left: i * 95,
+                            top: 130, 
+                            width: 90,
+                            height: 110,
+                            backgroundColor: 'rgba(20, 83, 45, 0.15)'
                           }}
                         ></div>
                       ))}
@@ -1039,7 +1043,7 @@ export default function LoadPlanningPage() {
                           <span>{pallet.weight} kg</span> : 
                           <span className="text-white/80">No weight</span>
                         }
-                        <span className="text-xs text-white/60 mt-1">(88×108)</span>
+
                       </div>
                     </div>
                   ))}
