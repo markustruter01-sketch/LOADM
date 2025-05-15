@@ -1,0 +1,231 @@
+import { Helmet } from "react-helmet";
+import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  FileText, ClipboardList, Layers, FileCheck, BookOpen, 
+  GraduationCap, PenTool, Lightbulb, BarChart2, Award
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+
+export default function InstructorsPortal() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Redirect if not admin
+  useEffect(() => {
+    if (user && !user.isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "You need instructor privileges to access this portal",
+        variant: "destructive"
+      });
+    }
+  }, [user, toast]);
+
+  const { data: documents } = useQuery<Document[]>({
+    queryKey: ["/api/documents"],
+  });
+
+  const { data: scenarios } = useQuery<Scenario[]>({
+    queryKey: ["/api/scenarios"],
+  });
+
+  const { data: documentSubmissions } = useQuery<DocumentSubmission[]>({
+    queryKey: ["/api/document-submissions"],
+    enabled: !!user?.isAdmin,
+  });
+
+  const { data: scenarioSubmissions } = useQuery<ScenarioSubmission[]>({
+    queryKey: ["/api/scenario-submissions"],
+    enabled: !!user?.isAdmin,
+  });
+
+  return (
+    <>
+      <Helmet>
+        <title>Instructors Portal - LOADMworkflow</title>
+        <meta name="description" content="Instructors portal for LOADMworkflow - create, edit and manage training scenarios" />
+      </Helmet>
+
+      <div className="container mx-auto px-4 py-8 mb-16">
+        <div className="mb-8 max-w-3xl">
+          <h2 className="text-3xl font-bold mb-2 text-foreground">Instructors Portal</h2>
+          <p className="text-muted-foreground">
+            Welcome to the instructor management portal. As an authorized instructor, you can 
+            create, edit, and manage training scenarios to support loadmaster training.
+          </p>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Scenarios</CardTitle>
+              <GraduationCap className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{scenarios?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Training scenarios available</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Student Attempts</CardTitle>
+              <Layers className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{scenarioSubmissions?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Total scenarios attempted</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Documents</CardTitle>
+              <FileText className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{documents?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Document templates</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Submissions</CardTitle>
+              <FileCheck className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{documentSubmissions?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">Total forms completed</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Management Cards */}
+        <h3 className="text-xl font-semibold mb-4 text-foreground">Scenario Management</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Create Scenarios</CardTitle>
+                <PenTool className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Design new training scenarios and quizzes</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Create custom training scenarios with multiple-choice questions and automatic scoring
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/scenarios/create">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Create New Scenario
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Manage Scenarios</CardTitle>
+                <ClipboardList className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Edit, update or delete training scenarios</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Modify existing training scenarios, update questions, and manage scenario content
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/scenarios">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Manage Scenarios
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Student Progress</CardTitle>
+                <BarChart2 className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>View student performance and results</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Track student progress, analyze performance metrics, and identify improvement areas
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/analytics">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  View Analytics
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+
+        {/* Additional Resources */}
+        <h3 className="text-xl font-semibold mb-4 text-foreground">Instructor Resources</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Teaching Materials</CardTitle>
+                <BookOpen className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Access instructor resources and guides</CardDescription>
+            </CardHeader>
+            <CardContent className="h-24 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Reference materials to help create effective training scenarios
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/resources">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Access Resources
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Best Practices</CardTitle>
+                <Lightbulb className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Learn scenario design techniques</CardDescription>
+            </CardHeader>
+            <CardContent className="h-24 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Guidelines for creating effective assessment questions
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/best-practices">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  View Best Practices
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
