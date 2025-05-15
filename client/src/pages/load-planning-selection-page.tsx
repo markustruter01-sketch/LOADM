@@ -37,7 +37,7 @@ export default function LoadPlanningSelectionPage() {
   return (
     <>
       <Helmet>
-        <title>Aircraft Selection - LOADMdocs</title>
+        <title>Load Planning - LOADMdocs</title>
         <meta 
           name="description" 
           content="Select an aircraft for load planning simulation." 
@@ -47,19 +47,20 @@ export default function LoadPlanningSelectionPage() {
       <div className="container mx-auto px-4 py-6 mb-16">
         <div className="max-w-4xl mx-auto">
           {/* Header with Back Button */}
-          <div className="flex items-center mb-8">
+          <div className="mb-4">
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
-              className="mr-4 p-2"
+              className="p-2 -ml-2"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 mr-1" />
+              Back to Home
             </Button>
-            <h1 className="text-2xl font-bold">Aircraft Selection</h1>
           </div>
           
+          <h1 className="text-3xl font-bold mb-2">Load Planning</h1>
           <p className="text-muted-foreground mb-8">
-            Select an aircraft type to begin load planning:
+            Select an aircraft type to begin load planning simulation
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
