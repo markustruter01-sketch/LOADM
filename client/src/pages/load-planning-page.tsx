@@ -1014,9 +1014,9 @@ export default function LoadPlanningPage() {
             </Card>
             
             {/* Cargo Area and Configure Pallets side by side */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
               {/* Cargo Area - Always on the left */}
-              <Card className="lg:col-span-8">
+              <Card className="lg:col-span-7">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center">
                     <Plane className="h-5 w-5 mr-2 text-primary" />
@@ -1257,7 +1257,7 @@ export default function LoadPlanningPage() {
               </Card>
 
               {/* Configure Pallets - Always on the right */}
-              <Card className="lg:col-span-4">
+              <Card className="lg:col-span-3">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center">
                     <Package2 className="h-5 w-5 mr-2 text-primary" />
