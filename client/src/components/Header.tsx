@@ -49,6 +49,11 @@ export default function Header() {
                         <div className="w-full cursor-pointer">Admin Dashboard</div>
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/instructors-portal">
+                        <div className="w-full cursor-pointer">Instructors Portal</div>
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
                 )}

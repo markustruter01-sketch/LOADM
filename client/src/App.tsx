@@ -19,6 +19,10 @@ import DocumentsPage from "@/pages/cargo-manifest-page"; // Changed name but kep
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
+import InstructorsPortal from "@/pages/instructors-portal";
+import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
+import CreateScenario from "@/pages/instructors-portal/scenarios/create";
+import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
 import { ProtectedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -46,6 +50,10 @@ function Router() {
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
+          <ProtectedRoute path="/instructors-portal" component={InstructorsPortal} />
+          <ProtectedRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
+          <ProtectedRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
+          <ProtectedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
           <Route component={NotFound} />
         </Switch>
       </main>
