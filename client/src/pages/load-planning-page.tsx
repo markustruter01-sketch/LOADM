@@ -1305,32 +1305,79 @@ export default function LoadPlanningPage() {
               />
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
-              <Label htmlFor="cargoType" className="text-right">
-                Cargo Type
+              <Label htmlFor="cargoCategory" className="text-right">
+                Cargo Category
               </Label>
-              <div className="col-span-2 flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="normal-cargo"
-                    className="h-4 w-4"
-                    checked={palletCargoType === "C"}
-                    onChange={() => setPalletCargoType("C")}
-                  />
-                  <Label htmlFor="normal-cargo">Normal Cargo (C)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="dangerous-goods"
-                    className="h-4 w-4"
-                    checked={palletCargoType === "DG"}
-                    onChange={() => setPalletCargoType("DG")}
-                  />
-                  <Label htmlFor="dangerous-goods">Dangerous Goods (DG)</Label>
-                </div>
+              <div className="col-span-2">
+                <Select 
+                  value={palletCargoCategory}
+                  onValueChange={setPalletCargoCategory}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select cargo type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pax-bags">Passenger Bags</SelectItem>
+                    <SelectItem value="mechanical">Mechanical Equipment</SelectItem>
+                    <SelectItem value="medical">Medical Equipment</SelectItem>
+                    <SelectItem value="perishable">Perishable Goods</SelectItem>
+                    <SelectItem value="electronics">Electronics</SelectItem>
+                    <SelectItem value="vehicles">Vehicles/Machinery</SelectItem>
+                    <SelectItem value="military">Military Equipment</SelectItem>
+                    <SelectItem value="humanitarian">Humanitarian Aid</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+            
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="dangerousGoods" className="text-right">
+                Dangerous Goods
+              </Label>
+              <div className="flex h-10 items-center space-x-2 col-span-2">
+                <Checkbox 
+                  id="dangerousGoods" 
+                  checked={isDangerousGoods}
+                  onCheckedChange={(checked) => setIsDangerousGoods(!!checked)}
+                />
+                <label
+                  htmlFor="dangerousGoods"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  This pallet contains dangerous goods
+                </label>
+              </div>
+            </div>
+            
+            {isDangerousGoods && (
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="dgClass" className="text-right">
+                  DG Classification
+                </Label>
+                <div className="col-span-2">
+                  <Select 
+                    value={palletDgClass}
+                    onValueChange={setPalletDgClass}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select DG class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="class-1">Class 1 - Explosives</SelectItem>
+                      <SelectItem value="class-2">Class 2 - Gases</SelectItem>
+                      <SelectItem value="class-3">Class 3 - Flammable Liquids</SelectItem>
+                      <SelectItem value="class-4">Class 4 - Flammable Solids</SelectItem>
+                      <SelectItem value="class-5">Class 5 - Oxidizing Substances</SelectItem>
+                      <SelectItem value="class-6">Class 6 - Toxic Substances</SelectItem>
+                      <SelectItem value="class-7">Class 7 - Radioactive Material</SelectItem>
+                      <SelectItem value="class-8">Class 8 - Corrosives</SelectItem>
+                      <SelectItem value="class-9">Class 9 - Miscellaneous</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
             {palletPosition && (
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label htmlFor="position" className="text-right">
