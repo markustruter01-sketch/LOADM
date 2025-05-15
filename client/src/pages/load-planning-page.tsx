@@ -81,34 +81,53 @@ export default function LoadPlanningPage() {
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
   const balanceScaleRef = useRef<HTMLDivElement>(null);
   
-  // Helper function to calculate cell width based on balance scale width
-  const calculateCellWidth = (aircraft: string): number => {
+  // Helper function to calculate cell width and spacing
+  const calculateCellDimensions = (aircraft: string): { width: number, spacing: number } => {
     // If balance scale width hasn't been measured yet, use defaults
     if (balanceScaleWidth === 0) {
       // Default cell widths when balance scale isn't measured yet
       switch (aircraft) {
         case 'c17':
-          return 71; // 9 positions across
+          return { width: 71, spacing: 76 }; // 9 positions across
         case 'c130':
-          return 110; // 4 positions across
+          return { width: 110, spacing: 120 }; // 4 positions across
         default: // c27j, kc30a
-          return 132; // 3 positions across
+          return { width: 132, spacing: 144 }; // 3 positions across
       }
     }
     
     // Log for debugging
-    console.log(`Calculating cell width for ${aircraft}, balance scale width: ${balanceScaleWidth}`);
+    console.log(`Calculating cell dimensions for ${aircraft}, balance scale width: ${balanceScaleWidth}`);
     
-    // Calculate cell width to fit the balance scale exactly
-    // Divide the balance scale width by the number of positions for each aircraft
+    // Calculate cell dimensions to fit the balance scale exactly
+    let numPositions: number;
     switch (aircraft) {
       case 'c17':
-        return Math.floor(balanceScaleWidth / 9); // 9 positions across
+        numPositions = 9; // 9 positions across
+        break;
       case 'c130':
-        return Math.floor(balanceScaleWidth / 4); // 4 positions across
+        numPositions = 4; // 4 positions across
+        break;
       default: // c27j, kc30a
-        return Math.floor(balanceScaleWidth / 3); // 3 positions across
+        numPositions = 3; // 3 positions across
+        break;
     }
+    
+    // Calculate cell width to leave 5% smaller than the spacing to ensure gap between cells
+    const totalAvailableWidth = balanceScaleWidth;
+    
+    // Make spacing exactly fit the total width
+    const spacing = totalAvailableWidth / numPositions;
+    
+    // Make cells slightly smaller than spacing to create gaps
+    const width = Math.floor(spacing * 0.95);
+    
+    return { width, spacing };
+  };
+  
+  // Helper function to calculate cell width based on balance scale width (for backwards compatibility)
+  const calculateCellWidth = (aircraft: string): number => {
+    return calculateCellDimensions(aircraft).width;
   };
   
   // Helper function to calculate pallet dimensions with 10% reduction and consistent positioning
@@ -587,9 +606,8 @@ export default function LoadPlanningPage() {
       if (dropArea === "cargo") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
-          // Use our dynamic cell width calculation
-          const cellWidth = calculateCellWidth('c17');
-          const cellSpacing = Math.ceil(cellWidth * 1.07); // Add 7% spacing between cells
+          // Use our dynamic cell dimensions calculation
+          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c17');
           const rowHeight = 98; // Fixed cell height (matches grid in UI)
           
           // Determine which cell the pallet was dropped in
@@ -608,9 +626,8 @@ export default function LoadPlanningPage() {
           palletSize.height = 87;
         } else {
           // For other aircraft types (C-130, C-27J, KC30-A)
-          // Use our dynamic cell width calculation
-          const cellWidth = calculateCellWidth(currentAircraftId);
-          const cellSpacing = Math.ceil(cellWidth * 1.09); // Add 9% spacing between cells
+          // Use our dynamic cell dimensions calculation
+          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions(currentAircraftId);
           
           // For C-130, we have 2 rows
           if (currentAircraftId === 'c130') {
@@ -1313,9 +1330,8 @@ export default function LoadPlanningPage() {
                         
                         {/* Grid cells - First row */}
                         {(() => {
-                          // Use our dynamic cell width calculation
-                          const cellWidth = calculateCellWidth('c17');
-                          const cellSpacing = Math.ceil(cellWidth * 1.07); // Add 7% spacing between cells
+                          // Use our dynamic cell dimensions calculation
+                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c17');
                           const cellHeight = 87; // Keep the same height
                           
                           return [...Array(9)].map((_, i) => (
@@ -1339,9 +1355,8 @@ export default function LoadPlanningPage() {
                         
                         {/* Grid cells - Second row */}
                         {(() => {
-                          // Use our dynamic cell width calculation
-                          const cellWidth = calculateCellWidth('c17');
-                          const cellSpacing = Math.ceil(cellWidth * 1.07); // Add 7% spacing between cells
+                          // Use our dynamic cell dimensions calculation
+                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c17');
                           const cellHeight = 87; // Keep the same height
                           
                           return [...Array(9)].map((_, i) => (
@@ -1367,9 +1382,8 @@ export default function LoadPlanningPage() {
                       <div className="absolute inset-0 pointer-events-none">
                         {/* Grid cells for C-130 - 8 pallets (4x2) */}
                         {(() => {
-                          // Use our dynamic cell width calculation
-                          const cellWidth = calculateCellWidth('c130');
-                          const cellSpacing = Math.ceil(cellWidth * 1.09); // Add 9% spacing between cells
+                          // Use our dynamic cell dimensions calculation
+                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c130');
                           const cellHeight = 80; // Keep the same height
                           
                           return [...Array(4)].map((_, i) => (
@@ -1393,9 +1407,8 @@ export default function LoadPlanningPage() {
                         
                         {/* Second row */}
                         {(() => {
-                          // Use our dynamic cell width calculation
-                          const cellWidth = calculateCellWidth('c130');
-                          const cellSpacing = Math.ceil(cellWidth * 1.09); // Add 9% spacing between cells
+                          // Use our dynamic cell dimensions calculation
+                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c130');
                           const cellHeight = 80; // Keep the same height
                           
                           return [...Array(4)].map((_, i) => (
@@ -1421,9 +1434,8 @@ export default function LoadPlanningPage() {
                       <div className="absolute inset-0 pointer-events-none">
                         {/* Grid cells for C-27J/KC30-A - 3 pallets (3x1) */}
                         {(() => {
-                          // Use our dynamic cell width calculation
-                          const cellWidth = calculateCellWidth(currentAircraftId);
-                          const cellSpacing = Math.ceil(cellWidth * 1.09); // Add 9% spacing between cells
+                          // Use our dynamic cell dimensions calculation
+                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions(currentAircraftId);
                           const cellHeight = 96; // Keep the same height
                           
                           return [...Array(3)].map((_, i) => (
