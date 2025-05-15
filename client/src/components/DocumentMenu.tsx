@@ -55,7 +55,7 @@ export default function DocumentMenu() {
     },
     {
       id: 2,
-      title: "Cargo Manifest",
+      title: "Passenger/Crew and Cargo Manifest",
       description: "Generate and complete detailed cargo manifests for all shipments.",
       path: "/cargo-manifest",
     },
