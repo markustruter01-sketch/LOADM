@@ -92,49 +92,52 @@ export default function LoadPlanningPage() {
     palletHeight: number;
   } => {
     // Calculate the optimal cell dimensions based on the balance scale width
+    // Use exact balance scale width to ensure perfect alignment
     const totalWidth = balanceScaleWidth || 715; // Default if not measured yet
+    console.log(`Grid config: Aircraft ${aircraft}, balance scale width: ${totalWidth}px`);
     
     switch (aircraft) {
       case 'c17':
         // C-17 has 9 columns in 2 rows
-        const c17CellWidth = Math.floor(totalWidth / 9);
+        // Use exact division (not Math.floor) to match balance scale width perfectly
+        const c17CellWidth = totalWidth / 9;
         const c17CellHeight = 87;
         return {
           rows: 2,
           cols: 9,
           cellWidth: c17CellWidth,
           cellHeight: c17CellHeight,
-          cellPadding: 5,
-          palletWidth: Math.floor(c17CellWidth * 0.9),
-          palletHeight: Math.floor(c17CellHeight * 0.9)
+          cellPadding: 0, // No padding to ensure perfect alignment
+          palletWidth: c17CellWidth * 0.9,
+          palletHeight: c17CellHeight * 0.9
         };
       
       case 'c130':
         // C-130 has 4 columns in 2 rows
-        const c130CellWidth = Math.floor(totalWidth / 4);
+        const c130CellWidth = totalWidth / 4;
         const c130CellHeight = 80;
         return {
           rows: 2,
           cols: 4,
           cellWidth: c130CellWidth,
           cellHeight: c130CellHeight,
-          cellPadding: 5,
-          palletWidth: Math.floor(c130CellWidth * 0.9),
-          palletHeight: Math.floor(c130CellHeight * 0.9)
+          cellPadding: 0, // No padding to ensure perfect alignment
+          palletWidth: c130CellWidth * 0.9,
+          palletHeight: c130CellHeight * 0.9
         };
       
       default: // c27j, kc30a
         // C-27J/KC30-A has 3 columns in 1 row
-        const spartanCellWidth = Math.floor(totalWidth / 3);
+        const spartanCellWidth = totalWidth / 3;
         const spartanCellHeight = 96;
         return {
           rows: 1,
           cols: 3,
           cellWidth: spartanCellWidth,
           cellHeight: spartanCellHeight,
-          cellPadding: 5,
-          palletWidth: Math.floor(spartanCellWidth * 0.9),
-          palletHeight: Math.floor(spartanCellHeight * 0.9)
+          cellPadding: 0, // No padding to ensure perfect alignment
+          palletWidth: spartanCellWidth * 0.9,
+          palletHeight: spartanCellHeight * 0.9
         };
     }
   };
@@ -142,9 +145,10 @@ export default function LoadPlanningPage() {
   // For backward compatibility with existing code
   const calculateCellDimensions = (aircraft: string): { width: number, spacing: number } => {
     const config = getAircraftGridConfig(aircraft);
+    // Use exact width for spacing now that we removed padding, to ensure exact alignment with balance scale
     return {
       width: config.cellWidth,
-      spacing: config.cellWidth + config.cellPadding
+      spacing: config.cellWidth
     };
   };
   
@@ -1407,13 +1411,19 @@ export default function LoadPlanningPage() {
                 <CardContent>
                   <div 
                     ref={cargoRef}
-                    className={`relative w-full ${
+                    className={`relative ${
                       currentAircraftId === 'c17' 
                         ? 'h-[320px]' 
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
                           : 'h-[150px]'
                     } overflow-visible bg-transparent`}
+                    style={{
+                      // Set exact width to match balance scale width for perfect alignment
+                      width: `${balanceScaleWidth}px`,
+                      maxWidth: '100%', // Ensure it doesn't overflow on small screens
+                      margin: '0 auto' // Center the cargo area if smaller than container
+                    }}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, "cargo")}
                   >
