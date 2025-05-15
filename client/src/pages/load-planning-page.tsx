@@ -729,7 +729,11 @@ export default function LoadPlanningPage() {
                               height: 87,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
-                          ></div>
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
+                              P{i + 1}
+                            </div>
+                          </div>
                         ))}
                         
                         {/* Grid cells - Second row */}
@@ -744,19 +748,73 @@ export default function LoadPlanningPage() {
                               height: 87,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
-                          ></div>
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
+                              P{i + 10}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     ) : currentAircraftId === 'c130' ? (
-                      <div className="absolute inset-0 grid grid-cols-4 gap-0 pointer-events-none">
-                        {[...Array(3)].map((_, i) => (
-                          <div key={i} className="border-r border-white/20 h-full"></div>
+                      <div className="absolute inset-0 pointer-events-none">
+                        {/* Grid cells for C-130 - 8 pallets (4x2) */}
+                        {[...Array(4)].map((_, i) => (
+                          <div 
+                            key={`c130-row1-${i}`} 
+                            className="absolute border-2 border-green-800/80 rounded-sm"
+                            style={{
+                              left: i * 120,
+                              top: 10,
+                              width: 110,
+                              height: 80,
+                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                            }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
+                              P{i + 1}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {/* Second row */}
+                        {[...Array(4)].map((_, i) => (
+                          <div 
+                            key={`c130-row2-${i}`} 
+                            className="absolute border-2 border-green-800/80 rounded-sm"
+                            style={{
+                              left: i * 120,
+                              top: 100,
+                              width: 110,
+                              height: 80,
+                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                            }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
+                              P{i + 5}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
-                        <div className="border-r border-white/20 h-full"></div>
-                        <div className="border-r border-white/20 h-full"></div>
+                      <div className="absolute inset-0 pointer-events-none">
+                        {/* Grid cells for C-27J/KC30-A - 3 pallets (3x1) */}
+                        {[...Array(3)].map((_, i) => (
+                          <div 
+                            key={`spartan-${i}`} 
+                            className="absolute border-2 border-green-800/80 rounded-sm"
+                            style={{
+                              left: i * 120,
+                              top: 20,
+                              width: 110,
+                              height: 80,
+                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                            }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
+                              P{i + 1}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                     
