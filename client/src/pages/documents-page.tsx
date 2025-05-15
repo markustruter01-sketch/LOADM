@@ -26,19 +26,23 @@ export default function DocumentsPage() {
         />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-8 mb-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
+      {/* Back Button - Top of page */}
+      <div className="w-full bg-primary py-3 px-4">
+        <div className="container mx-auto">
           <Button 
-            variant="ghost" 
+            variant="link" 
             size="sm" 
-            className="mb-6"
+            className="text-white hover:text-white/90 p-0"
             onClick={handleBackClick}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             Back to Home
           </Button>
-          
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 py-8 mb-16">
+        <div className="max-w-4xl mx-auto">
           {/* Header Section */}
           <section className="mb-10">
             <h2 className="text-3xl font-bold mb-4 text-foreground">

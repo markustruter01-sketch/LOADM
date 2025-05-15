@@ -31,7 +31,19 @@ export default function DocumentCard({ document }: DocumentCardProps) {
           <span className="text-xs text-muted-foreground">
             Last updated: {formattedDate}
           </span>
-          <Link href={`/documents/${document.id}`}>
+          <Link href={`/documents/${document.id}`} onClick={() => {
+            // If this is the manifest card, handle the scroll (note: this will only work when routing to the correct page)
+            if (document.title === "Passenger/Crew and Cargo Manifest" || document.title === "Cargo Manifest") {
+              // Use setTimeout to allow navigation to complete
+              setTimeout(() => {
+                // document here refers to the DOM document, not our document prop
+                const element = window.document.getElementById("cargo-manifest-form");
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }, 100);
+            }
+          }}>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
               Open
             </Button>

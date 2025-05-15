@@ -12,6 +12,20 @@ interface DocumentCardProps {
 }
 
 function DocumentCard({ title, description, lastUpdated, path }: DocumentCardProps) {
+  // Handle smooth scrolling for anchor links
+  const handleClick = () => {
+    if (path.includes('#')) {
+      const elementId = path.split('#')[1];
+      // Use setTimeout to allow navigation to complete
+      setTimeout(() => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   return (
     <Card className="bg-card hover:bg-card/90 transition-colors">
       <CardHeader className="pb-2">
@@ -25,7 +39,7 @@ function DocumentCard({ title, description, lastUpdated, path }: DocumentCardPro
         <p className="text-xs text-muted-foreground">Last updated: {lastUpdated}</p>
       </CardContent>
       <CardFooter className="flex justify-end pt-2">
-        <Link href={path}>
+        <Link href={path} onClick={handleClick}>
           <Button className="bg-primary hover:bg-primary/90 text-white">Open</Button>
         </Link>
       </CardFooter>
@@ -57,7 +71,7 @@ export default function DocumentMenu() {
       id: 2,
       title: "Passenger/Crew and Cargo Manifest",
       description: "Generate and complete detailed cargo manifests for all shipments.",
-      path: "/cargo-manifest",
+      path: "/cargo-manifest#cargo-manifest-form",
     },
     {
       id: 3,

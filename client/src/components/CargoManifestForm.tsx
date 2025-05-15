@@ -106,7 +106,7 @@ export function CargoManifestForm() {
         </style>
       </Helmet>
       
-      <div className="px-4 py-4">
+      <div id="cargo-manifest-form" className="px-4 py-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-6 no-print">
             <Button variant="ghost" onClick={() => window.history.back()} className="text-primary hover:text-primary/80 mr-4">
