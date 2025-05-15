@@ -150,7 +150,7 @@ export default function LoadPlanningPage() {
   const [draggedPallet, setDraggedPallet] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState(0);
   const cargoRef = useRef<HTMLDivElement>(null);
-  const storageRef = useRef<HTMLDivElement>(null);
+  // Storage area has been removed
   const configureRef = useRef<HTMLDivElement>(null);
   
   // Alert dialog state
@@ -432,7 +432,7 @@ export default function LoadPlanningPage() {
     let dropX = e.clientX - offsetX;
     let dropY = e.clientY - offsetY;
     
-    // For cargo and storage areas, snap to grid cells
+    // For cargo area, snap to grid cells
     let newX = 0;
     let newY = 0;
     
@@ -970,15 +970,7 @@ export default function LoadPlanningPage() {
                       }
                     </p>
                   </div>
-                  <div className="bg-muted rounded-md p-3">
-                    <p className="text-xs font-medium">Storage Positions</p>
-                    <p className="text-lg">
-                      {pallets.filter(p => p.location === "storage").length} of {
-                        currentAircraftId === 'c17' ? '18' : 
-                        currentAircraftId === 'c130' ? '8' : '3'
-                      }
-                    </p>
-                  </div>
+                  {/* Storage area has been removed */}
                 </div>
               </CardContent>
             </Card>
@@ -1246,7 +1238,7 @@ export default function LoadPlanningPage() {
                     </h3>
                     
                     <p className="text-sm text-muted-foreground mb-3">
-                      Drag this template pallet to the cargo or storage areas to create new pallets.
+                      Drag this template pallet to the cargo area to create new pallets.
                       You can add up to {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'} pallets
                       for the {currentAircraft.name}.
                     </p>
@@ -1306,13 +1298,11 @@ export default function LoadPlanningPage() {
                             </div>
                             <Badge 
                               variant={
-                                pallet.location === "cargo" ? "default" : 
-                                pallet.location === "storage" ? "secondary" : "outline"
+                                pallet.location === "cargo" ? "default" : "outline"
                               }
                               className="text-xs"
                             >
-                              {pallet.location === "cargo" ? "In Cargo" : 
-                               pallet.location === "storage" ? "In Storage" : "Configure"}
+                              {pallet.location === "cargo" ? "In Cargo" : "Configure"}
                             </Badge>
                           </div>
                           
