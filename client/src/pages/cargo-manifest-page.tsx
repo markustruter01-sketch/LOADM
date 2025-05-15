@@ -51,6 +51,14 @@ export default function DocumentsPage() {
       <Helmet>
         <title>Documents - LOADMdocs</title>
         <meta name="description" content="Document forms for military cargo load planning" />
+        <style>
+          {`
+            input[type="text"] {
+              color: white !important;
+              font-weight: bold !important;
+            }
+          `}
+        </style>
       </Helmet>
       
       {/* Back button and document menu */}
@@ -444,8 +452,24 @@ export default function DocumentsPage() {
         <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-6">Dangerous Goods Declaration</h2>
           <p className="text-muted-foreground mb-4">Complete DG documentation for hazardous materials transportation.</p>
-          <div className="bg-secondary/20 p-6 rounded-md text-center">
-            <p>Dangerous Goods Declaration form will be implemented here.</p>
+          
+          {/* DG Acceptance Checklist */}
+          <div className="bg-white p-4 rounded-md border border-gray-300 flex justify-center">
+            <img 
+              src="/D.G.-Acceptance-ChecklistDry-2018-729x1024.jpg" 
+              alt="Dangerous Goods Acceptance Checklist" 
+              className="w-full object-contain max-w-3xl"
+            />
+          </div>
+          
+          {/* Form Actions */}
+          <div className="mt-6 flex justify-end space-x-4">
+            <Button variant="outline">Reset</Button>
+            <Button className="bg-primary text-white hover:bg-primary/90">Save</Button>
+            <Button className="bg-primary text-white hover:bg-primary/90">
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
           </div>
         </div>
       </div>
