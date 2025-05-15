@@ -1945,9 +1945,9 @@ export default function LoadPlanningPage() {
                           backgroundColor: 'white',
                           width: '0.85px',
                           left: `${(balanceValue + 100) / 2}%`,
-                          top: '-70%', // Extended 70% above
-                          bottom: '-70%', // Extended 70% below
-                          height: '240%', // Makes it 2.4x as tall as the container (30% shorter than 300%)
+                          top: '-50%', // Extended 50% above
+                          bottom: '-50%', // Extended 50% below
+                          height: '200%', // Makes it 2x as tall as the container (20% shorter than before)
                           transform: 'translateX(-50%)',
                           transition: 'left 0.3s ease-out',
                           zIndex: 10 // Bring forward
