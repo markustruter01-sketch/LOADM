@@ -137,9 +137,27 @@ export default function LoadPlanningPage() {
     e.preventDefault();
   };
   
-  // Update weight of a pallet
+  // Maximum payload limit constant (in kg)
+  const MAX_PAYLOAD = 11300;
+  
+  // Update weight of a pallet with validation
   const handleWeightChange = (id: number, newWeight: string) => {
-    const weightValue = parseInt(newWeight) || 0;
+    // Convert to number or default to 0 if invalid
+    let weightValue = parseInt(newWeight) || 0;
+    
+    // Never allow negative weights
+    if (weightValue < 0) weightValue = 0;
+    
+    // Calculate total weight excluding the current pallet
+    const otherPalletsWeight = pallets
+      .filter(p => p.id !== id && p.location === "cargo")
+      .reduce((sum, p) => sum + p.weight, 0);
+    
+    // Check if the new weight would exceed the maximum payload
+    if (weightValue + otherPalletsWeight > MAX_PAYLOAD) {
+      // Limit the weight to the maximum allowed
+      weightValue = Math.max(0, MAX_PAYLOAD - otherPalletsWeight);
+    }
     
     setPallets(prev => prev.map(pallet => {
       if (pallet.id === id) {
@@ -286,8 +304,8 @@ export default function LoadPlanningPage() {
                     <Scale className="h-5 w-5 mr-2 text-primary" />
                     Load Summary
                   </CardTitle>
-                  <Badge variant={totalWeight > 11000 ? "destructive" : "default"}>
-                    {totalWeight.toLocaleString()} / 11,300 kg
+                  <Badge variant={totalWeight > MAX_PAYLOAD * 0.97 ? "destructive" : "default"}>
+                    {totalWeight.toLocaleString()} / {MAX_PAYLOAD.toLocaleString()} kg
                   </Badge>
                 </div>
               </CardHeader>
@@ -299,7 +317,7 @@ export default function LoadPlanningPage() {
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Maximum Payload</p>
-                    <p className="text-lg">11,300 kg</p>
+                    <p className="text-lg">{MAX_PAYLOAD.toLocaleString()} kg</p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Cargo Positions Filled</p>
@@ -456,10 +474,16 @@ export default function LoadPlanningPage() {
                               id={`weight-${pallet.id}`}
                               type="number"
                               min="0"
-                              max="5000"
+                              max={MAX_PAYLOAD}
                               value={pallet.weight}
                               onChange={(e) => handleWeightChange(pallet.id, e.target.value)}
-                              className="h-7 text-sm"
+                              className={`h-7 text-sm ${
+                                pallet.location === "cargo" && 
+                                (totalWeight - (pallet.weight || 0) + parseInt(e.target.value || "0") > MAX_PAYLOAD)
+                                  ? "border-destructive focus-visible:ring-destructive"
+                                  : ""
+                              }`}
+                              placeholder="Enter weight"
                             />
                           </div>
                           <div className="ml-1 text-xs text-muted-foreground">kg</div>
