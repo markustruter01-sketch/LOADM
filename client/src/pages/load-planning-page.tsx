@@ -436,14 +436,44 @@ export default function LoadPlanningPage() {
     let totalWeightMoment = 0;
     let totalWeightInCargo = 0;
     
+    // Log balance calculation info
+    console.log("Balance calculation - cargo width:", cargoWidth);
+    console.log("Cargo pallets:", cargoPallets);
+    
+    // Determine proper cell positioning based on the grid rather than pallet positions
+    // This ensures correct weight distribution calculations for the balance scale
     cargoPallets.forEach(pallet => {
       // Skip pallets with no weight
       if (pallet.weight === null) return;
       
-      // Get pallet center position relative to cargo area width (0 to 1)
-      const centerPosition = (pallet.position.x + pallet.size.width / 2) / cargoWidth;
-      // Convert to -1 (left) to 1 (right) where 0 is center
-      const normalizedPosition = (centerPosition * 2) - 1;
+      // Extract position number from pallet label (e.g., 'P2' => 2)
+      let positionNumber = 0;
+      if (pallet.positionLabel && pallet.positionLabel.startsWith('P')) {
+        positionNumber = parseInt(pallet.positionLabel.substring(1)) - 1; // 0-based index
+      }
+      
+      // Calculate normalized position for balance based on position number, not pixel coordinates
+      let normalizedPosition = 0;
+      
+      // Aircraft specific handling for weight distribution 
+      if (currentAircraftId === 'c27j' || currentAircraftId === 'kc30a') {
+        // For 3-position aircraft: -0.66 (left/P1), 0 (center/P2), 0.66 (right/P3)
+        normalizedPosition = (positionNumber - 1) * 0.66; // -0.66, 0, 0.66
+      } else if (currentAircraftId === 'c17') {
+        // For C-17: 9 columns, 2 rows - normalize position across columns 
+        const col = positionNumber % 9;
+        normalizedPosition = (col - 4) / 4; // -1 to 1 across columns
+      } else if (currentAircraftId === 'c130') {
+        // For C-130: 4 columns, 2 rows - normalize position across columns
+        const col = positionNumber % 4;
+        normalizedPosition = (col - 1.5) / 1.5; // -1 to 1 across columns
+      } else {
+        // Fallback to old calculation if we can't determine position
+        const centerPosition = (pallet.position.x + pallet.size.width / 2) / cargoWidth;
+        normalizedPosition = (centerPosition * 2) - 1;
+      }
+      
+      console.log(`Pallet ${pallet.positionLabel} weight ${pallet.weight} at normalized position ${normalizedPosition}`);
       
       // Calculate moment (weight * position)
       totalWeightMoment += pallet.weight * normalizedPosition;
@@ -793,13 +823,41 @@ export default function LoadPlanningPage() {
             // Make positions 120% bigger for Spartan cargo area
             const cellWidth = 132; // 110 * 1.2
             const cellHeight = 96; // 80 * 1.2
-            const cellX = col * 144 + cellWidth/2; // center of cell (120 * 1.2 = 144)
-            const cellY = 20 + cellHeight/2; // center of cell
+            
+            // Get the grid cell position from the DOM to ensure accurate coordinates
+            const gridCells = document.querySelectorAll(`[data-position-key^='spartan-']`);
+            
+            // Calculate position differently based on available DOM elements
+            let cellX, cellY;
+            
+            if (gridCells.length > col) {
+              // Get cell position from DOM if available
+              const rect = (gridCells[col] as HTMLElement).getBoundingClientRect();
+              const cargoRect = cargoRef.current ? cargoRef.current.getBoundingClientRect() : null;
+              
+              if (cargoRect) {
+                cellX = rect.left - cargoRect.left + rect.width/2;
+                cellY = rect.top - cargoRect.top + rect.height/2;
+              } else {
+                // Fallback to calculated positions if DOM measurement fails
+                cellX = col * 144 + cellWidth/2; // Center of cell (120 * 1.2 = 144)
+                cellY = 20 + cellHeight/2; // Center of cell
+              }
+            } else {
+              // Fallback to calculated positions
+              cellX = col * 144 + cellWidth/2; // Center of cell (120 * 1.2 = 144)
+              cellY = 20 + cellHeight/2; // Center of cell
+            }
+            
+            // Log the coordinates for debugging
+            console.log(`Cell P${col+1} center: (${cellX}, ${cellY}), Drop position: (${dropX}, ${dropY})`);
             
             const distance = Math.sqrt(
               Math.pow(dropX - cellX, 2) + 
               Math.pow(dropY - cellY, 2)
             );
+            
+            console.log(`Distance to P${col+1}: ${distance}, Current closest: ${closestDistance}`);
             
             if (distance < closestDistance) {
               closestDistance = distance;
@@ -820,8 +878,23 @@ export default function LoadPlanningPage() {
               palletSize.height = dimensions.height;
               
               // Calculate snap position (centered in cell)
-              snapX = col * 144 + (cellWidth - dimensions.width) / 2;
-              snapY = 20 + (cellHeight - dimensions.height) / 2;
+              if (gridCells.length > col) {
+                const rect = (gridCells[col] as HTMLElement).getBoundingClientRect();
+                const cargoRect = cargoRef.current ? cargoRef.current.getBoundingClientRect() : null;
+                
+                if (cargoRect) {
+                  snapX = rect.left - cargoRect.left + (rect.width - dimensions.width) / 2;
+                  snapY = rect.top - cargoRect.top + (rect.height - dimensions.height) / 2;
+                } else {
+                  snapX = col * 144 + (cellWidth - dimensions.width) / 2;
+                  snapY = 20 + (cellHeight - dimensions.height) / 2;
+                }
+              } else {
+                snapX = col * 144 + (cellWidth - dimensions.width) / 2;
+                snapY = 20 + (cellHeight - dimensions.height) / 2;
+              }
+              
+              console.log(`Setting position to P${col+1}, snapX: ${snapX}, snapY: ${snapY}`);
             }
           }
         }
@@ -1714,6 +1787,8 @@ export default function LoadPlanningPage() {
                             return (
                               <div 
                                 key={`spartan-${i}`}
+                                data-position-key={`spartan-${i}`}
+                                data-position-number={i+1}
                                 draggable={assignedPallet ? true : false}
                                 onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                 className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
