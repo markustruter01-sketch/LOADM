@@ -23,9 +23,9 @@ export default function Header() {
     <header className="bg-muted shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/">
-          <a className="flex items-center">
+          <div className="flex items-center cursor-pointer">
             <Logo />
-          </a>
+          </div>
         </Link>
 
         <div className="flex items-center space-x-4">
@@ -44,9 +44,9 @@ export default function Header() {
                 <DropdownMenuSeparator />
                 {user.isAdmin && (
                   <>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem>
                       <Link href="/admin">
-                        <a className="w-full cursor-pointer">Admin Dashboard</a>
+                        <div className="w-full cursor-pointer">Admin Dashboard</div>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -60,12 +60,10 @@ export default function Header() {
           ) : (
             location !== "/auth" && (
               <Link href="/auth">
-                <a>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                    <UserCircle className="h-6 w-6" />
-                    <span className="sr-only">Login</span>
-                  </Button>
-                </a>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                  <UserCircle className="h-6 w-6" />
+                  <span className="sr-only">Login</span>
+                </Button>
               </Link>
             )
           )}

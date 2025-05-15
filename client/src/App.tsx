@@ -11,12 +11,15 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import DocumentFormPage from "@/pages/document-form-page";
 import ScenarioPage from "@/pages/scenario-page";
+import DocumentsPage from "@/pages/documents-page";
+import ScenariosPage from "@/pages/scenarios-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
 import { ProtectedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
 
 function Router() {
   return (
@@ -26,7 +29,9 @@ function Router() {
         <Switch>
           <Route path="/" component={HomePage} />
           <Route path="/auth" component={AuthPage} />
+          <Route path="/documents" component={DocumentsPage} />
           <Route path="/documents/:id" component={DocumentFormPage} />
+          <Route path="/scenarios" component={ScenariosPage} />
           <Route path="/scenarios/:id" component={ScenarioPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
@@ -35,6 +40,7 @@ function Router() {
         </Switch>
       </main>
       <Footer />
+      <BottomNav />
     </div>
   );
 }
