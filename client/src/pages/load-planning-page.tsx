@@ -403,10 +403,9 @@ export default function LoadPlanningPage() {
           const cellRow = Math.floor(dropY / cellHeight);
           const cellColumn = Math.floor(dropX / cellWidth);
           
-          // Calculate the position to center the pallet in that cell
-          // Use 90% of the cell size for the pallet
-          const palletWidth = cellWidth * 0.9;
-          const palletHeight = cellHeight * 0.9;
+          // Use fixed pallet dimensions of 88x108
+          const palletWidth = 88;
+          const palletHeight = 108;
           
           // Center in the cell
           newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
@@ -424,10 +423,9 @@ export default function LoadPlanningPage() {
           // Determine which cell the pallet was dropped in
           const cellColumn = Math.floor(dropX / cellWidth);
           
-          // Calculate the position to center the pallet in that cell
-          // Use 90% of the cell size for the pallet
-          const palletWidth = cellWidth * 0.9;
-          const palletHeight = cellHeight * 0.9;
+          // Use fixed pallet dimensions of 88x108
+          const palletWidth = 88;
+          const palletHeight = 108;
           
           // Center in the cell
           newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
@@ -494,10 +492,9 @@ export default function LoadPlanningPage() {
           const cellRow = Math.floor(dropY / cellHeight);
           const cellColumn = Math.floor(dropX / cellWidth);
           
-          // Calculate the position to center the pallet in that cell
-          // Use 90% of the cell size for the pallet
-          const palletWidth = cellWidth * 0.9;
-          const palletHeight = cellHeight * 0.9;
+          // Use fixed pallet dimensions of 88x108
+          const palletWidth = 88;
+          const palletHeight = 108;
           
           // Center in the cell
           newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
@@ -517,10 +514,9 @@ export default function LoadPlanningPage() {
           // Determine which cell the pallet was dropped in
           const cellColumn = Math.floor(dropX / cellWidth);
           
-          // Calculate the position to center the pallet in that cell
-          // Use 90% of the cell size for the pallet
-          const palletWidth = cellWidth * 0.9;
-          const palletHeight = cellHeight * 0.9;
+          // Use fixed pallet dimensions of 88x108
+          const palletWidth = 88;
+          const palletHeight = 108;
           
           // Center in the cell
           newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
