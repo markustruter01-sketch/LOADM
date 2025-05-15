@@ -1397,6 +1397,16 @@ export default function LoadPlanningPage() {
                       }
                     </p>
                   </div>
+                  <div className="rounded-md p-3 relative" style={{ backgroundColor: 'rgba(0, 209, 209, 0.15)' }}>
+                    <p className="text-xs font-medium">Centre of Gravity</p>
+                    <p className="text-lg flex items-center gap-2">
+                      <span style={{ color: '#00D1D1', fontWeight: 600 }}>{balanceCG.toFixed(2)}°</span>
+                      <span className={`inline-block w-2 h-2 rounded-full ${
+                        balanceStatus === 'safe' ? 'bg-green-500' : 
+                        balanceStatus === 'warning' ? 'bg-amber-500' : 'bg-red-500'
+                      }`}></span>
+                    </p>
+                  </div>
                   {/* Storage area has been removed */}
                 </div>
               </CardContent>
@@ -1865,10 +1875,11 @@ export default function LoadPlanningPage() {
                       {/* Center line */}
                       <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80"></div>
                       
-                      {/* Indicator needle - further reduced to 0.85px width (15% thinner) and changed to teal color */}
+                      {/* Indicator needle - further reduced to 0.85px width (15% thinner) and changed to bright teal color */}
                       <div 
-                        className="absolute top-0 bottom-0 bg-cyan-500 shadow-md"
+                        className="absolute top-0 bottom-0 shadow-md"
                         style={{ 
+                          backgroundColor: '#00D1D1', // Bright teal color
                           width: '0.85px',
                           left: `${(balanceValue + 100) / 2}%`,
                           transform: 'translateX(-50%)',
@@ -1877,7 +1888,12 @@ export default function LoadPlanningPage() {
                       >
                         {/* Current CG value above the needle */}
                         <div 
-                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium"
+                          className="absolute -top-6 left-1/2 transform -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                          style={{
+                            backgroundColor: 'rgba(0, 209, 209, 0.9)',
+                            color: 'white',
+                            textShadow: '0px 0px 2px rgba(0, 0, 0, 0.5)'
+                          }}
                         >
                           {balanceCG.toFixed(2)}°
                         </div>
