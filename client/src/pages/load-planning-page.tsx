@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, Trash2 } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -25,11 +25,14 @@ interface DropZone {
 
 export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
-  const [pallets, setPallets] = useState<Pallet[]>([
-    { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: 1200, size: { width: 70, height: 50 } },
-    { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: 1500, size: { width: 70, height: 50 } },
-    { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: 900, size: { width: 70, height: 50 } },
-  ]);
+  // Initial pallet configuration for reset functionality
+  const initialPallets: Pallet[] = [
+    { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: 0, size: { width: 70, height: 50 } },
+    { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: 0, size: { width: 70, height: 50 } },
+    { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: 0, size: { width: 70, height: 50 } },
+  ];
+  
+  const [pallets, setPallets] = useState<Pallet[]>(initialPallets);
   
   // Drop zones for the cargo and storage areas
   const [dropZones, setDropZones] = useState<DropZone[]>([
@@ -142,6 +145,11 @@ export default function LoadPlanningPage() {
     }));
   };
   
+  // Reset all pallets to initial state
+  const handleReset = () => {
+    setPallets(initialPallets);
+  };
+  
   return (
     <>
       <Helmet>
@@ -178,8 +186,8 @@ export default function LoadPlanningPage() {
                     <Scale className="h-5 w-5 mr-2 text-primary" />
                     Load Summary
                   </CardTitle>
-                  <Badge variant={totalWeight > 9000 ? "destructive" : "default"}>
-                    {totalWeight.toLocaleString()} / 10,000 kg
+                  <Badge variant={totalWeight > 11000 ? "destructive" : "default"}>
+                    {totalWeight.toLocaleString()} / 11,300 kg
                   </Badge>
                 </div>
               </CardHeader>
@@ -191,7 +199,7 @@ export default function LoadPlanningPage() {
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Maximum Payload</p>
-                    <p className="text-lg">10,000 kg</p>
+                    <p className="text-lg">11,300 kg</p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Cargo Positions Filled</p>
@@ -359,6 +367,17 @@ export default function LoadPlanningPage() {
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">
                   Use this area for temporary storage. Pallets here don't count toward total load.
+                </div>
+                
+                <div className="mt-4">
+                  <Button 
+                    variant="secondary" 
+                    className="w-full flex items-center justify-center" 
+                    onClick={handleReset}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Reset All Pallets
+                  </Button>
                 </div>
               </CardContent>
             </Card>
