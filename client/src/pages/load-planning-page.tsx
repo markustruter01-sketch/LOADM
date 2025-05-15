@@ -183,6 +183,24 @@ export default function LoadPlanningPage() {
     );
   };
   
+  // Helper function to calculate pallet sizes and positions consistently
+  const calculatePalletDimensions = (cellWidth: number, cellHeight: number, col: number, row: number = 0, xOffset: number = 0, yOffset: number = 0) => {
+    // Apply 10% size reduction to pallet
+    const palletWidth = Math.floor(cellWidth * 0.9);
+    const palletHeight = Math.floor(cellHeight * 0.9);
+    
+    // Calculate center position for perfect snapping
+    const xCenter = col * xOffset + (cellWidth - palletWidth) / 2 + (col * cellWidth);
+    const yCenter = row * yOffset + (cellHeight - palletHeight) / 2 + (row * cellHeight);
+    
+    return {
+      width: palletWidth,
+      height: palletHeight,
+      x: xCenter,
+      y: yCenter
+    };
+  };
+  
   // Show pallet input dialog - completely rebuilt
   const showPalletInput = (palletId: number, position?: string) => {
     // Always open the dialog when called, even if pallet ID doesn't match yet
@@ -582,17 +600,20 @@ export default function LoadPlanningPage() {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
                 
-                // Make pallet 10% smaller than grid cell
-                const reducedWidth = Math.floor(cellWidth * 0.9);
-                const reducedHeight = Math.floor(cellHeight * 0.9);
+                // Calculate dimensions using helper function for consistent sizing
+                const dimensions = calculatePalletDimensions(
+                  cellWidth, 
+                  cellHeight, 
+                  col
+                );
                 
                 // Update pallet size to be 10% smaller
-                palletSize.width = reducedWidth;
-                palletSize.height = reducedHeight;
+                palletSize.width = dimensions.width;
+                palletSize.height = dimensions.height;
                 
                 // Calculate snap position (centered in cell)
-                snapX = col * 76 + (cellWidth - reducedWidth) / 2;
-                snapY = (row === 0 ? 10 : 105) + (cellHeight - reducedHeight) / 2;
+                snapX = col * 76 + (cellWidth - dimensions.width) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - dimensions.height) / 2;
               }
             }
           }
