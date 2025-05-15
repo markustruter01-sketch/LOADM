@@ -1,9 +1,9 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -145,8 +145,11 @@ export default function LoadPlanningPage() {
   const MAX_PAYLOAD = 11300;
   const MAX_PALLET_WEIGHT = 4536; // 10,000 lbs converted to kg
   
-  // Toast notifications
-  const { toast } = useToast();
+  // Alert dialog state
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertType, setAlertType] = useState<'warning' | 'error'>('warning');
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
   
   // Update weight of a pallet with validation
   const handleWeightChange = (id: number, newWeight: string) => {
@@ -169,18 +172,11 @@ export default function LoadPlanningPage() {
     
     // Check if pallet weight exceeds maximum pallet capacity (10,000 lbs)
     if (weightValue > MAX_PALLET_WEIGHT) {
-      toast({
-        title: "Pallet Weight Limit Exceeded",
-        description: `The weight exceeds the maximum pallet capacity of 10,000 lbs (${MAX_PALLET_WEIGHT} kg)`,
-        variant: "destructive",
-        duration: 5000,
-        action: (
-          <Button variant="outline" size="sm" onClick={() => {}}>
-            <AlertTriangle className="h-4 w-4 mr-1" />
-            Adjust
-          </Button>
-        ),
-      });
+      showAlert(
+        'error',
+        'Pallet Weight Limit Exceeded',
+        `The weight exceeds the maximum pallet capacity of 10,000 lbs (${MAX_PALLET_WEIGHT} kg).`
+      );
       
       // Limit weight to max pallet capacity
       weightValue = MAX_PALLET_WEIGHT;
@@ -287,18 +283,11 @@ export default function LoadPlanningPage() {
     
     // Check if pallet has no weight and is being moved to cargo area
     if (dropArea === "cargo" && draggedPallet.weight === null) {
-      toast({
-        title: "Warning: Pallet Has No Weight",
-        description: "You've placed a pallet with no weight in the cargo area. Please add a weight to this pallet.",
-        variant: "warning",
-        duration: 5000,
-        action: (
-          <Button variant="outline" size="sm" onClick={() => {}}>
-            <AlertTriangle className="h-4 w-4 mr-1" />
-            OK
-          </Button>
-        ),
-      });
+      showAlert(
+        'warning',
+        'Warning: Pallet Has No Weight',
+        'You\'ve placed a pallet with no weight in the cargo area. Please add a weight to this pallet.'
+      );
     }
     
     // Update the pallet's position and area
@@ -322,8 +311,57 @@ export default function LoadPlanningPage() {
     setBalanceStatus('safe');
   };
   
+  // Show alert dialog
+  const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
+    setAlertType(type);
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertOpen(true);
+  };
+  
   return (
     <>
+      {/* Custom Alert Dialog */}
+      <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
+        <DialogContent className="sm:max-w-md bg-background border-2 shadow-lg fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-bold">
+              {alertType === 'warning' ? (
+                <AlertTriangle className="h-5 w-5 text-orange-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              )}
+              <span className={alertType === 'warning' ? "text-orange-500" : "text-destructive"}>
+                {alertTitle}
+              </span>
+            </DialogTitle>
+            <button
+              onClick={() => setAlertOpen(false)}
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
+          </DialogHeader>
+          <DialogDescription className="py-4 text-base">
+            {alertMessage}
+          </DialogDescription>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setAlertOpen(false)}
+              className={`font-medium ${
+                alertType === 'warning' 
+                  ? 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-300' 
+                  : 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300'
+              }`}
+            >
+              Okay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       <Helmet>
         <title>Load Planning - LOADMdocs</title>
         <meta 
