@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Document, FormField, insertDocumentSchema } from "@shared/schema";
+import { Document, FormField as DocumentFormField, insertDocumentSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -233,8 +233,8 @@ export default function DocumentManagement() {
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document);
     
-    // Transform the fields from any to FormField[] and set form values
-    const fields = document.fields as FormField[];
+    // Transform the fields from any to DocumentFormField[] and set form values
+    const fields = document.fields as DocumentFormField[];
     
     form.reset({
       title: document.title,
@@ -807,7 +807,7 @@ export default function DocumentManagement() {
                         {document.description}
                       </TableCell>
                       <TableCell>
-                        {(document.fields as FormField[]).length}
+                        {(document.fields as DocumentFormField[]).length}
                       </TableCell>
                       <TableCell>
                         {new Date(document.lastUpdated).toLocaleDateString()}
