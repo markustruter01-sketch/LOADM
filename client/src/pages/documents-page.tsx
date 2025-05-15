@@ -13,7 +13,8 @@ export default function DocumentsPage() {
   });
 
   const handleBackClick = () => {
-    navigate("/");
+    // Navigate directly to the home page
+    window.location.href = "/";
   };
 
   return (
