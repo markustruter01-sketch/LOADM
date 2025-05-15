@@ -440,7 +440,7 @@ export default function LoadPlanningPage() {
     
     // Calculate weight distribution based on horizontal position
     let totalWeightMoment = 0;
-    let totalWeightInCargo = 0;
+    let localWeightInCargo = 0;
     
     // Log balance calculation info
     console.log("Balance calculation - cargo width:", cargoWidth);
@@ -483,16 +483,18 @@ export default function LoadPlanningPage() {
       
       // Calculate moment (weight * position)
       totalWeightMoment += pallet.weight * normalizedPosition;
-      totalWeightInCargo += pallet.weight;
+      localWeightInCargo += pallet.weight;
     });
     
     // Calculate balance value (-100 to 100)
     let balance = 0;
-    if (totalWeightInCargo > 0) {
+    if (localWeightInCargo > 0) {
       // Normalize to -100 to 100 range and add dampening factor
-      balance = (totalWeightMoment / totalWeightInCargo) * 100;
+      balance = (totalWeightMoment / localWeightInCargo) * 100;
     }
     
+    // Update states
+    setTotalWeightInCargo(localWeightInCargo);
     setBalanceValue(balance);
     
     // Calculate Centre of Gravity value (18-88 degrees)
