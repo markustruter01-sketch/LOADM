@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 interface Pallet {
   id: number;
   position: { x: number; y: number };
-  location: "cargo" | "storage" | "configure";
+  location: "cargo" | "configure";
   weight: number | null;
   size: { width: number; height: number };
   cargoType?: "C" | "DG"; // C = Normal Cargo, DG = Dangerous Goods
@@ -24,7 +24,7 @@ interface DropZone {
   id: number;
   position: { x: number; y: number };
   occupied: boolean;
-  area: "cargo" | "storage" | "configure";
+  area: "cargo" | "configure";
 }
 
 interface AircraftConfig {
@@ -80,7 +80,7 @@ export default function LoadPlanningPage() {
   // Generate drop zones based on aircraft type
   const generateDropZones = (aircraftId: string): DropZone[] => {
     // Common drop zone creation function
-    const createDropZones = (count: number, areaType: "cargo" | "storage", startX: number, startY: number, spacingX: number) => {
+    const createDropZones = (count: number, areaType: "cargo", startX: number, startY: number, spacingX: number) => {
       return Array.from({ length: count }, (_, index) => ({
         id: areaType === "cargo" ? index + 1 : count + index + 1,
         position: { x: startX + (index * spacingX), y: startY },
@@ -419,7 +419,7 @@ export default function LoadPlanningPage() {
     }));
   };
   
-  const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "storage" | "configure") => {
+  const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
     
     const dataTransfer = e.dataTransfer.getData("text/plain");
