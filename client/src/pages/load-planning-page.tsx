@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import { Progress } from "@/components/ui/progress";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,10 @@ export default function LoadPlanningPage() {
   
   const [pallets, setPallets] = useState<Pallet[]>(initialPallets);
   
+  // Balance state: -100 (fully left/forward) to 100 (fully right/aft), 0 is perfectly balanced
+  const [balanceValue, setBalanceValue] = useState(0);
+  const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
+  
   // Drop zones for the cargo and storage areas
   const [dropZones, setDropZones] = useState<DropZone[]>([
     // Cargo area drop zones - 3 positions
@@ -65,6 +70,58 @@ export default function LoadPlanningPage() {
     }, 0);
     
     setTotalWeight(weight);
+    
+    // Calculate weight balance
+    const cargoPallets = pallets.filter(p => p.location === "cargo");
+    if (cargoPallets.length === 0) {
+      setBalanceValue(0);
+      setBalanceStatus('safe');
+      return;
+    }
+    
+    // Get the cargo area width from ref
+    let cargoWidth = 0;
+    if (cargoRef.current) {
+      cargoWidth = cargoRef.current.offsetWidth;
+    }
+    
+    if (cargoWidth === 0) {
+      return; // Skip calculation if we can't determine cargo area width
+    }
+    
+    // Calculate weight distribution based on horizontal position
+    let totalWeightMoment = 0;
+    let totalWeightInCargo = 0;
+    
+    cargoPallets.forEach(pallet => {
+      // Get pallet center position relative to cargo area width (0 to 1)
+      const centerPosition = (pallet.position.x + pallet.size.width / 2) / cargoWidth;
+      // Convert to -1 (left) to 1 (right) where 0 is center
+      const normalizedPosition = (centerPosition * 2) - 1;
+      
+      // Calculate moment (weight * position)
+      totalWeightMoment += pallet.weight * normalizedPosition;
+      totalWeightInCargo += pallet.weight;
+    });
+    
+    // Calculate balance value (-100 to 100)
+    let balance = 0;
+    if (totalWeightInCargo > 0) {
+      // Normalize to -100 to 100 range and add dampening factor
+      balance = (totalWeightMoment / totalWeightInCargo) * 100;
+    }
+    
+    // Set balance value (clamped between -100 and 100)
+    setBalanceValue(Math.max(-100, Math.min(100, balance)));
+    
+    // Determine balance status
+    if (Math.abs(balance) < 20) {
+      setBalanceStatus('safe');
+    } else if (Math.abs(balance) < 50) {
+      setBalanceStatus('warning');
+    } else {
+      setBalanceStatus('danger');
+    }
   }, [pallets]);
   
   const handleBackClick = () => {
@@ -148,6 +205,8 @@ export default function LoadPlanningPage() {
   // Reset all pallets to initial state
   const handleReset = () => {
     setPallets(initialPallets);
+    setBalanceValue(0);
+    setBalanceStatus('safe');
   };
   
   return (
@@ -252,6 +311,57 @@ export default function LoadPlanningPage() {
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">
                   Drag pallets in and out of the cargo area. Only pallets in this area count toward total weight.
+                </div>
+                
+                {/* Balance Indicator */}
+                <div className="mt-4">
+                  <div className="flex items-center mb-1">
+                    <Scale className="h-4 w-4 mr-2 text-primary" />
+                    <span className="text-sm font-medium">Weight Balance</span>
+                    {balanceStatus === 'danger' && (
+                      <div className="ml-auto flex items-center text-destructive">
+                        <AlertCircle className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Balance critical!</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="relative h-8 w-full bg-muted rounded-md overflow-hidden">
+                    {/* Balance scale background with color zones */}
+                    <div className="absolute inset-0 flex">
+                      <div className="w-1/4 bg-destructive/80 h-full"></div>
+                      <div className="w-1/4 bg-yellow-500/80 h-full"></div>
+                      <div className="w-1/4 bg-green-500/80 h-full"></div>
+                      <div className="w-1/4 bg-yellow-500/80 h-full"></div>
+                      <div className="w-1/4 bg-destructive/80 h-full"></div>
+                    </div>
+                    
+                    {/* Center line */}
+                    <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/50"></div>
+                    
+                    {/* Indicator needle */}
+                    <div 
+                      className="absolute top-0 bottom-0 w-1 bg-white"
+                      style={{ 
+                        left: `${(balanceValue + 100) / 2}%`,
+                        transform: 'translateX(-50%)',
+                        transition: 'left 0.3s ease-out'
+                      }}
+                    ></div>
+                    
+                    {/* Labels */}
+                    <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
+                      <span>FWD</span>
+                      <span className="mx-auto">BALANCED</span>
+                      <span>AFT</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    <span>Heavy Forward</span>
+                    <span>Center of Gravity</span>
+                    <span>Heavy Aft</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
