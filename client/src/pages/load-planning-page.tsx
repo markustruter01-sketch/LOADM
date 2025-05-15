@@ -442,7 +442,7 @@ export default function LoadPlanningPage() {
       offsetY = rect.top;
       areaWidth = rect.width;
       areaHeight = rect.height;
-    // Storage area removed
+    // Storage area has been removed
     } else if (dropArea === "configure" && configureRef.current) {
       rect = configureRef.current.getBoundingClientRect();
       offsetX = rect.left;
@@ -566,15 +566,13 @@ export default function LoadPlanningPage() {
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
       
-      // If pallet is being placed in cargo area, find nearest position label and check if position is occupied
+      // If pallet is being placed in cargo area, find nearest position label and open dialog
       if (dropArea === "cargo") {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
         let closestDistance = Number.MAX_VALUE;
         let snapX = newX;
         let snapY = newY;
-        let cellFound = false;
-        let isPositionOccupied = false;
         
         // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
@@ -592,23 +590,11 @@ export default function LoadPlanningPage() {
               );
               
               if (distance < closestDistance) {
-                const currentPosLabel = `P${row === 0 ? col + 1 : col + 10}`;
-                
-                // Check if this position is already occupied by another pallet
-                const existingPallet = pallets.find(p => 
-                  p.location === "cargo" && p.positionLabel === currentPosLabel
-                );
-                
-                if (!existingPallet) {
-                  closestDistance = distance;
-                  positionLabel = currentPosLabel;
-                  // Calculate snap position (centered in cell)
-                  snapX = col * 76 + (cellWidth - palletSize.width) / 2;
-                  snapY = (row === 0 ? 10 : 105) + (cellHeight - palletSize.height) / 2;
-                  cellFound = true;
-                } else {
-                  isPositionOccupied = true;
-                }
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+                // Calculate snap position (centered in cell)
+                snapX = col * 76 + (cellWidth - palletSize.width) / 2;
+                snapY = (row === 0 ? 10 : 105) + (cellHeight - palletSize.height) / 2;
               }
             }
           }
@@ -627,23 +613,11 @@ export default function LoadPlanningPage() {
               );
               
               if (distance < closestDistance) {
-                const currentPosLabel = `P${row === 0 ? col + 1 : col + 5}`;
-                
-                // Check if this position is already occupied by another pallet
-                const existingPallet = pallets.find(p => 
-                  p.location === "cargo" && p.positionLabel === currentPosLabel
-                );
-                
-                if (!existingPallet) {
-                  closestDistance = distance;
-                  positionLabel = currentPosLabel;
-                  // Calculate snap position (centered in cell)
-                  snapX = col * 120 + (cellWidth - palletSize.width) / 2;
-                  snapY = (row === 0 ? 10 : 100) + (cellHeight - palletSize.height) / 2;
-                  cellFound = true;
-                } else {
-                  isPositionOccupied = true;
-                }
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+                // Calculate snap position (centered in cell)
+                snapX = col * 120 + (cellWidth - palletSize.width) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - palletSize.height) / 2;
               }
             }
           }
@@ -661,59 +635,23 @@ export default function LoadPlanningPage() {
             );
             
             if (distance < closestDistance) {
-              const currentPosLabel = `P${col + 1}`;
-              
-              // Check if this position is already occupied by another pallet
-              const existingPallet = pallets.find(p => 
-                p.location === "cargo" && p.positionLabel === currentPosLabel
-              );
-              
-              if (!existingPallet) {
-                closestDistance = distance;
-                positionLabel = currentPosLabel;
-                // Calculate snap position (centered in cell)
-                snapX = col * 120 + (cellWidth - palletSize.width) / 2;
-                snapY = 20 + (cellHeight - palletSize.height) / 2;
-                cellFound = true;
-              } else {
-                isPositionOccupied = true;
-              }
+              closestDistance = distance;
+              positionLabel = `P${col + 1}`;
+              // Calculate snap position (centered in cell)
+              snapX = col * 120 + (cellWidth - palletSize.width) / 2;
+              snapY = 20 + (cellHeight - palletSize.height) / 2;
             }
           }
         }
         
-        // Check if we found a valid cell and it's not occupied
-        if (cellFound && !isPositionOccupied) {
-          // Update the position to snap to the grid
-          newPallet.position.x = snapX;
-          newPallet.position.y = snapY;
-          newPallet.positionLabel = positionLabel;
-          
-          // Open pallet input dialog immediately
+        // Update the position to snap to the grid
+        newPallet.position.x = snapX;
+        newPallet.position.y = snapY;
+        
+        // Open pallet input dialog AFTER pallet is added to the array
+        setTimeout(() => {
           showPalletInput(nextPalletId, positionLabel);
-        } else if (isPositionOccupied) {
-          // If position is already occupied, show a warning
-          showAlert(
-            'warning',
-            'Position Already Occupied',
-            `Position ${positionLabel} already has a pallet. Please choose a different position.`
-          );
-          
-          // Remove the newly created pallet since we can't place it
-          setPallets(prev => prev.filter(p => p.id !== nextPalletId));
-          return;
-        } else {
-          // If no valid cell was found, show an error
-          showAlert(
-            'error',
-            'Invalid Position',
-            'Could not find a valid grid position for the pallet.'
-          );
-          
-          // Remove the newly created pallet
-          setPallets(prev => prev.filter(p => p.id !== nextPalletId));
-          return;
-        }
+        }, 100);
       }
       
     } else {
@@ -726,143 +664,49 @@ export default function LoadPlanningPage() {
       
       // Position the existing pallet
       if (dropArea === "cargo" || dropArea === "storage") {
-        // For cargo area, we need to find the closest position and check if it's available
-        let positionLabel = "";
-        let cellFound = false;
-        let isPositionOccupied = false;
-        let closestDistance = Number.MAX_VALUE;
-        let snapX = newX;
-        let snapY = newY;
-        
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
           // Fixed cell dimensions to match our custom grid (reduced and adjusted by 12%)
           const cellWidth = 76; // Fixed cell width (matches grid in UI)
           const rowHeight = 98; // Fixed cell height (matches grid in UI)
           
-          // Find closest grid cell
-          for (let row = 0; row < 2; row++) {
-            for (let col = 0; col < 9; col++) {
-              const cellCenterX = col * 76 + 36; // center of cell
-              const cellCenterY = row === 0 ? 10 + 44 : 105 + 44; // center of cell y-position
-              
-              const distance = Math.sqrt(
-                Math.pow(dropX - cellCenterX, 2) + 
-                Math.pow(dropY - cellCenterY, 2)
-              );
-              
-              if (distance < closestDistance) {
-                const currentPosLabel = `P${row === 0 ? col + 1 : col + 10}`;
-                
-                // Check if this position is already occupied by a different pallet
-                const existingPallet = pallets.find(p => 
-                  p.location === "cargo" && 
-                  p.positionLabel === currentPosLabel &&
-                  p.id !== id // Skip the pallet we're currently moving
-                );
-                
-                if (!existingPallet) {
-                  closestDistance = distance;
-                  positionLabel = currentPosLabel;
-                  // Calculate snap position (centered in cell)
-                  snapX = col * 76 + 2;
-                  snapY = row === 0 ? 10 : 105;
-                  cellFound = true;
-                } else {
-                  isPositionOccupied = true;
-                }
-              }
-            }
-          }
+          // Determine which cell the pallet was dropped in
+          const cellRow = dropY > rowHeight ? 1 : 0;
+          const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellWidth)));
+          
+          // Position pallet in the appropriate cell with proper spacing
+          const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
+          
+          // Position within grid cell
+          newX = (cellColumn * cellWidth) + 2;
+          newY = rowTopOffset;
           
           // Update the pallet size to fit the grid cell
           draggedPallet.size = {
             width: 71,
             height: 87
           };
-        } else if (currentAircraftId === 'c130') {
-          // For C-130 with 4x2 grid
-          for (let row = 0; row < 2; row++) {
-            for (let col = 0; col < 4; col++) {
-              const cellWidth = 110;
-              const cellHeight = 80;
-              const cellX = col * 120 + cellWidth/2; // center of cell
-              const cellY = row * 90 + cellHeight/2 + (row === 0 ? 10 : 100); // center of cell
-              
-              const distance = Math.sqrt(
-                Math.pow(dropX - cellX, 2) + 
-                Math.pow(dropY - cellY, 2)
-              );
-              
-              if (distance < closestDistance) {
-                const currentPosLabel = `P${row === 0 ? col + 1 : col + 5}`;
-                
-                // Check if this position is already occupied by a different pallet
-                const existingPallet = pallets.find(p => 
-                  p.location === "cargo" && 
-                  p.positionLabel === currentPosLabel &&
-                  p.id !== id // Skip the pallet we're currently moving
-                );
-                
-                if (!existingPallet) {
-                  closestDistance = distance;
-                  positionLabel = currentPosLabel;
-                  // Calculate snap position (centered in cell)
-                  snapX = col * 120 + (cellWidth - 110) / 2;
-                  snapY = (row === 0 ? 10 : 100) + (cellHeight - 80) / 2;
-                  cellFound = true;
-                } else {
-                  isPositionOccupied = true;
-                }
-              }
-            }
-          }
-          
-          // Update pallet size for C-130
-          draggedPallet.size = {
-            width: 110,
-            height: 80
-          };
         } else {
-          // For C-27J/KC30-A with 3x1 grid
-          for (let col = 0; col < 3; col++) {
-            const cellWidth = 110; 
-            const cellHeight = 80;
-            const cellX = col * 120 + cellWidth/2; // center of cell
-            const cellY = 20 + cellHeight/2; // center of cell
-            
-            const distance = Math.sqrt(
-              Math.pow(dropX - cellX, 2) + 
-              Math.pow(dropY - cellY, 2)
-            );
-            
-            if (distance < closestDistance) {
-              const currentPosLabel = `P${col + 1}`;
-              
-              // Check if this position is already occupied by a different pallet
-              const existingPallet = pallets.find(p => 
-                p.location === "cargo" && 
-                p.positionLabel === currentPosLabel &&
-                p.id !== id // Skip the pallet we're currently moving
-              );
-              
-              if (!existingPallet) {
-                closestDistance = distance;
-                positionLabel = currentPosLabel;
-                // Calculate snap position (centered in cell)
-                snapX = col * 120 + (cellWidth - 110) / 2;
-                snapY = 20 + (cellHeight - 80) / 2;
-                cellFound = true;
-              } else {
-                isPositionOccupied = true;
-              }
-            }
-          }
+          // For other aircraft types
+          const columns = currentAircraftId === 'c130' ? 4 : 3;
+          const cellWidth = areaWidth / columns;
+          const cellHeight = areaHeight;
           
-          // Update pallet size for C-27J/KC30-A
+          // Determine which cell the pallet was dropped in
+          const cellColumn = Math.floor(dropX / cellWidth);
+          
+          // Use fixed pallet dimensions of 88x108
+          const palletWidth = 88;
+          const palletHeight = 108;
+          
+          // Center in the cell
+          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+          newY = (cellHeight - palletHeight) / 2;
+          
+          // Update the pallet size to fit the grid cell
           draggedPallet.size = {
-            width: 110,
-            height: 80
+            width: palletWidth,
+            height: palletHeight
           };
         }
       } else {
@@ -1281,10 +1125,10 @@ export default function LoadPlanningPage() {
                             key={`spartan-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 130,
-                              top: 10,
-                              width: 121, /* 110px * 1.1 = 121px */
-                              height: 88, /* 80px * 1.1 = 88px */
+                              left: i * 120,
+                              top: 20,
+                              width: 110,
+                              height: 80,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           >
@@ -1442,8 +1286,9 @@ export default function LoadPlanningPage() {
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
-                      <div className="flex items-center justify-center">
-                        <Package2 className="h-6 w-6" />
+                      <div className="flex flex-col items-center justify-center">
+                        <Package2 className="h-5 w-5 mb-2" />
+                        <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
                       </div>
                     </div>
                   </div>
