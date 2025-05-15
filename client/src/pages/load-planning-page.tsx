@@ -290,6 +290,22 @@ export default function LoadPlanningPage() {
     );
   };
   
+  // Handle direct click on an existing pallet in the cargo area
+  const handlePalletCellClick = (event: React.MouseEvent, pallet: Pallet, posLabel: string) => {
+    event.stopPropagation(); // Prevent event bubbling
+    console.log("PALLET CLICKED", pallet, posLabel);
+    
+    // Update dialog state
+    setEditingPalletId(pallet.id);
+    setPalletWeight(pallet.weight ? pallet.weight.toString() : "");
+    setPalletCargoType(pallet.cargoType || "C");
+    setPalletPosition(posLabel || pallet.positionLabel || "");
+    setPalletCargoCategory(pallet.cargoCategory || "");
+    setPalletDgClass(pallet.dgClass || "");
+    setIsDangerousGoods(pallet.cargoType === "DG");
+    setPalletInputOpen(true);
+  };
+  
   // Calculate position based on aircraft grid layout
   const calculatePalletPosition = (cellWidth: number, cellHeight: number, col: number, row: number = 0, xOffset: number = 0, yOffset: number = 0) => {
     // Use existing calculatePalletDimensions for sizing
@@ -307,11 +323,18 @@ export default function LoadPlanningPage() {
     };
   };
   
+  // Handle pallet click - this will be called when a pallet in the cargo area is clicked
+  const handlePalletClick = (palletId: number, position: string) => {
+    console.log("handlePalletClick called with ID:", palletId, "position:", position);
+    showPalletInput(palletId, position);
+  };
+
   // Show pallet input dialog
   const showPalletInput = (palletId: number, position?: string) => {
     console.log("showPalletInput called with ID:", palletId, "position:", position);
     
     const selectedPallet = pallets.find(p => p.id === palletId);
+    console.log("Found pallet:", selectedPallet);
     
     // Set defaults even if pallet is not found yet
     setEditingPalletId(palletId);
