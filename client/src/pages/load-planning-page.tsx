@@ -75,7 +75,7 @@ export default function LoadPlanningPage() {
   
   // Balance state: -100 (fully left/forward) to 100 (fully right/aft), 0 is perfectly balanced
   const [balanceValue, setBalanceValue] = useState(0);
-  const [balanceCG, setBalanceCG] = useState(53); // Centre of Gravity value (18-88 degrees)
+  const [balanceCG, setBalanceCG] = useState(53.00); // Centre of Gravity value (18-88 degrees) with decimal precision
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
   
   // Keep track of the balance scale width to make cargo area match it
@@ -495,8 +495,9 @@ export default function LoadPlanningPage() {
     setBalanceValue(balance);
     
     // Calculate Centre of Gravity value (18-88 degrees)
-    // Map from -100:100 to 18:88 (70 degree range)
-    const cg = Math.round(((balance + 100) / 200) * 70 + 18);
+    // Map from -100:100 to 18:88 (70 degree range) with 2 decimal precision
+    const cgExact = ((balance + 100) / 200) * 70 + 18;
+    const cg = parseFloat(cgExact.toFixed(2)); // Keep two decimal places
     setBalanceCG(cg);
     
     // Determine balance status
@@ -1864,10 +1865,11 @@ export default function LoadPlanningPage() {
                       {/* Center line */}
                       <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80"></div>
                       
-                      {/* Indicator needle - reduced to 1px width (half of 2px) */}
+                      {/* Indicator needle - further reduced to 0.85px width (15% thinner) and changed to teal color */}
                       <div 
-                        className="absolute top-0 bottom-0 w-1 bg-white shadow-md"
+                        className="absolute top-0 bottom-0 bg-cyan-500 shadow-md"
                         style={{ 
+                          width: '0.85px',
                           left: `${(balanceValue + 100) / 2}%`,
                           transform: 'translateX(-50%)',
                           transition: 'left 0.3s ease-out'
@@ -1877,7 +1879,7 @@ export default function LoadPlanningPage() {
                         <div 
                           className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-700/90 text-black dark:text-white px-1.5 py-0.5 rounded text-[10px] font-medium"
                         >
-                          {balanceCG}°
+                          {balanceCG.toFixed(2)}°
                         </div>
                       </div>
                       
