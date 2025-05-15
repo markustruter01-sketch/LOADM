@@ -31,6 +31,13 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define form types
 const scenarioFormSchema = insertScenarioSchema.extend({
@@ -38,6 +45,7 @@ const scenarioFormSchema = insertScenarioSchema.extend({
     z.object({
       id: z.string().min(1, "Question ID is required"),
       question: z.string().min(1, "Question text is required"),
+      questionType: z.enum(["multiple-choice", "free-text"]),
       options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
       correctAnswer: z.string().min(1, "Correct answer is required"),
     })
@@ -132,6 +140,7 @@ export default function EditScenario() {
       {
         id: `q${questions.length + 1}`,
         question: "",
+        questionType: "multiple-choice",
         options: ["", ""],
         correctAnswer: "",
       },
