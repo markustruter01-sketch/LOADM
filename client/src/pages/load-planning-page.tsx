@@ -96,6 +96,9 @@ export default function LoadPlanningPage() {
       }
     }
     
+    // Log for debugging
+    console.log(`Calculating cell width for ${aircraft}, balance scale width: ${balanceScaleWidth}`);
+    
     // Calculate cell width to fit the balance scale exactly
     // Divide the balance scale width by the number of positions for each aircraft
     switch (aircraft) {
@@ -336,6 +339,7 @@ export default function LoadPlanningPage() {
       if (balanceScaleRef.current) {
         const width = balanceScaleRef.current.offsetWidth;
         setBalanceScaleWidth(width);
+        console.log("Balance scale width measured:", width);
       }
     };
     
@@ -635,10 +639,6 @@ export default function LoadPlanningPage() {
             palletSize.width = cellWidth;
             palletSize.height = 96;
           }
-          
-          // Set the pallet size
-          palletSize.width = palletWidth;
-          palletSize.height = palletHeight;
         }
       } else {
         // For configure area, use the original drop calculation
