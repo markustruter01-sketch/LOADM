@@ -43,7 +43,7 @@ import {
 const scenarioFormSchema = insertScenarioSchema.extend({
   questions: z.array(
     z.object({
-      id: z.string().min(1, "Question ID is required"),
+      id: z.string().min(1, "Question ID is required").default(""),
       question: z.string().min(1, "Question text is required"),
       questionType: z.enum(["multiple-choice", "free-text"]),
       options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
@@ -355,22 +355,7 @@ export default function EditScenario() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name={`questions.${qIndex}.id`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Question ID</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="q1" className="text-white font-medium" />
-                          </FormControl>
-                          <FormDescription>
-                            A unique identifier for this question
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
 
                     <FormField
                       control={form.control}
