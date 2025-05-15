@@ -2,14 +2,14 @@ import { Helmet } from "react-helmet";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileCheck, ClipboardList, Package2, UserCircle } from "lucide-react";
-import cargoBayImage from "../assets/cargo-bay.png";
+import cargoLoadingImage from "/cargo-loading.png";
 
 export default function HomePage() {
 
   return (
     <>
       <Helmet>
-        <title>LOADMdocs - Professional Loadmaster Documentation App</title>
+        <title>LOADMworkflow - Professional Loadmaster Documentation App</title>
         <meta 
           name="description" 
           content="Professional documentation and scenario tools for loadmasters. Access required documentation and training scenarios in one central location." 
@@ -21,7 +21,7 @@ export default function HomePage() {
           {/* Welcome Section */}
           <section className="mb-10 text-center">
             <h2 className="text-3xl font-bold mb-4 text-foreground">
-              Welcome to <span className="text-primary">LOADMdocs</span>
+              Welcome to <span className="text-white">LOADM</span><span className="text-primary">workflow</span>
             </h2>
             <p className="text-muted-foreground mb-6">
               Professional documentation and scenario tools for loadmasters
@@ -30,8 +30,8 @@ export default function HomePage() {
             {/* Featured Section Banner */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
               <img
-                src={cargoBayImage}
-                alt="Military cargo loadmaster in aircraft bay"
+                src={cargoLoadingImage}
+                alt="Military cargo loadmaster preparing pallet"
                 className="w-full h-full object-cover"
               />
               <div className="gradient-overlay flex items-end">

@@ -502,28 +502,7 @@ export default function DocumentsPage() {
           </div>
         </div>
       </div>
-      
-      {/* Cargo Floor Loading Plan */}
-      <div id="cargo-floor-loading-plan-form" className="container mx-auto pb-20 pt-4">
-        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-6">Cargo Floor Loading Plan</h2>
-          <p className="text-muted-foreground mb-4">Detailed diagram and specifications for floor-loaded cargo.</p>
-          <div className="bg-secondary/20 p-6 rounded-md text-center">
-            <p>Cargo Floor Loading Plan form will be implemented here.</p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Pallet Build-Up Form */}
-      <div id="pallet-build-up-form-form" className="container mx-auto pb-20 pt-4">
-        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-6">Pallet Build-Up Form</h2>
-          <p className="text-muted-foreground mb-4">Documentation for the configuration and build-up of air cargo pallets.</p>
-          <div className="bg-secondary/20 p-6 rounded-md text-center">
-            <p>Pallet Build-Up Form will be implemented here.</p>
-          </div>
-        </div>
-      </div>
+
     </>
   );
 }

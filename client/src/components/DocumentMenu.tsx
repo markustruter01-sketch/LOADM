@@ -93,18 +93,7 @@ export default function DocumentMenu() {
       description: "Calculate and document aircraft weight distribution and balance.",
       path: "/cargo-manifest#weight-balance-sheet-form",
     },
-    {
-      id: 5,
-      title: "Cargo Floor Loading Plan",
-      description: "Detailed diagram and specifications for floor-loaded cargo.",
-      path: "/cargo-manifest#cargo-floor-loading-plan-form",
-    },
-    {
-      id: 6,
-      title: "Pallet Build-Up Form",
-      description: "Documentation for the configuration and build-up of air cargo pallets.",
-      path: "/cargo-manifest#pallet-build-up-form-form",
-    },
+
   ];
 
   return (
