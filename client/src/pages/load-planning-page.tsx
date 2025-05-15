@@ -1878,7 +1878,8 @@ export default function LoadPlanningPage() {
                                 data-position-number={i+1}
                                 draggable={assignedPallet ? true : false}
                                 onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                onClick={assignedPallet ? () => showPalletInput(assignedPallet.id, positionLabel) : undefined}
+                                className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                 style={{
                                   left: i * cellSpacing,
                                   top: 20,
