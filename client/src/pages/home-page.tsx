@@ -27,6 +27,25 @@ export default function HomePage() {
               Professional documentation and scenario tools for loadmasters
             </p>
 
+            {/* Featured Section Banner */}
+            <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
+              <img
+                src={cargoBayImage}
+                alt="Military cargo loadmaster in aircraft bay"
+                className="w-full h-full object-cover"
+              />
+              <div className="gradient-overlay flex items-end">
+                <div className="p-6">
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    Streamline Your Loadmaster Experience
+                  </h3>
+                  <p className="text-muted-foreground max-w-xl">
+                    Access Load Planning, Documentation, Training Scenarios and Assessments.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Sections Navigation */}
             <div className="mb-10">
               <h3 className="text-xl font-bold mb-4 text-left">Sections</h3>
@@ -86,25 +105,6 @@ export default function HomePage() {
                     </CardContent>
                   </Card>
                 </Link>
-              </div>
-            </div>
-
-            {/* Featured Section Banner */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
-              <img
-                src={cargoBayImage}
-                alt="Military cargo loadmaster in aircraft bay"
-                className="w-full h-full object-cover"
-              />
-              <div className="gradient-overlay flex items-end">
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-foreground mb-2">
-                    Streamline Your Loadmaster Documentation
-                  </h3>
-                  <p className="text-muted-foreground max-w-xl">
-                    Access all required documentation and training scenarios in one central location.
-                  </p>
-                </div>
               </div>
             </div>
           </section>
