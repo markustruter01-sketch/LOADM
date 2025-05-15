@@ -32,8 +32,8 @@ export default function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <UserCircle className="h-18 w-18" />
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-2 h-auto w-auto">
+                  <UserCircle className="h-[4.5rem] w-[4.5rem]" />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -60,8 +60,8 @@ export default function Header() {
           ) : (
             location !== "/auth" && (
               <Link href="/auth">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <UserCircle className="h-18 w-18" />
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-2 h-auto w-auto">
+                  <UserCircle className="h-[4.5rem] w-[4.5rem]" />
                   <span className="sr-only">Login</span>
                 </Button>
               </Link>
