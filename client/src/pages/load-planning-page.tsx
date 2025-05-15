@@ -702,13 +702,13 @@ export default function LoadPlanningPage() {
                 <CardContent>
                   <div 
                     ref={cargoRef}
-                    className={`relative bg-green-900/20 border border-green-500/40 rounded-lg w-full ${
+                    className={`relative border border-gray-500/40 rounded-lg w-full ${
                       currentAircraftId === 'c17' 
                         ? 'h-[320px]' 
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
                           : 'h-[150px]'
-                    } overflow-hidden`}
+                    } overflow-hidden bg-transparent`}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, "cargo")}
                   >
@@ -721,12 +721,13 @@ export default function LoadPlanningPage() {
                         {[...Array(9)].map((_, i) => (
                           <div 
                             key={`cell-row1-${i}`} 
-                            className="absolute border border-white/20"
+                            className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
                               left: i * 100,
                               top: 10,
                               width: 96,
                               height: 116,
+                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           ></div>
                         ))}
@@ -735,12 +736,13 @@ export default function LoadPlanningPage() {
                         {[...Array(9)].map((_, i) => (
                           <div 
                             key={`cell-row2-${i}`} 
-                            className="absolute border border-white/20"
+                            className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
                               left: i * 100,
                               top: 136, 
                               width: 96,
                               height: 116,
+                              backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           ></div>
                         ))}
