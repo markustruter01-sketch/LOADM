@@ -103,11 +103,7 @@ export default function DocumentMenu() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-foreground">Documents</h2>
-        <Link href="/documents">
-          <Button variant="link" className="text-primary">
-            View All
-          </Button>
-        </Link>
+        {/* No view all button needed as this is now the documents page */}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

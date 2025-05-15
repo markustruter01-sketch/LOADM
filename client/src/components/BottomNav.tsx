@@ -25,10 +25,10 @@ export default function BottomNav() {
       active: location.startsWith("/load-planning")
     },
     {
-      href: "/cargo-manifest",
+      href: "/documents",
       label: "Documents",
       icon: FileCheck,
-      active: location === "/cargo-manifest" || location.startsWith("/documents")
+      active: location === "/documents" || location === "/cargo-manifest" || location.startsWith("/documents/")
     },
     {
       href: "/auth",

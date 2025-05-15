@@ -106,18 +106,23 @@ export function CargoManifestForm() {
         </style>
       </Helmet>
       
-      <div id="cargo-manifest-form" className="px-4 py-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="bg-primary w-full py-3 px-4 no-print">
+        <div className="container mx-auto">
           {/* Back Button */}
           <Button 
             variant="link" 
             size="sm" 
-            className="text-primary hover:text-primary/90 p-0 mb-3"
+            className="text-white hover:text-white/90 p-0"
             onClick={() => window.location.href = "/"}
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
             Back
           </Button>
+        </div>
+      </div>
+
+      <div id="cargo-manifest-form" className="px-4 py-4">
+        <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-6 no-print">
             <h2 className="text-2xl font-bold text-foreground">Passenger / Crew and Cargo Manifest</h2>
           </div>
