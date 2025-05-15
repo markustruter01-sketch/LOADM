@@ -1550,12 +1550,7 @@ export default function LoadPlanningPage() {
                                     }}
                                   >
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                      {/* Position label - always shown */}
-                                      <div className="absolute top-1 left-1">
-                                        <span className="text-xs font-medium bg-white/20 px-1 rounded text-white">
-                                          {positionLabel}
-                                        </span>
-                                      </div>
+                                      {/* Only show center label now, corner label removed */}
                                       
                                       {/* If no pallet is assigned, show pale label in center */}
                                       {!assignedPallet && (
