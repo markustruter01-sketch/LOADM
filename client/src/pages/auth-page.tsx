@@ -230,8 +230,8 @@ export default function AuthPage() {
         <div className="hidden lg:flex lg:w-1/2 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent z-10"></div>
           <img
-            src="https://pixabay.com/get/g6a2272a7a8db962bb9c0785fa61ec6059ba077c8a70ca935201dbd65e9850f594bbded54de005975f7cf116008f8b083eaefe8f8bb6ae27fb22b9e6d5262cb99_1280.jpg"
-            alt="Air freight logistics"
+            src="/container-stack.png"
+            alt="Colorful shipping containers stack"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 flex items-center justify-center z-20">
