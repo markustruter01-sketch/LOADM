@@ -119,33 +119,13 @@ export default function LoadPlanningPage() {
           });
         }
         
-        // Storage zones with similar layout
-        const c17StorageZones: DropZone[] = [];
-        for (let i = 0; i < 9; i++) {
-          c17StorageZones.push({
-            id: i + 19,
-            position: { x: i * cellWidth + 4, y: 14 },
-            occupied: false,
-            area: "storage"
-          });
-        }
-        
-        for (let i = 0; i < 9; i++) {
-          c17StorageZones.push({
-            id: i + 28,
-            position: { x: i * cellWidth + 4, y: 140 },
-            occupied: false,
-            area: "storage"
-          });
-        }
-        
-        return [...c17CargoZones, ...c17StorageZones];
+        // Storage zones have been removed
+        return c17CargoZones;
         
       case 'c130':
         // C-130 Hercules - 8 slots
         const c130CargoZones = createDropZones(8, "cargo", 60, 60, 90);
-        const c130StorageZones = createDropZones(8, "storage", 60, 150, 90);
-        return [...c130CargoZones, ...c130StorageZones];
+        return c130CargoZones;
         
       default:
         // C-27J Spartan (default) - 3 slots
@@ -154,16 +134,11 @@ export default function LoadPlanningPage() {
           { id: 1, position: { x: 80, y: 60 }, occupied: false, area: "cargo" },
           { id: 2, position: { x: 160, y: 60 }, occupied: false, area: "cargo" },
           { id: 3, position: { x: 240, y: 60 }, occupied: false, area: "cargo" },
-          
-          // Storage area - temporary holding area
-          { id: 4, position: { x: 80, y: 60 }, occupied: false, area: "storage" },
-          { id: 5, position: { x: 160, y: 60 }, occupied: false, area: "storage" },
-          { id: 6, position: { x: 240, y: 60 }, occupied: false, area: "storage" },
         ];
     }
   };
   
-  // Drop zones for the cargo and storage areas
+  // Drop zones for the cargo area
   const [dropZones, setDropZones] = useState<DropZone[]>(generateDropZones(currentAircraftId));
   
   // Keep track of the next pallet ID for newly created pallets
@@ -469,9 +444,9 @@ export default function LoadPlanningPage() {
       const maxPallets = currentAircraftId === 'c17' ? 18 : 
                          currentAircraftId === 'c130' ? 8 : 3;
                           
-      // Count existing pallets in cargo and storage
+      // Count existing pallets in cargo area
       const existingPalletCount = pallets.filter(p => 
-        p.location === "cargo" || p.location === "storage"
+        p.location === "cargo"
       ).length;
       
       // Check if we've reached the maximum pallets for this aircraft
@@ -496,8 +471,8 @@ export default function LoadPlanningPage() {
         palletSize = { width: 110, height: 80 }; // C-27J Spartan/KC30-A
       }
       
-      // Position the new pallet
-      if (dropArea === "cargo" || dropArea === "storage") {
+      // Position the new pallet in the cargo area
+      if (dropArea === "cargo") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
           // Fixed cell dimensions to match our custom grid (reduced and adjusted by 12%)
@@ -662,8 +637,8 @@ export default function LoadPlanningPage() {
       const draggedPallet = pallets.find(p => p.id === id);
       if (!draggedPallet) return;
       
-      // Position the existing pallet
-      if (dropArea === "cargo" || dropArea === "storage") {
+      // Position the existing pallet in the cargo area
+      if (dropArea === "cargo") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
           // Fixed cell dimensions to match our custom grid (reduced and adjusted by 12%)
