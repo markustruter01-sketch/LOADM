@@ -80,7 +80,7 @@ export default function LoadPlanningPage() {
   // Balance state: -100 (fully left/forward) to 100 (fully right/aft), 0 is perfectly balanced
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceCG, setBalanceCG] = useState(53.00); // Centre of Gravity value (18-88 degrees) with decimal precision
-  const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
+  const [balanceStatus, setBalanceStatus] = useState<'safe' | 'moderate' | 'warning' | 'caution'>('safe');
   
   // Keep track of the balance scale width to make cargo area match it
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
@@ -512,13 +512,15 @@ export default function LoadPlanningPage() {
     const cg = parseFloat(cgExact.toFixed(2)); // Keep two decimal places
     setBalanceCG(cg);
     
-    // Determine balance status
+    // Determine balance status - using more gradual transitions
     if (Math.abs(balance) < 20) {
-      setBalanceStatus('safe');
-    } else if (Math.abs(balance) < 50) {
-      setBalanceStatus('warning');
+      setBalanceStatus('safe'); // Green center zone
+    } else if (Math.abs(balance) < 40) {
+      setBalanceStatus('moderate'); // Yellow-green zone
+    } else if (Math.abs(balance) < 60) {
+      setBalanceStatus('warning'); // Amber zone
     } else {
-      setBalanceStatus('danger');
+      setBalanceStatus('caution'); // Orange zone (instead of danger/red)
     }
   }, [pallets]);
   
@@ -1459,7 +1461,6 @@ export default function LoadPlanningPage() {
                     </p>
                   </div>
                   <div className="rounded-md p-3 relative w-1/2" style={{ 
-                    background: 'linear-gradient(to right, rgba(132, 204, 22, 0.15), rgba(34, 197, 94, 0.15), rgba(132, 204, 22, 0.15), rgba(245, 158, 11, 0.15))',
                     background: 'linear-gradient(to right, rgba(132, 204, 22, 0.15), rgba(34, 197, 94, 0.15), rgba(132, 204, 22, 0.15), rgba(245, 158, 11, 0.15))'
                   }}>
                     <p className="text-xs font-medium">Centre of Gravity</p>
