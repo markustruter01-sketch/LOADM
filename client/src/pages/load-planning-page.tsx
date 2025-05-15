@@ -402,6 +402,17 @@ export default function LoadPlanningPage() {
                     <span>Center of Gravity</span>
                     <span>Heavy Aft</span>
                   </div>
+                  
+                  <div className="mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" 
+                      onClick={handleReset}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reset All Pallets
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -517,17 +528,6 @@ export default function LoadPlanningPage() {
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">
                   Use this area for temporary storage. Pallets here don't count toward total load.
-                </div>
-                
-                <div className="mt-4">
-                  <Button 
-                    variant="secondary" 
-                    className="w-full flex items-center justify-center" 
-                    onClick={handleReset}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Reset All Pallets
-                  </Button>
                 </div>
               </CardContent>
             </Card>
