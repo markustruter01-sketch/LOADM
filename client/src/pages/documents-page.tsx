@@ -4,21 +4,19 @@ import { Document } from "@shared/schema";
 import { Loader2, ArrowLeft } from "lucide-react";
 import DocumentCard from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "wouter";
 
 export default function DocumentsPage() {
-  const [_, navigate] = useLocation();
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
 
-  const handleBackClick = () => {
-    // Navigate directly to the home page
+  // Go back to home page function
+  const goToHomePage = () => {
     window.location.href = "/";
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Documents - LOADMdocs</title>
         <meta 
@@ -27,19 +25,22 @@ export default function DocumentsPage() {
         />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-4 mb-0">
+      {/* Top Back Button */}
+      <div className="pt-4 pl-4">
+        <Button 
+          onClick={goToHomePage}
+          variant="outline" 
+          size="sm"
+          className="text-white bg-primary hover:bg-primary/90"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6 mb-16">
         <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <Button 
-            variant="link" 
-            size="sm" 
-            className="text-primary hover:text-primary/80 p-0 mb-3"
-            onClick={handleBackClick}
-          >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Back
-          </Button>
-          
           {/* Header Section */}
           <section className="mb-10">
             <h2 className="text-3xl font-bold mb-4 text-foreground">
@@ -66,6 +67,6 @@ export default function DocumentsPage() {
           </section>
         </div>
       </div>
-    </>
+    </div>
   );
 }
