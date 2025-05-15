@@ -635,17 +635,20 @@ export default function LoadPlanningPage() {
                 closestDistance = distance;
                 positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
                 
-                // Make pallet 10% smaller than grid cell
-                const reducedWidth = Math.floor(cellWidth * 0.9);
-                const reducedHeight = Math.floor(cellHeight * 0.9);
+                // Calculate dimensions using helper function for consistent sizing
+                const dimensions = calculatePalletDimensions(
+                  cellWidth, 
+                  cellHeight, 
+                  col
+                );
                 
                 // Update pallet size to be 10% smaller
-                palletSize.width = reducedWidth;
-                palletSize.height = reducedHeight;
+                palletSize.width = dimensions.width;
+                palletSize.height = dimensions.height;
                 
                 // Calculate snap position (centered in cell)
-                snapX = col * 120 + (cellWidth - reducedWidth) / 2;
-                snapY = (row === 0 ? 10 : 100) + (cellHeight - reducedHeight) / 2;
+                snapX = col * 120 + (cellWidth - dimensions.width) / 2;
+                snapY = (row === 0 ? 10 : 100) + (cellHeight - dimensions.height) / 2;
               }
             }
           }
@@ -667,17 +670,23 @@ export default function LoadPlanningPage() {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
               
-              // Make pallet 10% smaller than grid cell
-              const reducedWidth = Math.floor(cellWidth * 0.9);
-              const reducedHeight = Math.floor(cellHeight * 0.9);
+              // Calculate dimensions using helper function for consistent sizing
+              const dimensions = calculatePalletDimensions(
+                cellWidth, 
+                cellHeight, 
+                col,
+                0,    // No row for C-27J
+                144,  // x spacing of 144 for Spartan
+                0     // No additional offset
+              );
               
               // Update pallet size to be 10% smaller
-              palletSize.width = reducedWidth;
-              palletSize.height = reducedHeight;
+              palletSize.width = dimensions.width;
+              palletSize.height = dimensions.height;
               
               // Calculate snap position (centered in cell)
-              snapX = col * 144 + (cellWidth - reducedWidth) / 2;
-              snapY = 20 + (cellHeight - reducedHeight) / 2;
+              snapX = col * 144 + (cellWidth - dimensions.width) / 2;
+              snapY = 20 + (cellHeight - dimensions.height) / 2;
             }
           }
         }
