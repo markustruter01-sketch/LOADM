@@ -68,72 +68,15 @@ export default function LoadPlanningPage() {
   const currentAircraftId = match ? params.aircraftId : 'c27j';
   const currentAircraft = aircraftConfigs[currentAircraftId] || aircraftConfigs.c27j;
   
-  // Generate pallets based on aircraft type
-  const generatePallets = (aircraftId: string): Pallet[] => {
-    // Default size for all pallets
-    const palletSize = { width: 70, height: 50 };
-    
-    // Generate pallets based on aircraft type
-    switch (aircraftId) {
-      case 'c17':
-        // Globemaster C-17 with 18 pallets
-        return Array.from({ length: 18 }, (_, index) => {
-          // Position pallets in a grid within configure area
-          // 6 pallets per row, 3 rows
-          const row = Math.floor(index / 6);
-          const col = index % 6;
-          return {
-            id: index + 1,
-            position: { 
-              x: 50 + (col * (palletSize.width + 10)), 
-              y: 50 + (row * (palletSize.height + 15)) 
-            },
-            location: "configure",
-            weight: null,
-            size: palletSize
-          };
-        });
-        
-      case 'c130':
-        // Hercules C-130 with 8 pallets
-        return Array.from({ length: 8 }, (_, index) => {
-          // Position pallets in a grid within configure area
-          // 4 pallets per row, 2 rows
-          const row = Math.floor(index / 4);
-          const col = index % 4;
-          return {
-            id: index + 1,
-            position: { 
-              x: 70 + (col * (palletSize.width + 20)), 
-              y: 70 + (row * (palletSize.height + 20)) 
-            },
-            location: "configure",
-            weight: null,
-            size: palletSize
-          };
-        });
-        
-      default:
-        // C-27J Spartan (default) with 3 pallets
-        return [
-          { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: null, size: palletSize },
-          { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: null, size: palletSize },
-          { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: null, size: palletSize },
-        ];
-    }
-  };
-  
-  // Generate initial pallets based on aircraft type
-  const initialPallets: Pallet[] = generatePallets(currentAircraftId);
-  
-  const [pallets, setPallets] = useState<Pallet[]>(initialPallets);
+  // Create pallets array - in new design, we start with empty pallets array
+  const [pallets, setPallets] = useState<Pallet[]>([]);
   
   // Balance state: -100 (fully left/forward) to 100 (fully right/aft), 0 is perfectly balanced
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
   
   // Generate drop zones based on aircraft type
-  const generateDropZones = (aircraftId: string, pallets: Pallet[]): DropZone[] => {
+  const generateDropZones = (aircraftId: string): DropZone[] => {
     // Common drop zone creation function
     const createDropZones = (count: number, areaType: "cargo" | "storage", startX: number, startY: number, spacingX: number) => {
       return Array.from({ length: count }, (_, index) => ({
@@ -144,30 +87,18 @@ export default function LoadPlanningPage() {
       }));
     };
     
-    // Create configure area drop zones based on existing pallets
-    const createConfigureDropZones = (existingPallets: Pallet[], startId: number) => {
-      return existingPallets.map((pallet, index) => ({
-        id: startId + index,
-        position: { ...pallet.position },
-        occupied: true,
-        area: "configure" as const
-      }));
-    };
-    
     switch (aircraftId) {
       case 'c17':
         // C-17 Globemaster - 18 slots
         const c17CargoZones = createDropZones(18, "cargo", 40, 50, 80);
         const c17StorageZones = createDropZones(18, "storage", 40, 250, 80);
-        const c17ConfigureZones = createConfigureDropZones(pallets, 37);
-        return [...c17CargoZones, ...c17StorageZones, ...c17ConfigureZones];
+        return [...c17CargoZones, ...c17StorageZones];
         
       case 'c130':
         // C-130 Hercules - 8 slots
         const c130CargoZones = createDropZones(8, "cargo", 60, 60, 90);
         const c130StorageZones = createDropZones(8, "storage", 60, 150, 90);
-        const c130ConfigureZones = createConfigureDropZones(pallets, 17);
-        return [...c130CargoZones, ...c130StorageZones, ...c130ConfigureZones];
+        return [...c130CargoZones, ...c130StorageZones];
         
       default:
         // C-27J Spartan (default) - 3 slots
@@ -181,23 +112,30 @@ export default function LoadPlanningPage() {
           { id: 4, position: { x: 80, y: 60 }, occupied: false, area: "storage" },
           { id: 5, position: { x: 160, y: 60 }, occupied: false, area: "storage" },
           { id: 6, position: { x: 240, y: 60 }, occupied: false, area: "storage" },
-          
-          // Configure area - pallet visualization spots
-          { id: 7, position: { x: 90, y: 70 }, occupied: true, area: "configure" },
-          { id: 8, position: { x: 170, y: 70 }, occupied: true, area: "configure" },
-          { id: 9, position: { x: 250, y: 70 }, occupied: true, area: "configure" },
         ];
     }
   };
   
   // Drop zones for the cargo and storage areas
-  const [dropZones, setDropZones] = useState<DropZone[]>(generateDropZones(currentAircraftId, initialPallets));
+  const [dropZones, setDropZones] = useState<DropZone[]>(generateDropZones(currentAircraftId));
+  
+  // Keep track of the next pallet ID for newly created pallets
+  const [nextPalletId, setNextPalletId] = useState(1);
+  
+  // Track whether we're dragging the template pallet
+  const [isDraggingTemplate, setIsDraggingTemplate] = useState(false);
   
   const [draggedPallet, setDraggedPallet] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState(0);
   const cargoRef = useRef<HTMLDivElement>(null);
   const storageRef = useRef<HTMLDivElement>(null);
   const configureRef = useRef<HTMLDivElement>(null);
+  
+  // Alert dialog state
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<'warning' | 'error'>('warning');
   
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
@@ -250,8 +188,7 @@ export default function LoadPlanningPage() {
       balance = (totalWeightMoment / totalWeightInCargo) * 100;
     }
     
-    // Set balance value (clamped between -100 and 100)
-    setBalanceValue(Math.max(-100, Math.min(100, balance)));
+    setBalanceValue(balance);
     
     // Determine balance status
     if (Math.abs(balance) < 20) {
@@ -267,29 +204,29 @@ export default function LoadPlanningPage() {
     navigate("/load-planning");
   };
   
-  const handleDragStart = (e: React.DragEvent, id: number) => {
-    e.dataTransfer.setData("text/plain", id.toString());
-    setDraggedPallet(id);
+  const handleDragStart = (e: React.DragEvent, id: number | null) => {
+    if (id === null) {
+      // We're dragging the template pallet
+      setIsDraggingTemplate(true);
+      e.dataTransfer.setData("text/plain", "template");
+    } else {
+      // We're dragging an existing pallet
+      e.dataTransfer.setData("text/plain", id.toString());
+      setDraggedPallet(id);
+    }
   };
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
   
-  // Maximum payload and pallet limits from aircraft configuration
-  const MAX_PAYLOAD = currentAircraft.maxPayload;
-  const MAX_PALLET_WEIGHT = currentAircraft.maxPalletWeight;
-  
-  // Alert dialog state
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertType, setAlertType] = useState<'warning' | 'error'>('warning');
-  const [alertTitle, setAlertTitle] = useState('');
-  const [alertMessage, setAlertMessage] = useState('');
-  
-  // Update weight of a pallet with validation
   const handleWeightChange = (id: number, newWeight: string) => {
-    // If input is empty, set weight to null
-    if (newWeight.trim() === '') {
+    // Get constants for current aircraft
+    const MAX_PAYLOAD = currentAircraft.maxPayload;
+    const MAX_PALLET_WEIGHT = currentAircraft.maxPalletWeight;
+    
+    // Allow empty string to clear weight
+    if (newWeight === '') {
       setPallets(prev => prev.map(pallet => {
         if (pallet.id === id) {
           return { ...pallet, weight: null };
@@ -305,12 +242,12 @@ export default function LoadPlanningPage() {
     // Never allow negative weights
     if (weightValue < 0) weightValue = 0;
     
-    // Check if pallet weight exceeds maximum pallet capacity (10,000 lbs)
+    // Check if pallet weight exceeds maximum pallet capacity
     if (weightValue > MAX_PALLET_WEIGHT) {
       showAlert(
         'error',
         'Pallet Weight Limit Exceeded',
-        `The weight exceeds the maximum pallet capacity of 10,000 lbs (${MAX_PALLET_WEIGHT} kg).`
+        `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
       );
       
       // Limit weight to max pallet capacity
@@ -345,11 +282,12 @@ export default function LoadPlanningPage() {
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "storage" | "configure") => {
     e.preventDefault();
     
-    const id = parseInt(e.dataTransfer.getData("text/plain"));
-    if (isNaN(id)) return;
+    const dataTransfer = e.dataTransfer.getData("text/plain");
     
-    const draggedPallet = pallets.find(p => p.id === id);
-    if (!draggedPallet) return;
+    // Reset the template dragging flag
+    if (isDraggingTemplate) {
+      setIsDraggingTemplate(false);
+    }
     
     // Get area dimensions to calculate relative position
     let rect;
@@ -388,69 +326,166 @@ export default function LoadPlanningPage() {
     let newX = 0;
     let newY = 0;
     
-    if (dropArea === "cargo" || dropArea === "storage") {
-      // Calculate the cell size based on the 3-column grid
-      const cellWidth = areaWidth / 3;
-      const cellHeight = areaHeight;
+    // Check if we're dropping a template pallet
+    if (dataTransfer === "template") {
+      // For template pallet, create a new pallet
       
-      // Determine which cell the pallet was dropped in (0, 1, or 2)
-      const cellColumn = Math.floor(dropX / cellWidth);
+      // Get aircraft constraints
+      const maxPallets = currentAircraftId === 'c17' ? 18 : 
+                         currentAircraftId === 'c130' ? 8 : 3;
+                          
+      // Count existing pallets in cargo and storage
+      const existingPalletCount = pallets.filter(p => 
+        p.location === "cargo" || p.location === "storage"
+      ).length;
       
-      // Calculate the position to center the pallet in that cell
-      // Use 90% of the cell size for the pallet
-      const palletWidth = cellWidth * 0.9;
-      const palletHeight = cellHeight * 0.9;
+      // Check if we've reached the maximum pallets for this aircraft
+      if (existingPalletCount >= maxPallets) {
+        showAlert(
+          'warning',
+          'Maximum Pallets Reached',
+          `You've reached the maximum number of pallets (${maxPallets}) for the ${currentAircraft.name}.`
+        );
+        return;
+      }
       
-      // Center in the cell
-      newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
-      newY = (cellHeight - palletHeight) / 2;
+      // Create a new pallet with current nextPalletId
+      const palletSize = { width: 70, height: 50 };
       
-      // Update the pallet size to fit the grid cell
-      draggedPallet.size = {
-        width: palletWidth,
-        height: palletHeight
+      // Position the new pallet
+      if (dropArea === "cargo" || dropArea === "storage") {
+        // Calculate the cell size based on the column grid
+        const columns = currentAircraftId === 'c17' ? 6 : 
+                        currentAircraftId === 'c130' ? 4 : 3;
+        const cellWidth = areaWidth / columns;
+        const cellHeight = areaHeight;
+        
+        // Determine which cell the pallet was dropped in
+        const cellColumn = Math.floor(dropX / cellWidth);
+        
+        // Calculate the position to center the pallet in that cell
+        // Use 90% of the cell size for the pallet
+        const palletWidth = cellWidth * 0.9;
+        const palletHeight = cellHeight * 0.9;
+        
+        // Center in the cell
+        newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+        newY = (cellHeight - palletHeight) / 2;
+        
+        // Set the pallet size to fit the grid cell
+        palletSize.width = palletWidth;
+        palletSize.height = palletHeight;
+      } else {
+        // For configure area, use the original drop calculation
+        newX = dropX - (palletSize.width / 2);
+        newY = dropY - (palletSize.height / 2);
+        
+        // Keep within bounds
+        if (rect) {
+          newX = Math.max(0, Math.min(newX, areaWidth - palletSize.width));
+          newY = Math.max(0, Math.min(newY, areaHeight - palletSize.height));
+        }
+      }
+      
+      // Create the new pallet with position
+      const newPallet: Pallet = {
+        id: nextPalletId,
+        position: { x: newX, y: newY },
+        location: dropArea,
+        weight: null,
+        size: palletSize
       };
-    } else {
-      // For configure area, use the original drop calculation
-      newX = dropX - (draggedPallet.size.width / 2);
-      newY = dropY - (draggedPallet.size.height / 2);
       
-      // Keep within bounds
-      if (rect) {
-        newX = Math.max(0, Math.min(newX, areaWidth - draggedPallet.size.width));
-        newY = Math.max(0, Math.min(newY, areaHeight - draggedPallet.size.height));
+      // Check if pallet is being placed in cargo area - needs weight warning
+      if (dropArea === "cargo") {
+        showAlert(
+          'warning',
+          'Warning: Pallet Has No Weight',
+          'You\'ve placed a pallet with no weight in the cargo area. Please add a weight to this pallet.'
+        );
       }
-    }
-    
-    // Check if pallet has no weight and is being moved to cargo area
-    if (dropArea === "cargo" && draggedPallet.weight === null) {
-      showAlert(
-        'warning',
-        'Warning: Pallet Has No Weight',
-        'You\'ve placed a pallet with no weight in the cargo area. Please add a weight to this pallet.'
-      );
-    }
-    
-    // Update the pallet's position and area
-    setPallets(prev => prev.map(pallet => {
-      if (pallet.id === id) {
-        return {
-          ...pallet,
-          position: { x: newX, y: newY },
-          size: dropArea === "configure" ? { width: 70, height: 50 } : draggedPallet.size,
-          location: dropArea
+      
+      // Add the new pallet to the pallets array
+      setPallets(prev => [...prev, newPallet]);
+      
+      // Increment the next pallet ID
+      setNextPalletId(prev => prev + 1);
+      
+    } else {
+      // For existing pallets, get the ID and find the pallet
+      const id = parseInt(dataTransfer);
+      if (isNaN(id)) return;
+      
+      const draggedPallet = pallets.find(p => p.id === id);
+      if (!draggedPallet) return;
+      
+      // Position the existing pallet
+      if (dropArea === "cargo" || dropArea === "storage") {
+        // Calculate the cell size based on the column grid
+        const columns = currentAircraftId === 'c17' ? 6 : 
+                        currentAircraftId === 'c130' ? 4 : 3;
+        const cellWidth = areaWidth / columns;
+        const cellHeight = areaHeight;
+        
+        // Determine which cell the pallet was dropped in
+        const cellColumn = Math.floor(dropX / cellWidth);
+        
+        // Calculate the position to center the pallet in that cell
+        // Use 90% of the cell size for the pallet
+        const palletWidth = cellWidth * 0.9;
+        const palletHeight = cellHeight * 0.9;
+        
+        // Center in the cell
+        newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
+        newY = (cellHeight - palletHeight) / 2;
+        
+        // Update the pallet size to fit the grid cell
+        draggedPallet.size = {
+          width: palletWidth,
+          height: palletHeight
         };
+      } else {
+        // For configure area, use the original drop calculation
+        newX = dropX - (draggedPallet.size.width / 2);
+        newY = dropY - (draggedPallet.size.height / 2);
+        
+        // Keep within bounds
+        if (rect) {
+          newX = Math.max(0, Math.min(newX, areaWidth - draggedPallet.size.width));
+          newY = Math.max(0, Math.min(newY, areaHeight - draggedPallet.size.height));
+        }
       }
-      return pallet;
-    }));
+      
+      // Check if pallet has no weight and is being moved to cargo area
+      if (dropArea === "cargo" && draggedPallet.weight === null) {
+        showAlert(
+          'warning',
+          'Warning: Pallet Has No Weight',
+          'You\'ve placed a pallet with no weight in the cargo area. Please add a weight to this pallet.'
+        );
+      }
+      
+      // Update the pallet's position and area
+      setPallets(prev => prev.map(pallet => {
+        if (pallet.id === id) {
+          return {
+            ...pallet,
+            position: { x: newX, y: newY },
+            size: dropArea === "configure" ? { width: 70, height: 50 } : draggedPallet.size,
+            location: dropArea
+          };
+        }
+        return pallet;
+      }));
+    }
   };
   
   // Reset all pallets to initial state
   const handleReset = () => {
-    // Generate fresh pallets and drop zones based on current aircraft
-    const freshPallets = generatePallets(currentAircraftId);
-    setPallets(freshPallets);
-    setDropZones(generateDropZones(currentAircraftId, freshPallets));
+    // Clear all pallets and reset state
+    setPallets([]);
+    setNextPalletId(1);
+    setDropZones(generateDropZones(currentAircraftId));
     setBalanceValue(0);
     setBalanceStatus('safe');
   };
@@ -462,61 +497,43 @@ export default function LoadPlanningPage() {
     setAlertMessage(message);
     setAlertOpen(true);
   };
+
+  // Get constants for current aircraft
+  const MAX_PAYLOAD = currentAircraft.maxPayload;
+  const MAX_PALLET_WEIGHT = currentAircraft.maxPalletWeight;
   
   return (
     <>
-      {/* Custom Alert Dialog */}
+      <Helmet>
+        <title>Load Planning - {currentAircraft.name} | LOADMdocs</title>
+      </Helmet>
+      
+      {/* Alert Dialog */}
       <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
-        <DialogContent className="sm:max-w-md bg-background border-2 shadow-lg fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <DialogContent className={`${
+          alertType === 'error' ? 'border-red-500' : 'border-yellow-500'
+        }`}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-bold">
-              {alertType === 'warning' ? (
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
+            <DialogTitle className="flex items-center">
+              {alertType === 'error' ? (
+                <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
               ) : (
-                <AlertCircle className="h-5 w-5 text-destructive" />
+                <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
               )}
-              <span className={alertType === 'warning' ? "text-orange-500" : "text-destructive"}>
-                {alertTitle}
-              </span>
+              {alertTitle}
             </DialogTitle>
-            <button
-              onClick={() => setAlertOpen(false)}
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none"
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
-            </button>
+            <DialogDescription>{alertMessage}</DialogDescription>
           </DialogHeader>
-          <DialogDescription className="py-4 text-base">
-            {alertMessage}
-          </DialogDescription>
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setAlertOpen(false)}
-              className={`font-medium ${
-                alertType === 'warning' 
-                  ? 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-300' 
-                  : 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300'
-              }`}
-            >
-              Okay
+            <Button variant="outline" onClick={() => setAlertOpen(false)} className="w-full">
+              OK
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
-      <Helmet>
-        <title>{currentAircraft.name} Load Planning - LOADMdocs</title>
-        <meta 
-          name="description" 
-          content={`${currentAircraft.name} cargo plane load planning tool for loadmasters.`}
-        />
-      </Helmet>
-
-      <div className="container mx-auto px-4 py-6 mb-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Header with Back Button */}
+      <div className="container max-w-7xl mx-auto py-6">
+        <div className="space-y-6">
           <div className="flex items-center mb-6">
             <Button 
               variant="ghost" 
@@ -606,10 +623,10 @@ export default function LoadPlanningPage() {
                   ref={cargoRef}
                   className={`relative bg-green-900/20 border border-green-500/40 rounded-lg w-full ${
                     currentAircraftId === 'c17' 
-                      ? 'h-[480px]' 
+                      ? 'h-[400px]' 
                       : currentAircraftId === 'c130' 
-                        ? 'h-[280px]' 
-                        : 'h-[160px]'
+                        ? 'h-[250px]' 
+                        : 'h-[150px]'
                   }`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, "cargo")}
@@ -654,30 +671,26 @@ export default function LoadPlanningPage() {
                   ))}
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">
-                  Drag pallets in and out of the cargo area. Only pallets in this area count toward total weight.
+                  Drag pallets here to position them in the cargo area.
                 </div>
                 
                 {/* Balance Indicator */}
-                <div className="mt-4">
-                  <div className="flex items-center mb-1">
-                    <Scale className="h-4 w-4 mr-2 text-primary" />
-                    <span className="text-sm font-medium">Weight Balance</span>
-                    {balanceStatus === 'danger' && (
-                      <div className="ml-auto flex items-center text-destructive">
-                        <AlertCircle className="h-4 w-4 mr-1" />
-                        <span className="text-xs">Balance critical!</span>
-                      </div>
-                    )}
+                <div className="mt-6">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="text-sm font-medium">Balance</h3>
+                    <span className={`text-xs font-medium ${
+                      balanceStatus === 'safe' ? 'text-green-500' : 
+                      balanceStatus === 'warning' ? 'text-yellow-500' : 'text-red-500'
+                    }`}>
+                      {balanceStatus === 'safe' ? 'Safe' : 
+                       balanceStatus === 'warning' ? 'Warning' : 'Danger'}
+                    </span>
                   </div>
                   
-                  <div className="relative h-8 w-full bg-muted rounded-md overflow-hidden">
-                    {/* Balance scale background with smooth color gradient */}
-                    <div className="absolute inset-0" 
-                      style={{ 
-                        background: 'linear-gradient(to right, #f87171, #fbbf24, #4ade80, #fbbf24, #f87171)',
-                        backgroundSize: '100% 100%'
-                      }}>
-                    </div>
+                  {/* Balance Meter */}
+                  <div className="h-6 relative mb-1 rounded-md overflow-hidden">
+                    {/* Background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-yellow-400 to-red-500"></div>
                     
                     {/* Center line */}
                     <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/50"></div>
@@ -727,76 +740,91 @@ export default function LoadPlanningPage() {
                   <Package2 className="h-5 w-5 mr-2 text-primary" />
                   Configure Pallets
                   <span className="text-sm font-normal text-muted-foreground ml-2">
-                    ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
+                    (Max: {currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className={currentAircraftId === 'c17' ? 'max-h-[600px] overflow-y-auto' : ''}>
-                <div className="space-y-4 relative" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
-                  {pallets.map((pallet) => (
-                    <div 
-                      key={pallet.id} 
-                      className="bg-card border border-border rounded-md p-2"
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center">
-                          <Package2 className="h-4 w-4 mr-2 text-primary" />
-                          <span className="font-medium text-sm">Pallet {pallet.id}</span>
-                        </div>
-                        <Badge 
-                          variant={
-                            pallet.location === "cargo" ? "default" : 
-                            pallet.location === "storage" ? "secondary" : "outline"
-                          }
-                          className="text-xs"
-                        >
-                          {pallet.location === "cargo" ? "In Cargo" : 
-                           pallet.location === "storage" ? "In Storage" : "Not Placed"}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <Label htmlFor={`weight-${pallet.id}`} className="text-xs mr-2 w-16">
-                            Weight:
-                          </Label>
-                          <div className="flex-1">
-                            <Input
-                              id={`weight-${pallet.id}`}
-                              type="number"
-                              min="0"
-                              max={MAX_PAYLOAD}
-                              value={pallet.weight === null ? '' : pallet.weight.toString()}
-                              onChange={(e) => handleWeightChange(pallet.id, e.target.value)}
-                              className={`h-7 text-sm`}
-                              placeholder="Enter weight"
-                            />
-                          </div>
-                          <div className="ml-1 text-xs text-muted-foreground">kg</div>
-                        </div>
-                      </div>
-                      
-                      {/* Draggable pallet representation */}
-                      <div 
-                        className={`mt-2 rounded p-2 flex items-center justify-center ${
-                          pallet.location !== "configure" 
-                            ? "bg-gray-500/30 border-2 border-gray-500/50 text-gray-400 cursor-not-allowed"
-                            : "bg-orange-500/70 border-2 border-orange-500 cursor-move"
-                        }`}
-                        draggable={pallet.location === "configure"}
-                        onDragStart={(e) => pallet.location === "configure" && handleDragStart(e, pallet.id)}
-                      >
-                        <Package2 className={`h-4 w-4 mr-1 ${pallet.location !== "configure" ? "text-gray-400" : ""}`} />
-                        <span className="text-xs font-medium">
-                          {pallet.location === "configure" 
-                            ? (pallet.weight !== null 
-                                ? `Drag Pallet ${pallet.id} (${pallet.weight} kg)` 
-                                : `Drag Pallet ${pallet.id}`)
-                            : `Pallet ${pallet.id} is ${pallet.location === "cargo" ? "in cargo" : "in storage"}`}
-                        </span>
-                      </div>
+              <CardContent>
+                {/* Template Pallet */}
+                <div className="mb-6 p-4 border-2 border-dashed border-primary rounded-lg">
+                  <h3 className="text-sm font-medium flex items-center mb-3">
+                    <Package2 className="h-4 w-4 mr-2 text-primary" />
+                    Template Pallet
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Drag this template pallet to the cargo or storage areas to create new pallets.
+                    You can add up to {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'} pallets
+                    for the {currentAircraft.name}.
+                  </p>
+                  
+                  {/* Draggable template pallet */}
+                  <div 
+                    className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, null)}
+                  >
+                    <Package2 className="h-5 w-5 mr-2" />
+                    <span className="font-medium">Drag to Create New Pallet</span>
+                  </div>
+                </div>
+                
+                {/* List of existing pallets */}
+                <div className="space-y-4" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
+                  <h3 className="font-medium text-sm">
+                    Current Pallets ({pallets.length})
+                  </h3>
+                  
+                  {pallets.length === 0 ? (
+                    <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground">
+                      No pallets created yet. Drag the template pallet above to create new pallets.
                     </div>
-                  ))}
+                  ) : (
+                    pallets.map((pallet) => (
+                      <div 
+                        key={pallet.id} 
+                        className="bg-card border border-border rounded-md p-3"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex items-center">
+                            <Package2 className="h-4 w-4 mr-2 text-primary" />
+                            <span className="font-medium text-sm">Pallet {pallet.id}</span>
+                          </div>
+                          <Badge 
+                            variant={
+                              pallet.location === "cargo" ? "default" : 
+                              pallet.location === "storage" ? "secondary" : "outline"
+                            }
+                            className="text-xs"
+                          >
+                            {pallet.location === "cargo" ? "In Cargo" : 
+                             pallet.location === "storage" ? "In Storage" : "Configure"}
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <div className="flex items-center">
+                            <Label htmlFor={`weight-${pallet.id}`} className="text-xs mr-2 w-16">
+                              Weight:
+                            </Label>
+                            <div className="flex-1">
+                              <Input
+                                id={`weight-${pallet.id}`}
+                                type="number"
+                                min="0"
+                                max={MAX_PAYLOAD}
+                                value={pallet.weight === null ? '' : pallet.weight.toString()}
+                                onChange={(e) => handleWeightChange(pallet.id, e.target.value)}
+                                className={`h-7 text-sm`}
+                                placeholder="Enter weight"
+                              />
+                            </div>
+                            <div className="ml-1 text-xs text-muted-foreground">kg</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -884,8 +912,8 @@ export default function LoadPlanningPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm">
-                  <strong>How to use:</strong> Drag and drop pallets between the cargo area, storage area, and configuration section.
-                  Edit pallet weights using the input fields.
+                  <strong>How to use:</strong> Drag the template pallet to the cargo or storage area to create new pallets.
+                  You can edit the weight of each pallet using the input fields.
                   Only pallets in the cargo area count toward the total weight.
                 </p>
                 <div className="mt-2 p-2 bg-primary/10 border border-primary/20 rounded-md">
