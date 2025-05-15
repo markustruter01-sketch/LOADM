@@ -82,12 +82,14 @@ export default function DocumentsPage() {
       
       {/* Document forms */}
       
-      {/* Cargo Manifest Form */}
-      {window.location.hash === '#cargo-manifest-form' && (
-        <div className="container mx-auto pb-20">
+      {/* Passenger/Crew and Cargo Manifest Form */}
+      <div id="cargo-manifest-form" className="container mx-auto pb-20 pt-4">
+        <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold mb-6">Passenger/Crew and Cargo Manifest</h2>
+          <p className="text-muted-foreground mb-4">Generate and complete detailed cargo manifests for all shipments.</p>
           <CargoManifestForm />
         </div>
-      )}
+      </div>
       
       {/* Load Planning Form - C-17 Load Plan */}
       <div id="load-planning-form" className="container mx-auto pb-20 pt-4">
