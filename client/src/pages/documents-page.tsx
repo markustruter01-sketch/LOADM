@@ -1,13 +1,20 @@
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import DocumentCard from "@/components/DocumentCard";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function DocumentsPage() {
+  const [_, navigate] = useLocation();
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
+
+  const handleBackClick = () => {
+    navigate("/");
+  };
 
   return (
     <>
@@ -21,6 +28,17 @@ export default function DocumentsPage() {
 
       <div className="container mx-auto px-4 py-8 mb-16">
         <div className="max-w-4xl mx-auto">
+          {/* Back Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mb-6"
+            onClick={handleBackClick}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+          
           {/* Header Section */}
           <section className="mb-10">
             <h2 className="text-3xl font-bold mb-4 text-foreground">
