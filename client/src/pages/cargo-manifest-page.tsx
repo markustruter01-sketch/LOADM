@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import { useLocation } from "wouter";
+// Import the A330 Load and Trim Sheet image
+import a330LoadTrimSheet from "../assets/Load and Trimsheet A330_zoom.png";
 
 export default function DocumentsPage() {
   const [_, navigate] = useLocation();
@@ -112,7 +114,7 @@ export default function DocumentsPage() {
           {/* Direct image embed of the A330 Load and Trim Sheet */}
           <div className="bg-white p-4 rounded-md border border-gray-300 flex justify-center">
             <img 
-              src="/attached_assets/Load and Trimsheet A330_zoom.png" 
+              src={a330LoadTrimSheet} 
               alt="Airbus A330 Load and Trim Sheet" 
               className="w-full object-contain"
             />
