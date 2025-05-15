@@ -593,13 +593,27 @@ export default function LoadPlanningPage() {
       // Create a new pallet with size based on aircraft type
       let palletSize;
       
-      // Define pallet sizes based on aircraft to match grid cells exactly
+      // Define pallet sizes based on aircraft to match grid cells but be 10% smaller
+      const { width: cellWidth } = calculateCellDimensions(currentAircraftId);
+      
       if (currentAircraftId === 'c17') {
-        palletSize = { width: 71, height: 87 }; // C-17 Globemaster
+        // Set the pallet size to be 10% smaller than grid cell
+        palletSize = { 
+          width: Math.floor(cellWidth * 0.9), 
+          height: Math.floor(87 * 0.9) 
+        }; // C-17 Globemaster
       } else if (currentAircraftId === 'c130') {
-        palletSize = { width: 110, height: 80 }; // C-130 Hercules
+        // Set the pallet size to be 10% smaller than grid cell
+        palletSize = { 
+          width: Math.floor(cellWidth * 0.9), 
+          height: Math.floor(80 * 0.9)
+        }; // C-130 Hercules
       } else {
-        palletSize = { width: 110, height: 80 }; // C-27J Spartan/KC30-A
+        // Set the pallet size to be 10% smaller than grid cell
+        palletSize = { 
+          width: Math.floor(cellWidth * 0.9), 
+          height: Math.floor(96 * 0.9)
+        }; // C-27J Spartan/KC30-A
       }
       
       // Position the new pallet in the cargo area
@@ -621,9 +635,9 @@ export default function LoadPlanningPage() {
           newX = (cellColumn * cellSpacing) + (cellSpacing - cellWidth) / 2;
           newY = rowTopOffset;
           
-          // Set the pallet size to match our grid cell size
-          palletSize.width = cellWidth;
-          palletSize.height = 87;
+          // Set the pallet size to be 10% smaller than grid cell
+          palletSize.width = Math.floor(cellWidth * 0.9);
+          palletSize.height = Math.floor(87 * 0.9);
         } else {
           // For other aircraft types (C-130, C-27J, KC30-A)
           // Use our dynamic cell dimensions calculation
@@ -641,9 +655,9 @@ export default function LoadPlanningPage() {
             newX = (cellColumn * cellSpacing) + (cellSpacing - cellWidth) / 2;
             newY = rowTopOffset;
             
-            // Set the pallet size to match our grid cell size with 10% reduction
-            palletSize.width = cellWidth;
-            palletSize.height = 80;
+            // Set the pallet size to be 10% smaller than grid cell
+            palletSize.width = Math.floor(cellWidth * 0.9);
+            palletSize.height = Math.floor(80 * 0.9);
           } else {
             // For C-27J and KC30-A (single row of 3 pallets)
             const cellColumn = Math.min(2, Math.max(0, Math.floor(dropX / cellSpacing)));
@@ -652,9 +666,9 @@ export default function LoadPlanningPage() {
             newX = (cellColumn * cellSpacing) + (cellSpacing - cellWidth) / 2;
             newY = 20; // Fixed top offset
             
-            // Set the pallet size to match our grid cell size with 10% reduction
-            palletSize.width = cellWidth;
-            palletSize.height = 96;
+            // Set the pallet size to be 10% smaller than grid cell
+            palletSize.width = Math.floor(cellWidth * 0.9);
+            palletSize.height = Math.floor(96 * 0.9);
           }
         }
       } else {
