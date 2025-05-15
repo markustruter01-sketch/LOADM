@@ -1458,19 +1458,28 @@ export default function LoadPlanningPage() {
                       }
                     </p>
                   </div>
-                  <div className="rounded-md p-3 relative w-1/2" style={{ backgroundColor: 'rgba(0, 209, 209, 0.15)' }}>
+                  <div className="rounded-md p-3 relative w-1/2" style={{ 
+                    background: 'linear-gradient(to right, rgba(132, 204, 22, 0.15), rgba(34, 197, 94, 0.15), rgba(132, 204, 22, 0.15), rgba(245, 158, 11, 0.15))',
+                    background: 'linear-gradient(to right, rgba(132, 204, 22, 0.15), rgba(34, 197, 94, 0.15), rgba(132, 204, 22, 0.15), rgba(245, 158, 11, 0.15))'
+                  }}>
                     <p className="text-xs font-medium">Centre of Gravity</p>
                     <p className="flex items-center gap-2">
                       <span style={{ 
-                        color: balanceStatus === 'safe' ? '#22c55e' : 
-                               balanceStatus === 'warning' ? '#f59e0b' : '#dc2626',
+                        // Blend colors based on balance value position (-100 to 100)
+                        // Use interpolated colors similar to the balance scale, but never use red
+                        color: Math.abs(balanceValue) < 20 ? '#22c55e' : // Green center
+                              Math.abs(balanceValue) < 40 ? '#84cc16' : // Light green/yellow-green
+                              Math.abs(balanceValue) < 60 ? '#f59e0b' : // Amber
+                              '#ea580c', // Orange (instead of red)
                         fontWeight: 600,
                         fontSize: '1.8rem', // 50% larger than text-lg (1.2rem)
                       }}>{balanceCG.toFixed(2)}°</span>
-                      <span className={`inline-block w-2 h-2 rounded-full ${
-                        balanceStatus === 'safe' ? 'bg-green-500' : 
-                        balanceStatus === 'warning' ? 'bg-amber-500' : 'bg-red-500'
-                      }`}></span>
+                      <span className="inline-block w-2 h-2 rounded-full" style={{
+                        backgroundColor: Math.abs(balanceValue) < 20 ? '#22c55e' : // Green center
+                                         Math.abs(balanceValue) < 40 ? '#84cc16' : // Light green/yellow-green
+                                         Math.abs(balanceValue) < 60 ? '#f59e0b' : // Amber
+                                         '#ea580c', // Orange (instead of red)
+                      }}></span>
                     </p>
                   </div>
                   {/* Storage area has been removed */}
