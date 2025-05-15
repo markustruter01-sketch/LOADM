@@ -1,27 +1,10 @@
-import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Document, Scenario } from "@shared/schema";
-import { Button } from "@/components/ui/button";
-import DocumentCard from "@/components/DocumentCard";
-import ScenarioCard from "@/components/ScenarioCard";
-import { Loader2, FileText, ClipboardList, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { FileCheck, ClipboardList, Package2, UserCircle } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function HomePage() {
-  const [activeSection, setActiveSection] = useState<string>("documents");
-  
-  const { data: documents, isLoading: isLoadingDocuments } = useQuery<Document[]>({
-    queryKey: ["/api/documents"],
-    staleTime: 30000, // 30 seconds
-  });
-
-  const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
-    queryKey: ["/api/scenarios"],
-    staleTime: 30000, // 30 seconds
-  });
 
   return (
     <>
@@ -44,32 +27,66 @@ export default function HomePage() {
               Professional documentation and scenario tools for loadmasters
             </p>
 
-            {/* Toggle Buttons */}
-            <div className="flex justify-center mb-6">
-              <ToggleGroup type="single" value={activeSection} onValueChange={(value) => value && setActiveSection(value)}>
-                <ToggleGroupItem value="documents" aria-label="Documents">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Documents
-                </ToggleGroupItem>
-                <ToggleGroupItem value="scenarios" aria-label="Scenarios">
-                  <ClipboardList className="h-4 w-4 mr-2" />
-                  Scenarios
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-
-            {/* Load Planning Feature Button */}
+            {/* Sections Navigation */}
             <div className="mb-10">
-              <Link href="/load-planning">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="border-primary text-primary hover:bg-primary hover:text-white transition-colors cursor-pointer"
-                >
-                  <BarChart3 className="mr-2 h-5 w-5" />
-                  Load Planning
-                </Button>
-              </Link>
+              <h3 className="text-xl font-bold mb-4 text-left">Sections</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link href="/scenarios" className="block">
+                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <div className="rounded-full bg-primary/10 p-3 mb-4">
+                        <ClipboardList className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Scenarios</h3>
+                      <p className="text-sm text-center text-muted-foreground">
+                        Training scenarios and simulations for loadmasters
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/load-planning" className="block">
+                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <div className="rounded-full bg-primary/10 p-3 mb-4">
+                        <Package2 className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Load Planning</h3>
+                      <p className="text-sm text-center text-muted-foreground">
+                        Visual load planning tools for aircraft cargo
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/cargo-manifest" className="block">
+                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <div className="rounded-full bg-primary/10 p-3 mb-4">
+                        <FileCheck className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Documents</h3>
+                      <p className="text-sm text-center text-muted-foreground">
+                        Access and complete required documentation
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/auth" className="block">
+                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <div className="rounded-full bg-primary/10 p-3 mb-4">
+                        <UserCircle className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Profile</h3>
+                      <p className="text-sm text-center text-muted-foreground">
+                        Manage your account and preferences
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
             </div>
 
             {/* Featured Section Banner */}
@@ -92,47 +109,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Documents Section */}
-          <section className={`mb-10 ${activeSection === 'documents' ? 'block' : 'hidden'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Documents</h3>
-              <Link href="/documents">
-                <span className="text-primary hover:underline text-sm cursor-pointer">View All</span>
-              </Link>
-            </div>
-            {isLoadingDocuments ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {documents?.map((document) => (
-                  <DocumentCard key={document.id} document={document} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Scenarios Section */}
-          <section className={`${activeSection === 'scenarios' ? 'block' : 'hidden'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Scenarios</h3>
-              <Link href="/scenarios">
-                <span className="text-primary hover:underline text-sm cursor-pointer">View All</span>
-              </Link>
-            </div>
-            {isLoadingScenarios ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {scenarios?.map((scenario) => (
-                  <ScenarioCard key={scenario.id} scenario={scenario} />
-                ))}
-              </div>
-            )}
-          </section>
+          {/* Additional content could be added here if needed */}
         </div>
       </div>
     </>
