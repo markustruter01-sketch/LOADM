@@ -81,53 +81,76 @@ export default function LoadPlanningPage() {
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
   const balanceScaleRef = useRef<HTMLDivElement>(null);
   
-  // Helper function to calculate cell width and spacing
-  const calculateCellDimensions = (aircraft: string): { width: number, spacing: number } => {
-    // If balance scale width hasn't been measured yet, use defaults
-    if (balanceScaleWidth === 0) {
-      // Default cell widths when balance scale isn't measured yet
-      switch (aircraft) {
-        case 'c17':
-          return { width: 71, spacing: 76 }; // 9 positions across
-        case 'c130':
-          return { width: 110, spacing: 120 }; // 4 positions across
-        default: // c27j, kc30a
-          return { width: 132, spacing: 144 }; // 3 positions across
-      }
-    }
+  // Helper function to get aircraft grid configuration
+  const getAircraftGridConfig = (aircraft: string): {
+    rows: number;
+    cols: number;
+    cellWidth: number;
+    cellHeight: number;
+    cellPadding: number;
+    palletWidth: number;
+    palletHeight: number;
+  } => {
+    // Calculate the optimal cell dimensions based on the balance scale width
+    const totalWidth = balanceScaleWidth || 715; // Default if not measured yet
     
-    // Log for debugging
-    console.log(`Calculating cell dimensions for ${aircraft}, balance scale width: ${balanceScaleWidth}`);
-    
-    // Calculate cell dimensions to fit the balance scale exactly
-    let numPositions: number;
     switch (aircraft) {
       case 'c17':
-        numPositions = 9; // 9 positions across
-        break;
+        // C-17 has 9 columns in 2 rows
+        const c17CellWidth = Math.floor(totalWidth / 9);
+        const c17CellHeight = 87;
+        return {
+          rows: 2,
+          cols: 9,
+          cellWidth: c17CellWidth,
+          cellHeight: c17CellHeight,
+          cellPadding: 5,
+          palletWidth: Math.floor(c17CellWidth * 0.9),
+          palletHeight: Math.floor(c17CellHeight * 0.9)
+        };
+      
       case 'c130':
-        numPositions = 4; // 4 positions across
-        break;
+        // C-130 has 4 columns in 2 rows
+        const c130CellWidth = Math.floor(totalWidth / 4);
+        const c130CellHeight = 80;
+        return {
+          rows: 2,
+          cols: 4,
+          cellWidth: c130CellWidth,
+          cellHeight: c130CellHeight,
+          cellPadding: 5,
+          palletWidth: Math.floor(c130CellWidth * 0.9),
+          palletHeight: Math.floor(c130CellHeight * 0.9)
+        };
+      
       default: // c27j, kc30a
-        numPositions = 3; // 3 positions across
-        break;
+        // C-27J/KC30-A has 3 columns in 1 row
+        const spartanCellWidth = Math.floor(totalWidth / 3);
+        const spartanCellHeight = 96;
+        return {
+          rows: 1,
+          cols: 3,
+          cellWidth: spartanCellWidth,
+          cellHeight: spartanCellHeight,
+          cellPadding: 5,
+          palletWidth: Math.floor(spartanCellWidth * 0.9),
+          palletHeight: Math.floor(spartanCellHeight * 0.9)
+        };
     }
-    
-    // Calculate cell width to leave 5% smaller than the spacing to ensure gap between cells
-    const totalAvailableWidth = balanceScaleWidth;
-    
-    // Make spacing exactly fit the total width
-    const spacing = totalAvailableWidth / numPositions;
-    
-    // Make cells slightly smaller than spacing to create gaps
-    const width = Math.floor(spacing * 0.95);
-    
-    return { width, spacing };
   };
   
-  // Helper function to calculate cell width based on balance scale width (for backwards compatibility)
+  // For backward compatibility with existing code
+  const calculateCellDimensions = (aircraft: string): { width: number, spacing: number } => {
+    const config = getAircraftGridConfig(aircraft);
+    return {
+      width: config.cellWidth,
+      spacing: config.cellWidth + config.cellPadding
+    };
+  };
+  
+  // For backward compatibility with existing code
   const calculateCellWidth = (aircraft: string): number => {
-    return calculateCellDimensions(aircraft).width;
+    return getAircraftGridConfig(aircraft).cellWidth;
   };
   
   // Helper function to calculate pallet dimensions with 10% reduction and consistent positioning
@@ -593,82 +616,66 @@ export default function LoadPlanningPage() {
       // Create a new pallet with size based on aircraft type
       let palletSize;
       
-      // Define pallet sizes based on aircraft to match grid cells but be 10% smaller
-      const { width: cellWidth } = calculateCellDimensions(currentAircraftId);
-      
-      if (currentAircraftId === 'c17') {
-        // Set the pallet size to be 10% smaller than grid cell
-        palletSize = { 
-          width: Math.floor(cellWidth * 0.9), 
-          height: Math.floor(87 * 0.9) 
-        }; // C-17 Globemaster
-      } else if (currentAircraftId === 'c130') {
-        // Set the pallet size to be 10% smaller than grid cell
-        palletSize = { 
-          width: Math.floor(cellWidth * 0.9), 
-          height: Math.floor(80 * 0.9)
-        }; // C-130 Hercules
-      } else {
-        // Set the pallet size to be 10% smaller than grid cell
-        palletSize = { 
-          width: Math.floor(cellWidth * 0.9), 
-          height: Math.floor(96 * 0.9)
-        }; // C-27J Spartan/KC30-A
-      }
+      // Get pallet size from our aircraft configuration
+      const config = getAircraftGridConfig(currentAircraftId);
+      palletSize = {
+        width: config.palletWidth,
+        height: config.palletHeight
+      };
       
       // Position the new pallet in the cargo area
       if (dropArea === "cargo") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
-          // Use our dynamic cell dimensions calculation
-          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c17');
-          const rowHeight = 98; // Fixed cell height (matches grid in UI)
+          // Get grid configuration for C-17
+          const config = getAircraftGridConfig('c17');
+          const rowHeight = 98; // Fixed row height separation (matches grid in UI)
           
           // Determine which cell the pallet was dropped in
           const cellRow = dropY > rowHeight ? 1 : 0;
-          const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellSpacing)));
+          const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
           
           // Position pallet in the appropriate cell with proper spacing
           const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
           
-          // Position within grid cell - center within the cell
-          newX = (cellColumn * cellSpacing) + (cellSpacing - cellWidth) / 2;
-          newY = rowTopOffset;
+          // Calculate position to center the pallet within the cell
+          newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
+          newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
           
-          // Set the pallet size to be 10% smaller than grid cell
-          palletSize.width = Math.floor(cellWidth * 0.9);
-          palletSize.height = Math.floor(87 * 0.9);
+          // Use the pallet size from the configuration
+          palletSize.width = config.palletWidth;
+          palletSize.height = config.palletHeight;
         } else {
           // For other aircraft types (C-130, C-27J, KC30-A)
-          // Use our dynamic cell dimensions calculation
-          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions(currentAircraftId);
+          // Get grid configuration for the current aircraft
+          const config = getAircraftGridConfig(currentAircraftId);
           
           // For C-130, we have 2 rows
           if (currentAircraftId === 'c130') {
             const cellRow = dropY > 90 ? 1 : 0; // 90px is approximately halfway down the container
-            const cellColumn = Math.min(3, Math.max(0, Math.floor(dropX / cellSpacing)));
+            const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
             
             // Position pallet in the appropriate cell with proper spacing
             const rowTopOffset = cellRow === 0 ? 10 : 100; // top margin for each row
             
-            // Position within grid cell - center within the cell
-            newX = (cellColumn * cellSpacing) + (cellSpacing - cellWidth) / 2;
-            newY = rowTopOffset;
+            // Calculate position to center the pallet within the cell
+            newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
+            newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
             
-            // Set the pallet size to be 10% smaller than grid cell
-            palletSize.width = Math.floor(cellWidth * 0.9);
-            palletSize.height = Math.floor(80 * 0.9);
+            // Use the pallet size from the configuration
+            palletSize.width = config.palletWidth;
+            palletSize.height = config.palletHeight;
           } else {
             // For C-27J and KC30-A (single row of 3 pallets)
-            const cellColumn = Math.min(2, Math.max(0, Math.floor(dropX / cellSpacing)));
+            const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
             
-            // Position within grid cell - center within the cell
-            newX = (cellColumn * cellSpacing) + (cellSpacing - cellWidth) / 2;
-            newY = 20; // Fixed top offset
+            // Calculate position to center the pallet within the cell
+            newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
+            newY = 20 + (config.cellHeight - config.palletHeight) / 2; // Fixed top offset with vertical centering
             
-            // Set the pallet size to be 10% smaller than grid cell
-            palletSize.width = Math.floor(cellWidth * 0.9);
-            palletSize.height = Math.floor(96 * 0.9);
+            // Use the pallet size from the configuration
+            palletSize.width = config.palletWidth;
+            palletSize.height = config.palletHeight;
           }
         }
       } else {
@@ -1342,125 +1349,125 @@ export default function LoadPlanningPage() {
                       <div className="absolute inset-0 pointer-events-none">
                         {/* Custom grid for 9x2 layout with 88x108 pallets */}
                         
-                        {/* Grid cells - First row */}
+                        {/* Grid cells for C-17 */}
                         {(() => {
-                          // Use our dynamic cell dimensions calculation
-                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c17');
-                          const cellHeight = 87; // Keep the same height
+                          // Get configuration for C-17
+                          const config = getAircraftGridConfig('c17');
+                          const cellSpacing = config.cellWidth + config.cellPadding;
                           
-                          return [...Array(9)].map((_, i) => (
-                            <div 
-                              key={`cell-row1-${i}`} 
-                              className="absolute border-2 border-green-800/80 rounded-sm"
-                              style={{
-                                left: i * cellSpacing,
-                                top: 10,
-                                width: cellWidth,
-                                height: cellHeight,
-                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                              }}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
-                                P{i + 1}
-                              </div>
-                            </div>
-                          ));
-                        })()}
-                        
-                        {/* Grid cells - Second row */}
-                        {(() => {
-                          // Use our dynamic cell dimensions calculation
-                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c17');
-                          const cellHeight = 87; // Keep the same height
-                          
-                          return [...Array(9)].map((_, i) => (
-                            <div 
-                              key={`cell-row2-${i}`} 
-                              className="absolute border-2 border-green-800/80 rounded-sm"
-                              style={{
-                                left: i * cellSpacing,
-                                top: 105, 
-                                width: cellWidth,
-                                height: cellHeight,
-                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                              }}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
-                                P{i + 10}
-                              </div>
-                            </div>
-                          ));
+                          // Create array of cells for both rows
+                          return (
+                            <>
+                              {/* First row */}
+                              {[...Array(config.cols)].map((_, i) => (
+                                <div 
+                                  key={`cell-row1-${i}`} 
+                                  className="absolute border-2 border-green-800/80 rounded-sm"
+                                  style={{
+                                    left: i * cellSpacing,
+                                    top: 10,
+                                    width: config.cellWidth,
+                                    height: config.cellHeight,
+                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                                  }}
+                                >
+                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
+                                    P{i + 1}
+                                  </div>
+                                </div>
+                              ))}
+                              
+                              {/* Second row */}
+                              {[...Array(config.cols)].map((_, i) => (
+                                <div 
+                                  key={`cell-row2-${i}`} 
+                                  className="absolute border-2 border-green-800/80 rounded-sm"
+                                  style={{
+                                    left: i * cellSpacing,
+                                    top: 105, 
+                                    width: config.cellWidth,
+                                    height: config.cellHeight,
+                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                                  }}
+                                >
+                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
+                                    P{i + 10}
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                          );
                         })()}
                       </div>
                     ) : currentAircraftId === 'c130' ? (
                       <div className="absolute inset-0 pointer-events-none">
                         {/* Grid cells for C-130 - 8 pallets (4x2) */}
                         {(() => {
-                          // Use our dynamic cell dimensions calculation
-                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c130');
-                          const cellHeight = 80; // Keep the same height
+                          // Get configuration for C-130
+                          const config = getAircraftGridConfig('c130');
+                          const cellSpacing = config.cellWidth + config.cellPadding;
                           
-                          return [...Array(4)].map((_, i) => (
-                            <div 
-                              key={`c130-row1-${i}`} 
-                              className="absolute border-2 border-green-800/80 rounded-sm"
-                              style={{
-                                left: i * cellSpacing,
-                                top: 10,
-                                width: cellWidth,
-                                height: cellHeight,
-                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                              }}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
-                                P{i + 1}
-                              </div>
-                            </div>
-                          ));
-                        })()}
-                        
-                        {/* Second row */}
-                        {(() => {
-                          // Use our dynamic cell dimensions calculation
-                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions('c130');
-                          const cellHeight = 80; // Keep the same height
-                          
-                          return [...Array(4)].map((_, i) => (
-                            <div 
-                              key={`c130-row2-${i}`} 
-                              className="absolute border-2 border-green-800/80 rounded-sm"
-                              style={{
-                                left: i * cellSpacing,
-                                top: 100,
-                                width: cellWidth,
-                                height: cellHeight,
-                                backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                              }}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
-                                P{i + 5}
-                              </div>
-                            </div>
-                          ));
+                          // Create array of cells for both rows
+                          return (
+                            <>
+                              {/* First row */}
+                              {[...Array(config.cols)].map((_, i) => (
+                                <div 
+                                  key={`c130-row1-${i}`} 
+                                  className="absolute border-2 border-green-800/80 rounded-sm"
+                                  style={{
+                                    left: i * cellSpacing,
+                                    top: 10,
+                                    width: config.cellWidth,
+                                    height: config.cellHeight,
+                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                                  }}
+                                >
+                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
+                                    P{i + 1}
+                                  </div>
+                                </div>
+                              ))}
+                              
+                              {/* Second row */}
+                              {[...Array(config.cols)].map((_, i) => (
+                                <div 
+                                  key={`c130-row2-${i}`} 
+                                  className="absolute border-2 border-green-800/80 rounded-sm"
+                                  style={{
+                                    left: i * cellSpacing,
+                                    top: 100,
+                                    width: config.cellWidth,
+                                    height: config.cellHeight,
+                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
+                                  }}
+                                >
+                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
+                                    P{i + 5}
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                          );
                         })()}
                       </div>
                     ) : (
                       <div className="absolute inset-0 pointer-events-none">
                         {/* Grid cells for C-27J/KC30-A - 3 pallets (3x1) */}
                         {(() => {
-                          // Use our dynamic cell dimensions calculation
-                          const { width: cellWidth, spacing: cellSpacing } = calculateCellDimensions(currentAircraftId);
-                          const cellHeight = 96; // Keep the same height
+                          // Get configuration for current aircraft (C-27J or KC30-A)
+                          const config = getAircraftGridConfig(currentAircraftId);
+                          const cellSpacing = config.cellWidth + config.cellPadding;
                           
-                          return [...Array(3)].map((_, i) => (
+                          return [...Array(config.cols)].map((_, i) => (
                             <div 
                               key={`spartan-${i}`} 
                               className="absolute border-2 border-green-800/80 rounded-sm"
                               style={{
                                 left: i * cellSpacing,
                                 top: 20,
-                                width: cellWidth,
-                                height: cellHeight,
+                                width: config.cellWidth,
+                                height: config.cellHeight,
                                 backgroundColor: 'rgba(20, 83, 45, 0.15)'
                               }}
                             >
