@@ -77,6 +77,37 @@ export default function LoadPlanningPage() {
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'warning' | 'danger'>('safe');
   
+  // Keep track of the balance scale width to make cargo area match it
+  const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
+  const balanceScaleRef = useRef<HTMLDivElement>(null);
+  
+  // Helper function to calculate cell width based on balance scale width
+  const calculateCellWidth = (aircraft: string): number => {
+    // If balance scale width hasn't been measured yet, use defaults
+    if (balanceScaleWidth === 0) {
+      // Default cell widths when balance scale isn't measured yet
+      switch (aircraft) {
+        case 'c17':
+          return 71; // 9 positions across
+        case 'c130':
+          return 110; // 4 positions across
+        default: // c27j, kc30a
+          return 132; // 3 positions across
+      }
+    }
+    
+    // Calculate cell width to fit the balance scale exactly
+    // Divide the balance scale width by the number of positions for each aircraft
+    switch (aircraft) {
+      case 'c17':
+        return Math.floor(balanceScaleWidth / 9); // 9 positions across
+      case 'c130':
+        return Math.floor(balanceScaleWidth / 4); // 4 positions across
+      default: // c27j, kc30a
+        return Math.floor(balanceScaleWidth / 3); // 3 positions across
+    }
+  };
+  
   // Helper function to calculate pallet dimensions with 10% reduction and consistent positioning
   const calculatePalletDimensions = (
     cellWidth: number,
@@ -298,6 +329,14 @@ export default function LoadPlanningPage() {
     // Close the dialog
     setPalletInputOpen(false);
   };
+  
+  // Measure the balance scale width and use it to set grid sizes
+  useEffect(() => {
+    if (balanceScaleRef.current) {
+      const width = balanceScaleRef.current.offsetWidth;
+      setBalanceScaleWidth(width);
+    }
+  }, []);
   
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
@@ -1396,7 +1435,7 @@ export default function LoadPlanningPage() {
                     </div>
                     
                     {/* Balance Meter */}
-                    <div className="h-8 relative mb-1 rounded-md overflow-hidden">
+                    <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md overflow-hidden">
                       {/* Background gradient */}
                       <div className="absolute inset-0" style={{ 
                         background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
