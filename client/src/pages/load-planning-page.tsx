@@ -556,7 +556,13 @@ export default function LoadPlanningPage() {
         size: palletSize
       };
       
-      // If pallet is being placed in cargo area, find nearest position label
+      // Add the new pallet to the pallets array first
+      setPallets(prev => [...prev, newPallet]);
+      
+      // Increment the next pallet ID
+      setNextPalletId(prev => prev + 1);
+      
+      // If pallet is being placed in cargo area, find nearest position label and open dialog
       if (dropArea === "cargo") {
         // Extract position label based on nearest grid cell
         let positionLabel = "";
@@ -617,15 +623,11 @@ export default function LoadPlanningPage() {
           }
         }
         
-        // Open pallet input dialog
-        showPalletInput(newPalletId, positionLabel);
+        // Open pallet input dialog AFTER pallet is added to the array
+        setTimeout(() => {
+          showPalletInput(nextPalletId, positionLabel);
+        }, 100);
       }
-      
-      // Add the new pallet to the pallets array
-      setPallets(prev => [...prev, newPallet]);
-      
-      // Increment the next pallet ID
-      setNextPalletId(prev => prev + 1);
       
     } else {
       // For existing pallets, get the ID and find the pallet
@@ -1107,12 +1109,32 @@ export default function LoadPlanningPage() {
                           zIndex: 10
                         }}
                       >
-                        <div className="flex flex-col items-center">
-                          {pallet.weight !== null ? 
-                            <span>{pallet.weight} kg</span> : 
-                            <span className="text-white/80">No weight</span>
-                          }
-
+                        <div className="flex flex-col items-center w-full h-full">
+                          <div className="absolute top-1 left-1">
+                            {pallet.positionLabel && (
+                              <span className="text-xs font-medium bg-white/20 px-1 rounded">
+                                {pallet.positionLabel}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 flex flex-col items-center justify-center">
+                            {pallet.weight !== null ? 
+                              <span>{pallet.weight} kg</span> : 
+                              <span className="text-white/80">No weight</span>
+                            }
+                          </div>
+                          
+                          <div className="absolute top-1 right-1">
+                            {pallet.cargoType && (
+                              <Badge 
+                                variant={pallet.cargoType === "C" ? "outline" : "destructive"}
+                                className="text-xs px-1"
+                              >
+                                {pallet.cargoType}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1370,12 +1392,32 @@ export default function LoadPlanningPage() {
                         zIndex: 10
                       }}
                     >
-                      <div className="flex flex-col items-center">
-                        {pallet.weight !== null ? 
-                          <span>{pallet.weight} kg</span> : 
-                          <span className="text-white/80">No weight</span>
-                        }
-
+                      <div className="flex flex-col items-center w-full h-full">
+                        {pallet.positionLabel && (
+                          <div className="absolute top-1 left-1">
+                            <span className="text-xs font-medium bg-white/20 px-1 rounded">
+                              {pallet.positionLabel}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                          {pallet.weight !== null ? 
+                            <span>{pallet.weight} kg</span> : 
+                            <span className="text-white/80">No weight</span>
+                          }
+                        </div>
+                        
+                        {pallet.cargoType && (
+                          <div className="absolute top-1 right-1">
+                            <Badge 
+                              variant={pallet.cargoType === "C" ? "outline" : "destructive"}
+                              className="text-xs px-1"
+                            >
+                              {pallet.cargoType}
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
