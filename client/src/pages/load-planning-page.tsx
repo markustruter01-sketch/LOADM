@@ -89,9 +89,39 @@ export default function LoadPlanningPage() {
     
     switch (aircraftId) {
       case 'c17':
-        // C-17 Globemaster - 18 slots
-        const c17CargoZones = createDropZones(18, "cargo", 40, 50, 80);
-        const c17StorageZones = createDropZones(18, "storage", 40, 250, 80);
+        // C-17 Globemaster - 18 slots (9 wide x 2 high)
+        // Create custom drop zones for the 9x2 grid layout
+        const c17CargoZones: DropZone[] = [];
+        
+        // Calculate grid cell dimensions
+        const cellWidth = 80;  // Width of each grid cell
+        const cellHeight = 90; // Height of each grid cell
+        const startX = 30;     // Starting X position
+        const startY1 = 30;    // Starting Y position for first row
+        const startY2 = 150;   // Starting Y position for second row
+        
+        // Create first row of 9 cargo positions
+        for (let i = 0; i < 9; i++) {
+          c17CargoZones.push({
+            id: i + 1,
+            position: { x: startX + (i * cellWidth), y: startY1 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Create second row of 9 cargo positions
+        for (let i = 0; i < 9; i++) {
+          c17CargoZones.push({
+            id: i + 10, // IDs 10-18
+            position: { x: startX + (i * cellWidth), y: startY2 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Storage zones
+        const c17StorageZones = createDropZones(18, "storage", 40, 250, 60);
         return [...c17CargoZones, ...c17StorageZones];
         
       case 'c130':
@@ -633,9 +663,14 @@ export default function LoadPlanningPage() {
                 >
                   {/* Grid lines */}
                   {currentAircraftId === 'c17' ? (
-                    <div className="absolute inset-0 grid grid-cols-6 gap-0 pointer-events-none">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="border-r border-white/20 h-full"></div>
+                    <div className="absolute inset-0 grid grid-cols-9 grid-rows-2 gap-0 pointer-events-none">
+                      {/* Horizontal grid line separating the two rows */}
+                      <div className="absolute left-0 right-0 top-1/2 h-px bg-white/20"></div>
+                      
+                      {/* Vertical grid lines */}
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="absolute top-0 bottom-0 border-r border-white/20 h-full" 
+                             style={{left: `${(i + 1) * (100 / 9)}%`}}></div>
                       ))}
                     </div>
                   ) : currentAircraftId === 'c130' ? (
@@ -857,9 +892,14 @@ export default function LoadPlanningPage() {
                 >
                   {/* Grid lines */}
                   {currentAircraftId === 'c17' ? (
-                    <div className="absolute inset-0 grid grid-cols-6 gap-0 pointer-events-none">
-                      {[...Array(5)].map((_, i) => (
-                        <div key={i} className="border-r border-white/10 h-full"></div>
+                    <div className="absolute inset-0 grid grid-cols-9 grid-rows-2 gap-0 pointer-events-none">
+                      {/* Horizontal grid line separating the two rows */}
+                      <div className="absolute left-0 right-0 top-1/2 h-px bg-white/10"></div>
+                      
+                      {/* Vertical grid lines */}
+                      {[...Array(8)].map((_, i) => (
+                        <div key={i} className="absolute top-0 bottom-0 border-r border-white/10 h-full" 
+                             style={{left: `${(i + 1) * (100 / 9)}%`}}></div>
                       ))}
                     </div>
                   ) : currentAircraftId === 'c130' ? (
