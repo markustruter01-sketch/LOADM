@@ -94,34 +94,49 @@ export default function LoadPlanningPage() {
         const c17CargoZones: DropZone[] = [];
         
         // Calculate grid cell dimensions
-        const cellWidth = 80;  // Width of each grid cell
-        const cellHeight = 90; // Height of each grid cell
-        const startX = 30;     // Starting X position
-        const startY1 = 30;    // Starting Y position for first row
-        const startY2 = 150;   // Starting Y position for second row
+        const cellWidth = 100;  // Width of each grid cell
+        const cellHeight = 126; // Height of each grid cell
         
-        // Create first row of 9 cargo positions
+        // First row - 9 positions
         for (let i = 0; i < 9; i++) {
           c17CargoZones.push({
             id: i + 1,
-            position: { x: startX + (i * cellWidth), y: startY1 },
+            position: { x: i * cellWidth + 4, y: 14 },
             occupied: false,
             area: "cargo"
           });
         }
         
-        // Create second row of 9 cargo positions
+        // Second row - 9 positions
         for (let i = 0; i < 9; i++) {
           c17CargoZones.push({
             id: i + 10, // IDs 10-18
-            position: { x: startX + (i * cellWidth), y: startY2 },
+            position: { x: i * cellWidth + 4, y: 140 },
             occupied: false,
             area: "cargo"
           });
         }
         
-        // Storage zones
-        const c17StorageZones = createDropZones(18, "storage", 40, 250, 60);
+        // Storage zones with similar layout
+        const c17StorageZones: DropZone[] = [];
+        for (let i = 0; i < 9; i++) {
+          c17StorageZones.push({
+            id: i + 19,
+            position: { x: i * cellWidth + 4, y: 14 },
+            occupied: false,
+            area: "storage"
+          });
+        }
+        
+        for (let i = 0; i < 9; i++) {
+          c17StorageZones.push({
+            id: i + 28,
+            position: { x: i * cellWidth + 4, y: 140 },
+            occupied: false,
+            area: "storage"
+          });
+        }
+        
         return [...c17CargoZones, ...c17StorageZones];
         
       case 'c130':
@@ -394,26 +409,24 @@ export default function LoadPlanningPage() {
       if (dropArea === "cargo" || dropArea === "storage") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
-          const columns = 9;
-          const rows = 2;
-          const cellWidth = areaWidth / columns;
-          const cellHeight = areaHeight / rows;
+          // Fixed cell dimensions to match our custom grid
+          const cellWidth = 100; // Fixed cell width (matches grid in UI)
+          const rowHeight = 126; // Fixed cell height (matches grid in UI)
           
-          // Determine which cell the pallet was dropped in (row and column)
-          const cellRow = Math.floor(dropY / cellHeight);
-          const cellColumn = Math.floor(dropX / cellWidth);
+          // Determine which cell the pallet was dropped in
+          const cellRow = dropY > rowHeight ? 1 : 0;
+          const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellWidth)));
           
-          // Use fixed pallet dimensions of 88x108
-          const palletWidth = 88;
-          const palletHeight = 108;
+          // Position pallet in the appropriate cell with proper spacing
+          const rowTopOffset = cellRow === 0 ? 14 : 140; // top margin for each row
           
-          // Center in the cell
-          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
-          newY = (cellRow * cellHeight) + (cellHeight - palletHeight) / 2;
+          // Position within grid cell (4px left margin to center in the cell)
+          newX = (cellColumn * cellWidth) + 4;
+          newY = rowTopOffset;
           
           // Set the pallet size
-          palletSize.width = palletWidth;
-          palletSize.height = palletHeight;
+          palletSize.width = 88;
+          palletSize.height = 108;
         } else {
           // For other aircraft types
           const columns = currentAircraftId === 'c130' ? 4 : 3;
@@ -483,27 +496,25 @@ export default function LoadPlanningPage() {
       if (dropArea === "cargo" || dropArea === "storage") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
-          const columns = 9;
-          const rows = 2;
-          const cellWidth = areaWidth / columns;
-          const cellHeight = areaHeight / rows;
+          // Fixed cell dimensions to match our custom grid
+          const cellWidth = 100; // Fixed cell width (matches grid in UI)
+          const rowHeight = 126; // Fixed cell height (matches grid in UI)
           
-          // Determine which cell the pallet was dropped in (row and column)
-          const cellRow = Math.floor(dropY / cellHeight);
-          const cellColumn = Math.floor(dropX / cellWidth);
+          // Determine which cell the pallet was dropped in
+          const cellRow = dropY > rowHeight ? 1 : 0;
+          const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellWidth)));
           
-          // Use fixed pallet dimensions of 88x108
-          const palletWidth = 88;
-          const palletHeight = 108;
+          // Position pallet in the appropriate cell with proper spacing
+          const rowTopOffset = cellRow === 0 ? 14 : 140; // top margin for each row
           
-          // Center in the cell
-          newX = (cellColumn * cellWidth) + (cellWidth - palletWidth) / 2;
-          newY = (cellRow * cellHeight) + (cellHeight - palletHeight) / 2;
+          // Position within grid cell (4px left margin to center in the cell)
+          newX = (cellColumn * cellWidth) + 4;
+          newY = rowTopOffset;
           
           // Update the pallet size to fit the grid cell
           draggedPallet.size = {
-            width: palletWidth,
-            height: palletHeight
+            width: 88,
+            height: 108
           };
         } else {
           // For other aircraft types
@@ -703,20 +714,41 @@ export default function LoadPlanningPage() {
                       : currentAircraftId === 'c130' 
                         ? 'h-[250px]' 
                         : 'h-[150px]'
-                  }`}
+                  } overflow-hidden`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, "cargo")}
                 >
                   {/* Grid lines */}
                   {currentAircraftId === 'c17' ? (
-                    <div className="absolute inset-0 grid grid-cols-9 grid-rows-2 gap-0 pointer-events-none">
-                      {/* Horizontal grid line separating the two rows */}
-                      <div className="absolute left-0 right-0 top-1/2 h-px bg-white/20"></div>
+                    <div className="absolute inset-0 pointer-events-none">
+                      {/* Custom grid for 9x2 layout with 88x108 pallets */}
                       
-                      {/* Vertical grid lines */}
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="absolute top-0 bottom-0 border-r border-white/20 h-full" 
-                             style={{left: `${(i + 1) * (100 / 9)}%`}}></div>
+                      {/* Grid cells - First row */}
+                      {[...Array(9)].map((_, i) => (
+                        <div 
+                          key={`cell-row1-${i}`} 
+                          className="absolute border border-white/20"
+                          style={{
+                            left: i * 100,
+                            top: 10,
+                            width: 96,
+                            height: 116,
+                          }}
+                        ></div>
+                      ))}
+                      
+                      {/* Grid cells - Second row */}
+                      {[...Array(9)].map((_, i) => (
+                        <div 
+                          key={`cell-row2-${i}`} 
+                          className="absolute border border-white/20"
+                          style={{
+                            left: i * 100,
+                            top: 136, 
+                            width: 96,
+                            height: 116,
+                          }}
+                        ></div>
                       ))}
                     </div>
                   ) : currentAircraftId === 'c130' ? (
@@ -948,14 +980,35 @@ export default function LoadPlanningPage() {
                 >
                   {/* Grid lines */}
                   {currentAircraftId === 'c17' ? (
-                    <div className="absolute inset-0 grid grid-cols-9 grid-rows-2 gap-0 pointer-events-none">
-                      {/* Horizontal grid line separating the two rows */}
-                      <div className="absolute left-0 right-0 top-1/2 h-px bg-white/10"></div>
+                    <div className="absolute inset-0 pointer-events-none">
+                      {/* Custom grid for 9x2 layout with 88x108 pallets */}
                       
-                      {/* Vertical grid lines */}
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="absolute top-0 bottom-0 border-r border-white/10 h-full" 
-                             style={{left: `${(i + 1) * (100 / 9)}%`}}></div>
+                      {/* Grid cells - First row */}
+                      {[...Array(9)].map((_, i) => (
+                        <div 
+                          key={`storage-row1-${i}`} 
+                          className="absolute border border-white/10"
+                          style={{
+                            left: i * 100,
+                            top: 10,
+                            width: 96,
+                            height: 116,
+                          }}
+                        ></div>
+                      ))}
+                      
+                      {/* Grid cells - Second row */}
+                      {[...Array(9)].map((_, i) => (
+                        <div 
+                          key={`storage-row2-${i}`} 
+                          className="absolute border border-white/10"
+                          style={{
+                            left: i * 100,
+                            top: 136, 
+                            width: 96,
+                            height: 116,
+                          }}
+                        ></div>
                       ))}
                     </div>
                   ) : currentAircraftId === 'c130' ? (
