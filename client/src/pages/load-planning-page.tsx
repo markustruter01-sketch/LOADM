@@ -16,6 +16,8 @@ interface Pallet {
   location: "cargo" | "storage" | "configure";
   weight: number | null;
   size: { width: number; height: number };
+  cargoType?: "C" | "DG"; // C = Normal Cargo, DG = Dangerous Goods
+  positionLabel?: string; // Store position label like "P1", "P2", etc.
 }
 
 interface DropZone {
@@ -181,6 +183,13 @@ export default function LoadPlanningPage() {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState<'warning' | 'error'>('warning');
+  
+  // New pallet input popup states
+  const [palletInputOpen, setPalletInputOpen] = useState(false);
+  const [editingPalletId, setEditingPalletId] = useState<number | null>(null);
+  const [palletWeight, setPalletWeight] = useState<string>("");
+  const [palletCargoType, setPalletCargoType] = useState<"C" | "DG">("C"); // C = Normal Cargo, DG = Dangerous Goods
+  const [palletPosition, setPalletPosition] = useState<string>("");
   
   // Show alert dialog
   const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
