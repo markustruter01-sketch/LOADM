@@ -1350,34 +1350,36 @@ export default function LoadPlanningPage() {
               </div>
             </div>
             
-            {isDangerousGoods && (
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="dgClass" className="text-right">
-                  DG Classification
-                </Label>
-                <div className="col-span-2">
-                  <Select 
-                    value={palletDgClass}
-                    onValueChange={setPalletDgClass}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select DG class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="class-1">Class 1 - Explosives</SelectItem>
-                      <SelectItem value="class-2">Class 2 - Gases</SelectItem>
-                      <SelectItem value="class-3">Class 3 - Flammable Liquids</SelectItem>
-                      <SelectItem value="class-4">Class 4 - Flammable Solids</SelectItem>
-                      <SelectItem value="class-5">Class 5 - Oxidizing Substances</SelectItem>
-                      <SelectItem value="class-6">Class 6 - Toxic Substances</SelectItem>
-                      <SelectItem value="class-7">Class 7 - Radioactive Material</SelectItem>
-                      <SelectItem value="class-8">Class 8 - Corrosives</SelectItem>
-                      <SelectItem value="class-9">Class 9 - Miscellaneous</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="dgClass" className={`text-right ${!isDangerousGoods ? 'text-muted-foreground' : ''}`}>
+                DG Classification
+              </Label>
+              <div className="col-span-2">
+                <Select 
+                  value={palletDgClass}
+                  onValueChange={setPalletDgClass}
+                  disabled={!isDangerousGoods}
+                >
+                  <SelectTrigger className={!isDangerousGoods ? 'opacity-50 cursor-not-allowed' : ''}>
+                    <SelectValue placeholder="Select DG class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="class-1">Class 1 - Explosives</SelectItem>
+                    <SelectItem value="class-2">Class 2 - Gases</SelectItem>
+                    <SelectItem value="class-3">Class 3 - Flammable Liquids</SelectItem>
+                    <SelectItem value="class-4">Class 4 - Flammable Solids</SelectItem>
+                    <SelectItem value="class-5">Class 5 - Oxidizing Substances</SelectItem>
+                    <SelectItem value="class-6">Class 6 - Toxic Substances</SelectItem>
+                    <SelectItem value="class-7">Class 7 - Radioactive Material</SelectItem>
+                    <SelectItem value="class-8">Class 8 - Corrosives</SelectItem>
+                    <SelectItem value="class-9">Class 9 - Miscellaneous</SelectItem>
+                  </SelectContent>
+                </Select>
+                {!isDangerousGoods && (
+                  <p className="text-xs text-muted-foreground mt-1">Check Dangerous Goods to enable selection</p>
+                )}
               </div>
-            )}
+            </div>
             {palletPosition && (
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label htmlFor="position" className="text-right">
@@ -1930,21 +1932,22 @@ export default function LoadPlanningPage() {
                     </div>
                     
                     {/* Balance Meter */}
-                    <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md overflow-hidden">
-                      {/* Background gradient */}
-                      <div className="absolute inset-0" style={{ 
+                    <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md">
+                      {/* Container for the gradient background with overflow hidden */}
+                      <div className="absolute inset-0 overflow-hidden" style={{ 
                         background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
                       }}></div>
                       
-                      {/* Indicator needle - 0.85px width (15% thinner), white color, 50% longer */}
+                      {/* Indicator needle - 0.85px width (15% thinner), white color, 100% longer */}
                       <div 
                         className="absolute shadow-md"
                         style={{ 
                           backgroundColor: 'white',
                           width: '0.85px',
                           left: `${(balanceValue + 100) / 2}%`,
-                          top: '-25%', // Extended 25% above
-                          bottom: '-25%', // Extended 25% below
+                          top: '-100%', // Extended 100% above
+                          bottom: '-100%', // Extended 100% below
+                          height: '300%', // Makes it 3x as tall as the container
                           transform: 'translateX(-50%)',
                           transition: 'left 0.3s ease-out',
                           zIndex: 10 // Bring forward
