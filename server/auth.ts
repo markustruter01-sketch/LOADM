@@ -29,8 +29,14 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Generate a random secret if one is not provided
+  if (!process.env.SESSION_SECRET) {
+    console.warn('WARNING: SESSION_SECRET not set. Using a random secret for this session only.');
+    process.env.SESSION_SECRET = randomBytes(32).toString('hex');
+  }
+
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "loadm-docs-secret-key",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
