@@ -1953,15 +1953,15 @@ export default function LoadPlanningPage() {
                         background: 'linear-gradient(to right, #ea580c 0%, #f59e0b 20%, #84cc16 40%, #22c55e 50%, #84cc16 60%, #f59e0b 80%, #ea580c 100%)'
                       }}></div>
                       
-                      {/* Indicator needle - white needle, twice as tall as the container */}
+                      {/* Indicator needle - light blue/teal needle, extending equally past top and bottom */}
                       <div 
                         className="absolute shadow-md"
                         style={{ 
-                          backgroundColor: 'white',
+                          backgroundColor: '#40C4D9', // Light blue/teal color
                           width: '1px',
                           left: `${(balanceValue + 100) / 2}%`,
-                          top: '-100%', // Extended above to make it twice as tall
-                          height: '200%', // Makes it 2x as tall as the container
+                          top: '-50%', // Extends 50% above
+                          height: '200%', // Makes it extend 50% below as well
                           transform: 'translateX(-50%)',
                           transition: 'left 0.3s ease-out',
                           zIndex: 10, // Bring forward
@@ -1972,7 +1972,7 @@ export default function LoadPlanningPage() {
                         <div 
                           className="absolute -top-6 left-1/2 transform -translate-x-1/2 px-1.5 py-0.5 rounded text-[10px] font-medium"
                           style={{
-                            backgroundColor: 'rgba(0, 209, 209, 0.9)',
+                            backgroundColor: 'rgba(64, 196, 217, 0.9)', // Matching the #40C4D9 needle color
                             color: 'white',
                             textShadow: '0px 0px 2px rgba(0, 0, 0, 0.5)'
                           }}
