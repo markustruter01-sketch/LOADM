@@ -27,13 +27,20 @@ export default function DocumentsPage() {
         />
       </Helmet>
 
-      {/* Back Button - Top of page */}
-      <div className="w-full bg-primary py-3 px-4">
-        <div className="container mx-auto">
+      {/* Header with Logo and Back Button */}
+      <div className="w-full bg-background border-b border-border">
+        <div className="container mx-auto flex items-center justify-between py-3 px-4">
+          {/* Logo and title */}
+          <div className="flex items-center">
+            <img src="/VirtualDynamicsLogo_2.png" alt="Logo" className="h-8 mr-3" />
+            <span className="text-xl font-bold">LOADM<span className="text-primary">docs</span></span>
+          </div>
+          
+          {/* Back Button */}
           <Button 
-            variant="link" 
+            variant="ghost" 
             size="sm" 
-            className="text-white hover:text-white/90 p-0"
+            className="text-primary hover:text-primary/90"
             onClick={handleBackClick}
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
