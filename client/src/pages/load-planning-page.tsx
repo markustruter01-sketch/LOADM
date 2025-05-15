@@ -675,10 +675,14 @@ export default function LoadPlanningPage() {
         newPallet.position.y = snapY;
         newPallet.positionLabel = positionLabel;
         
-        // Open pallet input dialog AFTER pallet is added to the array
+        // Open pallet input dialog immediately
+        // Store current ID to ensure we're referencing the correct pallet
+        const currentPalletId = nextPalletId;
+        
+        // Use a small timeout to ensure React has updated the state
         setTimeout(() => {
-          showPalletInput(nextPalletId, positionLabel);
-        }, 100);
+          showPalletInput(currentPalletId - 1, positionLabel);
+        }, 10);
       }
       
     } else {
