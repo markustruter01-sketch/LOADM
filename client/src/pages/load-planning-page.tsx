@@ -199,6 +199,84 @@ export default function LoadPlanningPage() {
     setAlertOpen(true);
   };
   
+  // Show pallet input dialog
+  const showPalletInput = (palletId: number, position?: string) => {
+    const pallet = pallets.find(p => p.id === palletId);
+    if (pallet) {
+      setEditingPalletId(palletId);
+      setPalletWeight(pallet.weight ? pallet.weight.toString() : "");
+      setPalletCargoType(pallet.cargoType || "C");
+      setPalletPosition(position || pallet.positionLabel || "");
+      setPalletInputOpen(true);
+    }
+  };
+  
+  // Handle pallet input confirmation
+  const handlePalletInputConfirm = () => {
+    if (!editingPalletId) return;
+    
+    // Get constants for current aircraft
+    const MAX_PAYLOAD = currentAircraft.maxPayload;
+    const MAX_PALLET_WEIGHT = currentAircraft.maxPalletWeight;
+    
+    // Process weight
+    let weightValue: number | null = null;
+    
+    if (palletWeight !== "") {
+      weightValue = parseInt(palletWeight) || 0;
+      
+      // Never allow negative weights
+      if (weightValue < 0) weightValue = 0;
+      
+      // Check if pallet weight exceeds maximum pallet capacity
+      if (weightValue > MAX_PALLET_WEIGHT) {
+        showAlert(
+          'error',
+          'Pallet Weight Limit Exceeded',
+          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
+        );
+        
+        // Limit weight to max pallet capacity
+        weightValue = MAX_PALLET_WEIGHT;
+      }
+      
+      // Calculate total weight excluding the current pallet
+      const otherPalletsWeight = pallets
+        .filter(p => p.id !== editingPalletId && p.location === "cargo" && p.weight !== null)
+        .reduce((sum, p) => sum + (p.weight || 0), 0);
+      
+      // Check if total payload exceeds maximum aircraft capacity
+      const totalWeight = otherPalletsWeight + weightValue;
+      if (totalWeight > MAX_PAYLOAD) {
+        showAlert(
+          'error',
+          'Aircraft Payload Exceeded',
+          `The total weight (${totalWeight.toLocaleString()} kg) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} kg.`
+        );
+        
+        // Update weight but don't close dialog so user can adjust
+        setPalletWeight(Math.max(0, MAX_PAYLOAD - otherPalletsWeight).toString());
+        return;
+      }
+    }
+    
+    // Update the pallet
+    setPallets(prev => prev.map(pallet => {
+      if (pallet.id === editingPalletId) {
+        return { 
+          ...pallet, 
+          weight: weightValue, 
+          cargoType: palletCargoType,
+          positionLabel: palletPosition || pallet.positionLabel
+        };
+      }
+      return pallet;
+    }));
+    
+    // Close the dialog
+    setPalletInputOpen(false);
+  };
+  
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
     const weight = pallets.reduce((total, pallet) => {
@@ -478,13 +556,69 @@ export default function LoadPlanningPage() {
         size: palletSize
       };
       
-      // Check if pallet is being placed in cargo area - needs weight warning
+      // If pallet is being placed in cargo area, find nearest position label
       if (dropArea === "cargo") {
-        showAlert(
-          'warning',
-          'Warning: Pallet Has No Weight',
-          'You\'ve placed a pallet with no weight in the cargo area. Please add a weight to this pallet.'
-        );
+        // Extract position label based on nearest grid cell
+        let positionLabel = "";
+        let closestDistance = Number.MAX_VALUE;
+        
+        // Find closest position based on aircraft type
+        if (currentAircraftId === 'c17') {
+          // For C-17 with 9x2 grid
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 9; col++) {
+              const cellX = col * 76 + 71/2; // center of cell
+              const cellY = row * 95 + 87/2 + (row === 0 ? 10 : 105); // center of cell
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+              }
+            }
+          }
+        } else if (currentAircraftId === 'c130') {
+          // For C-130 with 4x2 grid
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 4; col++) {
+              const cellX = col * 120 + 110/2; // center of cell
+              const cellY = row * 90 + 80/2 + (row === 0 ? 10 : 100); // center of cell
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+              }
+            }
+          }
+        } else {
+          // For C-27J/KC30-A with 3x1 grid
+          for (let col = 0; col < 3; col++) {
+            const cellX = col * 120 + 110/2; // center of cell
+            const cellY = 20 + 80/2; // center of cell
+            
+            const distance = Math.sqrt(
+              Math.pow(dropX - cellX, 2) + 
+              Math.pow(dropY - cellY, 2)
+            );
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              positionLabel = `P${col + 1}`;
+            }
+          }
+        }
+        
+        // Open pallet input dialog
+        showPalletInput(newPalletId, positionLabel);
       }
       
       // Add the new pallet to the pallets array
@@ -560,13 +694,69 @@ export default function LoadPlanningPage() {
         }
       }
       
-      // Check if pallet has no weight and is being moved to cargo area
-      if (dropArea === "cargo" && draggedPallet.weight === null) {
-        showAlert(
-          'warning',
-          'Warning: Pallet Has No Weight',
-          'You\'ve placed a pallet with no weight in the cargo area. Please add a weight to this pallet.'
-        );
+      // If pallet is being moved to cargo area, prompt for details
+      if (dropArea === "cargo") {
+        // Extract position label based on nearest grid cell
+        let positionLabel = "";
+        let closestDistance = Number.MAX_VALUE;
+        
+        // Find closest position based on aircraft type
+        if (currentAircraftId === 'c17') {
+          // For C-17 with 9x2 grid
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 9; col++) {
+              const cellX = col * 76 + 71/2; // center of cell
+              const cellY = row * 95 + 87/2 + (row === 0 ? 10 : 105); // center of cell
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 10}`;
+              }
+            }
+          }
+        } else if (currentAircraftId === 'c130') {
+          // For C-130 with 4x2 grid
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 4; col++) {
+              const cellX = col * 120 + 110/2; // center of cell
+              const cellY = row * 90 + 80/2 + (row === 0 ? 10 : 100); // center of cell
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = `P${row === 0 ? col + 1 : col + 5}`;
+              }
+            }
+          }
+        } else {
+          // For C-27J/KC30-A with 3x1 grid
+          for (let col = 0; col < 3; col++) {
+            const cellX = col * 120 + 110/2; // center of cell
+            const cellY = 20 + 80/2; // center of cell
+            
+            const distance = Math.sqrt(
+              Math.pow(dropX - cellX, 2) + 
+              Math.pow(dropY - cellY, 2)
+            );
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              positionLabel = `P${col + 1}`;
+            }
+          }
+        }
+        
+        // Open pallet input dialog
+        showPalletInput(id, positionLabel);
       }
       
       // Update the pallet's position and area
@@ -623,6 +813,81 @@ export default function LoadPlanningPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAlertOpen(false)} className="w-full">
               OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Pallet Input Dialog */}
+      <Dialog open={palletInputOpen} onOpenChange={setPalletInputOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pallet Configuration</DialogTitle>
+            <DialogDescription>
+              Enter details for this pallet
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="weight" className="text-right">
+                Weight (kg)
+              </Label>
+              <Input
+                id="weight"
+                type="number"
+                value={palletWeight}
+                onChange={(e) => setPalletWeight(e.target.value)}
+                min="0"
+                max={currentAircraft?.maxPalletWeight.toString() || "10000"}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="cargoType" className="text-right">
+                Cargo Type
+              </Label>
+              <div className="col-span-2 flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="normal-cargo"
+                    className="h-4 w-4"
+                    checked={palletCargoType === "C"}
+                    onChange={() => setPalletCargoType("C")}
+                  />
+                  <Label htmlFor="normal-cargo">Normal Cargo (C)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="dangerous-goods"
+                    className="h-4 w-4"
+                    checked={palletCargoType === "DG"}
+                    onChange={() => setPalletCargoType("DG")}
+                  />
+                  <Label htmlFor="dangerous-goods">Dangerous Goods (DG)</Label>
+                </div>
+              </div>
+            </div>
+            {palletPosition && (
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="position" className="text-right">
+                  Position
+                </Label>
+                <div className="col-span-2">
+                  <Badge variant="outline" className="px-3 py-1 text-base">
+                    {palletPosition}
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPalletInputOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handlePalletInputConfirm}>
+              Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
