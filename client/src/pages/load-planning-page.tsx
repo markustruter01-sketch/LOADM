@@ -13,7 +13,7 @@ interface Pallet {
   id: number;
   position: { x: number; y: number };
   location: "cargo" | "storage" | "configure";
-  weight: number;
+  weight: number | null;
   size: { width: number; height: number };
 }
 
@@ -28,9 +28,9 @@ export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
   // Initial pallet configuration for reset functionality
   const initialPallets: Pallet[] = [
-    { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: 0, size: { width: 70, height: 50 } },
-    { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: 0, size: { width: 70, height: 50 } },
-    { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: 0, size: { width: 70, height: 50 } },
+    { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
+    { id: 2, position: { x: 170, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
+    { id: 3, position: { x: 250, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
   ];
   
   const [pallets, setPallets] = useState<Pallet[]>(initialPallets);
@@ -66,7 +66,7 @@ export default function LoadPlanningPage() {
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
     const weight = pallets.reduce((total, pallet) => {
-      return pallet.location === "cargo" ? total + pallet.weight : total;
+      return pallet.location === "cargo" ? total + (pallet.weight || 0) : total;
     }, 0);
     
     setTotalWeight(weight);
@@ -94,6 +94,9 @@ export default function LoadPlanningPage() {
     let totalWeightInCargo = 0;
     
     cargoPallets.forEach(pallet => {
+      // Skip pallets with no weight
+      if (pallet.weight === null) return;
+      
       // Get pallet center position relative to cargo area width (0 to 1)
       const centerPosition = (pallet.position.x + pallet.size.width / 2) / cargoWidth;
       // Convert to -1 (left) to 1 (right) where 0 is center
@@ -142,6 +145,17 @@ export default function LoadPlanningPage() {
   
   // Update weight of a pallet with validation
   const handleWeightChange = (id: number, newWeight: string) => {
+    // If input is empty, set weight to null
+    if (newWeight.trim() === '') {
+      setPallets(prev => prev.map(pallet => {
+        if (pallet.id === id) {
+          return { ...pallet, weight: null };
+        }
+        return pallet;
+      }));
+      return;
+    }
+    
     // Convert to number or default to 0 if invalid
     let weightValue = parseInt(newWeight) || 0;
     
@@ -151,7 +165,7 @@ export default function LoadPlanningPage() {
     // Calculate total weight excluding the current pallet
     const otherPalletsWeight = pallets
       .filter(p => p.id !== id && p.location === "cargo")
-      .reduce((sum, p) => sum + p.weight, 0);
+      .reduce((sum, p) => sum + (p.weight || 0), 0);
     
     // Check if the new weight would exceed the maximum payload
     if (weightValue + otherPalletsWeight > MAX_PAYLOAD) {
@@ -475,14 +489,9 @@ export default function LoadPlanningPage() {
                               type="number"
                               min="0"
                               max={MAX_PAYLOAD}
-                              value={pallet.weight}
+                              value={pallet.weight === null ? '' : pallet.weight.toString()}
                               onChange={(e) => handleWeightChange(pallet.id, e.target.value)}
-                              className={`h-7 text-sm ${
-                                pallet.location === "cargo" && 
-                                (totalWeight - (pallet.weight || 0) + parseInt(e.target.value || "0") > MAX_PAYLOAD)
-                                  ? "border-destructive focus-visible:ring-destructive"
-                                  : ""
-                              }`}
+                              className={`h-7 text-sm`}
                               placeholder="Enter weight"
                             />
                           </div>
