@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -42,6 +43,14 @@ export default function DocumentFormPage() {
     queryKey: [`/api/documents/${documentId}`],
     enabled: !isNaN(documentId),
   });
+
+  // Special handling for Cargo Manifest: redirect to dedicated page
+  useEffect(() => {
+    if (document && (document.title === "Cargo Manifest" || document.title === "Passenger/Crew and Cargo Manifest")) {
+      // Redirect to the cargo manifest page with anchor
+      setLocation("/cargo-manifest#cargo-manifest-form");
+    }
+  }, [document, setLocation]);
 
   const fields = document?.fields as DocumentFormField[] | undefined;
 
