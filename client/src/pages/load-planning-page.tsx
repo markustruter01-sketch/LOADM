@@ -25,8 +25,49 @@ interface DropZone {
   area: "cargo" | "storage" | "configure";
 }
 
+interface AircraftConfig {
+  id: string;
+  name: string;
+  maxPayload: number; // kg
+  maxPalletWeight: number; // kg
+}
+
 export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
+  const [match, params] = useRoute("/load-planning/:aircraftId");
+  
+  // Aircraft configurations
+  const aircraftConfigs: Record<string, AircraftConfig> = {
+    c27j: {
+      id: 'c27j',
+      name: 'Spartan C-27J',
+      maxPayload: 11300, // kg
+      maxPalletWeight: 4536, // kg (10,000 lbs)
+    },
+    c17: {
+      id: 'c17',
+      name: 'Globemaster C-17',
+      maxPayload: 77500, // kg
+      maxPalletWeight: 10000, // kg
+    },
+    c130: {
+      id: 'c130',
+      name: 'Hercules C-130',
+      maxPayload: 20000, // kg
+      maxPalletWeight: 4536, // kg (10,000 lbs)
+    },
+    kc30a: {
+      id: 'kc30a',
+      name: 'Airbus KC30-A',
+      maxPayload: 45000, // kg
+      maxPalletWeight: 6800, // kg (15,000 lbs)
+    }
+  };
+  
+  // Get current aircraft configuration or default to C-27J
+  const currentAircraftId = match ? params.aircraftId : 'c27j';
+  const currentAircraft = aircraftConfigs[currentAircraftId] || aircraftConfigs.c27j;
+  
   // Initial pallet configuration for reset functionality
   const initialPallets: Pallet[] = [
     { id: 1, position: { x: 90, y: 70 }, location: "configure", weight: null, size: { width: 70, height: 50 } },
@@ -141,9 +182,9 @@ export default function LoadPlanningPage() {
     e.preventDefault();
   };
   
-  // Maximum payload and pallet limits in kg
-  const MAX_PAYLOAD = 11300;
-  const MAX_PALLET_WEIGHT = 4536; // 10,000 lbs converted to kg
+  // Maximum payload and pallet limits from aircraft configuration
+  const MAX_PAYLOAD = currentAircraft.maxPayload;
+  const MAX_PALLET_WEIGHT = currentAircraft.maxPalletWeight;
   
   // Alert dialog state
   const [alertOpen, setAlertOpen] = useState(false);
@@ -363,10 +404,10 @@ export default function LoadPlanningPage() {
       </Dialog>
       
       <Helmet>
-        <title>Load Planning - LOADMdocs</title>
+        <title>{currentAircraft.name} Load Planning - LOADMdocs</title>
         <meta 
           name="description" 
-          content="C27J Spartan cargo plane load planning tool for loadmasters." 
+          content={`${currentAircraft.name} cargo plane load planning tool for loadmasters.`}
         />
       </Helmet>
 
@@ -383,7 +424,12 @@ export default function LoadPlanningPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <h2 className="text-2xl font-bold">C27J Spartan Load Planning</h2>
+            <div>
+              <h2 className="text-2xl font-bold">{currentAircraft.name} Load Planning</h2>
+              <p className="text-muted-foreground text-sm">
+                Max Payload: {MAX_PAYLOAD.toLocaleString()} kg | Max Pallet Weight: {MAX_PALLET_WEIGHT.toLocaleString()} kg
+              </p>
+            </div>
           </div>
 
           {/* Main content grid */}
