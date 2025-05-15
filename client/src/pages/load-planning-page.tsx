@@ -1859,35 +1859,35 @@ export default function LoadPlanningPage() {
                       </span>
                     </div>
                     
-                    {/* Dynamic Balance Position Box */}
-                    {totalWeightInCargo > 0 && (
-                      <div className="mb-2 relative">
-                        <div className="flex justify-center w-full">
-                          <div className="px-3 py-1 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 shadow-md">
-                            <div className="text-center text-sm font-medium">
-                              {Math.abs(balanceValue) < 15 ? (
-                                <span className="text-green-500">Balanced</span>
-                              ) : Math.abs(balanceValue) < 40 ? (
-                                balanceValue < 0 ? 
-                                  <span className="text-yellow-500">Forward Heavy</span> : 
-                                  <span className="text-yellow-500">Aft Heavy</span>
-                              ) : (
-                                balanceValue < 0 ? 
-                                  <span className="text-red-500">Dangerously Forward</span> : 
-                                  <span className="text-red-500">Dangerously Aft</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
                     {/* Balance Meter */}
                     <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md overflow-hidden">
                       {/* Background gradient */}
                       <div className="absolute inset-0" style={{ 
                         background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
                       }}></div>
+                      
+                      {/* Dynamic Balance Position Box - above the meter */}
+                      {totalWeightInCargo > 0 && (
+                        <div className="absolute top-0 left-0 right-0 -mt-8 pointer-events-none">
+                          <div className="flex justify-center w-full">
+                            <div className="px-4 py-1 rounded-md bg-black/70 backdrop-blur-sm border border-white/10 shadow-md">
+                              <div className="text-center text-sm font-semibold uppercase tracking-wide">
+                                {Math.abs(balanceValue) < 15 ? (
+                                  <span className="text-green-500">Balanced</span>
+                                ) : Math.abs(balanceValue) < 40 ? (
+                                  balanceValue < 0 ? 
+                                    <span className="text-yellow-500">Forward Heavy</span> : 
+                                    <span className="text-yellow-500">Aft Heavy</span>
+                                ) : (
+                                  balanceValue < 0 ? 
+                                    <span className="text-red-500">Dangerously Forward</span> : 
+                                    <span className="text-red-500">Dangerously Aft</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Center line - Now half as thick */}
                       <div className="absolute inset-y-0 left-1/2 w-px bg-white/80"></div>
