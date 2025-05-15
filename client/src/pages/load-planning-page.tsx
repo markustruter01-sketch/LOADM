@@ -1,8 +1,9 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,8 +141,12 @@ export default function LoadPlanningPage() {
     e.preventDefault();
   };
   
-  // Maximum payload limit constant (in kg)
+  // Maximum payload and pallet limits in kg
   const MAX_PAYLOAD = 11300;
+  const MAX_PALLET_WEIGHT = 4536; // 10,000 lbs converted to kg
+  
+  // Toast notifications
+  const { toast } = useToast();
   
   // Update weight of a pallet with validation
   const handleWeightChange = (id: number, newWeight: string) => {
@@ -161,6 +166,25 @@ export default function LoadPlanningPage() {
     
     // Never allow negative weights
     if (weightValue < 0) weightValue = 0;
+    
+    // Check if pallet weight exceeds maximum pallet capacity (10,000 lbs)
+    if (weightValue > MAX_PALLET_WEIGHT) {
+      toast({
+        title: "Pallet Weight Limit Exceeded",
+        description: `The weight exceeds the maximum pallet capacity of 10,000 lbs (${MAX_PALLET_WEIGHT} kg)`,
+        variant: "destructive",
+        duration: 5000,
+        action: (
+          <Button variant="outline" size="sm" onClick={() => {}}>
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            Adjust
+          </Button>
+        ),
+      });
+      
+      // Limit weight to max pallet capacity
+      weightValue = MAX_PALLET_WEIGHT;
+    }
     
     // Calculate total weight excluding the current pallet
     const otherPalletsWeight = pallets
@@ -259,6 +283,22 @@ export default function LoadPlanningPage() {
         newX = Math.max(0, Math.min(newX, areaWidth - draggedPallet.size.width));
         newY = Math.max(0, Math.min(newY, areaHeight - draggedPallet.size.height));
       }
+    }
+    
+    // Check if pallet has no weight and is being moved to cargo area
+    if (dropArea === "cargo" && draggedPallet.weight === null) {
+      toast({
+        title: "Warning: Pallet Has No Weight",
+        description: "You've placed a pallet with no weight in the cargo area. Please add a weight to this pallet.",
+        variant: "warning",
+        duration: 5000,
+        action: (
+          <Button variant="outline" size="sm" onClick={() => {}}>
+            <AlertTriangle className="h-4 w-4 mr-1" />
+            OK
+          </Button>
+        ),
+      });
     }
     
     // Update the pallet's position and area
