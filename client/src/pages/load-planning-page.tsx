@@ -1864,9 +1864,9 @@ export default function LoadPlanningPage() {
                       {/* Center line */}
                       <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/80"></div>
                       
-                      {/* Indicator needle */}
+                      {/* Indicator needle - reduced to 1px width (half of 2px) */}
                       <div 
-                        className="absolute top-0 bottom-0 w-2 bg-white shadow-md"
+                        className="absolute top-0 bottom-0 w-1 bg-white shadow-md"
                         style={{ 
                           left: `${(balanceValue + 100) / 2}%`,
                           transform: 'translateX(-50%)',
