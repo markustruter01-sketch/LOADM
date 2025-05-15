@@ -403,7 +403,7 @@ export default function LoadPlanningPage() {
       }
       
       // Create a new pallet with current nextPalletId
-      const palletSize = { width: 88, height: 108 };
+      const palletSize = { width: 120, height: 90 };
       
       // Position the new pallet
       if (dropArea === "cargo" || dropArea === "storage") {
@@ -425,8 +425,8 @@ export default function LoadPlanningPage() {
           newY = rowTopOffset;
           
           // Set the pallet size
-          palletSize.width = 88;
-          palletSize.height = 108;
+          palletSize.width = 120;
+          palletSize.height = 90;
         } else {
           // For other aircraft types
           const columns = currentAircraftId === 'c130' ? 4 : 3;
