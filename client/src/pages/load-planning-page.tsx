@@ -1355,11 +1355,21 @@ export default function LoadPlanningPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <div>
-              <h2 className="text-2xl font-bold">{currentAircraft.name} Load Planning</h2>
-              <p className="text-muted-foreground text-sm">
-                Max Payload: {MAX_PAYLOAD.toLocaleString()} kg | Max Pallet Weight: {MAX_PALLET_WEIGHT.toLocaleString()} kg
-              </p>
+            <div className="flex items-center">
+              <div>
+                <h2 className="text-2xl font-bold">{currentAircraft.name} Load Planning</h2>
+                <p className="text-muted-foreground text-sm">
+                  Max Payload: {MAX_PAYLOAD.toLocaleString()} kg | Max Pallet Weight: {MAX_PALLET_WEIGHT.toLocaleString()} kg
+                </p>
+              </div>
+              
+              {/* Aircraft Silhouette */}
+              <div className="ml-4 w-32 h-12 flex items-center justify-center">
+                <AircraftSilhouette 
+                  aircraftType={currentAircraftId as 'c27j' | 'c17' | 'c130' | 'kc30a'} 
+                  className="opacity-90 h-full" 
+                />
+              </div>
             </div>
           </div>
 

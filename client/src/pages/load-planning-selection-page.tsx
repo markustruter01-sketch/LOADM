@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlaneIcon, ArrowLeft } from "lucide-react";
+import { AircraftSilhouette } from "@/components/AircraftSilhouette";
 
 export default function LoadPlanningSelectionPage() {
   const [, navigate] = useLocation();
@@ -55,7 +56,20 @@ export default function LoadPlanningSelectionPage() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Aircraft Selection</h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold">Aircraft Selection</h1>
+              <div className="ml-4 flex space-x-1 opacity-50">
+                <div className="w-8 h-6">
+                  <AircraftSilhouette aircraftType="c17" className="text-white" />
+                </div>
+                <div className="w-8 h-6">
+                  <AircraftSilhouette aircraftType="c130" className="text-white" />
+                </div>
+                <div className="w-8 h-6">
+                  <AircraftSilhouette aircraftType="c27j" className="text-white" />
+                </div>
+              </div>
+            </div>
           </div>
           
           <p className="text-muted-foreground mb-8">
@@ -71,11 +85,22 @@ export default function LoadPlanningSelectionPage() {
               >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center">
-                    <PlaneIcon className="h-5 w-5 mr-2 text-primary" />
+                    <div className="w-6 h-6 mr-2 flex items-center justify-center">
+                      <AircraftSilhouette 
+                        aircraftType={aircraft.id as 'c27j' | 'c17' | 'c130' | 'kc30a'} 
+                        className="text-primary" 
+                      />
+                    </div>
                     {aircraft.name}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <div className="h-8 mb-2 flex items-center justify-center opacity-30">
+                    <AircraftSilhouette 
+                      aircraftType={aircraft.id as 'c27j' | 'c17' | 'c130' | 'kc30a'} 
+                      className="h-full" 
+                    />
+                  </div>
                   <CardDescription className="text-sm">
                     {aircraft.description}
                   </CardDescription>
