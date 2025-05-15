@@ -1,19 +1,13 @@
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import DocumentCard from "@/components/DocumentCard";
-import { Button } from "@/components/ui/button";
 
 export default function DocumentsPage() {
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
-
-  // Go back to home page function
-  const goToHomePage = () => {
-    window.location.href = "/";
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,19 +18,6 @@ export default function DocumentsPage() {
           content="Browse and complete document templates for loadmaster operations." 
         />
       </Helmet>
-
-      {/* Top Back Button */}
-      <div className="pt-4 pl-4">
-        <Button 
-          onClick={goToHomePage}
-          variant="outline" 
-          size="sm"
-          className="text-white bg-primary hover:bg-primary/90"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-      </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 mb-16">
