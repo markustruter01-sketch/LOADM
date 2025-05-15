@@ -49,7 +49,7 @@ export default function DocumentsPage() {
   return (
     <>
       <Helmet>
-        <title>Documents - LOADMdocs</title>
+        <title>Documents - LOADMworkflow</title>
         <meta name="description" content="Document forms for military cargo load planning" />
         <style>
           {`

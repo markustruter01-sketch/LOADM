@@ -82,10 +82,10 @@ export default function AuthPage() {
   return (
     <>
       <Helmet>
-        <title>Login or Register - LOADMdocs</title>
+        <title>Login or Register - LOADMworkflow</title>
         <meta 
           name="description" 
-          content="Login or create an account to access LOADMdocs, the professional documentation tool for loadmasters." 
+          content="Login or create an account to access LOADMworkflow, the professional documentation tool for loadmasters." 
         />
       </Helmet>
 
