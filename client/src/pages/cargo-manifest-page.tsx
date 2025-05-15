@@ -12,13 +12,33 @@ export default function DocumentsPage() {
   const handleBackClick = () => {
     navigate("/");
   };
-  // Check if we need to scroll to the form
+
+  // Check if we need to scroll to a form based on hash or sessionStorage
   useEffect(() => {
-    // Check for hash in URL to scroll to form
-    if (window.location.hash === '#cargo-manifest-form') {
-      const element = document.getElementById('cargo-manifest-form');
+    // First check URL hash
+    const hash = window.location.hash;
+    if (hash) {
+      const elementId = hash.substring(1); // Remove the # character
+      const element = document.getElementById(elementId);
+      
       if (element) {
         // Delay scrolling to make sure the page is fully loaded
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      }
+      return; // Skip the rest if hash exists
+    }
+    
+    // Check sessionStorage for scrollToFormId
+    const scrollToFormId = sessionStorage.getItem('scrollToFormId');
+    if (scrollToFormId) {
+      // Clear the value immediately to prevent unwanted scrolls on future page loads
+      sessionStorage.removeItem('scrollToFormId');
+      
+      // Try to find the element - if it exists, scroll to it
+      const element = document.getElementById(scrollToFormId);
+      if (element) {
         setTimeout(() => {
           element.scrollIntoView({ behavior: 'smooth' });
         }, 300);
@@ -33,23 +53,24 @@ export default function DocumentsPage() {
         <meta name="description" content="Document forms for military cargo load planning" />
       </Helmet>
       
-      <div className="container mx-auto px-4 py-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
+      {/* Back button and document menu */}
+      <div className="container mx-auto py-6">
+        <div className="flex items-center mb-2">
+          {/* Back Button - Aligned with Documents title */}
           <Button 
             variant="ghost" 
             size="sm" 
-            className="mb-6"
+            className="px-0 mr-4"
             onClick={handleBackClick}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
         </div>
+        
+        {/* Document menu showing all available document forms */}
+        <DocumentMenu />
       </div>
-      
-      {/* Document menu showing all available document forms */}
-      <DocumentMenu />
       
       {/* The cargo manifest form (shown if specifically requested) */}
       {window.location.hash === '#cargo-manifest-form' && (

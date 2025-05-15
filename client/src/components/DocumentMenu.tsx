@@ -12,9 +12,10 @@ interface DocumentCardProps {
 }
 
 function DocumentCard({ title, description, lastUpdated, path }: DocumentCardProps) {
-  // Handle smooth scrolling for anchor links
+  // Handle navigation and smooth scrolling
   const handleClick = () => {
     if (path.includes('#')) {
+      // If the path contains a hash, it's an existing form we want to scroll to
       const elementId = path.split('#')[1];
       // Use setTimeout to allow navigation to complete
       setTimeout(() => {
@@ -23,6 +24,13 @@ function DocumentCard({ title, description, lastUpdated, path }: DocumentCardPro
           element.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+    } else {
+      // For other documents that will need their own form sections
+      // Create a standard form ID format based on the document title
+      const formId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-form';
+      
+      // Store this in sessionStorage to be checked after navigation
+      sessionStorage.setItem('scrollToFormId', formId);
     }
   };
 
