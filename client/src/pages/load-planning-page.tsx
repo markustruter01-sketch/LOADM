@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, Store, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -807,7 +807,7 @@ export default function LoadPlanningPage() {
             }`}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center">
-                  <Store className="h-5 w-5 mr-2 text-primary" />
+                  <Package2 className="h-5 w-5 mr-2 text-primary" />
                   Storage Area
                   <span className="text-sm font-normal text-muted-foreground ml-2">
                     (Temporary holding)
@@ -878,7 +878,7 @@ export default function LoadPlanningPage() {
             }`}>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center">
-                  <ClipboardCheck className="h-5 w-5 mr-2 text-primary" />
+                  <Package2 className="h-5 w-5 mr-2 text-primary" />
                   Instructions
                 </CardTitle>
               </CardHeader>
