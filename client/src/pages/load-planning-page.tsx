@@ -1284,7 +1284,10 @@ export default function LoadPlanningPage() {
                     {/* Draggable template pallet */}
                     <div 
                       className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
-                      style={{ width: '120px', height: '90px' }}
+                      style={{ 
+                        width: currentAircraftId === 'c17' ? '71px' : '110px', 
+                        height: currentAircraftId === 'c17' ? '87px' : '80px' 
+                      }}
                       draggable
                       onDragStart={(e) => handleDragStart(e, null)}
                     >
