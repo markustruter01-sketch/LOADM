@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Pallet {
   id: number;
@@ -267,6 +269,9 @@ export default function LoadPlanningPage() {
   const [palletWeight, setPalletWeight] = useState<string>("");
   const [palletCargoType, setPalletCargoType] = useState<"C" | "DG">("C"); // C = Normal Cargo, DG = Dangerous Goods
   const [palletPosition, setPalletPosition] = useState<string>("");
+  const [palletCargoCategory, setPalletCargoCategory] = useState<string>("");
+  const [palletDgClass, setPalletDgClass] = useState<string>("");
+  const [isDangerousGoods, setIsDangerousGoods] = useState(false);
   
   // Show alert dialog
   const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
@@ -302,17 +307,20 @@ export default function LoadPlanningPage() {
     };
   };
   
-  // Show pallet input dialog - completely rebuilt
+  // Show pallet input dialog
   const showPalletInput = (palletId: number, position?: string) => {
-    // Always open the dialog when called, even if pallet ID doesn't match yet
-    // The pallet ID is often correct but the state update hasn't completed
     console.log("showPalletInput called with ID:", palletId, "position:", position);
+    
+    const selectedPallet = pallets.find(p => p.id === palletId);
     
     // Set defaults even if pallet is not found yet
     setEditingPalletId(palletId);
-    setPalletWeight("");
-    setPalletCargoType("C");
-    setPalletPosition(position || "");
+    setPalletWeight(selectedPallet?.weight ? selectedPallet.weight.toString() : "");
+    setPalletCargoType(selectedPallet?.cargoType || "C");
+    setPalletPosition(position || selectedPallet?.positionLabel || "");
+    setPalletCargoCategory(selectedPallet?.cargoCategory || "");
+    setPalletDgClass(selectedPallet?.dgClass || "");
+    setIsDangerousGoods(selectedPallet?.cargoType === "DG");
     setPalletInputOpen(true);
   };
   
@@ -371,7 +379,9 @@ export default function LoadPlanningPage() {
         return { 
           ...pallet, 
           weight: weightValue, 
-          cargoType: palletCargoType,
+          cargoType: isDangerousGoods ? "DG" : "C",
+          cargoCategory: palletCargoCategory,
+          dgClass: isDangerousGoods ? palletDgClass : undefined,
           positionLabel: palletPosition || pallet.positionLabel
         };
       }
