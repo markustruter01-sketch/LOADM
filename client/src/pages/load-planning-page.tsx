@@ -562,7 +562,12 @@ export default function LoadPlanningPage() {
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Cargo Positions Filled</p>
-                    <p className="text-lg">{pallets.filter(p => p.location === "cargo").length} of 3</p>
+                    <p className="text-lg">
+                      {pallets.filter(p => p.location === "cargo").length} of {
+                        currentAircraftId === 'c17' ? '18' : 
+                        currentAircraftId === 'c130' ? '8' : '3'
+                      }
+                    </p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Storage Positions</p>
@@ -779,20 +784,45 @@ export default function LoadPlanningPage() {
             {/* Storage Area */}
             <Card className="lg:col-span-3">
               <CardHeader className="pb-2">
-                <CardTitle>Storage Area</CardTitle>
+                <CardTitle>
+                  Storage Area
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    (Temporary holding)
+                  </span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div 
                   ref={storageRef}
-                  className="relative bg-gray-800/30 border border-gray-500/30 rounded-lg h-[120px] w-full"
+                  className={`relative bg-gray-800/30 border border-gray-500/30 rounded-lg w-full ${
+                    currentAircraftId === 'c17' 
+                      ? 'h-[300px]' 
+                      : currentAircraftId === 'c130' 
+                        ? 'h-[200px]' 
+                        : 'h-[120px]'
+                  }`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, "storage")}
                 >
                   {/* Grid lines */}
-                  <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
-                    <div className="border-r border-white/10 h-full"></div>
-                    <div className="border-r border-white/10 h-full"></div>
-                  </div>
+                  {currentAircraftId === 'c17' ? (
+                    <div className="absolute inset-0 grid grid-cols-6 gap-0 pointer-events-none">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="border-r border-white/10 h-full"></div>
+                      ))}
+                    </div>
+                  ) : currentAircraftId === 'c130' ? (
+                    <div className="absolute inset-0 grid grid-cols-4 gap-0 pointer-events-none">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="border-r border-white/10 h-full"></div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 grid grid-cols-3 gap-0 pointer-events-none">
+                      <div className="border-r border-white/10 h-full"></div>
+                      <div className="border-r border-white/10 h-full"></div>
+                    </div>
+                  )}
                   
                   {/* Pallets in storage area */}
                   {pallets.filter(pallet => pallet.location === "storage").map((pallet) => (
@@ -826,7 +856,14 @@ export default function LoadPlanningPage() {
                   <strong>Instructions:</strong> Drag and drop pallets between the cargo area, storage area, and configuration section.
                   Edit pallet weights using the input fields.
                   Only pallets in the cargo area count toward the total weight.
-                  Maximum payload is 10,000 kg.
+                  <br />
+                  <span className="text-primary font-medium">
+                    {currentAircraftId === 'c17' 
+                      ? 'C-17 Globemaster maximum payload is 77,500 kg with 18 pallet positions.'
+                      : currentAircraftId === 'c130'
+                        ? 'C-130 Hercules maximum payload is 20,000 kg with 8 pallet positions.'
+                        : 'C-27J Spartan maximum payload is 11,300 kg with 3 pallet positions.'}
+                  </span>
                 </p>
               </CardContent>
             </Card>
