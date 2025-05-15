@@ -112,7 +112,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold">Recent Scenarios</h3>
               <Link href="/scenarios">
-                <a className="text-primary hover:underline text-sm">View All</a>
+                <span className="text-primary hover:underline text-sm cursor-pointer">View All</span>
               </Link>
             </div>
             {isLoadingScenarios ? (
