@@ -23,7 +23,7 @@ import InstructorsPortal from "@/pages/instructors-portal";
 import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
 import CreateScenario from "@/pages/instructors-portal/scenarios/create";
 import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
-import { ProtectedRoute } from "./lib/protected-route";
+import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
@@ -50,10 +50,10 @@ function Router() {
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
-          <ProtectedRoute path="/instructors-portal" component={InstructorsPortal} />
-          <ProtectedRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
-          <ProtectedRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
-          <ProtectedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
+          <AuthenticatedRoute path="/instructors-portal" component={InstructorsPortal} />
+          <AuthenticatedRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
+          <AuthenticatedRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
+          <AuthenticatedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
           <Route component={NotFound} />
         </Switch>
       </main>

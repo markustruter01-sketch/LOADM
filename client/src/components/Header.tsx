@@ -42,16 +42,16 @@ export default function Header() {
                   {user.username}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link href="/instructors-portal">
+                    <div className="w-full cursor-pointer">Instructors Portal</div>
+                  </Link>
+                </DropdownMenuItem>
                 {user.isAdmin && (
                   <>
                     <DropdownMenuItem>
                       <Link href="/admin">
                         <div className="w-full cursor-pointer">Admin Dashboard</div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/instructors-portal">
-                        <div className="w-full cursor-pointer">Instructors Portal</div>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
