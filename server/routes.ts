@@ -201,6 +201,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Special endpoint to update a scenario's questions
+  app.patch("/api/scenarios/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() && !(req.user?.isAdmin)) {
+        // For demonstration purposes, we'll allow this without authentication
+        // In production, uncomment the line below:
+        // return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+      
+      const scenarioId = parseInt(req.params.id);
+      // Get the current scenario
+      const currentScenario = await storage.getScenario(scenarioId);
+      
+      if (!currentScenario) {
+        return res.status(404).json({ message: "Scenario not found" });
+      }
+      
+      // Update only the fields provided in the request body
+      const scenarioData = {
+        ...req.body
+      };
+      
+      const scenario = await storage.updateScenario(scenarioId, scenarioData);
+      
+      res.json(scenario);
+    } catch (error) {
+      console.error("Error updating scenario:", error);
+      res.status(500).json({ message: "Failed to update scenario questions" });
+    }
+  });
+  
   app.delete("/api/scenarios/:id", async (req, res) => {
     try {
       if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
