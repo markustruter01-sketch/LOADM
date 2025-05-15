@@ -388,7 +388,7 @@ export default function LoadPlanningPage() {
       }
       
       // Create a new pallet with current nextPalletId
-      const palletSize = { width: 70, height: 50 };
+      const palletSize = { width: 88, height: 108 };
       
       // Position the new pallet
       if (dropArea === "cargo" || dropArea === "storage") {
@@ -559,7 +559,7 @@ export default function LoadPlanningPage() {
           return {
             ...pallet,
             position: { x: newX, y: newY },
-            size: dropArea === "configure" ? { width: 70, height: 50 } : draggedPallet.size,
+            size: dropArea === "configure" ? { width: 88, height: 108 } : draggedPallet.size,
             location: dropArea
           };
         }
@@ -846,11 +846,15 @@ export default function LoadPlanningPage() {
                   {/* Draggable template pallet */}
                   <div 
                     className="rounded p-4 flex items-center justify-center bg-orange-500/70 border-2 border-orange-500 cursor-move"
+                    style={{ width: '88px', height: '108px' }}
                     draggable
                     onDragStart={(e) => handleDragStart(e, null)}
                   >
-                    <Package2 className="h-5 w-5 mr-2" />
-                    <span className="font-medium">Drag to Create New Pallet</span>
+                    <div className="flex flex-col items-center justify-center">
+                      <Package2 className="h-5 w-5 mb-2" />
+                      <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
+                      <span className="text-xs mt-1">(88×108)</span>
+                    </div>
                   </div>
                 </div>
                 
