@@ -702,13 +702,13 @@ export default function LoadPlanningPage() {
                 <CardContent>
                   <div 
                     ref={cargoRef}
-                    className={`relative border border-gray-500/40 rounded-lg w-full ${
+                    className={`relative w-full ${
                       currentAircraftId === 'c17' 
                         ? 'h-[320px]' 
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
                           : 'h-[150px]'
-                    } overflow-hidden bg-transparent`}
+                    } overflow-visible bg-transparent`}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, "cargo")}
                   >
@@ -723,10 +723,10 @@ export default function LoadPlanningPage() {
                             key={`cell-row1-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 100,
+                              left: i * 95,
                               top: 10,
-                              width: 96,
-                              height: 116,
+                              width: 90,
+                              height: 110,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           ></div>
@@ -738,10 +738,10 @@ export default function LoadPlanningPage() {
                             key={`cell-row2-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 100,
-                              top: 136, 
-                              width: 96,
-                              height: 116,
+                              left: i * 95,
+                              top: 130, 
+                              width: 90,
+                              height: 110,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           ></div>
@@ -780,7 +780,7 @@ export default function LoadPlanningPage() {
                             <span>{pallet.weight} kg</span> : 
                             <span className="text-white/80">No weight</span>
                           }
-                          <span className="text-xs text-white/60 mt-1">(88×108)</span>
+
                         </div>
                       </div>
                     ))}
@@ -884,7 +884,6 @@ export default function LoadPlanningPage() {
                       <div className="flex flex-col items-center justify-center">
                         <Package2 className="h-5 w-5 mb-2" />
                         <span className="font-medium text-center text-xs">Drag to Create New Pallet</span>
-                        <span className="text-xs mt-1">(88×108)</span>
                       </div>
                     </div>
                   </div>
