@@ -409,24 +409,24 @@ export default function LoadPlanningPage() {
       if (dropArea === "cargo" || dropArea === "storage") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
-          // Fixed cell dimensions to match our custom grid (reduced by ~30%)
-          const cellWidth = 68; // Fixed cell width (matches grid in UI)
-          const rowHeight = 88; // Fixed cell height (matches grid in UI)
+          // Fixed cell dimensions to match our custom grid (reduced and adjusted by 12%)
+          const cellWidth = 76; // Fixed cell width (matches grid in UI)
+          const rowHeight = 98; // Fixed cell height (matches grid in UI)
           
           // Determine which cell the pallet was dropped in
           const cellRow = dropY > rowHeight ? 1 : 0;
           const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellWidth)));
           
           // Position pallet in the appropriate cell with proper spacing
-          const rowTopOffset = cellRow === 0 ? 10 : 93; // top margin for each row
+          const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
           
           // Position within grid cell
           newX = (cellColumn * cellWidth) + 2;
           newY = rowTopOffset;
           
           // Set the pallet size
-          palletSize.width = 63;
-          palletSize.height = 78;
+          palletSize.width = 71;
+          palletSize.height = 87;
         } else {
           // For other aircraft types
           const columns = currentAircraftId === 'c130' ? 4 : 3;
@@ -496,16 +496,16 @@ export default function LoadPlanningPage() {
       if (dropArea === "cargo" || dropArea === "storage") {
         // Special handling for C-17 with 9x2 grid
         if (currentAircraftId === 'c17') {
-          // Fixed cell dimensions to match our custom grid (reduced by ~30%)
-          const cellWidth = 68; // Fixed cell width (matches grid in UI)
-          const rowHeight = 88; // Fixed cell height (matches grid in UI)
+          // Fixed cell dimensions to match our custom grid (reduced and adjusted by 12%)
+          const cellWidth = 76; // Fixed cell width (matches grid in UI)
+          const rowHeight = 98; // Fixed cell height (matches grid in UI)
           
           // Determine which cell the pallet was dropped in
           const cellRow = dropY > rowHeight ? 1 : 0;
           const cellColumn = Math.min(8, Math.max(0, Math.floor(dropX / cellWidth)));
           
           // Position pallet in the appropriate cell with proper spacing
-          const rowTopOffset = cellRow === 0 ? 10 : 93; // top margin for each row
+          const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
           
           // Position within grid cell
           newX = (cellColumn * cellWidth) + 2;
@@ -513,8 +513,8 @@ export default function LoadPlanningPage() {
           
           // Update the pallet size to fit the grid cell
           draggedPallet.size = {
-            width: 63,
-            height: 78
+            width: 71,
+            height: 87
           };
         } else {
           // For other aircraft types
@@ -723,10 +723,10 @@ export default function LoadPlanningPage() {
                             key={`cell-row1-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 68,
+                              left: i * 76,
                               top: 10,
-                              width: 63,
-                              height: 78,
+                              width: 71,
+                              height: 87,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           ></div>
@@ -738,10 +738,10 @@ export default function LoadPlanningPage() {
                             key={`cell-row2-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 68,
-                              top: 93, 
-                              width: 63,
-                              height: 78,
+                              left: i * 76,
+                              top: 105, 
+                              width: 71,
+                              height: 87,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           ></div>
@@ -986,10 +986,10 @@ export default function LoadPlanningPage() {
                           key={`storage-row1-${i}`} 
                           className="absolute border-2 border-green-800/80 rounded-sm"
                           style={{
-                            left: i * 95,
+                            left: i * 76,
                             top: 10,
-                            width: 90,
-                            height: 110,
+                            width: 71,
+                            height: 87,
                             backgroundColor: 'rgba(20, 83, 45, 0.15)'
                           }}
                         ></div>
@@ -1001,10 +1001,10 @@ export default function LoadPlanningPage() {
                           key={`storage-row2-${i}`} 
                           className="absolute border-2 border-green-800/80 rounded-sm"
                           style={{
-                            left: i * 95,
-                            top: 130, 
-                            width: 90,
-                            height: 110,
+                            left: i * 76,
+                            top: 105, 
+                            width: 71,
+                            height: 87,
                             backgroundColor: 'rgba(20, 83, 45, 0.15)'
                           }}
                         ></div>
