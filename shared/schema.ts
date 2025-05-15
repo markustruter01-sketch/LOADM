@@ -1,4 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, foreignKey } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -36,8 +37,12 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
 // Document submission schema
 export const documentSubmissions = pgTable("document_submissions", {
   id: serial("id").primaryKey(),
-  documentId: integer("document_id").notNull(),
-  userId: integer("user_id").notNull(),
+  documentId: integer("document_id")
+    .notNull()
+    .references(() => documents.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   submissionDate: timestamp("submission_date").defaultNow().notNull(),
   formData: json("form_data").notNull(),
 });
@@ -67,8 +72,12 @@ export const insertScenarioSchema = createInsertSchema(scenarios).pick({
 // Scenario submission schema
 export const scenarioSubmissions = pgTable("scenario_submissions", {
   id: serial("id").primaryKey(),
-  scenarioId: integer("scenario_id").notNull(),
-  userId: integer("user_id").notNull(),
+  scenarioId: integer("scenario_id")
+    .notNull()
+    .references(() => scenarios.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   submissionDate: timestamp("submission_date").defaultNow().notNull(),
   answers: json("answers").notNull(),
   score: integer("score"),
@@ -80,6 +89,42 @@ export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmiss
   answers: true,
   score: true,
 });
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  documentSubmissions: many(documentSubmissions),
+  scenarioSubmissions: many(scenarioSubmissions),
+}));
+
+export const documentsRelations = relations(documents, ({ many }) => ({
+  submissions: many(documentSubmissions),
+}));
+
+export const documentSubmissionsRelations = relations(documentSubmissions, ({ one }) => ({
+  document: one(documents, {
+    fields: [documentSubmissions.documentId],
+    references: [documents.id],
+  }),
+  user: one(users, {
+    fields: [documentSubmissions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const scenariosRelations = relations(scenarios, ({ many }) => ({
+  submissions: many(scenarioSubmissions),
+}));
+
+export const scenarioSubmissionsRelations = relations(scenarioSubmissions, ({ one }) => ({
+  scenario: one(scenarios, {
+    fields: [scenarioSubmissions.scenarioId],
+    references: [scenarios.id],
+  }),
+  user: one(users, {
+    fields: [scenarioSubmissions.userId],
+    references: [users.id],
+  }),
+}));
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
