@@ -1,188 +1,435 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Save, ArrowLeft, Calendar } from "lucide-react";
+import { Save, ArrowLeft, Printer } from "lucide-react";
 import { Helmet } from "react-helmet";
 
+// Cargo manifest form that looks like the PDF template from 25229.pdf
 export function CargoManifestForm() {
+  // State to store form data
   const [formData, setFormData] = useState({
-    manifestNumber: "",
-    origin: "",
-    destination: "",
+    crewName: "",
+    flightManagerInfo: "",
+    orderingUnit: "",
+    incident: "",
+    projectNumber: "",
     carrier: "",
-    flightNumber: "",
-    departureDate: "",
-    totalPieces: "",
-    totalWeight: "",
-    remarks: ""
+    departure: "",
+    etd: "",
+    arrival: "",
+    eta: "",
+    reportTo: "",
+    delayedContact: "",
+    // Array of passenger/cargo rows (23 in the PDF)
+    passengers: Array(23).fill("").map(() => ({
+      name: "",
+      gender: "",
+      passengerWeight: "",
+      cargoWeight: "",
+      position: "", 
+      homeUnit: ""
+    })),
+    passengerCount: "0",
+    passengerWeight: "0",
+    cargoWeight: "0",
+    totalWeight: "0",
+    signature: "",
+    date: ""
   });
 
-  const handleChange = (field: string, value: string) => {
-    setFormData({
-      ...formData,
+  // Handler for updating basic form fields
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
       [field]: value
+    }));
+  };
+
+  // Handler for updating passenger data
+  const handlePassengerChange = (index: number, field: string, value: string) => {
+    setFormData(prev => {
+      const newPassengers = [...prev.passengers];
+      newPassengers[index] = { ...newPassengers[index], [field]: value };
+      return {
+        ...prev,
+        passengers: newPassengers
+      };
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Save functionality would go here
-    console.log("Form submitted:", formData);
+  // Calculate total weights when form changes
+  const calculateTotals = () => {
+    const passengerCount = formData.passengers.filter(p => p.name.trim() !== "").length;
+    const passengerWeight = formData.passengers.reduce((sum, p) => {
+      return sum + (parseFloat(p.passengerWeight) || 0);
+    }, 0);
+    const cargoWeight = formData.passengers.reduce((sum, p) => {
+      return sum + (parseFloat(p.cargoWeight) || 0);
+    }, 0);
+    const totalWeight = passengerWeight + cargoWeight;
+
+    handleFieldChange("passengerCount", passengerCount.toString());
+    handleFieldChange("passengerWeight", passengerWeight.toString());
+    handleFieldChange("cargoWeight", cargoWeight.toString());
+    handleFieldChange("totalWeight", totalWeight.toString());
+  };
+
+  // Handler for the print button
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <>
       <Helmet>
         <title>Cargo Manifest - LOADMdocs</title>
-        <meta name="description" content="Complete cargo manifest information for military load planning" />
+        <style>
+          {`
+            @media print {
+              .no-print { display: none !important; }
+              .print-document { 
+                background-color: white !important;
+                box-shadow: none !important;
+                color: black !important;
+              }
+              .print-white {
+                color: black !important;
+              }
+              .print-document input, .print-document select, .print-document textarea {
+                border: none !important;
+                background: transparent !important;
+                color: black !important;
+              }
+              @page { margin: 0.5cm; }
+            }
+          `}
+        </style>
       </Helmet>
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => window.history.back()} 
-            className="text-orange-500 hover:text-orange-600 mr-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <h2 className="text-2xl font-bold text-white">Cargo Manifest</h2>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-6 mb-8">
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="manifestNumber" className="block text-white mb-2">
-                Manifest Number
-              </label>
-              <Input
-                id="manifestNumber"
-                placeholder="Enter manifest number"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.manifestNumber}
-                onChange={(e) => handleChange("manifestNumber", e.target.value)}
-              />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center mb-6 no-print">
+            <Button variant="ghost" onClick={() => window.history.back()} className="text-primary hover:text-primary/80 mr-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            <h2 className="text-2xl font-bold text-foreground">Passenger / Crew and Cargo Manifest</h2>
+          </div>
+
+          {/* A4-style paper container */}
+          <div className="bg-white rounded-lg shadow-lg p-8 mb-8 print-document" style={{ minHeight: "297mm", width: "100%", maxWidth: "210mm" }}>
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h1 className="text-xl font-bold text-black">Passenger / Crew and Cargo Manifest – TEST FORM</h1>
             </div>
-            
-            <div>
-              <label htmlFor="origin" className="block text-white mb-2">
-                Origin
-              </label>
-              <Input
-                id="origin"
-                placeholder="Enter origin airport code"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.origin}
-                onChange={(e) => handleChange("origin", e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="destination" className="block text-white mb-2">
-                Destination
-              </label>
-              <Input
-                id="destination"
-                placeholder="Enter destination airport code"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.destination}
-                onChange={(e) => handleChange("destination", e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="carrier" className="block text-white mb-2">
-                Carrier
-              </label>
-              <Input
-                id="carrier"
-                placeholder="Enter carrier name"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.carrier}
-                onChange={(e) => handleChange("carrier", e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="flightNumber" className="block text-white mb-2">
-                Flight Number
-              </label>
-              <Input
-                id="flightNumber"
-                placeholder="Enter flight number"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.flightNumber}
-                onChange={(e) => handleChange("flightNumber", e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="departureDate" className="block text-white mb-2">
-                Departure Date
-              </label>
-              <div className="relative">
-                <Input
-                  id="departureDate"
-                  placeholder="dd/mm/yyyy"
-                  className="bg-gray-900 border-gray-700 text-white pr-10"
-                  value={formData.departureDate}
-                  onChange={(e) => handleChange("departureDate", e.target.value)}
-                />
-                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+
+            {/* Top section */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex flex-col">
+                <div className="mb-2">
+                  <label className="text-sm text-black">Crew Name:</label>
+                  <Input 
+                    className="border-b border-gray-300 w-full text-black bg-transparent" 
+                    value={formData.crewName}
+                    onChange={(e) => handleFieldChange("crewName", e.target.value)}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="text-sm text-black">Ordering Unit:</label>
+                  <Input 
+                    className="border-b border-gray-300 w-full text-black bg-transparent" 
+                    value={formData.orderingUnit}
+                    onChange={(e) => handleFieldChange("orderingUnit", e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <div className="mb-2">
+                  <label className="text-sm text-black">Flight Manager Name & Phone:</label>
+                  <Input 
+                    className="border-b border-gray-300 w-full text-black bg-transparent"
+                    value={formData.flightManagerInfo}
+                    onChange={(e) => handleFieldChange("flightManagerInfo", e.target.value)}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="text-sm text-black">Incident / Project Name:</label>
+                  <Input 
+                    className="border-b border-gray-300 w-full text-black bg-transparent"
+                    value={formData.incident}
+                    onChange={(e) => handleFieldChange("incident", e.target.value)}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="text-sm text-black">Incident / Project Number:</label>
+                  <Input 
+                    className="border-b border-gray-300 w-full text-black bg-transparent"
+                    value={formData.projectNumber}
+                    onChange={(e) => handleFieldChange("projectNumber", e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-            
-            <div>
-              <label htmlFor="totalPieces" className="block text-white mb-2">
-                Total Pieces
-              </label>
-              <Input
-                id="totalPieces"
-                placeholder="Enter total pieces"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.totalPieces}
-                onChange={(e) => handleChange("totalPieces", e.target.value)}
-              />
+
+            {/* Carrier section */}
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="col-span-1">
+                <label className="text-sm text-black">Carrier Name or Vehicle List</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.carrier}
+                  onChange={(e) => handleFieldChange("carrier", e.target.value)}
+                />
+                <div className="text-xs text-gray-600 mt-1">Make / Model / License:</div>
+              </div>
+              <div className="col-span-1">
+                <label className="text-sm text-black">Departure Location:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.departure}
+                  onChange={(e) => handleFieldChange("departure", e.target.value)}
+                />
+                <label className="text-sm text-black mt-1">ETD:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.etd}
+                  onChange={(e) => handleFieldChange("etd", e.target.value)}
+                />
+              </div>
+              <div className="col-span-1">
+                <label className="text-sm text-black">Arrival Location:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.arrival}
+                  onChange={(e) => handleFieldChange("arrival", e.target.value)}
+                />
+                <label className="text-sm text-black mt-1">ETA:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.eta}
+                  onChange={(e) => handleFieldChange("eta", e.target.value)}
+                />
+              </div>
             </div>
-            
-            <div>
-              <label htmlFor="totalWeight" className="block text-white mb-2">
-                Total Weight (kg)
-              </label>
-              <Input
-                id="totalWeight"
-                placeholder="Enter total weight"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.totalWeight}
-                onChange={(e) => handleChange("totalWeight", e.target.value)}
-              />
+
+            {/* Report To and Delayed Contact */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="text-sm text-black">Report To:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.reportTo}
+                  onChange={(e) => handleFieldChange("reportTo", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-black">If Delayed, Contact:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.delayedContact}
+                  onChange={(e) => handleFieldChange("delayedContact", e.target.value)}
+                />
+              </div>
             </div>
-            
-            <div>
-              <label htmlFor="remarks" className="block text-white mb-2">
-                Remarks
-              </label>
-              <Input
-                id="remarks"
-                placeholder="Enter remarks"
-                className="bg-gray-900 border-gray-700 text-white"
-                value={formData.remarks}
-                onChange={(e) => handleChange("remarks", e.target.value)}
-              />
+
+            {/* Passenger Table */}
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full border-collapse border border-gray-300 text-black">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-left" style={{ width: "25px" }}>No.</th>
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-left">
+                      Passenger / Cargo Name
+                      <div className="text-xs">(Include contact numbers for leaders – CRWB, Asst. CRWB, CRWB-T, etc.)</div>
+                    </th>
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-center" style={{ width: "40px" }}>M/F</th>
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-center" style={{ width: "80px" }}>Passenger Weight</th>
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-center" style={{ width: "80px" }}>Cargo Weight</th>
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-center" style={{ width: "100px" }}>
+                      Position / AD Class
+                      <div className="text-xs">(e.g. FFT2/AD-C)</div>
+                    </th>
+                    <th className="border border-gray-300 px-2 py-1 text-sm text-center">Home Unit / Jetport</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {formData.passengers.map((passenger, index) => (
+                    <tr key={index}>
+                      <td className="border border-gray-300 px-2 py-1 text-sm text-center">{index + 1}</td>
+                      <td className="border border-gray-300 px-0 py-0">
+                        <Input 
+                          className="w-full h-8 border-0 text-black bg-transparent" 
+                          value={passenger.name}
+                          onChange={(e) => handlePassengerChange(index, "name", e.target.value)}
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-0 py-0">
+                        <Input 
+                          className="w-full h-8 border-0 text-black bg-transparent text-center" 
+                          value={passenger.gender}
+                          onChange={(e) => handlePassengerChange(index, "gender", e.target.value)}
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-0 py-0">
+                        <Input 
+                          className="w-full h-8 border-0 text-black bg-transparent text-center" 
+                          value={passenger.passengerWeight}
+                          onChange={(e) => {
+                            handlePassengerChange(index, "passengerWeight", e.target.value);
+                            calculateTotals();
+                          }}
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-0 py-0">
+                        <Input 
+                          className="w-full h-8 border-0 text-black bg-transparent text-center" 
+                          value={passenger.cargoWeight}
+                          onChange={(e) => {
+                            handlePassengerChange(index, "cargoWeight", e.target.value);
+                            calculateTotals();
+                          }}
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-0 py-0">
+                        <Input 
+                          className="w-full h-8 border-0 text-black bg-transparent text-center" 
+                          value={passenger.position}
+                          onChange={(e) => handlePassengerChange(index, "position", e.target.value)}
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-0 py-0">
+                        <Input 
+                          className="w-full h-8 border-0 text-black bg-transparent" 
+                          value={passenger.homeUnit}
+                          onChange={(e) => handlePassengerChange(index, "homeUnit", e.target.value)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-gray-100">
+                    <td colSpan={2} className="border border-gray-300 px-2 py-1 text-sm font-medium">
+                      Number of Passengers on Page: 
+                      <Input 
+                        className="w-16 ml-2 inline-block border-b border-gray-300 text-black bg-transparent" 
+                        value={formData.passengerCount}
+                        onChange={(e) => handleFieldChange("passengerCount", e.target.value)}
+                      />
+                    </td>
+                    <td colSpan={3} className="border border-gray-300 px-2 py-1 text-sm font-medium">
+                      Passenger Weight: 
+                      <Input 
+                        className="w-16 ml-2 inline-block border-b border-gray-300 text-black bg-transparent" 
+                        value={formData.passengerWeight}
+                        onChange={(e) => handleFieldChange("passengerWeight", e.target.value)}
+                      />
+                      <span className="mx-2">/</span>
+                      Cargo Weight: 
+                      <Input 
+                        className="w-16 ml-2 inline-block border-b border-gray-300 text-black bg-transparent" 
+                        value={formData.cargoWeight}
+                        onChange={(e) => handleFieldChange("cargoWeight", e.target.value)}
+                      />
+                    </td>
+                    <td colSpan={2} className="border border-gray-300 px-2 py-1 text-sm font-medium">
+                      Total Weight: 
+                      <Input 
+                        className="w-20 ml-2 inline-block border-b border-gray-300 text-black bg-transparent" 
+                        value={formData.totalWeight}
+                        onChange={(e) => handleFieldChange("totalWeight", e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
-            
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                Cancel
+
+            {/* Signature */}
+            <div className="grid grid-cols-2 gap-4 mb-4 mt-4">
+              <div>
+                <label className="text-sm text-black">Signature of Authorized Representative:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  value={formData.signature}
+                  onChange={(e) => handleFieldChange("signature", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-black">Date:</label>
+                <Input 
+                  className="border-b border-gray-300 w-full text-black bg-transparent"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => handleFieldChange("date", e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center text-xs text-gray-500 mt-8">
+              Send comments to wieacc@fs.fed.us by November 1, 2014 
+              <span className="float-right">05/14</span>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex justify-between space-x-4 no-print">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                if (confirm("Are you sure you want to reset the form? This will clear all entered data.")) {
+                  setFormData({
+                    crewName: "",
+                    flightManagerInfo: "",
+                    orderingUnit: "",
+                    incident: "",
+                    projectNumber: "",
+                    carrier: "",
+                    departure: "",
+                    etd: "",
+                    arrival: "",
+                    eta: "",
+                    reportTo: "",
+                    delayedContact: "",
+                    passengers: Array(23).fill("").map(() => ({
+                      name: "",
+                      gender: "",
+                      passengerWeight: "",
+                      cargoWeight: "",
+                      position: "",
+                      homeUnit: ""
+                    })),
+                    passengerCount: "0",
+                    passengerWeight: "0",
+                    cargoWeight: "0",
+                    totalWeight: "0",
+                    signature: "",
+                    date: ""
+                  });
+                }
+              }}
+            >
+              Reset Form
+            </Button>
+            <div>
+              <Button 
+                variant="outline" 
+                className="mr-2"
+                onClick={handlePrint}
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Print Form
               </Button>
-              <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+              <Button 
+                className="bg-primary hover:bg-primary/90 text-white"
+              >
                 <Save className="mr-2 h-4 w-4" />
-                Save Manifest
+                Save Form
               </Button>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </>
   );
