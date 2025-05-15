@@ -1359,42 +1359,152 @@ export default function LoadPlanningPage() {
                           return (
                             <>
                               {/* First row */}
-                              {[...Array(config.cols)].map((_, i) => (
-                                <div 
-                                  key={`cell-row1-${i}`} 
-                                  className="absolute border-2 border-green-800/80 rounded-sm"
-                                  style={{
-                                    left: i * cellSpacing,
-                                    top: 10,
-                                    width: config.cellWidth,
-                                    height: config.cellHeight,
-                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                                  }}
-                                >
-                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
-                                    P{i + 1}
+                              {[...Array(config.cols)].map((_, i) => {
+                                // Calculate position label for this grid cell
+                                const positionLabel = `P${i + 1}`;
+                                
+                                // Find if a pallet is assigned to this position
+                                const assignedPallet = pallets.find(p => 
+                                  p.location === "cargo" && 
+                                  p.positionLabel === positionLabel
+                                );
+                                
+                                // Determine cell background color based on occupation
+                                const bgColor = assignedPallet ? 
+                                  'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                  'rgba(20, 83, 45, 0.15)';   // Green for empty
+                                
+                                // Determine border color based on occupation
+                                const borderColor = assignedPallet ?
+                                  'border-orange-500' :      // Orange border for occupied
+                                  'border-green-800/80';     // Green border for empty
+                                
+                                return (
+                                  <div 
+                                    key={`cell-row1-${i}`} 
+                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    style={{
+                                      left: i * cellSpacing,
+                                      top: 10,
+                                      width: config.cellWidth,
+                                      height: config.cellHeight,
+                                      backgroundColor: bgColor
+                                    }}
+                                  >
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                      {/* Position label - always shown */}
+                                      <div className="absolute top-1 left-1">
+                                        <span className="text-xs font-medium bg-white/20 px-1 rounded text-white">
+                                          {positionLabel}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* If no pallet is assigned, show pale label in center */}
+                                      {!assignedPallet && (
+                                        <div className="text-white/50 font-bold text-lg">
+                                          {positionLabel}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Weight info - only if position is occupied */}
+                                      {assignedPallet && (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                          {assignedPallet.weight !== null ? 
+                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span className="text-white/80">No weight</span>
+                                          }
+                                        </div>
+                                      )}
+                                      
+                                      {/* Cargo type badge - only if position is occupied */}
+                                      {assignedPallet && assignedPallet.cargoType && (
+                                        <div className="absolute top-1 right-1">
+                                          <Badge 
+                                            variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                            className="text-xs px-1"
+                                          >
+                                            {assignedPallet.cargoType}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                               
                               {/* Second row */}
-                              {[...Array(config.cols)].map((_, i) => (
-                                <div 
-                                  key={`cell-row2-${i}`} 
-                                  className="absolute border-2 border-green-800/80 rounded-sm"
-                                  style={{
-                                    left: i * cellSpacing,
-                                    top: 105, 
-                                    width: config.cellWidth,
-                                    height: config.cellHeight,
-                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                                  }}
-                                >
-                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-lg">
-                                    P{i + 10}
+                              {[...Array(config.cols)].map((_, i) => {
+                                // Calculate position label for this grid cell (for second row, add 10 to position number)
+                                const positionLabel = `P${i + 10}`;
+                                
+                                // Find if a pallet is assigned to this position
+                                const assignedPallet = pallets.find(p => 
+                                  p.location === "cargo" && 
+                                  p.positionLabel === positionLabel
+                                );
+                                
+                                // Determine cell background color based on occupation
+                                const bgColor = assignedPallet ? 
+                                  'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                  'rgba(20, 83, 45, 0.15)';   // Green for empty
+                                
+                                // Determine border color based on occupation
+                                const borderColor = assignedPallet ?
+                                  'border-orange-500' :      // Orange border for occupied
+                                  'border-green-800/80';     // Green border for empty
+                                
+                                return (
+                                  <div 
+                                    key={`cell-row2-${i}`} 
+                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    style={{
+                                      left: i * cellSpacing,
+                                      top: 105, 
+                                      width: config.cellWidth,
+                                      height: config.cellHeight,
+                                      backgroundColor: bgColor
+                                    }}
+                                  >
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                      {/* Position label - always shown */}
+                                      <div className="absolute top-1 left-1">
+                                        <span className="text-xs font-medium bg-white/20 px-1 rounded text-white">
+                                          {positionLabel}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* If no pallet is assigned, show pale label in center */}
+                                      {!assignedPallet && (
+                                        <div className="text-white/50 font-bold text-lg">
+                                          {positionLabel}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Weight info - only if position is occupied */}
+                                      {assignedPallet && (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                          {assignedPallet.weight !== null ? 
+                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span className="text-white/80">No weight</span>
+                                          }
+                                        </div>
+                                      )}
+                                      
+                                      {/* Cargo type badge - only if position is occupied */}
+                                      {assignedPallet && assignedPallet.cargoType && (
+                                        <div className="absolute top-1 right-1">
+                                          <Badge 
+                                            variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                            className="text-xs px-1"
+                                          >
+                                            {assignedPallet.cargoType}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </>
                           );
                         })()}
@@ -1411,23 +1521,78 @@ export default function LoadPlanningPage() {
                           return (
                             <>
                               {/* First row */}
-                              {[...Array(config.cols)].map((_, i) => (
-                                <div 
-                                  key={`c130-row1-${i}`} 
-                                  className="absolute border-2 border-green-800/80 rounded-sm"
-                                  style={{
-                                    left: i * cellSpacing,
-                                    top: 10,
-                                    width: config.cellWidth,
-                                    height: config.cellHeight,
-                                    backgroundColor: 'rgba(20, 83, 45, 0.15)'
-                                  }}
-                                >
-                                  <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-xl">
-                                    P{i + 1}
+                              {[...Array(config.cols)].map((_, i) => {
+                                // Calculate position label for this grid cell
+                                const positionLabel = `P${i + 1}`;
+                                
+                                // Find if a pallet is assigned to this position
+                                const assignedPallet = pallets.find(p => 
+                                  p.location === "cargo" && 
+                                  p.positionLabel === positionLabel
+                                );
+                                
+                                // Determine cell background color based on occupation
+                                const bgColor = assignedPallet ? 
+                                  'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                  'rgba(20, 83, 45, 0.15)';   // Green for empty
+                                
+                                // Determine border color based on occupation
+                                const borderColor = assignedPallet ?
+                                  'border-orange-500' :      // Orange border for occupied
+                                  'border-green-800/80';     // Green border for empty
+                                
+                                return (
+                                  <div 
+                                    key={`c130-row1-${i}`} 
+                                    className={`absolute border-2 ${borderColor} rounded-sm`}
+                                    style={{
+                                      left: i * cellSpacing,
+                                      top: 10,
+                                      width: config.cellWidth,
+                                      height: config.cellHeight,
+                                      backgroundColor: bgColor
+                                    }}
+                                  >
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                      {/* Position label - always shown */}
+                                      <div className="absolute top-1 left-1">
+                                        <span className="text-xs font-medium bg-white/20 px-1 rounded text-white">
+                                          {positionLabel}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* If no pallet is assigned, show pale label in center */}
+                                      {!assignedPallet && (
+                                        <div className="text-white/50 font-bold text-xl">
+                                          {positionLabel}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Weight info - only if position is occupied */}
+                                      {assignedPallet && (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                          {assignedPallet.weight !== null ? 
+                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span className="text-white/80">No weight</span>
+                                          }
+                                        </div>
+                                      )}
+                                      
+                                      {/* Cargo type badge - only if position is occupied */}
+                                      {assignedPallet && assignedPallet.cargoType && (
+                                        <div className="absolute top-1 right-1">
+                                          <Badge 
+                                            variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                            className="text-xs px-1"
+                                          >
+                                            {assignedPallet.cargoType}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                               
                               {/* Second row */}
                               {[...Array(config.cols)].map((_, i) => (
