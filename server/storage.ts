@@ -70,12 +70,16 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000, // Clear expired sessions every 24h
     });
     
-    // Create an admin user
-    this.createUser({
+    // Create an admin user - store directly with pre-hashed password
+    const adminId = this.currentUserId++;
+    const adminUser: User = {
+      id: adminId,
       username: "admin",
-      password: "$2b$10$ckzUGuvsOzDr2Af1dP0CO.AIpTIvGGLiGKgGTANaHoK5eX9sWsQHy", // "adminpassword"
+      // Pre-hashed version of "adminpassword" using our hash algorithm
+      password: "c9a296801d0dbb46fda407f3e66b0dc4bd2a1710ae25679a5a3aee380c2d720b8b5eb26d69b962a8df0887544ed530edd5cf104ef175845b64ee3f9a158d16ad.e4be0aba9c1c64eb9ba018c11f3ad0e2",
       isAdmin: true,
-    });
+    };
+    this.users.set(adminId, adminUser);
     
     // Seed some initial documents
     this.createDocument({

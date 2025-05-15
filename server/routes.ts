@@ -204,10 +204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Special endpoint to update a scenario's questions
   app.patch("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() && !(req.user?.isAdmin)) {
-        // For demonstration purposes, we'll allow this without authentication
-        // In production, uncomment the line below:
-        // return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
       }
       
       const scenarioId = parseInt(req.params.id);
@@ -218,17 +216,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Scenario not found" });
       }
       
-      // Update only the fields provided in the request body
-      const scenarioData = {
-        ...req.body
-      };
+      // Validate and sanitize the request body
+      const scenarioData = insertScenarioSchema.partial().parse(req.body);
       
       const scenario = await storage.updateScenario(scenarioId, scenarioData);
       
       res.json(scenario);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid scenario data", errors: error.errors });
+      }
       console.error("Error updating scenario:", error);
-      res.status(500).json({ message: "Failed to update scenario questions" });
+      res.status(500).json({ message: "Failed to update scenario" });
     }
   });
   
