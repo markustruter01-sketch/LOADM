@@ -792,7 +792,7 @@ export default function LoadPlanningPage() {
               const reducedHeight = Math.floor(cellHeight * 0.9);
               
               // Calculate snap position (centered in cell)
-              snapX = col * 120 + (cellWidth - reducedWidth) / 2;
+              snapX = col * 144 + (cellWidth - reducedWidth) / 2;
               snapY = 20 + (cellHeight - reducedHeight) / 2;
               
               // Update the pallet size to be 10% smaller
@@ -883,9 +883,9 @@ export default function LoadPlanningPage() {
         } else {
           // For C-27J/KC30-A with 3x1 grid
           for (let col = 0; col < 3; col++) {
-            const cellWidth = 110;
-            const cellHeight = 80;
-            const cellX = col * 120 + cellWidth/2; // center of cell
+            const cellWidth = 132;
+            const cellHeight = 96;
+            const cellX = col * 144 + cellWidth/2; // center of cell
             const cellY = 20 + cellHeight/2; // center of cell
             
             const distance = Math.sqrt(
@@ -897,7 +897,7 @@ export default function LoadPlanningPage() {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
               // Calculate snap position (centered in cell)
-              snapX = col * 120 + (cellWidth - draggedPallet.size.width) / 2;
+              snapX = col * 144 + (cellWidth - draggedPallet.size.width) / 2;
               snapY = 20 + (cellHeight - draggedPallet.size.height) / 2;
             }
           }
@@ -1235,10 +1235,10 @@ export default function LoadPlanningPage() {
                             key={`spartan-${i}`} 
                             className="absolute border-2 border-green-800/80 rounded-sm"
                             style={{
-                              left: i * 120,
+                              left: i * 144,
                               top: 20,
-                              width: 110,
-                              height: 80,
+                              width: 132,
+                              height: 96,
                               backgroundColor: 'rgba(20, 83, 45, 0.15)'
                             }}
                           >
