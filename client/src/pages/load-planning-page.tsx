@@ -299,12 +299,20 @@ export default function LoadPlanningPage() {
                       
                       {/* Draggable pallet representation */}
                       <div 
-                        className="mt-2 bg-orange-500/70 border-2 border-orange-500 rounded p-2 flex items-center justify-center cursor-move"
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, pallet.id)}
+                        className={`mt-2 rounded p-2 flex items-center justify-center ${
+                          pallet.location !== "configure" 
+                            ? "bg-gray-500/30 border-2 border-gray-500/50 text-gray-400 cursor-not-allowed"
+                            : "bg-orange-500/70 border-2 border-orange-500 cursor-move"
+                        }`}
+                        draggable={pallet.location === "configure"}
+                        onDragStart={(e) => pallet.location === "configure" && handleDragStart(e, pallet.id)}
                       >
-                        <Package2 className="h-4 w-4 mr-1" />
-                        <span className="text-xs font-medium">Drag Pallet {pallet.id} ({pallet.weight} kg)</span>
+                        <Package2 className={`h-4 w-4 mr-1 ${pallet.location !== "configure" ? "text-gray-400" : ""}`} />
+                        <span className="text-xs font-medium">
+                          {pallet.location === "configure" 
+                            ? `Drag Pallet ${pallet.id} (${pallet.weight} kg)` 
+                            : `Pallet ${pallet.id} is ${pallet.location === "cargo" ? "in cargo" : "in storage"}`}
+                        </span>
                       </div>
                     </div>
                   ))}
