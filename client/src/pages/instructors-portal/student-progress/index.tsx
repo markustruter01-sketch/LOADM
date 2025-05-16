@@ -200,6 +200,7 @@ export default function StudentProgress() {
                         <TableHead>Date Submitted</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Score</TableHead>
+                        <TableHead>Result</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -238,6 +239,23 @@ export default function StudentProgress() {
                               {submission.score !== null && submission.score !== undefined
                                 ? `${submission.score}%`
                                 : "Not scored"}
+                            </TableCell>
+                            <TableCell>
+                              {submission.status === "reviewed" && submission.score !== null && submission.score !== undefined ? (
+                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  // Use the passed flag directly if available, otherwise calculate based on threshold
+                                  (submission.passed === true || 
+                                   (submission.passed === undefined && submission.score >= (scenario?.passingThreshold || 70)))
+                                    ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400" 
+                                    : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"
+                                }`}>
+                                  {(submission.passed === true || 
+                                   (submission.passed === undefined && submission.score >= (scenario?.passingThreshold || 70)))
+                                    ? "Pass" : "Fail"}
+                                </div>
+                              ) : (
+                                "Pending"
+                              )}
                             </TableCell>
                             <TableCell className="text-right">
                               <Link href={`/instructors-portal/student-progress/${submission.id}`}>

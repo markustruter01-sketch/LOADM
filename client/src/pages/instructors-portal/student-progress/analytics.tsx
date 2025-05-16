@@ -80,17 +80,32 @@ export default function ScenarioAnalytics() {
       count
     }));
     
-    // Pie chart data - correct vs incorrect
-    const correctCount = filteredSubmissions.reduce((sum, sub) => {
+    // Find the scenarios for the submissions to get their passing thresholds
+    const scenarioMap = new Map<number, Scenario>();
+    scenarios?.forEach(scenario => {
+      scenarioMap.set(scenario.id, scenario);
+    });
+    
+    // Pie chart data - pass vs fail based on custom thresholds
+    const passCount = filteredSubmissions.reduce((sum, sub) => {
+      // Directly use the passed value if available (this will be set by the instructor when they mark the submission)
+      if (typeof sub.passed === 'boolean') {
+        return sum + (sub.passed ? 1 : 0);
+      }
+      
+      // As a fallback, calculate based on score and threshold
       const score = sub.score || 0;
-      return sum + (score >= 70 ? 1 : 0);
+      const scenario = scenarioMap.get(sub.scenarioId);
+      const passingThreshold = scenario?.passingThreshold || 70; // Default to 70% if not set
+      
+      return sum + (score >= passingThreshold ? 1 : 0);
     }, 0);
     
-    const incorrectCount = filteredSubmissions.length - correctCount;
+    const failCount = filteredSubmissions.length - passCount;
     
     const newPieData = [
-      { name: "Pass", value: correctCount },
-      { name: "Fail", value: incorrectCount }
+      { name: "Pass", value: passCount },
+      { name: "Fail", value: failCount }
     ];
     
     // Progress over time (by month)
