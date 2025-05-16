@@ -1648,7 +1648,7 @@ export default function LoadPlanningPage() {
                   >
                     {/* Grid lines */}
                     {currentAircraftId === 'c17' ? (
-                      <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0">
                         {/* Custom grid for 9x2 layout with 88x108 pallets */}
                         
                         {/* Grid cells for C-17 */}
@@ -1820,7 +1820,7 @@ export default function LoadPlanningPage() {
                         })()}
                       </div>
                     ) : currentAircraftId === 'c130' ? (
-                      <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0">
                         {/* Grid cells for C-130 - 8 pallets (4x2) */}
                         {(() => {
                           // Get configuration for C-130
