@@ -92,7 +92,7 @@ export default function HomePage() {
                   </Card>
                 </Link>
                 
-                <Link href="/auth" className="block">
+                <Link href="/profile" className="block">
                   <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
                     <CardContent className="flex flex-col items-center justify-center p-6">
                       <div className="rounded-full bg-primary/10 p-3 mb-4">

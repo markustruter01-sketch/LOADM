@@ -63,8 +63,8 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            location !== "/auth" && (
-              <Link href="/auth">
+            location !== "/auth" && location !== "/profile" && (
+              <Link href="/profile">
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
                   <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
                   <span className="sr-only">Login</span>

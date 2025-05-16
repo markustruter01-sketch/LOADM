@@ -16,6 +16,7 @@ import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page"; // Changed name but kept file
+import ProfilePage from "@/pages/profile-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
           <Route path="/documents" component={DocumentsPage} /> {/* Renamed from cargo-manifest */}
           <Route path="/cargo-manifest" component={DocumentsPage} /> {/* Keep old path working */}
+          <Route path="/profile" component={ProfilePage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
