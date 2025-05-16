@@ -28,8 +28,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Search, User } from "lucide-react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { ArrowLeft, BarChart4, FileText, Search, User } from "lucide-react";
 import { format } from 'date-fns';
+import ScenarioAnalytics from "./analytics";
 
 export default function StudentProgress() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,127 +119,147 @@ export default function StudentProgress() {
           </Card>
         </div>
         
-        {/* Filters */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Filter Submissions</CardTitle>
-            <CardDescription>Narrow down submissions by scenario or student</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="scenarioFilter">Scenario</Label>
-              <Select
-                value={scenarioFilter.toString()}
-                onValueChange={(value) => setScenarioFilter(value === "all" ? "all" : parseInt(value))}
-              >
-                <SelectTrigger id="scenarioFilter">
-                  <SelectValue placeholder="Select scenario" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Scenarios</SelectItem>
-                  {scenarios?.map((scenario) => (
-                    <SelectItem key={scenario.id} value={scenario.id.toString()}>
-                      {scenario.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="searchStudent">Search Student</Label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="searchStudent"
-                  placeholder="Search by name or ID..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Submissions Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Student Submissions</CardTitle>
-            <CardDescription>View and manage scenario submissions from students</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingSubmissions ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-              </div>
-            ) : filteredSubmissions?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>No submissions found matching your filters</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Scenario</TableHead>
-                    <TableHead>Date Submitted</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSubmissions?.map((submission) => {
-                    const scenario = scenarios?.find(s => s.id === submission.scenarioId);
-                    return (
-                      <TableRow key={submission.id}>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="bg-muted w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <div className="font-medium">{submission.studentName}</div>
-                              <div className="text-sm text-muted-foreground">ID: {submission.studentId}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{scenario?.title || `Scenario #${submission.scenarioId}`}</TableCell>
-                        <TableCell>
-                          {submission.submissionDate ? (
-                            format(new Date(submission.submissionDate), 'MMM d, yyyy')
-                          ) : 'Unknown date'}
-                        </TableCell>
-                        <TableCell>
-                          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            submission.status === "reviewed" 
-                              ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400" 
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400"
-                          }`}>
-                            {submission.status === "reviewed" ? "Reviewed" : "Pending Review"}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {submission.score !== null && submission.score !== undefined
-                            ? `${submission.score}%`
-                            : "Not scored"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link href={`/instructors-portal/student-progress/${submission.id}`}>
-                            <Button variant="outline" size="sm">
-                              Review
-                            </Button>
-                          </Link>
-                        </TableCell>
+        {/* Tabs for Submissions and Analytics */}
+        <Tabs defaultValue="submissions" className="mb-8">
+          <TabsList>
+            <TabsTrigger value="submissions" className="flex items-center">
+              <FileText className="h-4 w-4 mr-2" />
+              Submissions
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center">
+              <BarChart4 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="submissions" className="space-y-6 mt-6">
+            {/* Filters */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Filter Submissions</CardTitle>
+                <CardDescription>Narrow down submissions by scenario or student</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="scenarioFilter">Scenario</Label>
+                  <Select
+                    value={scenarioFilter.toString()}
+                    onValueChange={(value) => setScenarioFilter(value === "all" ? "all" : parseInt(value))}
+                  >
+                    <SelectTrigger id="scenarioFilter">
+                      <SelectValue placeholder="Select scenario" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Scenarios</SelectItem>
+                      {scenarios?.map((scenario) => (
+                        <SelectItem key={scenario.id} value={scenario.id.toString()}>
+                          {scenario.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="searchStudent">Search Student</Label>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="searchStudent"
+                      placeholder="Search by name or ID..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Submissions Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Student Submissions</CardTitle>
+                <CardDescription>View and manage scenario submissions from students</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingSubmissions ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+                  </div>
+                ) : filteredSubmissions?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <p>No submissions found matching your filters</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Student</TableHead>
+                        <TableHead>Scenario</TableHead>
+                        <TableHead>Date Submitted</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Score</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSubmissions?.map((submission) => {
+                        const scenario = scenarios?.find(s => s.id === submission.scenarioId);
+                        return (
+                          <TableRow key={submission.id}>
+                            <TableCell>
+                              <div className="flex items-center">
+                                <div className="bg-muted w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                                  <User className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <div>
+                                  <div className="font-medium">{submission.studentName}</div>
+                                  <div className="text-sm text-muted-foreground">ID: {submission.studentId}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{scenario?.title || `Scenario #${submission.scenarioId}`}</TableCell>
+                            <TableCell>
+                              {submission.submissionDate ? (
+                                format(new Date(submission.submissionDate), 'MMM d, yyyy')
+                              ) : 'Unknown date'}
+                            </TableCell>
+                            <TableCell>
+                              <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                submission.status === "reviewed" 
+                                  ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400" 
+                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400"
+                              }`}>
+                                {submission.status === "reviewed" ? "Reviewed" : "Pending Review"}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {submission.score !== null && submission.score !== undefined
+                                ? `${submission.score}%`
+                                : "Not scored"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Link href={`/instructors-portal/student-progress/${submission.id}`}>
+                                <Button variant="outline" size="sm">
+                                  Review
+                                </Button>
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-6 mt-6">
+            <ScenarioAnalytics />
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );
