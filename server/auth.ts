@@ -1,10 +1,38 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
+
+// Rate limiting for security
+const ONE_MINUTE = 60 * 1000;
+const MAX_AUTH_REQUESTS_PER_MINUTE = 10;
+
+// Simple in-memory rate limiter for auth endpoints
+const authRequestCounts: Record<string, { count: number, resetTime: number }> = {};
+
+function rateLimiter(req: Request, res: Response, next: NextFunction) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  
+  // Initialize or reset if time window has passed
+  if (!authRequestCounts[ip] || now > authRequestCounts[ip].resetTime) {
+    authRequestCounts[ip] = { count: 1, resetTime: now + ONE_MINUTE };
+    return next();
+  }
+  
+  // Increment count for existing IP
+  authRequestCounts[ip].count += 1;
+  
+  // Check if limit exceeded
+  if (authRequestCounts[ip].count > MAX_AUTH_REQUESTS_PER_MINUTE) {
+    return res.status(429).json({ message: "Too many authentication attempts, please try again later" });
+  }
+  
+  next();
+}
 import { User as SelectUser } from "@shared/schema";
 
 declare global {
@@ -73,26 +101,40 @@ export function setupAuth(app: Express) {
     done(null, user);
   });
 
-  app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
-    if (existingUser) {
-      return res.status(400).send("Username already exists");
+  app.post("/api/register", rateLimiter, async (req, res, next) => {
+    try {
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const user = await storage.createUser({
+        ...req.body,
+        password: await hashPassword(req.body.password),
+        isAdmin: false // Only set admin via direct DB access
+      });
+
+      req.login(user, (err) => {
+        if (err) return next(err);
+        
+        // Don't return the password hash in the response
+        const { password, ...safeUser } = user;
+        res.status(201).json(safeUser);
+      });
+    } catch (error) {
+      console.error("Register error:", error);
+      res.status(500).json({ message: "Failed to register user" });
     }
-
-    const user = await storage.createUser({
-      ...req.body,
-      password: await hashPassword(req.body.password),
-      isAdmin: false // Only set admin via direct DB access
-    });
-
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
-    });
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/login", rateLimiter, passport.authenticate("local"), (req, res) => {
+    // Don't return the password hash in the response
+    if (req.user) {
+      const { password, ...safeUser } = req.user as any;
+      res.status(200).json(safeUser);
+    } else {
+      res.status(401).json({ message: "Authentication failed" });
+    }
   });
 
   app.post("/api/logout", (req, res, next) => {
@@ -104,6 +146,13 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+    
+    // Don't return the password hash in the response
+    if (req.user) {
+      const { password, ...safeUser } = req.user as any;
+      res.json(safeUser);
+    } else {
+      res.sendStatus(401);
+    }
   });
 }

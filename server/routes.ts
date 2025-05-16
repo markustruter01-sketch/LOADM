@@ -1,9 +1,37 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema } from "@shared/schema";
+
+// Rate limiting for security
+const ONE_MINUTE = 60 * 1000;
+const MAX_REQUESTS_PER_MINUTE = 30;
+
+// Simple in-memory rate limiter for auth endpoints
+const requestCounts: Record<string, { count: number, resetTime: number }> = {};
+
+function rateLimiter(req: Request, res: Response, next: NextFunction) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  
+  // Initialize or reset if time window has passed
+  if (!requestCounts[ip] || now > requestCounts[ip].resetTime) {
+    requestCounts[ip] = { count: 1, resetTime: now + ONE_MINUTE };
+    return next();
+  }
+  
+  // Increment count for existing IP
+  requestCounts[ip].count += 1;
+  
+  // Check if limit exceeded
+  if (requestCounts[ip].count > MAX_REQUESTS_PER_MINUTE) {
+    return res.status(429).json({ message: "Too many requests, please try again later" });
+  }
+  
+  next();
+}
 import { db } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
