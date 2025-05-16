@@ -539,19 +539,31 @@ export default function LoadPlanningPage() {
     // Calculate Centre of Gravity value (18-88 degrees)
     // Map from -100:100 to 18:88 (70 degree range) with 2 decimal precision
     const cgExact = ((balance + 100) / 200) * 70 + 18;
-    const cg = parseFloat(cgExact.toFixed(2)); // Keep two decimal places
+    
+    // Convert to fixed string with 2 decimal places to display consistently
+    const cgFixedString = cgExact.toFixed(2);
+    
+    // Parse back to number for calculations - this helps with boundary checking
+    const cg = parseFloat(cgFixedString);
+    
+    // Set the state for display purposes
     setBalanceCG(cg);
     
-    // Show warning popup when CG reaches or exceeds limits
-    if (cg <= 18 || cg >= 88) {
+    // Let's directly check the rounded and string values
+    console.log(`CG Value: ${cg}, String Value: ${cgFixedString}`);
+    
+    // Special handling for the 88.00° case - directly check the string representation
+    if (cgFixedString === "88.00" || cgFixedString === "18.00" || cg <= 18 || cg >= 88) {
+      // Show the warning popup
       setShowOutOfLimitsWarning(true);
       
-      // Clear the warning after 5 seconds
+      // Log the exact value that triggered the warning
+      console.log(`WARNING: C of G value ${cgFixedString}° is at or beyond safety limits (18°-88°)`);
+      
+      // Clear the warning after 8 seconds
       setTimeout(() => {
         setShowOutOfLimitsWarning(false);
-      }, 5000);
-      
-      console.log(`WARNING: C of G value ${cg.toFixed(2)}° is at or beyond safety limits (18°-88°)`);
+      }, 8000);
     } else {
       // Ensure warning is cleared if CG is back in safe range
       setShowOutOfLimitsWarning(false);
