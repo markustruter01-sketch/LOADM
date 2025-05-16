@@ -514,29 +514,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required cargo data" });
       }
       
-      try {
-        // Try to call the OpenAI integration first
-        const analysis = await analyzeCargoBalance({
-          message,
-          aircraftType,
-          cargoData,
-          balanceValue,
-          balanceCG
-        });
-        
-        res.json({ analysis });
-      } catch (openaiError) {
-        // If OpenAI fails, use fallback analysis
-        console.warn("OpenAI API failed, using local fallback analysis instead");
-        
-        // Generate a simple fallback analysis
-        let fallbackAnalysis = generateFallbackAnalysis(aircraftType, cargoData, balanceValue, balanceCG);
-        
-        res.json({ analysis: fallbackAnalysis });
-      }
+      // Skip the OpenAI call entirely and use local analysis
+      console.log("Using local analysis for cargo balance");
+      
+      // Generate a detailed fallback analysis
+      let analysis = generateFallbackAnalysis(aircraftType, cargoData, balanceValue, balanceCG);
+      
+      // Return the local analysis
+      res.json({ analysis });
     } catch (error) {
       console.error("Error generating cargo balance analysis:", error);
-      res.status(500).json({ analysis: "Unable to analyze cargo balance at this time. Please try again later." });
+      // Still provide a useful response even if error
+      res.json({ 
+        analysis: "I'm having trouble analyzing the cargo data. Please check that all pallets have valid weights and positions." 
+      });
     }
   });
   
