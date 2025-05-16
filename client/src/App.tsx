@@ -13,7 +13,7 @@ import DocumentFormPage from "@/pages/document-form-page";
 import ScenarioPage from "@/pages/scenario-page-new";
 import DocsListPage from "@/pages/docs-list-page";
 import ScenariosPage from "@/pages/scenarios-page";
-import LoadPlanningPage from "@/pages/new-load-planning-page";
+import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page"; // Changed name but kept file
 import ProfilePage from "@/pages/profile-page";

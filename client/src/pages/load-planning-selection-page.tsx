@@ -68,11 +68,7 @@ export default function LoadPlanningSelectionPage() {
               <Card 
                 key={aircraft.id} 
                 className="hover:border-primary transition-colors cursor-pointer"
-                onClick={() => {
-                  navigate(aircraft.path);
-                  // Ensure page scrolls to top when navigating
-                  setTimeout(() => window.scrollTo(0, 0), 100);
-                }}
+                onClick={() => navigate(aircraft.path)}
               >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center">
