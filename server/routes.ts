@@ -473,6 +473,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passFailRatio 
       } = req.body;
       
+      // Check if there's enough data to generate meaningful insights
+      if (totalSubmissions < 2) {
+        return res.status(400).json({ 
+          message: "Insufficient data", 
+          error: "At least 2-3 submissions are required for meaningful analysis" 
+        });
+      }
+      
       const insightText = await generateAnalytics({
         scenarioName,
         selectedScenarioId,

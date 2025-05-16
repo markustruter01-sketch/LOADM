@@ -164,6 +164,11 @@ export default function ScenarioAnalytics() {
       const filteredSubmissions = selectedScenarioId === "all" 
         ? submissions || []
         : (submissions || []).filter(sub => sub.scenarioId === parseInt(selectedScenarioId));
+      
+      // Check if there's enough data for analysis
+      if (filteredSubmissions.length < 2) {
+        throw new Error("Insufficient data: At least 2-3 submissions are required for meaningful analysis");
+      }
 
       const analyticsData = {
         scenarioName: selectedScenarioName,
@@ -175,9 +180,20 @@ export default function ScenarioAnalytics() {
         passFailRatio: pieData
       };
 
-      const response = await apiRequest("POST", "/api/analytics/insights", analyticsData);
-      const data = await response.json();
-      return data.insight;
+      try {
+        const response = await apiRequest("POST", "/api/analytics/insights", analyticsData);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to generate analytics insights");
+        }
+        const data = await response.json();
+        return data.insight;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error("Failed to generate analytics insights");
+      }
     },
     onSuccess: (insight: string) => {
       setAiInsight(insight);
@@ -187,11 +203,20 @@ export default function ScenarioAnalytics() {
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: "AI Analysis Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Display specialized toast for insufficient data
+      if (error.message.includes("Insufficient data")) {
+        toast({
+          title: "Insufficient Data for Analysis",
+          description: "At least 2-3 submissions are required to generate meaningful insights.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "AI Analysis Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     }
   });
 
