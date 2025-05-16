@@ -71,10 +71,14 @@ export default function SubmissionReview() {
           const marked = JSON.parse(data.markedAnswers as string);
           if (typeof marked === 'object') {
             setMarkedAnswers(marked);
+            console.log("Initialized marked answers:", marked);
           }
         } catch (e) {
           console.error("Failed to parse marked answers:", e);
         }
+      } else {
+        // Reset marked answers if none exist
+        setMarkedAnswers({});
       }
     }
   });
@@ -226,9 +230,15 @@ export default function SubmissionReview() {
   };
   
   // Calculate current score
-  const correctAnswers = Object.values(markedAnswers).filter(Boolean).length;
-  const totalQuestions = questions.length;
+  const correctAnswers = Object.values(markedAnswers).filter(Boolean).length || 0;
+  const totalQuestions = questions.length || 0;
   const currentScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  
+  // Debug calculations
+  console.log("Marked answers:", markedAnswers);
+  console.log("Correct answers:", correctAnswers);
+  console.log("Total questions:", totalQuestions);
+  console.log("Current score:", currentScore);
   
   if (isLoadingSubmission) {
     return (
