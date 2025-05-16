@@ -2047,95 +2047,18 @@ export default function LoadPlanningPage() {
                           );
                         })()}
                       </div>
-                    ) : (
-                      <div className="absolute inset-0">
-                        {/* Grid cells for C-27J/KC30-A - 3 pallets (3x1) */}
-                        {(() => {
-                          // Get configuration for current aircraft (C-27J or KC30-A)
-                          const config = getAircraftGridConfig(currentAircraftId);
-                          const cellSpacing = config.cellWidth + config.cellPadding;
-                          
-                          return [...Array(config.cols)].map((_, i) => {
-                            // Calculate position label for this grid cell
-                            const positionLabel = `P${i + 1}`;
-                            
-                            // Find if a pallet is assigned to this position
-                            const assignedPallet = pallets.find(p => 
-                              p.location === "cargo" && 
-                              p.positionLabel === positionLabel
-                            );
-                            
-                            // Determine cell background color based on occupation
-                            const bgColor = assignedPallet ? 
-                              'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
-                              'rgba(20, 83, 45, 0.15)';   // Green for empty
-                            
-                            // Determine border color based on occupation
-                            const borderColor = assignedPallet ?
-                              'border-orange-500' :      // Orange border for occupied
-                              'border-green-800/80';     // Green border for empty
-                            
-                            return (
-                              <div 
-                                key={`spartan-${i}`}
-                                data-position-key={`spartan-${i}`}
-                                data-position-number={i+1}
-                                draggable={assignedPallet ? true : false}
-                                onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                onDragEnd={(e) => {
-                                  console.log("Drag ended for spartan/KC30-A cell", positionLabel);
-                                }}
-                                onClick={(e) => {
-                                  if (assignedPallet) {
-                                    console.log("CLICKING PALLET", assignedPallet.id, positionLabel);
-                                    handlePalletCellClick(e, assignedPallet, positionLabel);
-                                  }
-                                }}
-                                className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
-                                style={{
-                                  left: i * cellSpacing,
-                                  top: 20,
-                                  width: config.cellWidth,
-                                  height: config.cellHeight,
-                                  backgroundColor: bgColor,
-                                  zIndex: assignedPallet ? 10 : 1
-                                }}
-                              >
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  {/* Only show the center label now, corner label removed */}
-                                  {/* If no pallet is assigned, show pale label in center */}
-                                  {!assignedPallet && (
-                                    <div className="text-white/50 font-bold text-xl">
-                                      {positionLabel}
-                                    </div>
-                                  )}
-                                  
-                                  {/* Weight info - only if position is occupied */}
-                                  {assignedPallet && (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
-                                      {assignedPallet.weight !== null ? 
-                                        <span>{assignedPallet.weight} kg</span> : 
-                                        <span className="text-white/80">No weight</span>
-                                      }
-                                    </div>
-                                  )}
-                                  
-                                  {/* Cargo type badge - only if position is occupied */}
-                                  {assignedPallet && assignedPallet.cargoType && (
-                                    <div className="absolute top-1 right-1">
-                                      <Badge 
-                                        variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
-                                        className="text-xs px-1"
-                                      >
-                                        {assignedPallet.cargoType}
-                                      </Badge>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
+                    ) : currentAircraftId === 'kc30a' ? (
+                      <div className="absolute inset-0 flex flex-col">
+                        <div className="text-center mb-4 text-white">
+                          KC30-A Layout - 30 Pallet Positions
+                        </div>
+                        
+                        {/* White dividing line */}
+                        <div className="w-full h-0.5 bg-white opacity-50 my-4"></div>
+                        
+                        <div className="text-sm text-white/70 mb-2">
+                          AFT SECTION (14 positions) + FORWARD SECTION (16 positions)
+                        </div>
                       </div>
                     )}
                     
