@@ -222,11 +222,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createScenarioSubmission(insertSubmission: InsertScenarioSubmission): Promise<ScenarioSubmission> {
-    const [submission] = await db
-      .insert(scenarioSubmissions)
-      .values(insertSubmission)
-      .returning();
-    return submission;
+    try {
+      // Directly execute SQL to create scenario submission with proper typing
+      const result = await db.execute(
+        `INSERT INTO scenario_submissions 
+        (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
+        VALUES 
+        ($1, $2, NOW(), $3, $4, $5, $6) 
+        RETURNING *`,
+        [
+          insertSubmission.scenarioId,
+          insertSubmission.userId,
+          insertSubmission.answers,
+          insertSubmission.status || 'pending',
+          insertSubmission.studentName,
+          insertSubmission.studentId
+        ]
+      );
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in createScenarioSubmission:", error);
+      throw error;
+    }
   }
 
   async updateScenarioSubmission(id: number, updateSubmission: Partial<InsertScenarioSubmission>): Promise<ScenarioSubmission | undefined> {
