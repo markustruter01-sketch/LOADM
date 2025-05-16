@@ -31,10 +31,10 @@ export default function BottomNav() {
       active: location === "/documents" || location === "/cargo-manifest" || location.startsWith("/documents/")
     },
     {
-      href: "/auth",
+      href: "/profile",
       label: "Profile",
       icon: UserCircle,
-      active: location === "/auth"
+      active: location === "/profile" || location === "/auth" || location.startsWith("/instructors-portal")
     }
   ];
 
