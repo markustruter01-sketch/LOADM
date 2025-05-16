@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1600,17 +1600,7 @@ export default function LoadPlanningPage() {
                   {/* Storage area has been removed */}
                 </div>
 
-                {/* AI-powered cargo balance chat */}
-                <div className="mt-4">
-                  <LoadBalanceChat 
-                    cargoData={pallets.filter(p => p.location === "cargo")} 
-                    balanceData={{
-                      balanceValue: balanceValue,
-                      balanceCG: balanceCG
-                    }}
-                    aircraftType={currentAircraftId}
-                  />
-                </div>
+                {/* AI-powered cargo balance chat moved to bottom of page */}
               </CardContent>
             </Card>
             
@@ -2392,6 +2382,26 @@ export default function LoadPlanningPage() {
                         : 'C-27J Spartan maximum payload is 11,300 kg with 3 pallet positions.'}
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* AI-powered cargo balance chat - moved to bottom of page */}
+            <Card className="mt-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center">
+                  <MessagesSquare className="h-5 w-5 mr-2 text-primary" />
+                  Cargo Balance Assistant
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LoadBalanceChat 
+                  cargoData={pallets.filter(p => p.location === "cargo")} 
+                  balanceData={{
+                    balanceValue: balanceValue,
+                    balanceCG: balanceCG
+                  }}
+                  aircraftType={currentAircraftId}
+                />
               </CardContent>
             </Card>
           </div>
