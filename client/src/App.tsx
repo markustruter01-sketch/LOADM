@@ -22,7 +22,7 @@ import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
 import InstructorsPortal from "@/pages/instructors-portal";
 import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
-import CreateScenario from "@/pages/instructors-portal/scenarios/create";
+import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
 import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
 import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";

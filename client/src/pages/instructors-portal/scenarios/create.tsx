@@ -45,8 +45,17 @@ const scenarioFormSchema = insertScenarioSchema.extend({
       id: z.string().min(1, "Question ID is required").default(""),
       question: z.string().min(1, "Question text is required"),
       questionType: z.enum(["multiple-choice", "free-text"]),
-      options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
+      options: z.array(z.string()),
       correctAnswer: z.string().optional(),
+    }).refine(data => {
+      // Only require options for multiple-choice questions
+      if (data.questionType === "multiple-choice") {
+        return data.options.length >= 2 && data.options.every(opt => opt.trim().length > 0);
+      }
+      return true;
+    }, {
+      message: "Multiple-choice questions require at least 2 non-empty options",
+      path: ["options"]
     })
   ),
 });
@@ -81,43 +90,82 @@ export default function CreateScenario() {
   
   // Create a manual form submit handler
   function handleManualSubmit() {
-    // Validate the form first
-    form.trigger().then(isValid => {
-      if (!isValid) {
+    // Get current form values
+    const data = form.getValues();
+    
+    // Validate only basic requirements manually
+    if (!data.title.trim()) {
+      toast({
+        title: "Missing title",
+        description: "Please enter a title for the scenario",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!data.description.trim()) {
+      toast({
+        title: "Missing description",
+        description: "Please enter a description for the scenario",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate each question
+    for (let i = 0; i < data.questions.length; i++) {
+      const q = data.questions[i];
+      
+      if (!q.question.trim()) {
         toast({
-          title: "Validation Error",
-          description: "Please check the form for errors",
+          title: "Empty question",
+          description: `Question ${i+1} has no text`,
           variant: "destructive"
         });
         return;
       }
       
-      // Proceed with submission
-      const data = form.getValues();
-      setIsSubmitting(true);
-      
-      // Update numberOfQuestions field
-      data.numberOfQuestions = data.questions.length;
-      
-      // Check if any questions are missing correct answers
-      const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
-      if (missingAnswers) {
-        toast({
-          title: "Warning",
-          description: "Some questions don't have correct answers specified. Students won't receive automatic scoring.",
-          variant: "destructive",
-        });
+      // For multiple-choice questions, validate options
+      if (q.questionType === "multiple-choice") {
+        const validOptions = q.options.filter(opt => opt.trim().length > 0);
+        if (validOptions.length < 2) {
+          toast({
+            title: "Insufficient options",
+            description: `Question ${i+1} needs at least 2 answer options`,
+            variant: "destructive"
+          });
+          return;
+        }
       }
-      
-      // Submit the data
-      fetch("/api/scenarios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data),
-        credentials: "include"
-      })
+    }
+    
+    // All validation passed, proceed with submission
+    setIsSubmitting(true);
+    
+    // Update numberOfQuestions field
+    data.numberOfQuestions = data.questions.length;
+    
+    // Check if any questions are missing correct answers
+    const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
+    if (missingAnswers) {
+      toast({
+        title: "Warning",
+        description: "Some questions don't have correct answers specified. Students won't receive automatic scoring.",
+        variant: "warning"
+      });
+    }
+    
+    console.log("Submitting scenario:", data);
+    
+    // Submit the data
+    fetch("/api/scenarios", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+      credentials: "include"
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error(`Server error (${response.status})`);
