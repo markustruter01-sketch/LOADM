@@ -107,9 +107,10 @@ export default function AuthPage() {
               onValueChange={setActiveTab}
               className="space-y-6"
             >
-              <TabsList className="grid grid-cols-2 w-full">
+              <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsTrigger value="superadmin">Super Admin</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="space-y-6">
@@ -218,6 +219,86 @@ export default function AuthPage() {
                         </>
                       ) : (
                         "Create Account"
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+              
+              {/* Super Admin Login Tab */}
+              <TabsContent value="superadmin" className="space-y-6">
+                <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/50 rounded-md p-4 mb-4">
+                  <p className="text-amber-800 dark:text-amber-200 text-sm flex items-center">
+                    <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Super Admin access is restricted to authorized personnel only.
+                  </p>
+                </div>
+                
+                <Form {...loginForm}>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const email = "markustruter01@gmail.com";
+                    const password = "ThisIsLOADMWorkflowPassword1!";
+                    
+                    if (loginForm.getValues().username === "superadmin" && 
+                        loginForm.getValues().password === password) {
+                      loginMutation.mutate({
+                        username: "superadmin",
+                        password: password
+                      });
+                    } else {
+                      loginForm.setError("username", { 
+                        type: "manual", 
+                        message: "Invalid Super Admin credentials" 
+                      });
+                      loginForm.setError("password", { 
+                        type: "manual", 
+                        message: "Invalid Super Admin credentials" 
+                      });
+                    }
+                  }} className="space-y-6">
+                    <FormField
+                      control={loginForm.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Username</FormLabel>
+                          <FormControl>
+                            <Input placeholder="superadmin" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={loginForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Enter Super Admin password" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                      disabled={loginMutation.isPending}
+                    >
+                      {loginMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Authenticating...
+                        </>
+                      ) : (
+                        "Super Admin Login"
                       )}
                     </Button>
                   </form>
