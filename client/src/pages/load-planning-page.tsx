@@ -139,8 +139,22 @@ export default function LoadPlanningPage() {
           palletHeight: c130CellHeight * 0.9
         };
       
-      default: // c27j, kc30a
-        // C-27J/KC30-A has 3 columns in 1 row
+      case 'kc30a':
+        // KC30-A has 13 columns in 2 rows (26 pallets total)
+        const kc30aCellWidth = totalWidth / 13;
+        const kc30aCellHeight = 50; // Smaller height to fit 2 rows
+        return {
+          rows: 2,
+          cols: 13,
+          cellWidth: kc30aCellWidth,
+          cellHeight: kc30aCellHeight,
+          cellPadding: 0, // No padding to ensure perfect alignment
+          palletWidth: kc30aCellWidth * 0.9,
+          palletHeight: kc30aCellHeight * 0.9
+        };
+        
+      default: // c27j
+        // C-27J has 3 columns in 1 row
         const spartanCellWidth = totalWidth / 3;
         const spartanCellHeight = 96;
         return {
@@ -1517,40 +1531,40 @@ export default function LoadPlanningPage() {
       {warningPopup && (
         <div style={{
           position: 'fixed',
-          top: '100px',
+          top: '60px',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 9999,
-          backgroundColor: 'red',
+          backgroundColor: '#1e1e1e', // Dark gray background
           color: 'white',
-          padding: '20px',
-          borderRadius: '10px',
-          border: '5px solid white',
-          boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-          width: '600px',
-          animation: 'bounce 1s infinite'
+          padding: '16px',
+          borderRadius: '8px',
+          border: '2px solid #ea580c', // Orange border
+          boxShadow: '0 0 20px rgba(0,0,0,0.6)',
+          width: '500px', // Smaller width
+          animation: 'pulse 2s infinite'
         }}>
           <style>
             {`
-              @keyframes bounce {
-                0%, 100% { transform: translateX(-50%) translateY(0px); }
-                50% { transform: translateX(-50%) translateY(-15px); }
+              @keyframes pulse {
+                0%, 100% { box-shadow: 0 0 20px rgba(234, 88, 12, 0.4); }
+                50% { box-shadow: 0 0 25px rgba(234, 88, 12, 0.7); }
               }
             `}
           </style>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ flexShrink: 0 }}>
-              <AlertTriangleIcon style={{ width: '48px', height: '48px', color: 'yellow' }} />
+              <AlertTriangleIcon style={{ width: '40px', height: '40px', color: '#ea580c' }} />
             </div>
             <div>
-              <h3 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-                OUT OF BALANCE LIMITS!
+              <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '6px', color: '#ea580c' }}>
+                OUT OF BALANCE LIMITS
               </h3>
-              <p style={{ fontSize: '18px', marginBottom: '8px' }}>
-                Centre of Gravity value of <span style={{ fontWeight: 'bold', fontSize: '20px' }}>{balanceCG.toFixed(2)}°</span> 
+              <p style={{ fontSize: '16px', marginBottom: '6px' }}>
+                Centre of Gravity value of <span style={{ fontWeight: 'bold', fontSize: '18px', color: '#ea580c' }}>{balanceCG.toFixed(2)}°</span> 
                 {balanceCG <= 18 ? " is below" : " is at/exceeds"} the safe range of 18° to 88°.
               </p>
-              <p style={{ fontSize: '20px', fontWeight: 'bold', color: 'yellow' }}>
+              <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#f59e0b' }}> {/* Amber orange */}
                 ADJUST CARGO PLACEMENT IMMEDIATELY
               </p>
             </div>
