@@ -173,11 +173,16 @@ export default function SubmissionReview() {
       const correctAnswers = Object.values(markedAnswers).filter(Boolean).length;
       const score = Math.round((correctAnswers / totalQuestions) * 100);
       
+      // Determine if the student passed based on the scenario's passing threshold
+      const passingThreshold = scenario?.passingThreshold || 70; // Default to 70% if not set
+      const passed = score >= passingThreshold;
+      
       const payload = {
         instructorFeedback,
         markedAnswers: JSON.stringify(markedAnswers),
         status: "reviewed",
         score,
+        passed,
       };
       
       const response = await apiRequest("PATCH", `/api/scenario-submissions/${submissionId}`, payload);

@@ -213,6 +213,30 @@ export default function CreateScenario() {
                     </FormItem>
                   )}
                 />
+                
+                <FormField
+                  control={form.control}
+                  name="passingThreshold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Passing Threshold (%)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          min="0"
+                          max="100"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 70)}
+                          className="text-white font-medium w-full" 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Students must get this percentage of questions correct to pass the scenario
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 

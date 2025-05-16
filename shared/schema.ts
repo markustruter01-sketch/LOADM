@@ -88,6 +88,7 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
   instructorFeedback: text("instructor_feedback"),
   markedAnswers: json("marked_answers").default({}),
   status: text("status").default("pending").notNull(),
+  passed: boolean("passed").default(false),
 });
 
 export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions).pick({
