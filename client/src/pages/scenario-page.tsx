@@ -209,24 +209,34 @@ export default function ScenarioPage() {
               </h4>
               <p className="text-muted-foreground mb-6">{currentQ.question}</p>
 
-              <RadioGroup
-                value={answers[currentQ.id] || ""}
-                onValueChange={(value) => handleAnswer(currentQ.id, value)}
-                className="space-y-3 mb-6"
-              >
-                {currentQ.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value={option}
-                      id={`option-${index}`}
-                      className="text-primary border-border"
-                    />
-                    <Label htmlFor={`option-${index}`} className="text-muted-foreground">
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {currentQ.questionType === "multiple-choice" ? (
+                <RadioGroup
+                  value={answers[currentQ.id] || ""}
+                  onValueChange={(value) => handleAnswer(currentQ.id, value)}
+                  className="space-y-3 mb-6"
+                >
+                  {currentQ.options.map((option, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={option}
+                        id={`option-${index}`}
+                        className="text-primary border-border"
+                      />
+                      <Label htmlFor={`option-${index}`} className="text-muted-foreground">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              ) : (
+                <Textarea
+                  value={answers[currentQ.id] || ""}
+                  onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
+                  placeholder="Enter your answer here"
+                  rows={4}
+                  className="bg-background border-border text-foreground mb-6"
+                />
+              )}
 
               <div className="border-t border-border pt-4">
                 <h5 className="text-sm font-medium text-card-foreground mb-2">

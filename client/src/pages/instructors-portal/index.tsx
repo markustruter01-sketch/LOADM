@@ -33,6 +33,8 @@ export default function InstructorsPortal() {
 
   const { data: scenarios } = useQuery<Scenario[]>({
     queryKey: ["/api/scenarios"],
+    refetchInterval: 2000, // Refetch every 2 seconds
+    refetchOnWindowFocus: true, // Refetch when window gets focus
   });
 
   const { data: documentSubmissions } = useQuery<DocumentSubmission[]>({

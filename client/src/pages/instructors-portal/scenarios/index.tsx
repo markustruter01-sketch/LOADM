@@ -46,6 +46,8 @@ export default function ScenarioManagement() {
   // Fetch all scenarios
   const { data: scenarios, isLoading } = useQuery<Scenario[]>({
     queryKey: ["/api/scenarios"],
+    refetchInterval: 2000, // Refetch every 2 seconds
+    refetchOnWindowFocus: true, // Refetch when window gets focus
   });
 
   // Delete scenario mutation
