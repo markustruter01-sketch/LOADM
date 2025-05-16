@@ -10,7 +10,7 @@ import HomePage from "@/pages/home-page";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import DocumentFormPage from "@/pages/document-form-page";
-import ScenarioPage from "@/pages/scenario-page";
+import ScenarioPage from "@/pages/scenario-page-new";
 import DocsListPage from "@/pages/docs-list-page";
 import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";

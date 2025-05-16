@@ -4,13 +4,19 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioQuestion } from "@shared/schema";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, ChevronDown } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import {
   Dialog,
   DialogContent,
@@ -26,11 +32,11 @@ export default function ScenarioPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   
-  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
+  const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
   
   const scenarioId = parseInt(id);
 
@@ -96,28 +102,30 @@ export default function ScenarioPage() {
     }));
   };
   
-  const nextQuestion = () => {
-    if (currentQuestion < questionCount - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    } else {
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please login to submit your answers",
-          variant: "destructive",
-        });
-        setLocation("/auth");
-        return;
-      }
-      
-      submitMutation.mutate();
+  const submitAnswers = () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to submit your answers",
+        variant: "destructive",
+      });
+      setLocation("/auth");
+      return;
     }
-  };
-  
-  const prevQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
+    
+    // Check if all questions have answers
+    const allAnswered = questions.every(q => answers[q.id]);
+    
+    if (!allAnswered) {
+      toast({
+        title: "Incomplete",
+        description: "Please answer all questions before submitting",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    submitMutation.mutate();
   };
   
   const finishScenario = () => {
