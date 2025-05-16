@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema } from "@shared/schema";
+import { generateAnalytics } from "./openai";
 
 // Rate limiting for security
 const ONE_MINUTE = 60 * 1000;
@@ -452,6 +453,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // AI analytics endpoint
+  app.post("/api/analytics/insights", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const { 
+        scenarioName, 
+        selectedScenarioId, 
+        totalSubmissions, 
+        averageScore, 
+        passRate, 
+        scoreDistribution, 
+        passFailRatio 
+      } = req.body;
+      
+      const insightText = await generateAnalytics({
+        scenarioName,
+        selectedScenarioId,
+        totalSubmissions,
+        averageScore,
+        passRate,
+        scoreDistribution,
+        passFailRatio
+      });
+      
+      res.json({ insight: insightText });
+    } catch (error) {
+      console.error("Error generating analytics insights:", error);
+      res.status(500).json({ 
+        message: "Failed to generate analytics insights",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

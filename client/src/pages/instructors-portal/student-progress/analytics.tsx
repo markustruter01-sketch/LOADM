@@ -43,6 +43,9 @@ export default function ScenarioAnalytics() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [pieData, setPieData] = useState<any[]>([]);
   const [progressData, setProgressData] = useState<any[]>([]);
+  const [aiInsight, setAiInsight] = useState<string>("");
+  const [selectedScenarioName, setSelectedScenarioName] = useState<string>("All Scenarios");
+  const { toast } = useToast();
   
   // Fetch all scenarios for dropdown
   const { data: scenarios } = useQuery<Scenario[]>({
@@ -155,6 +158,43 @@ export default function ScenarioAnalytics() {
     ? (submissions.filter(sub => (sub.score || 0) >= 70).length / submissions.length) * 100
     : 0;
   
+  // AI Insights mutation
+  const getAiInsightsMutation = useMutation({
+    mutationFn: async () => {
+      const filteredSubmissions = selectedScenarioId === "all" 
+        ? submissions || []
+        : (submissions || []).filter(sub => sub.scenarioId === parseInt(selectedScenarioId));
+
+      const analyticsData = {
+        scenarioName: selectedScenarioName,
+        selectedScenarioId: selectedScenarioId,
+        totalSubmissions: filteredSubmissions.length,
+        averageScore: averageScore,
+        passRate: passRate,
+        scoreDistribution: chartData,
+        passFailRatio: pieData
+      };
+
+      const response = await apiRequest("POST", "/api/analytics/insights", analyticsData);
+      const data = await response.json();
+      return data.insight;
+    },
+    onSuccess: (insight: string) => {
+      setAiInsight(insight);
+      toast({
+        title: "AI Analysis Generated",
+        description: "Performance data has been analyzed.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "AI Analysis Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Color constants
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
   const PIE_COLORS = ['#4CAF50', '#F44336'];
@@ -170,7 +210,17 @@ export default function ScenarioAnalytics() {
           <Label htmlFor="scenarioFilter" className="min-w-[80px]">Scenario:</Label>
           <Select
             value={selectedScenarioId}
-            onValueChange={setSelectedScenarioId}
+            onValueChange={(value) => {
+              setSelectedScenarioId(value);
+              if (value === "all") {
+                setSelectedScenarioName("All Scenarios");
+              } else {
+                const scenario = scenarios?.find(s => s.id.toString() === value);
+                if (scenario) {
+                  setSelectedScenarioName(scenario.title);
+                }
+              }
+            }}
           >
             <SelectTrigger id="scenarioFilter" className="w-full max-w-sm">
               <SelectValue placeholder="Select scenario" />
@@ -291,6 +341,54 @@ export default function ScenarioAnalytics() {
             </div>
           </TabsContent>
         </Tabs>
+        
+        {/* AI Diagnostics Section */}
+        <Card className="mt-8">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BrainCircuit className="h-5 w-5 text-primary" />
+                  AI Performance Diagnostics
+                </CardTitle>
+                <CardDescription>
+                  Get AI-powered insights and recommendations based on performance data
+                </CardDescription>
+              </div>
+              <Button 
+                onClick={() => getAiInsightsMutation.mutate()}
+                disabled={getAiInsightsMutation.isPending}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {getAiInsightsMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>Run Diagnosis</>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {aiInsight ? (
+              <div className="bg-card/50 p-4 rounded-md border border-border text-foreground">
+                {aiInsight}
+              </div>
+            ) : (
+              <div className="bg-card/50 p-4 rounded-md border border-border text-muted-foreground text-center">
+                {getAiInsightsMutation.isPending ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <p>Click "Run Diagnosis" to generate AI insights based on the performance data</p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   );
