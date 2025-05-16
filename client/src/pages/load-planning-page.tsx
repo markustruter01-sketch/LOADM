@@ -2191,6 +2191,24 @@ export default function LoadPlanningPage() {
                         Reset All Pallets
                       </Button>
                     </div>
+                    
+                    {/* Cargo Balance Assistant Button - scrolls to chat */}
+                    <div className="mt-2">
+                      <Button 
+                        variant="outline" 
+                        className="w-full flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary" 
+                        onClick={() => {
+                          // Find the chat component and scroll to it
+                          const cargoAssistantElement = document.getElementById('cargo-balance-assistant');
+                          if (cargoAssistantElement) {
+                            cargoAssistantElement.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                      >
+                        <MessagesSquare className="h-4 w-4 mr-2" />
+                        Cargo Balance Assistant
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -2386,7 +2404,7 @@ export default function LoadPlanningPage() {
             </Card>
 
             {/* AI-powered cargo balance chat - moved to bottom of page */}
-            <Card className="mt-4">
+            <Card className="mt-4" id="cargo-balance-assistant">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center">
                   <MessagesSquare className="h-5 w-5 mr-2 text-primary" />
