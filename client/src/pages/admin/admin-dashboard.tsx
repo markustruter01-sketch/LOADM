@@ -43,7 +43,7 @@ export default function AdminDashboard() {
           </div>
           
           <div className="mt-4 md:mt-0">
-            <Link href="/admin/users">
+            <a href="/admin/users">
               <Button className="bg-red-600 hover:bg-red-700 text-white flex items-center space-x-2">
                 <UserCircle className="h-5 w-5" />
                 <span>User Management</span>
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
                   </span>
                 )}
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
 

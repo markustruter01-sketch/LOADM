@@ -20,7 +20,7 @@ import ProfilePage from "@/pages/profile-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
-import UsersManagement from "@/pages/admin/users";
+import UserManagement from "@/pages/admin/user-management";
 import InstructorsPortal from "@/pages/instructors-portal";
 import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
 import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
@@ -56,7 +56,7 @@ function Router() {
           <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
-          <ProtectedRoute path="/admin/users" component={UsersManagement} />
+          <ProtectedRoute path="/admin/users" component={UserManagement} />
           <AuthenticatedRoute path="/instructors-portal" component={InstructorsPortal} />
           <AuthenticatedRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
           <AuthenticatedRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
