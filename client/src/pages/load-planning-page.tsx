@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangleIcon } from "lucide-react";
 
 interface Pallet {
   id: number;
@@ -540,6 +541,17 @@ export default function LoadPlanningPage() {
     const cgExact = ((balance + 100) / 200) * 70 + 18;
     const cg = parseFloat(cgExact.toFixed(2)); // Keep two decimal places
     setBalanceCG(cg);
+    
+    // Check if C of G is outside safe limits (18-88 degrees)
+    if (cg < 18 || cg > 88) {
+      // Set our warning state to true to display the popup
+      setShowOutOfLimitsWarning(true);
+      
+      // Automatically hide the warning after 2.5 seconds
+      setTimeout(() => {
+        setShowOutOfLimitsWarning(false);
+      }, 2500);
+    }
     
     // Determine balance status - using more gradual transitions
     if (Math.abs(balance) < 20) {
@@ -1434,6 +1446,19 @@ export default function LoadPlanningPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Out of Limits Warning Popup */}
+      {showOutOfLimitsWarning && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 animate-in fade-in zoom-in duration-300">
+          <Alert variant="destructive" className="w-[350px] shadow-lg border-2 border-destructive">
+            <AlertTriangleIcon className="h-5 w-5 mr-2" />
+            <AlertTitle className="text-lg font-bold">Out of Balance Limits!</AlertTitle>
+            <AlertDescription className="mt-2">
+              Centre of Gravity value of {balanceCG.toFixed(2)}° exceeds the safe range of 18° to 88°. Adjust cargo placement immediately.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
       
       <div className="container max-w-7xl mx-auto py-6">
         <div className="space-y-6">
