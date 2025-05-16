@@ -58,6 +58,8 @@ function Router() {
           <AuthenticatedRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
           <AuthenticatedRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
           <AuthenticatedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
+          <AuthenticatedRoute path="/instructors-portal/student-progress" component={StudentProgress} />
+          <AuthenticatedRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
           <Route component={NotFound} />
         </Switch>
       </main>

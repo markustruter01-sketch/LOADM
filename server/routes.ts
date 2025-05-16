@@ -292,6 +292,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create scenario submission" });
     }
   });
+  
+  // Get a specific scenario submission
+  app.get("/api/scenario-submissions/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const submissionId = parseInt(req.params.id);
+      const submission = await storage.getScenarioSubmission(submissionId);
+      
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      // Only admin or the user who submitted can view the submission
+      if (!req.user?.isAdmin && submission.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
+      }
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve scenario submission" });
+    }
+  });
+  
+  // Update a scenario submission (for instructor review)
+  app.patch("/api/scenario-submissions/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const submissionId = parseInt(req.params.id);
+      const submission = await storage.getScenarioSubmission(submissionId);
+      
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      // Only instructors can update submissions for review
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Only instructors can review submissions" });
+      }
+      
+      // Allow partial updates for instructor feedback, score, etc.
+      const updateData = insertScenarioSubmissionSchema.partial().parse(req.body);
+      
+      // Add updateScenarioSubmission method to storage
+      const updatedSubmission = await storage.updateScenarioSubmission(submissionId, updateData);
+      
+      res.json(updatedSubmission);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update scenario submission" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

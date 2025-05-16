@@ -36,6 +36,7 @@ export interface IStorage {
   getScenarioSubmissions(scenarioId?: number, userId?: number): Promise<ScenarioSubmission[]>;
   getScenarioSubmission(id: number): Promise<ScenarioSubmission | undefined>;
   createScenarioSubmission(submission: InsertScenarioSubmission): Promise<ScenarioSubmission>;
+  updateScenarioSubmission(id: number, submission: Partial<InsertScenarioSubmission>): Promise<ScenarioSubmission | undefined>;
   
   // Session store
   sessionStore: session.Store;
