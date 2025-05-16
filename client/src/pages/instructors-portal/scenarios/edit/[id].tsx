@@ -129,6 +129,17 @@ export default function EditScenario() {
 
   // Handle form submission
   const onSubmit = (data: ScenarioFormValues) => {
+    // Check for missing correct answers
+    const hasMissingCorrectAnswers = data.questions.some(q => !q.correctAnswer);
+    
+    if (hasMissingCorrectAnswers) {
+      toast({
+        title: "Warning: Missing Correct Answers",
+        description: "Some questions are missing correct answers. These will be optional for users to complete.",
+        variant: "warning",
+      });
+    }
+    
     updateScenarioMutation.mutate(data);
   };
 
@@ -140,7 +151,7 @@ export default function EditScenario() {
       {
         id: `q${questions.length + 1}`,
         question: "",
-        questionType: "multiple-choice",
+        questionType: "free-text",
         options: ["", ""],
         correctAnswer: "",
       },
