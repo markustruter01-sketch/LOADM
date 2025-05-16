@@ -127,7 +127,7 @@ export default function EditScenario() {
     },
   });
 
-  // Handle form submission
+  // Handle form submission with direct fetch
   const onSubmit = (data: ScenarioFormValues) => {
     // Check for missing correct answers
     const hasMissingCorrectAnswers = data.questions.some(q => !q.correctAnswer);
@@ -136,11 +136,67 @@ export default function EditScenario() {
       toast({
         title: "Warning: Missing Correct Answers",
         description: "Some questions are missing correct answers. These will be optional for users to complete.",
-        variant: "warning",
+        variant: "destructive",
       });
     }
     
-    updateScenarioMutation.mutate(data);
+    // Update the numberOfQuestions field
+    data.numberOfQuestions = data.questions.length;
+    
+    // Show loading state
+    const originalButtonText = document.querySelector('button[type="submit"]')?.textContent;
+    if (document.querySelector('button[type="submit"]')) {
+      document.querySelector('button[type="submit"]')!.innerHTML = '<div class="animate-spin mr-2">↻</div> Saving...';
+      document.querySelector('button[type="submit"]')!.setAttribute('disabled', 'true');
+    }
+    
+    // Make direct fetch request
+    fetch(`/api/scenarios/${scenarioId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+      credentials: "include"
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server error (${response.status})`);
+      }
+      return response.json();
+    })
+    .then(updatedScenario => {
+      // Update queries
+      queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/scenarios/${scenarioId}`] });
+      
+      // Show success message
+      setIsSuccess(true);
+      toast({
+        title: "Scenario updated",
+        description: "The scenario has been updated successfully",
+      });
+      
+      // Navigate back to scenarios list
+      setTimeout(() => {
+        navigate("/instructors-portal/scenarios");
+      }, 1000);
+    })
+    .catch(error => {
+      console.error("Error updating scenario:", error);
+      toast({
+        title: "Failed to update scenario",
+        description: error.message || "An unknown error occurred",
+        variant: "destructive",
+      });
+    })
+    .finally(() => {
+      // Reset button state
+      if (document.querySelector('button[type="submit"]') && originalButtonText) {
+        document.querySelector('button[type="submit"]')!.innerHTML = originalButtonText;
+        document.querySelector('button[type="submit"]')!.removeAttribute('disabled');
+      }
+    });
   };
 
   // Add a new question to the form
