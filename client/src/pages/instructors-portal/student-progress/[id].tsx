@@ -91,13 +91,36 @@ export default function SubmissionReview() {
   const answers: AnswerResponse[] = [];
   try {
     if (submission?.answers) {
-      const parsedAnswers = JSON.parse(submission.answers as string);
-      if (Array.isArray(parsedAnswers)) {
-        answers.push(...parsedAnswers);
+      // Add debugging to see what we're getting
+      console.log("Raw answers data:", submission.answers);
+      console.log("Type of answers:", typeof submission.answers);
+      
+      const answersData = typeof submission.answers === 'string' 
+        ? JSON.parse(submission.answers) 
+        : submission.answers;
+      
+      console.log("Parsed answers data:", answersData);
+      
+      if (Array.isArray(answersData)) {
+        answers.push(...answersData);
+      } else if (typeof answersData === 'object') {
+        // Sometimes answers might come as an object
+        Object.entries(answersData).forEach(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            answers.push({
+              questionId: key,
+              answer: value.answer || '',
+              notes: value.notes || ''
+            });
+          }
+        });
       }
+      
+      console.log("Processed answers array:", answers);
     }
   } catch (e) {
     console.error("Failed to parse answers:", e);
+    console.error(e);
   }
   
   // Save review mutation
