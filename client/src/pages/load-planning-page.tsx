@@ -2586,9 +2586,9 @@ export default function LoadPlanningPage() {
                                   Cargo Deck (8 positions)
                                 </div>
                                 
-                                {/* Second Cargo Area - 8 positions wide */}
+                                {/* Second Cargo Area - 8 positions wide - full width */}
                                 {[...Array(8)].map((_, i) => {
-                                  const positionLabel = `D${i + 1}`;
+                                  const positionLabel = `P${i + 1}`; // Changed from D to P
                                   const assignedPallet = pallets.find(p => 
                                     p.location === "cargo" && 
                                     p.positionLabel === positionLabel
@@ -2602,10 +2602,9 @@ export default function LoadPlanningPage() {
                                     'border-orange-500' : 
                                     'border-green-800/80';
                                   
-                                  // Calculate position - center 8 cells
+                                  // Calculate position - spread 8 cells to full width
                                   const totalWidth = cellSpacing * 13; // Total width of top cargo area
-                                  const secondAreaWidth = cellSpacing * 8; // Width of 8 cells
-                                  const leftOffset = (totalWidth - secondAreaWidth) / 2; // Center align
+                                  const cellWidthFullSpan = totalWidth / 8; // Evenly distribute across full width
                                   
                                   return (
                                     <div 
@@ -2621,9 +2620,9 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: leftOffset + (i * cellSpacing),
+                                        left: i * cellWidthFullSpan, // Use full width positions
                                         top: 145, // Position below title with spacing
-                                        width: config.cellWidth,
+                                        width: cellWidthFullSpan * 0.9, // Make slightly smaller than cell for spacing
                                         height: config.cellHeight,
                                         backgroundColor: bgColor,
                                         zIndex: assignedPallet ? 10 : 1
