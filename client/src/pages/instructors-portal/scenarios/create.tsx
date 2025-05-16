@@ -83,23 +83,38 @@ export default function CreateScenario() {
   // Create scenario mutation
   const createScenarioMutation = useMutation({
     mutationFn: async (data: ScenarioFormValues) => {
-      // Update the numberOfQuestions field to match the actual number of questions
-      data.numberOfQuestions = data.questions.length;
-      
       try {
         console.log("Creating scenario with user:", user);
         
-        // Add additional logging to debug the request
-        const res = await apiRequest("POST", "/api/scenarios", data);
+        if (!user) {
+          throw new Error("Authentication required. Please log in again.");
+        }
+        
+        // Use fetch directly with credentials
+        const res = await fetch("/api/scenarios", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+          credentials: "include"
+        });
+        
         console.log("API response status:", res.status);
         
         if (!res.ok) {
-          const errorData = await res.json();
-          console.error("API error response:", errorData);
-          throw new Error(errorData.message || "Failed to create scenario");
+          let errorMessage = "Failed to create scenario";
+          try {
+            const errorData = await res.json();
+            console.error("API error response:", errorData);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            console.error("Could not parse error response:", e);
+          }
+          throw new Error(errorMessage);
         }
         
-        return res.json();
+        return await res.json();
       } catch (error) {
         console.error("Error creating scenario:", error);
         throw error;
@@ -128,7 +143,17 @@ export default function CreateScenario() {
   });
 
   // Handle form submission
-  const onSubmit = (data: ScenarioFormValues) => {
+  const onSubmit = async (data: ScenarioFormValues) => {
+    // Make sure we're authenticated
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create scenarios. Please log in and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Check if any questions are missing correct answers
     const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
     
@@ -141,6 +166,10 @@ export default function CreateScenario() {
       });
     }
     
+    // Ensure numberOfQuestions field is accurate
+    data.numberOfQuestions = data.questions.length;
+    
+    console.log("Submitting scenario data:", data);
     createScenarioMutation.mutate(data);
   };
 
