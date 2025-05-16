@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioSubmission } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Select,
@@ -15,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -32,6 +36,7 @@ import {
   Line,
   CartesianGrid
 } from "recharts";
+import { Loader2, BrainCircuit } from "lucide-react";
 
 export default function ScenarioAnalytics() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>("all");
