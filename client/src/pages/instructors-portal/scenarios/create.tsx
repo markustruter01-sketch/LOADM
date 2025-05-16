@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { insertScenarioSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,7 +35,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, CheckCircle, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -59,7 +58,9 @@ export default function CreateScenario() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [_, navigate] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const queryClient = useQueryClient();
 
   // Set up form
   const form = useForm<ScenarioFormValues>({
@@ -80,98 +81,98 @@ export default function CreateScenario() {
     },
   });
 
-  // Create scenario mutation
-  const createScenarioMutation = useMutation({
-    mutationFn: async (data: ScenarioFormValues) => {
-      try {
-        console.log("Creating scenario with user:", user);
-        
-        if (!user) {
-          throw new Error("Authentication required. Please log in again.");
-        }
-        
-        // Use fetch directly with credentials
-        const res = await fetch("/api/scenarios", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-          credentials: "include"
+  // Handle form submission directly without using react-query mutation
+  const onSubmit = useCallback(async (data: ScenarioFormValues) => {
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Make sure we're authenticated
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to create scenarios.",
+          variant: "destructive",
         });
+        return;
+      }
+
+      // Check if any questions are missing correct answers
+      const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
+      
+      if (missingAnswers) {
+        // Show warning but still allow submission
+        toast({
+          title: "Warning",
+          description: "Some questions don't have correct answers specified. Students won't receive automatic scoring.",
+          variant: "destructive",
+        });
+      }
+      
+      // Ensure numberOfQuestions field is accurate
+      data.numberOfQuestions = data.questions.length;
+      
+      console.log("Creating scenario:", data);
+      
+      // Direct fetch with credentials included
+      const response = await fetch("/api/scenarios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        credentials: "include"
+      });
+      
+      console.log("Server response status:", response.status);
+      
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        let errorMessage = `Server error (${response.status})`;
         
-        console.log("API response status:", res.status);
-        
-        if (!res.ok) {
-          let errorMessage = "Failed to create scenario";
-          try {
-            const errorData = await res.json();
-            console.error("API error response:", errorData);
-            errorMessage = errorData.message || errorMessage;
-          } catch (e) {
-            console.error("Could not parse error response:", e);
-          }
-          throw new Error(errorMessage);
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || "Failed to create scenario";
+          console.error("Error data:", errorData);
+        } else {
+          const text = await response.text();
+          console.error("Error response:", text);
         }
         
-        return await res.json();
-      } catch (error) {
-        console.error("Error creating scenario:", error);
-        throw error;
+        throw new Error(errorMessage);
       }
-    },
-    onSuccess: () => {
+      
+      const newScenario = await response.json();
+      console.log("Scenario created:", newScenario);
+      
+      // Update query cache
       queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
+      
+      // Show success state
       setIsSuccess(true);
       toast({
-        title: "Scenario created",
+        title: "Success!",
         description: "The scenario has been created successfully",
       });
       
-      // After a short delay, go back to manage page
+      // Navigate back after delay
       setTimeout(() => {
         navigate("/instructors-portal/scenarios");
       }, 1500);
-    },
-    onError: (error: Error) => {
+      
+    } catch (error) {
+      console.error("Error creating scenario:", error);
       toast({
         title: "Failed to create scenario",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
-    },
-  });
-
-  // Handle form submission
-  const onSubmit = async (data: ScenarioFormValues) => {
-    // Make sure we're authenticated
-    if (!user) {
-      toast({
-        title: "Authentication Error",
-        description: "You must be logged in to create scenarios. Please log in and try again.",
-        variant: "destructive",
-      });
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Check if any questions are missing correct answers
-    const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
-    
-    if (missingAnswers) {
-      // Show warning but still allow submission
-      toast({
-        title: "Warning",
-        description: "Some questions don't have correct answers specified. Students won't receive automatic scoring.",
-        variant: "destructive",
-      });
-    }
-    
-    // Ensure numberOfQuestions field is accurate
-    data.numberOfQuestions = data.questions.length;
-    
-    console.log("Submitting scenario data:", data);
-    createScenarioMutation.mutate(data);
-  };
+  }, [user, toast, queryClient, navigate, isSubmitting]);
 
   // Add a new question to the form
   const addQuestion = () => {
@@ -523,12 +524,12 @@ export default function CreateScenario() {
                 <Button
                   type="submit"
                   className="bg-primary hover:bg-primary/90 text-white"
-                  disabled={createScenarioMutation.isPending}
+                  disabled={isSubmitting}
                 >
-                  {createScenarioMutation.isPending && (
+                  {isSubmitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {createScenarioMutation.isPending ? "Creating..." : "Create Scenario"}
+                  {isSubmitting ? "Creating..." : "Create Scenario"}
                 </Button>
               </div>
             </form>
