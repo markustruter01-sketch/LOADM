@@ -1517,15 +1517,15 @@ export default function LoadPlanningPage() {
       {warningPopup && (
         <div style={{
           position: 'fixed',
-          top: '100px',
+          top: '50%',
           left: '50%',
-          transform: 'translateX(-50%)',
+          transform: 'translate(-50%, -50%)',
           zIndex: 9999,
-          backgroundColor: 'red',
+          backgroundColor: '#1e1e1e', // Dark gray background matching app theme
           color: 'white',
           padding: '20px',
           borderRadius: '10px',
-          border: '5px solid white',
+          border: '3px solid #ea580c', // Orange border matching app theme
           boxShadow: '0 0 20px rgba(0,0,0,0.5)',
           width: '600px',
           animation: 'bounce 1s infinite'
@@ -1533,24 +1533,24 @@ export default function LoadPlanningPage() {
           <style>
             {`
               @keyframes bounce {
-                0%, 100% { transform: translateX(-50%) translateY(0px); }
-                50% { transform: translateX(-50%) translateY(-15px); }
+                0%, 100% { transform: translate(-50%, -50%); }
+                50% { transform: translate(-50%, -55%); }
               }
             `}
           </style>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ flexShrink: 0 }}>
-              <AlertTriangleIcon style={{ width: '48px', height: '48px', color: 'yellow' }} />
+              <AlertTriangleIcon style={{ width: '48px', height: '48px', color: '#ea580c' }} />
             </div>
             <div>
-              <h3 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
+              <h3 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px', color: '#ea580c' }}>
                 OUT OF BALANCE LIMITS!
               </h3>
               <p style={{ fontSize: '18px', marginBottom: '8px' }}>
-                Centre of Gravity value of <span style={{ fontWeight: 'bold', fontSize: '20px' }}>{balanceCG.toFixed(2)}°</span> 
+                Centre of Gravity value of <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#ea580c' }}>{balanceCG.toFixed(2)}°</span> 
                 {balanceCG <= 18 ? " is below" : " is at/exceeds"} the safe range of 18° to 88°.
               </p>
-              <p style={{ fontSize: '20px', fontWeight: 'bold', color: 'yellow' }}>
+              <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#ea580c' }}>
                 ADJUST CARGO PLACEMENT IMMEDIATELY
               </p>
             </div>
