@@ -629,6 +629,16 @@ export default function LoadPlanningPage() {
       return;
     }
     
+    // Check if input contains letters (non-numeric characters)
+    if (/[a-zA-Z]/.test(newWeight)) {
+      toast({
+        variant: "destructive",
+        title: "Letters Not Allowed",
+        description: "Only numeric values are allowed for weight input.",
+      });
+      return;
+    }
+    
     // Convert to number or default to 0 if invalid
     let weightValue = parseInt(newWeight) || 0;
     
