@@ -228,6 +228,15 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return submission;
   }
+
+  async updateScenarioSubmission(id: number, updateSubmission: Partial<InsertScenarioSubmission>): Promise<ScenarioSubmission | undefined> {
+    const [submission] = await db
+      .update(scenarioSubmissions)
+      .set(updateSubmission)
+      .where(eq(scenarioSubmissions.id, id))
+      .returning();
+    return submission;
+  }
 }
 
 // Export an instance of the database storage

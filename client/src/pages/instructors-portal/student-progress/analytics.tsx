@@ -128,8 +128,12 @@ export default function ScenarioAnalytics() {
   
   // Analytics summary 
   const totalSubmissions = submissions?.length || 0;
-  const averageScore = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) / (totalSubmissions || 1);
-  const passRate = submissions?.filter(sub => (sub.score || 0) >= 70).length / (totalSubmissions || 1) * 100;
+  const averageScore = submissions && submissions.length > 0
+    ? submissions.reduce((sum, sub) => sum + (sub.score || 0), 0) / submissions.length
+    : 0;
+  const passRate = submissions && submissions.length > 0
+    ? (submissions.filter(sub => (sub.score || 0) >= 70).length / submissions.length) * 100
+    : 0;
   
   // Color constants
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
