@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, ClipboardList, Users, BarChart3, Layers, FileCheck } from "lucide-react";
+import { FileText, ClipboardList, Users, BarChart3, Layers, FileCheck, UserCircle, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function AdminDashboard() {
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Admin Section Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Document Management</CardTitle>
@@ -122,6 +122,31 @@ export default function AdminDashboard() {
                 <a className="w-full">
                   <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                     Manage Scenarios
+                  </Button>
+                </a>
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>View and manage user accounts</CardDescription>
+              {user?.isSuperAdmin && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 mt-2">
+                  <ShieldAlert className="h-3 w-3 mr-1" />
+                  Super Admin Access
+                </span>
+              )}
+            </CardHeader>
+            <CardContent className="h-40 flex items-center justify-center">
+              <UserCircle className="h-16 w-16 text-muted-foreground opacity-20" />
+            </CardContent>
+            <CardFooter>
+              <Link href="/admin/users">
+                <a className="w-full">
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                    Manage Users
                   </Button>
                 </a>
               </Link>
