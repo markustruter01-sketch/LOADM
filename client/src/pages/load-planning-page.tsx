@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Pallet {
   id: number;
@@ -41,6 +43,7 @@ interface AircraftConfig {
 export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
   const [match, params] = useRoute("/load-planning/:aircraftId");
+  const { toast } = useToast();
   
   // Aircraft configurations
   const aircraftConfigs: Record<string, AircraftConfig> = {
@@ -81,6 +84,9 @@ export default function LoadPlanningPage() {
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceCG, setBalanceCG] = useState(53.00); // Centre of Gravity value (18-88 degrees) with decimal precision
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'moderate' | 'warning' | 'caution'>('safe');
+  
+  // Out of limits warning state
+  const [showOutOfLimitsWarning, setShowOutOfLimitsWarning] = useState(false);
   
   // Keep track of the balance scale width to make cargo area match it
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
