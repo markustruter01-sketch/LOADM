@@ -282,19 +282,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log incoming data for debugging
       console.log("Incoming scenario submission data:", req.body);
       
-      // Simplify - use storage interface instead of direct SQL
-      const submissionData = {
-        scenarioId: Number(req.body.scenarioId),
-        userId: req.user.id,
-        studentName: req.body.studentName || '',
-        studentId: req.body.studentId || '',
-        answers: req.body.answers,
-        status: 'pending'
-      };
+      // Use the raw pool directly to avoid ORM type issues
+      const { pool } = await import('./db');
       
-      const submission = await storage.createScenarioSubmission(submissionData);
+      const result = await pool.query(
+        `INSERT INTO scenario_submissions 
+         (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
+         VALUES 
+         ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5, $6) 
+         RETURNING *`,
+        [
+          Number(req.body.scenarioId),
+          req.user.id,
+          req.body.answers, // Already a JSON string from client
+          'pending',
+          req.body.studentName || '',
+          req.body.studentId || ''
+        ]
+      );
       
-      res.status(201).json(submission);
+      // Return the inserted row
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error("Error creating scenario submission:", error);
       if (error instanceof z.ZodError) {
