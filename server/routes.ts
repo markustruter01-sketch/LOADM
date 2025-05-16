@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema } from "@shared/schema";
-import { generateAnalytics } from "./openai";
+import { generateAnalytics, analyzeCargoBalance } from "./openai";
 
 // Rate limiting for security
 const ONE_MINUTE = 60 * 1000;
@@ -498,6 +498,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to generate analytics insights",
         error: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+  
+  // Load Planning Balance Analysis
+  app.post("/api/load-planning/analysis", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const { message, aircraftType, cargoData, balanceValue, balanceCG } = req.body;
+      
+      if (!aircraftType || balanceCG === undefined) {
+        return res.status(400).json({ error: "Missing required cargo data" });
+      }
+      
+      // Call the OpenAI integration
+      const analysis = await analyzeCargoBalance({
+        message,
+        aircraftType,
+        cargoData,
+        balanceValue,
+        balanceCG
+      });
+      
+      res.json({ analysis });
+    } catch (error) {
+      console.error("Error generating cargo balance analysis:", error);
+      res.status(500).json({ error: "Failed to analyze cargo balance" });
     }
   });
 
