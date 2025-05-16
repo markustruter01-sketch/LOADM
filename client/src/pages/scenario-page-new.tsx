@@ -74,13 +74,19 @@ export default function ScenarioPage() {
         notes: notes[questionId] || ""
       }));
       
+      // Convert scenarioId to number to match database expectations
+      const scenarioIdNum = parseInt(scenarioId);
+      
       const payload = {
-        scenarioId: parseInt(scenarioId),
+        scenarioId: scenarioIdNum,
         userId: user.id,
         studentName,
         studentId,
         answers: JSON.stringify(answersArray),
-        status: "pending"
+        status: "pending",
+        score: null,
+        instructorFeedback: null,
+        markedAnswers: null
       };
       
       const response = await apiRequest("POST", "/api/scenario-submissions", payload);
