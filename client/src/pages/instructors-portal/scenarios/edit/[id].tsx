@@ -340,7 +340,7 @@ export default function EditScenario() {
           </Card>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Scenario Details</CardTitle>
@@ -594,14 +594,11 @@ export default function EditScenario() {
                     Cancel
                   </Button>
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={() => onSubmit(form.getValues())}
                     className="bg-primary hover:bg-primary/90 text-white"
-                    disabled={updateScenarioMutation.isPending}
                   >
-                    {updateScenarioMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    {updateScenarioMutation.isPending ? "Saving..." : "Save Changes"}
+                    Save Changes
                   </Button>
                 </div>
               </div>
