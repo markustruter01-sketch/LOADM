@@ -81,6 +81,11 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
   submissionDate: timestamp("submission_date").defaultNow().notNull(),
   answers: json("answers").notNull(),
   score: integer("score"),
+  studentName: text("student_name"),
+  studentId: text("student_id"),
+  instructorFeedback: text("instructor_feedback"),
+  markedAnswers: json("marked_answers"),
+  status: text("status").default("pending").notNull(),
 });
 
 export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions).pick({
@@ -88,6 +93,11 @@ export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmiss
   userId: true,
   answers: true,
   score: true,
+  studentName: true,
+  studentId: true,
+  instructorFeedback: true,
+  markedAnswers: true,
+  status: true,
 });
 
 // Relations
