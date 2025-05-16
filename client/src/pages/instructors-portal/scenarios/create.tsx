@@ -1,7 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
-import { useQueryClient } from "@tanstack/react-query";
 import { insertScenarioSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -35,7 +34,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { ArrowLeft, CheckCircle, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -60,8 +59,7 @@ export default function CreateScenario() {
   const [_, navigate] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const queryClient = useQueryClient();
-
+  
   // Set up form
   const form = useForm<ScenarioFormValues>({
     resolver: zodResolver(scenarioFormSchema),
@@ -80,30 +78,30 @@ export default function CreateScenario() {
       ],
     },
   });
-
-  // Handle form submission directly without using react-query mutation
-  const onSubmit = useCallback(async (data: ScenarioFormValues) => {
-    // Prevent multiple submissions
-    if (isSubmitting) return;
-    
-    try {
-      setIsSubmitting(true);
-      
-      // Make sure we're authenticated
-      if (!user) {
+  
+  // Create a manual form submit handler
+  function handleManualSubmit() {
+    // Validate the form first
+    form.trigger().then(isValid => {
+      if (!isValid) {
         toast({
-          title: "Authentication Error",
-          description: "You must be logged in to create scenarios.",
-          variant: "destructive",
+          title: "Validation Error",
+          description: "Please check the form for errors",
+          variant: "destructive"
         });
         return;
       }
-
+      
+      // Proceed with submission
+      const data = form.getValues();
+      setIsSubmitting(true);
+      
+      // Update numberOfQuestions field
+      data.numberOfQuestions = data.questions.length;
+      
       // Check if any questions are missing correct answers
       const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
-      
       if (missingAnswers) {
-        // Show warning but still allow submission
         toast({
           title: "Warning",
           description: "Some questions don't have correct answers specified. Students won't receive automatic scoring.",
@@ -111,68 +109,42 @@ export default function CreateScenario() {
         });
       }
       
-      // Ensure numberOfQuestions field is accurate
-      data.numberOfQuestions = data.questions.length;
-      
-      console.log("Creating scenario:", data);
-      
-      // Direct fetch with credentials included
-      const response = await fetch("/api/scenarios", {
+      // Submit the data
+      fetch("/api/scenarios", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(data),
         credentials: "include"
-      });
-      
-      console.log("Server response status:", response.status);
-      
-      if (!response.ok) {
-        const contentType = response.headers.get("content-type");
-        let errorMessage = `Server error (${response.status})`;
-        
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          errorMessage = errorData.message || "Failed to create scenario";
-          console.error("Error data:", errorData);
-        } else {
-          const text = await response.text();
-          console.error("Error response:", text);
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Server error (${response.status})`);
         }
-        
-        throw new Error(errorMessage);
-      }
-      
-      const newScenario = await response.json();
-      console.log("Scenario created:", newScenario);
-      
-      // Update query cache
-      queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
-      
-      // Show success state
-      setIsSuccess(true);
-      toast({
-        title: "Success!",
-        description: "The scenario has been created successfully",
-      });
-      
-      // Navigate back after delay
-      setTimeout(() => {
+        return response.json();
+      })
+      .then(newScenario => {
+        toast({
+          title: "Success!",
+          description: "Scenario created successfully"
+        });
+        // Redirect immediately
         navigate("/instructors-portal/scenarios");
-      }, 1500);
-      
-    } catch (error) {
-      console.error("Error creating scenario:", error);
-      toast({
-        title: "Failed to create scenario",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
+      })
+      .catch(error => {
+        console.error("Error creating scenario:", error);
+        toast({
+          title: "Error creating scenario",
+          description: error.message || "An unknown error occurred",
+          variant: "destructive"
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [user, toast, queryClient, navigate, isSubmitting]);
+    });
+  }
 
   // Add a new question to the form
   const addQuestion = () => {
@@ -278,7 +250,7 @@ export default function CreateScenario() {
           </Card>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Scenario Details</CardTitle>
@@ -522,7 +494,8 @@ export default function CreateScenario() {
                   Add Question
                 </Button>
                 <Button
-                  type="submit"
+                  type="button"
+                  onClick={handleManualSubmit}
                   className="bg-primary hover:bg-primary/90 text-white"
                   disabled={isSubmitting}
                 >
