@@ -74,19 +74,18 @@ export default function ScenarioPage() {
         notes: notes[questionId] || ""
       }));
       
-      // Convert scenarioId to number to match database expectations
-      const scenarioIdNum = parseInt(scenarioId);
+      // Make sure scenarioId is a number (required by database schema)
+      const scenarioIdNum = Number(scenarioId);
       
       const payload = {
         scenarioId: scenarioIdNum,
         userId: user.id,
         studentName,
         studentId,
-        answers: JSON.stringify(answersArray),
-        status: "pending",
-        score: null,
-        instructorFeedback: null,
-        markedAnswers: null
+        // Store answers as a proper JSON object, not a string
+        answers: answersArray,
+        status: "pending"
+        // Remove null fields as they're optional in the schema
       };
       
       const response = await apiRequest("POST", "/api/scenario-submissions", payload);

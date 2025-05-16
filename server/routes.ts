@@ -281,32 +281,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log incoming data for debugging
       console.log("Incoming scenario submission data:", req.body);
       
-      // Process the incoming data to ensure it matches our schema
-      let processedBody = {...req.body};
-      
-      // Convert answers to proper JSON object if it's a string
-      if (typeof processedBody.answers === 'string') {
-        try {
-          processedBody.answers = JSON.parse(processedBody.answers);
-        } catch (e) {
-          console.error("Error parsing answers JSON:", e);
-        }
-      }
-      
-      // Ensure scenarioId is a number
-      if (typeof processedBody.scenarioId === 'string') {
-        processedBody.scenarioId = parseInt(processedBody.scenarioId);
-      }
-      
-      // Make sure null values are properly handled
-      if (processedBody.score === undefined) processedBody.score = null;
-      if (processedBody.markedAnswers === undefined) processedBody.markedAnswers = null;
-      if (processedBody.instructorFeedback === undefined) processedBody.instructorFeedback = null;
-      
-      const submissionData = insertScenarioSubmissionSchema.parse({
-        ...processedBody,
-        userId: req.user.id
-      });
+      // Create a simple submission object with only required fields
+      const submissionData = {
+        scenarioId: Number(req.body.scenarioId),
+        userId: req.user.id,
+        studentName: req.body.studentName || '',
+        studentId: req.body.studentId || '',
+        answers: req.body.answers,
+        status: 'pending'
+      };
       
       console.log("Parsed submission data:", submissionData);
       
