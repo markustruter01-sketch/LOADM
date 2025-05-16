@@ -514,21 +514,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Missing required cargo data" });
       }
       
-      // Call the OpenAI integration
-      const analysis = await analyzeCargoBalance({
-        message,
-        aircraftType,
-        cargoData,
-        balanceValue,
-        balanceCG
-      });
-      
-      res.json({ analysis });
+      try {
+        // Try to call the OpenAI integration first
+        const analysis = await analyzeCargoBalance({
+          message,
+          aircraftType,
+          cargoData,
+          balanceValue,
+          balanceCG
+        });
+        
+        res.json({ analysis });
+      } catch (openaiError) {
+        // If OpenAI fails, use fallback analysis
+        console.warn("OpenAI API failed, using local fallback analysis instead");
+        
+        // Generate a simple fallback analysis
+        let fallbackAnalysis = generateFallbackAnalysis(aircraftType, cargoData, balanceValue, balanceCG);
+        
+        res.json({ analysis: fallbackAnalysis });
+      }
     } catch (error) {
       console.error("Error generating cargo balance analysis:", error);
-      res.status(500).json({ error: "Failed to analyze cargo balance" });
+      res.status(500).json({ analysis: "Unable to analyze cargo balance at this time. Please try again later." });
     }
   });
+  
+  // Helper function to generate fallback analysis when OpenAI is unavailable
+  function generateFallbackAnalysis(
+    aircraftType: string,
+    cargoData: any[],
+    balanceValue: number,
+    balanceCG: number
+  ): string {
+    // Get aircraft information
+    const aircraftName = 
+      aircraftType === 'c17' ? 'C-17 Globemaster' : 
+      aircraftType === 'c130' ? 'C-130 Hercules' : 
+      aircraftType === 'kc30a' ? 'KC30-A Airbus' : 'C-27J Spartan';
+    
+    // Calculate total weight and determine if balance is acceptable
+    const totalWeight = cargoData.reduce((sum, pallet) => sum + (pallet.weight || 0), 0);
+    const isBalanced = Math.abs(balanceValue) < 20;
+    const isAcceptable = balanceCG >= 18 && balanceCG <= 88;
+    
+    let analysis = `Cargo Analysis for ${aircraftName}:\n\n`;
+    analysis += `Total Weight: ${totalWeight} kg\n`;
+    analysis += `Center of Gravity: ${balanceCG.toFixed(2)}° (${isAcceptable ? 'acceptable' : 'out of acceptable range'})\n`;
+    analysis += `Balance Value: ${balanceValue.toFixed(2)}\n\n`;
+    
+    if (!isBalanced) {
+      // Determine which side is heavy
+      const heavySide = balanceValue < 0 ? "forward" : "aft";
+      
+      analysis += `Your cargo is currently ${Math.abs(balanceValue) < 40 ? 'slightly' : 'significantly'} imbalanced toward the ${heavySide} section.\n\n`;
+      
+      analysis += "Recommendations:\n";
+      
+      if (heavySide === "forward") {
+        // Too much weight forward
+        const forwardPallets = cargoData.filter(p => {
+          const position = parseInt((p.positionLabel || "P0").substring(1));
+          return position <= Math.ceil(cargoData.length / 2);
+        }).sort((a, b) => (b.weight || 0) - (a.weight || 0));
+        
+        if (forwardPallets.length > 0) {
+          const heaviestPallet = forwardPallets[0];
+          analysis += `1. Consider moving the ${heaviestPallet.weight} kg pallet at position ${heaviestPallet.positionLabel} to a more aft position.\n`;
+        }
+        
+        analysis += "2. Try redistributing weight from forward to aft positions to improve balance.\n";
+      } else {
+        // Too much weight aft
+        const aftPallets = cargoData.filter(p => {
+          const position = parseInt((p.positionLabel || "P0").substring(1));
+          return position > Math.ceil(cargoData.length / 2);
+        }).sort((a, b) => (b.weight || 0) - (a.weight || 0));
+        
+        if (aftPallets.length > 0) {
+          const heaviestPallet = aftPallets[0];
+          analysis += `1. Consider moving the ${heaviestPallet.weight} kg pallet at position ${heaviestPallet.positionLabel} to a more forward position.\n`;
+        }
+        
+        analysis += "2. Try redistributing weight from aft to forward positions to improve balance.\n";
+      }
+    } else {
+      analysis += "Your cargo appears to be well-balanced. No adjustments needed at this time.\n";
+    }
+    
+    analysis += "\nTips for maintaining balance:\n";
+    analysis += "- Keep heavier items near the center when possible\n";
+    analysis += "- Distribute weight evenly between forward and aft sections\n";
+    analysis += "- Ensure all cargo is properly secured before flight\n";
+    
+    if (!isAcceptable) {
+      analysis += "\nWARNING: The current Center of Gravity (CG) value is outside the acceptable range (18°-88°). This must be corrected before flight.\n";
+    }
+    
+    return analysis;
+  }
 
   const httpServer = createServer(app);
   return httpServer;
