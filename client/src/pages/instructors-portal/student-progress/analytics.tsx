@@ -75,7 +75,7 @@ export default function ScenarioAnalytics() {
     });
     
     // Transform for charts
-    const chartData = Object.entries(scoreGroups).map(([range, count]) => ({
+    const newChartData = Object.entries(scoreGroups).map(([range, count]) => ({
       range,
       count
     }));
@@ -88,7 +88,7 @@ export default function ScenarioAnalytics() {
     
     const incorrectCount = filteredSubmissions.length - correctCount;
     
-    const pieData = [
+    const newPieData = [
       { name: "Pass", value: correctCount },
       { name: "Fail", value: incorrectCount }
     ];
@@ -109,7 +109,7 @@ export default function ScenarioAnalytics() {
       groupedByMonth[monthYear].push(sub.score || 0);
     });
     
-    const progressData = Object.entries(groupedByMonth).map(([month, scores]) => {
+    const newProgressData = Object.entries(groupedByMonth).map(([month, scores]) => {
       const total = scores.reduce((sum, score) => sum + score, 0);
       const average = scores.length > 0 ? Math.round(total / scores.length) : 0;
       
@@ -120,9 +120,9 @@ export default function ScenarioAnalytics() {
       };
     });
     
-    setChartData(chartData);
-    setPieData(pieData);
-    setProgressData(progressData);
+    setChartData(newChartData);
+    setPieData(newPieData);
+    setProgressData(newProgressData);
     
   }, [submissions, selectedScenarioId]);
   
