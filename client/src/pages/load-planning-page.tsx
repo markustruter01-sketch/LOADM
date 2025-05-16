@@ -542,8 +542,8 @@ export default function LoadPlanningPage() {
     const cg = parseFloat(cgExact.toFixed(2)); // Keep two decimal places
     setBalanceCG(cg);
     
-    // Check if C of G is outside safe limits (18-88 degrees)
-    if (cg < 18 || cg > 88) {
+    // Check if C of G is outside or at the boundary of safe limits (18-88 degrees)
+    if (cg <= 18 || cg >= 88) {
       // Set our warning state to true to display the popup
       setShowOutOfLimitsWarning(true);
       
@@ -551,6 +551,9 @@ export default function LoadPlanningPage() {
       setTimeout(() => {
         setShowOutOfLimitsWarning(false);
       }, 2500);
+      
+      // Log for debugging
+      console.log("C of G value out of limits:", cg);
     }
     
     // Determine balance status - using more gradual transitions
