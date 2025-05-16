@@ -163,8 +163,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/scenarios", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
-        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
       const scenarioData = insertScenarioSchema.parse(req.body);
@@ -180,8 +180,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.put("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
-        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
       const scenarioId = parseInt(req.params.id);
@@ -204,8 +204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Special endpoint to update a scenario's questions
   app.patch("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
-        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
       const scenarioId = parseInt(req.params.id);
@@ -233,8 +233,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.delete("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
-        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
       const scenarioId = parseInt(req.params.id);
