@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
-  GraduationCap, PenTool, Lightbulb, BarChart2, Award
+  GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -112,7 +112,7 @@ export default function InstructorsPortal() {
 
         {/* Management Cards */}
         <h3 className="text-xl font-semibold mb-4 text-foreground">Scenario Management</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -174,6 +174,29 @@ export default function InstructorsPortal() {
               <Link href="/instructors-portal/student-progress">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   View Student Progress
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+          
+          {/* User Management Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">User Management</CardTitle>
+                <UserCircle className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Manage system users</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                View and manage registered users in the system. Only Super Admins can delete user accounts.
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/users">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Manage Users
                 </Button>
               </Link>
             </CardFooter>

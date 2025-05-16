@@ -400,6 +400,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update scenario submission" });
     }
   });
+  
+  // === User Management Routes ===
+  
+  // Get all registered users (admin only)
+  app.get("/api/users", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Only admins can view all users
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      }
+      
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to retrieve users" });
+    }
+  });
+  
+  // Delete a user (super admin only)
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Only super admins can delete users
+      if (!req.user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Forbidden: Super Admin access required for account deletion" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      
+      // Prevent deleting your own account
+      if (userId === req.user.id) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      const success = await storage.deleteUser(userId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
