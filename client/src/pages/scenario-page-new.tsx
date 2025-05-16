@@ -68,16 +68,18 @@ export default function ScenarioPage() {
         throw new Error("Student name and ID are required");
       }
       
+      const answersArray = Object.entries(answers).map(([questionId, answer]) => ({
+        questionId,
+        answer,
+        notes: notes[questionId] || ""
+      }));
+      
       const payload = {
-        scenarioId,
+        scenarioId: parseInt(scenarioId),
         userId: user.id,
         studentName,
         studentId,
-        answers: Object.entries(answers).map(([questionId, answer]) => ({
-          questionId,
-          answer,
-          notes: notes[questionId] || ""
-        })),
+        answers: JSON.stringify(answersArray),
         status: "pending"
       };
       

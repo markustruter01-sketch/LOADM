@@ -278,18 +278,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
+      // Log incoming data for debugging
+      console.log("Incoming scenario submission data:", req.body);
+      
+      // Convert string answers array to JSON if it's a string
+      let processedBody = {...req.body};
+      if (typeof processedBody.answers === 'string') {
+        try {
+          processedBody.answers = JSON.parse(processedBody.answers);
+        } catch (e) {
+          console.error("Error parsing answers JSON:", e);
+        }
+      }
+      
       const submissionData = insertScenarioSubmissionSchema.parse({
-        ...req.body,
+        ...processedBody,
         userId: req.user.id
       });
+      
+      console.log("Parsed submission data:", submissionData);
       
       const submission = await storage.createScenarioSubmission(submissionData);
       res.status(201).json(submission);
     } catch (error) {
+      console.error("Error creating scenario submission:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+        return res.status(400).json({ 
+          message: "Invalid submission data", 
+          errors: error.errors 
+        });
       }
-      res.status(500).json({ message: "Failed to create scenario submission" });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ message: "Failed to create scenario submission", error: errorMessage });
     }
   });
   
