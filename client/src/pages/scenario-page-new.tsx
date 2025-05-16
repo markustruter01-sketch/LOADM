@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Accordion,
@@ -17,6 +18,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +45,8 @@ export default function ScenarioPage() {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
+  const [studentName, setStudentName] = useState("");
+  const [studentId, setStudentId] = useState("");
   
   const scenarioId = parseInt(id);
 
@@ -54,14 +64,21 @@ export default function ScenarioPage() {
         throw new Error("User not authenticated");
       }
       
+      if (!studentName || !studentId) {
+        throw new Error("Student name and ID are required");
+      }
+      
       const payload = {
         scenarioId,
         userId: user.id,
+        studentName,
+        studentId,
         answers: Object.entries(answers).map(([questionId, answer]) => ({
           questionId,
           answer,
           notes: notes[questionId] || ""
-        }))
+        })),
+        status: "pending"
       };
       
       const response = await apiRequest("POST", "/api/scenario-submissions", payload);
@@ -270,13 +287,45 @@ export default function ScenarioPage() {
             ))}
           </Accordion>
 
+          {/* Student Information */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Student Information</CardTitle>
+              <CardDescription>
+                Please enter your information before submitting
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="studentName">Full Name</Label>
+                <Input 
+                  id="studentName"
+                  placeholder="Enter your full name"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  className="text-white font-medium"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="studentId">Student ID</Label>
+                <Input 
+                  id="studentId"
+                  placeholder="Enter your student ID"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  className="text-white font-medium"
+                />
+              </div>
+            </CardContent>
+          </Card>
+          
           {/* Submit Button */}
           <div className="flex justify-center">
             <Button
               variant="default"
               onClick={submitAnswers}
               className="min-w-[200px] bg-primary hover:bg-primary/90"
-              disabled={submitMutation.isPending}
+              disabled={submitMutation.isPending || !studentName || !studentId}
             >
               {submitMutation.isPending ? (
                 <>
@@ -291,6 +340,11 @@ export default function ScenarioPage() {
               )}
             </Button>
           </div>
+          {(!studentName || !studentId) && (
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              Student name and ID are required to submit your answers
+            </p>
+          )}
         </div>
       </div>
 
