@@ -604,8 +604,26 @@ export default function LoadPlanningPage() {
       e.dataTransfer.setData("text/plain", "template");
     } else {
       // We're dragging an existing pallet
+      console.log("Starting drag for pallet ID:", id);
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
+      
+      // Set the drag image to make dragging more visible
+      const dragIcon = document.createElement('div');
+      dragIcon.style.width = '80px';
+      dragIcon.style.height = '80px';
+      dragIcon.style.backgroundColor = 'rgba(234, 88, 12, 0.6)';
+      dragIcon.style.border = '2px solid #ea580c';
+      dragIcon.style.borderRadius = '4px';
+      dragIcon.style.display = 'flex';
+      dragIcon.style.alignItems = 'center';
+      dragIcon.style.justifyContent = 'center';
+      dragIcon.textContent = `Pallet ${id}`;
+      dragIcon.style.color = 'white';
+      dragIcon.style.fontWeight = 'bold';
+      document.body.appendChild(dragIcon);
+      e.dataTransfer.setDragImage(dragIcon, 40, 40);
+      setTimeout(() => document.body.removeChild(dragIcon), 0);
     }
   };
   
@@ -686,6 +704,7 @@ export default function LoadPlanningPage() {
     e.preventDefault();
     
     const dataTransfer = e.dataTransfer.getData("text/plain");
+    console.log("Handling drop event, data:", dataTransfer, "area:", dropArea);
     
     // Reset the template dragging flag
     if (isDraggingTemplate) {
@@ -1030,10 +1049,19 @@ export default function LoadPlanningPage() {
     } else {
       // For existing pallets, get the ID and find the pallet
       const id = parseInt(dataTransfer);
-      if (isNaN(id)) return;
+      if (isNaN(id)) {
+        console.log("Invalid pallet ID in drag transfer data");
+        return;
+      }
       
+      console.log(`Looking for pallet with ID: ${id} to drag`);
       const draggedPallet = pallets.find(p => p.id === id);
-      if (!draggedPallet) return;
+      if (!draggedPallet) {
+        console.log("Could not find pallet with ID:", id);
+        return;
+      }
+      
+      console.log("Found pallet:", draggedPallet);
       
       // Position the existing pallet in the cargo area
       if (dropArea === "cargo") {
@@ -1686,13 +1714,16 @@ export default function LoadPlanningPage() {
                                     key={`cell-row1-${i}`}
                                     draggable={assignedPallet ? true : false}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                    onDragEnd={(e) => {
+                                      console.log("Drag ended for C-17 row 1 cell", positionLabel);
+                                    }}
                                     onClick={(e) => {
                                       if (assignedPallet) {
                                         console.log("CLICKING C-17 ROW1 PALLET", assignedPallet.id, positionLabel);
                                         handlePalletCellClick(e, assignedPallet, positionLabel);
                                       }
                                     }}
-                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 10,
@@ -1990,7 +2021,7 @@ export default function LoadPlanningPage() {
                         })()}
                       </div>
                     ) : (
-                      <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0">
                         {/* Grid cells for C-27J/KC30-A - 3 pallets (3x1) */}
                         {(() => {
                           // Get configuration for current aircraft (C-27J or KC30-A)
