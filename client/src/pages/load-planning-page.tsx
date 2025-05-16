@@ -1665,7 +1665,10 @@ export default function LoadPlanningPage() {
                     <Plane className="h-5 w-5 mr-2 text-primary" />
                     Cargo Area
                     <span className="text-sm font-normal text-muted-foreground ml-2">
-                      ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
+                      ({currentAircraftId === 'c17' ? '18 pallets' : 
+                         currentAircraftId === 'c130' ? '8 pallets' : 
+                         currentAircraftId === 'kc30a' ? '34 pallets (26+8)' : 
+                         '3 pallets'})
                     </span>
                   </CardTitle>
                 </CardHeader>
@@ -1677,7 +1680,9 @@ export default function LoadPlanningPage() {
                         ? 'h-[320px]' 
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
-                          : 'h-[150px]'
+                          : currentAircraftId === 'kc30a'
+                            ? 'h-[210px]' // Increased height for KC30-A to accommodate second cargo area
+                            : 'h-[150px]'
                     } overflow-visible bg-transparent`}
                     style={{
                       // Set exact width to match balance scale width for perfect alignment
@@ -2429,17 +2434,17 @@ export default function LoadPlanningPage() {
                             );
                           }
                           
-                          // For KC30-A - 2 rows of 13 pallets each (26 total)
+                          // For KC30-A - Main cargo area + second cargo deck
                           else if (currentAircraftId === 'kc30a') {
                             const config = getAircraftGridConfig('kc30a');
                             const cellSpacing = config.cellWidth + config.cellPadding;
                             
-                            // Return JSX fragment containing both rows
+                            // Return JSX fragment containing both cargo areas
                             return (
                               <>
-                                {/* Row 1 - Positions 1-13 */}
+                                {/* Row 1 - Positions L1-L13 (changed from P to L) */}
                                 {[...Array(config.cols)].map((_, i) => {
-                                  const positionLabel = `P${i + 1}`;
+                                  const positionLabel = `L${i + 1}`;
                                   const assignedPallet = pallets.find(p => 
                                     p.location === "cargo" && 
                                     p.positionLabel === positionLabel
@@ -2506,9 +2511,9 @@ export default function LoadPlanningPage() {
                                   );
                                 })}
                                 
-                                {/* Row 2 - Positions 14-26 */}
+                                {/* Row 2 - Positions L14-L26 (changed from P to L) */}
                                 {[...Array(config.cols)].map((_, i) => {
-                                  const positionLabel = `P${i + 14}`;
+                                  const positionLabel = `L${i + 14}`;
                                   const assignedPallet = pallets.find(p => 
                                     p.location === "cargo" && 
                                     p.positionLabel === positionLabel
@@ -2538,6 +2543,86 @@ export default function LoadPlanningPage() {
                                       style={{
                                         left: i * cellSpacing,
                                         top: 65, // Position below first row
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-xs">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Cargo Deck Title - Add separator and title for second cargo area */}
+                                <div className="absolute w-full border-t border-gray-600" style={{ top: 120 }}></div>
+                                <div className="absolute text-white/80 text-xs font-medium" style={{ top: 125, left: 0 }}>
+                                  Cargo Deck (8 positions)
+                                </div>
+                                
+                                {/* Second Cargo Area - 8 positions wide */}
+                                {[...Array(8)].map((_, i) => {
+                                  const positionLabel = `D${i + 1}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  // Calculate position - center 8 cells
+                                  const totalWidth = cellSpacing * 13; // Total width of top cargo area
+                                  const secondAreaWidth = cellSpacing * 8; // Width of 8 cells
+                                  const leftOffset = (totalWidth - secondAreaWidth) / 2; // Center align
+                                  
+                                  return (
+                                    <div 
+                                      key={`kc30a-deck-${i}`}
+                                      data-position-key={`kc30a-deck-${i}`}
+                                      data-position-number={i+1}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: leftOffset + (i * cellSpacing),
+                                        top: 145, // Position below title with spacing
                                         width: config.cellWidth,
                                         height: config.cellHeight,
                                         backgroundColor: bgColor,
