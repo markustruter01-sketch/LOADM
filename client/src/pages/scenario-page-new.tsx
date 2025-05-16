@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
+import SuccessAnimation from "@/components/SuccessAnimation";
 import {
   Accordion,
   AccordionContent,
@@ -38,6 +39,7 @@ export default function ScenarioPage() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false);
   const { user } = useAuth();
   
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -110,7 +112,9 @@ export default function ScenarioPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
-      setShowResults(true);
+      // Show the success animation before showing results
+      setShowSubmissionSuccess(true);
+      // Results will be shown after animation completes
     },
     onError: (error: Error) => {
       toast({
