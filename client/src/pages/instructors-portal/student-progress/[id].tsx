@@ -272,78 +272,114 @@ export default function SubmissionReview() {
                     <CardDescription>Review and mark answers as correct or incorrect</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Accordion type="multiple" className="w-full">
-                      {questions.map((question, index) => {
-                        const studentAnswer = answers.find(a => a.questionId === question.id);
-                        const isCorrect = markedAnswers[question.id] || false;
+                    {answers.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground mb-2">No answers found in this submission</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Visual marking guide */}
+                        <div className="flex justify-between items-center px-3 py-3 bg-muted rounded-md mb-4">
+                          <div className="text-sm font-medium">Mark each answer as correct or incorrect</div>
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                              <span className="text-sm">Correct</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                              <span className="text-sm">Incorrect</span>
+                            </div>
+                          </div>
+                        </div>
                         
-                        return (
-                          <AccordionItem key={question.id} value={question.id} className="border border-border rounded-md mb-4 overflow-hidden">
-                            <AccordionTrigger className="px-4 py-3 hover:no-underline">
-                              <div className="flex items-center">
-                                <div className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center text-xs font-medium ${
-                                  isCorrect 
-                                    ? "bg-green-500 text-white" 
-                                    : "bg-red-500 text-white"
-                                }`}>
-                                  {index + 1}
+                        {/* Answer list */}
+                        <div className="space-y-4">
+                          {answers.map((answer, index) => {
+                            const question = questions.find(q => q.id === answer.questionId);
+                            const isCorrect = markedAnswers[answer.questionId] || false;
+                            
+                            return (
+                              <div key={answer.questionId} className="border border-border rounded-md overflow-hidden">
+                                <div className="flex items-center justify-between p-4 bg-card">
+                                  <div className="flex items-center">
+                                    <div className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center text-xs font-medium ${
+                                      isCorrect 
+                                        ? "bg-green-500 text-white" 
+                                        : "bg-red-500 text-white"
+                                    }`}>
+                                      {index + 1}
+                                    </div>
+                                    <div>
+                                      <h4 className="font-medium">{question?.question || `Question ${index + 1}`}</h4>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-4">
+                                    <Label htmlFor={`mark-${answer.questionId}`} className="font-medium text-sm">
+                                      {isCorrect ? "Correct" : "Incorrect"}
+                                    </Label>
+                                    <Switch
+                                      id={`mark-${answer.questionId}`}
+                                      checked={isCorrect}
+                                      onCheckedChange={() => toggleCorrectness(answer.questionId)}
+                                    />
+                                  </div>
                                 </div>
-                                <div className="text-left">
-                                  <div className="font-medium">Question {index + 1}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {isCorrect ? "Correct" : "Incorrect"}
+                                <div className="p-4 border-t border-border">
+                                  <div className="space-y-4">
+                                    <div>
+                                      <h5 className="text-sm font-medium text-muted-foreground mb-2">Student's Answer:</h5>
+                                      <div className="bg-muted p-3 rounded-md">
+                                        {answer.answer || <span className="text-muted-foreground italic">No answer provided</span>}
+                                      </div>
+                                    </div>
+                                    
+                                    {question?.questionType === "multiple-choice" && question?.correctAnswer && (
+                                      <div>
+                                        <h5 className="text-sm font-medium text-muted-foreground mb-2">Expected Answer:</h5>
+                                        <div className="bg-muted/50 p-3 rounded-md">
+                                          {question.correctAnswer}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {answer.notes && (
+                                      <div>
+                                        <h5 className="text-sm font-medium text-muted-foreground mb-2">Student Notes:</h5>
+                                        <div className="bg-muted/50 p-3 rounded-md text-muted-foreground">
+                                          {answer.notes}
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-6 pt-2 pb-4">
-                              <div className="space-y-4">
-                                <div>
-                                  <h4 className="font-medium mb-2">Question:</h4>
-                                  <p className="text-muted-foreground">{question.question}</p>
-                                </div>
-                                
-                                <div>
-                                  <h4 className="font-medium mb-2">Student Answer:</h4>
-                                  <div className="bg-muted p-3 rounded-md">
-                                    {studentAnswer?.answer || <span className="text-muted-foreground italic">No answer provided</span>}
-                                  </div>
-                                </div>
-                                
-                                {question.questionType === "multiple-choice" && (
-                                  <div>
-                                    <h4 className="font-medium mb-2">Correct Answer:</h4>
-                                    <div className="text-muted-foreground">
-                                      {question.correctAnswer || <span className="italic">No correct answer specified</span>}
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {studentAnswer?.notes && (
-                                  <div>
-                                    <h4 className="font-medium mb-2">Student Notes:</h4>
-                                    <div className="bg-muted p-3 rounded-md text-muted-foreground">
-                                      {studentAnswer.notes}
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                <div className="border-t border-border pt-4 flex items-center justify-between">
-                                  <Label htmlFor={`mark-${question.id}`} className="font-medium">
-                                    Mark as {isCorrect ? "Incorrect" : "Correct"}
-                                  </Label>
-                                  <Switch
-                                    id={`mark-${question.id}`}
-                                    checked={isCorrect}
-                                    onCheckedChange={() => toggleCorrectness(question.id)}
-                                  />
-                                </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Overall assessment */}
+                        <div className="bg-card border border-border rounded-md p-4 mt-8">
+                          <h4 className="font-medium mb-4">Overall Assessment</h4>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm text-muted-foreground mb-1">
+                                {correctAnswers} out of {totalQuestions} correct ({currentScore}%)
                               </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
+                              <div className="flex items-center space-x-2">
+                                <Label htmlFor="pass-fail" className="font-medium">
+                                  {currentScore >= 70 ? "PASS" : "FAIL"}
+                                </Label>
+                                <div className={`w-3 h-3 rounded-full ${currentScore >= 70 ? "bg-green-500" : "bg-red-500"}`}></div>
+                              </div>
+                            </div>
+                            <div className="text-xl font-bold">
+                              {currentScore}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
