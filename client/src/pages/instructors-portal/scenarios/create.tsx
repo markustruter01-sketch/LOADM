@@ -47,7 +47,7 @@ const scenarioFormSchema = insertScenarioSchema.extend({
       question: z.string().min(1, "Question text is required"),
       questionType: z.enum(["multiple-choice", "free-text"]),
       options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
-      correctAnswer: z.string().min(1, "Correct answer is required"),
+      correctAnswer: z.string().optional(),
     })
   ),
 });
@@ -111,6 +111,18 @@ export default function CreateScenario() {
 
   // Handle form submission
   const onSubmit = (data: ScenarioFormValues) => {
+    // Check if any questions are missing correct answers
+    const missingAnswers = data.questions.some(q => !q.correctAnswer?.trim());
+    
+    if (missingAnswers) {
+      // Show warning but still allow submission
+      toast({
+        title: "Warning",
+        description: "Some questions don't have correct answers specified. Students won't receive automatic scoring.",
+        variant: "destructive",
+      });
+    }
+    
     createScenarioMutation.mutate(data);
   };
 
@@ -122,7 +134,7 @@ export default function CreateScenario() {
       {
         id: `q${questions.length + 1}`,
         question: "",
-        questionType: "multiple-choice",
+        questionType: "free-text",
         options: ["", ""],
         correctAnswer: "",
       },
@@ -270,14 +282,6 @@ export default function CreateScenario() {
 
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium text-foreground">Questions</h3>
-                <Button
-                  type="button"
-                  onClick={addQuestion}
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Question
-                </Button>
               </div>
 
               {form.watch("questions")?.map((question, qIndex) => (
