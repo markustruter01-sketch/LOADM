@@ -38,6 +38,7 @@ import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2 } from "lucide-react";
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
+  passingThreshold: z.number().min(0).max(100).default(70),
   questions: z.array(
     z.object({
       id: z.string(),
@@ -60,6 +61,7 @@ export default function CreateScenario() {
     defaultValues: {
       title: "",
       description: "",
+      passingThreshold: 70, // Default 70% passing threshold
       questions: [
         {
           id: "q1",

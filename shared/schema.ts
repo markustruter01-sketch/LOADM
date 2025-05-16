@@ -60,6 +60,7 @@ export const scenarios = pgTable("scenarios", {
   description: text("description").notNull(),
   numberOfQuestions: integer("number_of_questions").notNull(),
   questions: json("questions").notNull(),
+  passingThreshold: integer("passing_threshold").default(70), // Default 70% threshold
 });
 
 export const insertScenarioSchema = createInsertSchema(scenarios).pick({
@@ -67,6 +68,7 @@ export const insertScenarioSchema = createInsertSchema(scenarios).pick({
   description: true,
   numberOfQuestions: true,
   questions: true,
+  passingThreshold: true,
 });
 
 // Scenario submission schema
