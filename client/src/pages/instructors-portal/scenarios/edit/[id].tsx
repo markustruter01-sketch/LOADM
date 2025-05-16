@@ -327,14 +327,6 @@ export default function EditScenario() {
 
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium text-foreground">Questions</h3>
-                <Button
-                  type="button"
-                  onClick={addQuestion}
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Question
-                </Button>
               </div>
 
               {form.watch("questions")?.map((question, qIndex) => (
@@ -518,25 +510,35 @@ export default function EditScenario() {
                 </Card>
               ))}
 
-              <div className="flex justify-end">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleBackClick} 
-                  className="mr-2"
-                >
-                  Cancel
-                </Button>
+              <div className="flex justify-between">
                 <Button
-                  type="submit"
-                  className="bg-primary hover:bg-primary/90 text-white"
-                  disabled={updateScenarioMutation.isPending}
+                  type="button"
+                  onClick={addQuestion}
+                  variant="outline"
                 >
-                  {updateScenarioMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {updateScenarioMutation.isPending ? "Saving..." : "Save Changes"}
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Question
                 </Button>
+                <div className="flex justify-end">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleBackClick} 
+                    className="mr-2"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-primary hover:bg-primary/90 text-white"
+                    disabled={updateScenarioMutation.isPending}
+                  >
+                    {updateScenarioMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {updateScenarioMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
