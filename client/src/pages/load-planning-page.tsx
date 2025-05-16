@@ -542,18 +542,19 @@ export default function LoadPlanningPage() {
     const cg = parseFloat(cgExact.toFixed(2)); // Keep two decimal places
     setBalanceCG(cg);
     
-    // Check if C of G is outside or at the boundary of safe limits (18-88 degrees)
+    // Show warning popup when CG reaches or exceeds limits
     if (cg <= 18 || cg >= 88) {
-      // Set our warning state to true to display the popup
       setShowOutOfLimitsWarning(true);
       
-      // Automatically hide the warning after 2.5 seconds
+      // Clear the warning after 5 seconds
       setTimeout(() => {
         setShowOutOfLimitsWarning(false);
-      }, 2500);
+      }, 5000);
       
-      // Log for debugging
-      console.log("C of G value out of limits:", cg);
+      console.log(`WARNING: C of G value ${cg.toFixed(2)}° is at or beyond safety limits (18°-88°)`);
+    } else {
+      // Ensure warning is cleared if CG is back in safe range
+      setShowOutOfLimitsWarning(false);
     }
     
     // Determine balance status - using more gradual transitions
@@ -1450,16 +1451,21 @@ export default function LoadPlanningPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Out of Limits Warning Popup */}
+      {/* Out of Limits Warning Popup - Bright red and clearly visible */}
       {showOutOfLimitsWarning && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 animate-in fade-in zoom-in duration-300">
-          <Alert variant="destructive" className="w-[350px] shadow-lg border-2 border-destructive">
-            <AlertTriangleIcon className="h-5 w-5 mr-2" />
-            <AlertTitle className="text-lg font-bold">Out of Balance Limits!</AlertTitle>
-            <AlertDescription className="mt-2">
-              Centre of Gravity value of {balanceCG.toFixed(2)}° exceeds the safe range of 18° to 88°. Adjust cargo placement immediately.
-            </AlertDescription>
-          </Alert>
+        <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-red-600 text-white p-6 rounded-lg shadow-2xl border-4 border-white w-[500px] animate-pulse">
+            <div className="flex items-center gap-4">
+              <AlertTriangleIcon className="h-12 w-12 text-yellow-300 flex-shrink-0" />
+              <div>
+                <h3 className="text-2xl font-bold mb-2">OUT OF BALANCE LIMITS!</h3>
+                <p className="text-white text-lg">
+                  Centre of Gravity value of <span className="font-bold text-xl">{balanceCG.toFixed(2)}°</span> {balanceCG <= 18 ? "is below" : "exceeds"} the safe range of 18° to 88°.
+                </p>
+                <p className="mt-2 font-semibold text-yellow-200 text-lg">ADJUST CARGO PLACEMENT IMMEDIATELY</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
       
