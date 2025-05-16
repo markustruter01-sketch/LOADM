@@ -47,7 +47,7 @@ const scenarioFormSchema = insertScenarioSchema.extend({
       question: z.string().min(1, "Question text is required"),
       questionType: z.enum(["multiple-choice", "free-text"]),
       options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
-      correctAnswer: z.string().min(1, "Correct answer is required"),
+      correctAnswer: z.string().optional(),
     })
   ),
 });

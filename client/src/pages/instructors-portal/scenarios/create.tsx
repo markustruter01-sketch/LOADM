@@ -70,7 +70,7 @@ export default function CreateScenario() {
         {
           id: "q1",
           question: "",
-          questionType: "multiple-choice",
+          questionType: "free-text",
           options: ["", ""],
           correctAnswer: "",
         },
@@ -84,8 +84,19 @@ export default function CreateScenario() {
       // Update the numberOfQuestions field to match the actual number of questions
       data.numberOfQuestions = data.questions.length;
       
-      const res = await apiRequest("POST", "/api/scenarios", data);
-      return res.json();
+      try {
+        const res = await apiRequest("POST", "/api/scenarios", data);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to create scenario");
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error("Error creating scenario:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
@@ -464,7 +475,15 @@ export default function CreateScenario() {
                 </Card>
               ))}
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
+                <Button
+                  type="button"
+                  onClick={addQuestion}
+                  variant="outline"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Question
+                </Button>
                 <Button
                   type="submit"
                   className="bg-primary hover:bg-primary/90 text-white"
