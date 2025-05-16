@@ -18,6 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +44,7 @@ import {
   Line,
   CartesianGrid
 } from "recharts";
-import { Loader2, BrainCircuit } from "lucide-react";
+import { Loader2, BrainCircuit, AlertCircle } from "lucide-react";
 
 export default function ScenarioAnalytics() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>("all");
@@ -45,6 +53,7 @@ export default function ScenarioAnalytics() {
   const [progressData, setProgressData] = useState<any[]>([]);
   const [aiInsight, setAiInsight] = useState<string>("");
   const [selectedScenarioName, setSelectedScenarioName] = useState<string>("All Scenarios");
+  const [insufficientDataOpen, setInsufficientDataOpen] = useState(false);
   const { toast } = useToast();
   
   // Fetch all scenarios for dropdown
@@ -147,7 +156,7 @@ export default function ScenarioAnalytics() {
     setPieData(newPieData);
     setProgressData(newProgressData);
     
-  }, [submissions, selectedScenarioId]);
+  }, [submissions, selectedScenarioId, scenarios]);
   
   // Analytics summary 
   const totalSubmissions = submissions?.length || 0;
@@ -203,13 +212,9 @@ export default function ScenarioAnalytics() {
       });
     },
     onError: (error: Error) => {
-      // Display specialized toast for insufficient data
+      // Display modal dialog for insufficient data
       if (error.message.includes("Insufficient data")) {
-        toast({
-          title: "Insufficient Data for Analysis",
-          description: "At least 2-3 submissions are required to generate meaningful insights.",
-          variant: "destructive",
-        });
+        setInsufficientDataOpen(true);
       } else {
         toast({
           title: "AI Analysis Failed",
@@ -225,196 +230,221 @@ export default function ScenarioAnalytics() {
   const PIE_COLORS = ['#4CAF50', '#F44336'];
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Performance Analytics</CardTitle>
-        <CardDescription>Track student performance across scenarios</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center space-x-4">
-          <Label htmlFor="scenarioFilter" className="min-w-[80px]">Scenario:</Label>
-          <Select
-            value={selectedScenarioId}
-            onValueChange={(value) => {
-              setSelectedScenarioId(value);
-              if (value === "all") {
-                setSelectedScenarioName("All Scenarios");
-              } else {
-                const scenario = scenarios?.find(s => s.id.toString() === value);
-                if (scenario) {
-                  setSelectedScenarioName(scenario.title);
+    <>
+      {/* Insufficient Data Dialog */}
+      <Dialog open={insufficientDataOpen} onOpenChange={setInsufficientDataOpen}>
+        <DialogContent className="bg-card border border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-primary" />
+              <span>Insufficient Data for Analysis</span>
+            </DialogTitle>
+            <DialogDescription>
+              At least 2-3 submissions are required to generate meaningful insights.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              onClick={() => setInsufficientDataOpen(false)}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Performance Analytics</CardTitle>
+          <CardDescription>Track student performance across scenarios</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <Label htmlFor="scenarioFilter" className="min-w-[80px]">Scenario:</Label>
+            <Select
+              value={selectedScenarioId}
+              onValueChange={(value) => {
+                setSelectedScenarioId(value);
+                if (value === "all") {
+                  setSelectedScenarioName("All Scenarios");
+                } else {
+                  const scenario = scenarios?.find(s => s.id.toString() === value);
+                  if (scenario) {
+                    setSelectedScenarioName(scenario.title);
+                  }
                 }
-              }
-            }}
-          >
-            <SelectTrigger id="scenarioFilter" className="w-full max-w-sm">
-              <SelectValue placeholder="Select scenario" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Scenarios</SelectItem>
-              {scenarios?.map((scenario) => (
-                <SelectItem key={scenario.id} value={scenario.id.toString()}>
-                  {scenario.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalSubmissions}</div>
-            </CardContent>
-          </Card>
+              }}
+            >
+              <SelectTrigger id="scenarioFilter" className="w-full max-w-sm">
+                <SelectValue placeholder="Select scenario" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Scenarios</SelectItem>
+                {scenarios?.map((scenario) => (
+                  <SelectItem key={scenario.id} value={scenario.id.toString()}>
+                    {scenario.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{averageScore.toFixed(1)}%</div>
-            </CardContent>
-          </Card>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalSubmissions}</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{averageScore.toFixed(1)}%</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{passRate.toFixed(1)}%</div>
+              </CardContent>
+            </Card>
+          </div>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{passRate.toFixed(1)}%</div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Tabs defaultValue="distribution">
-          <TabsList className="mb-4">
-            <TabsTrigger value="distribution">Score Distribution</TabsTrigger>
-            <TabsTrigger value="passrate">Pass/Fail Rate</TabsTrigger>
-            <TabsTrigger value="progress">Progress Over Time</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="distribution" className="pt-4">
-            <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={chartData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="range" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#FF9500" name="Number of Students" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="passrate" className="pt-4">
-            <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
+          <Tabs defaultValue="distribution">
+            <TabsList className="mb-4">
+              <TabsTrigger value="distribution">Score Distribution</TabsTrigger>
+              <TabsTrigger value="passrate">Pass/Fail Rate</TabsTrigger>
+              <TabsTrigger value="progress">Progress Over Time</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="distribution" className="pt-4">
+              <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="range" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#FF9500" name="Number of Students" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="passrate" className="pt-4">
+              <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={true}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="progress" className="pt-4">
+              <div className="w-full h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={progressData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="average" 
+                      stroke="#FF9500" 
+                      name="Average Score" 
+                      strokeWidth={2}
+                      activeDot={{ r: 8 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+          </Tabs>
           
-          <TabsContent value="progress" className="pt-4">
-            <div className="w-full h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={progressData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          {/* AI Diagnostics Section */}
+          <Card className="mt-8">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BrainCircuit className="h-5 w-5 text-primary" />
+                    AI Performance Diagnostics
+                  </CardTitle>
+                  <CardDescription>
+                    Get AI-powered insights and recommendations based on performance data
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={() => getAiInsightsMutation.mutate()}
+                  disabled={getAiInsightsMutation.isPending}
+                  className="bg-primary hover:bg-primary/90"
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="average" 
-                    stroke="#FF9500" 
-                    name="Average Score" 
-                    strokeWidth={2}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        {/* AI Diagnostics Section */}
-        <Card className="mt-8">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <BrainCircuit className="h-5 w-5 text-primary" />
-                  AI Performance Diagnostics
-                </CardTitle>
-                <CardDescription>
-                  Get AI-powered insights and recommendations based on performance data
-                </CardDescription>
+                  {getAiInsightsMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>Run Diagnosis</>
+                  )}
+                </Button>
               </div>
-              <Button 
-                onClick={() => getAiInsightsMutation.mutate()}
-                disabled={getAiInsightsMutation.isPending}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {getAiInsightsMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>Run Diagnosis</>
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {aiInsight ? (
-              <div className="bg-card/50 p-4 rounded-md border border-border text-foreground">
-                {aiInsight}
-              </div>
-            ) : (
-              <div className="bg-card/50 p-4 rounded-md border border-border text-muted-foreground text-center">
-                {getAiInsightsMutation.isPending ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <p>Click "Run Diagnosis" to generate AI insights based on the performance data</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </CardContent>
-    </Card>
+            </CardHeader>
+            <CardContent>
+              {aiInsight ? (
+                <div className="bg-card/50 p-4 rounded-md border border-border text-foreground">
+                  {aiInsight}
+                </div>
+              ) : (
+                <div className="bg-card/50 p-4 rounded-md border border-border text-muted-foreground text-center">
+                  {getAiInsightsMutation.isPending ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <p>Click "Run Diagnosis" to generate AI insights based on the performance data</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }
