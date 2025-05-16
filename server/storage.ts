@@ -223,30 +223,29 @@ export class DatabaseStorage implements IStorage {
 
   async createScenarioSubmission(insertSubmission: InsertScenarioSubmission): Promise<ScenarioSubmission> {
     try {
-      console.log("Creating submission with:", insertSubmission);
+      console.log("Creating simplified submission with:", insertSubmission);
       
-      // Use a simplified and consistent approach
-      const { scenarioId, userId, answers, studentName, studentId } = insertSubmission;
+      // Direct SQL approach using pool from db.ts
+      const { pool } = await import('./db');
       
-      // Execute a direct SQL insert
-      const result = await db.execute(
+      const result = await pool.query(
         `INSERT INTO scenario_submissions 
-         (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
-         VALUES 
-         ($1, $2, NOW(), $3, $4, $5, $6) 
-         RETURNING *`,
+        (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
+        VALUES 
+        ($1, $2, NOW(), $3, $4, $5, $6) 
+        RETURNING *`,
         [
-          scenarioId,
-          userId,
-          JSON.stringify(answers), // Ensure answers is properly stringified
+          insertSubmission.scenarioId,
+          insertSubmission.userId,
+          JSON.stringify(insertSubmission.answers),
           'pending',
-          studentName || '',
-          studentId || ''
+          insertSubmission.studentName || '',
+          insertSubmission.studentId || ''
         ]
       );
       
-      if (!result.rows || result.rows.length === 0) {
-        throw new Error("Failed to create submission - no rows returned");
+      if (result.rows.length === 0) {
+        throw new Error('Failed to create submission');
       }
       
       return result.rows[0];

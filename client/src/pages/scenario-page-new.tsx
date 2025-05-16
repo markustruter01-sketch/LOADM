@@ -68,24 +68,23 @@ export default function ScenarioPage() {
         throw new Error("Student name and ID are required");
       }
       
-      const answersArray = Object.entries(answers).map(([questionId, answer]) => ({
-        questionId,
-        answer,
-        notes: notes[questionId] || ""
-      }));
+      // Simplify to a basic string-based answers array for reliability
+      const answersString = JSON.stringify(
+        Object.entries(answers).map(([questionId, answer]) => ({
+          questionId,
+          answer,
+          notes: notes[questionId] || ""
+        }))
+      );
       
-      // Make sure scenarioId is a number (required by database schema)
-      const scenarioIdNum = Number(scenarioId);
-      
+      // Use a more basic payload with string-based answers
       const payload = {
-        scenarioId: scenarioIdNum,
+        scenarioId: parseInt(scenarioId),
         userId: user.id,
         studentName,
         studentId,
-        // Store answers as a proper JSON object, not a string
-        answers: answersArray,
+        answers: answersString,
         status: "pending"
-        // Remove null fields as they're optional in the schema
       };
       
       const response = await apiRequest("POST", "/api/scenario-submissions", payload);

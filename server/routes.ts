@@ -294,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const submission = await storage.createScenarioSubmission(submissionData);
       
-      res.status(201).json(result.rows[0]);
+      res.status(201).json(submission);
     } catch (error) {
       console.error("Error creating scenario submission:", error);
       if (error instanceof z.ZodError) {
