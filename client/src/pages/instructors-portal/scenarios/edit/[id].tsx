@@ -177,10 +177,8 @@ export default function EditScenario() {
         description: "The scenario has been updated successfully",
       });
       
-      // Navigate back to scenarios list
-      setTimeout(() => {
-        navigate("/instructors-portal/scenarios");
-      }, 1000);
+      // Navigate back to scenarios list immediately
+      navigate("/instructors-portal/scenarios");
     })
     .catch(error => {
       console.error("Error updating scenario:", error);
