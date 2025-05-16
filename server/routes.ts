@@ -281,20 +281,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log incoming data for debugging
       console.log("Incoming scenario submission data:", req.body);
       
-      // Create a simple submission object with only required fields
-      const submissionData = {
-        scenarioId: Number(req.body.scenarioId),
-        userId: req.user.id,
-        studentName: req.body.studentName || '',
-        studentId: req.body.studentId || '',
-        answers: req.body.answers,
-        status: 'pending'
-      };
+      // Use a direct SQL approach to avoid schema validation issues
+      const { scenarioId, studentName, studentId, answers } = req.body;
       
-      console.log("Parsed submission data:", submissionData);
+      // Use pool directly to execute SQL
+      const result = await db.execute(
+        `INSERT INTO scenario_submissions 
+        (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
+        VALUES 
+        ($1, $2, NOW(), $3, $4, $5, $6) 
+        RETURNING *`,
+        [
+          Number(scenarioId), 
+          req.user.id,
+          JSON.stringify(answers),
+          'pending',
+          studentName || '',
+          studentId || ''
+        ]
+      );
       
-      const submission = await storage.createScenarioSubmission(submissionData);
-      res.status(201).json(submission);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error("Error creating scenario submission:", error);
       if (error instanceof z.ZodError) {

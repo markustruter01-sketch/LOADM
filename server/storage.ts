@@ -225,26 +225,31 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Creating submission with:", insertSubmission);
       
-      // Create a clean submission object matching the schema
-      const submissionData = {
-        scenarioId: insertSubmission.scenarioId,
-        userId: insertSubmission.userId,
-        submissionDate: new Date(),
-        answers: insertSubmission.answers,
-        status: insertSubmission.status || 'pending',
-        studentName: insertSubmission.studentName || '',
-        studentId: insertSubmission.studentId || '',
-        score: null,
-        instructorFeedback: null,
-        markedAnswers: null
-      };
+      // Use a simplified and consistent approach
+      const { scenarioId, userId, answers, studentName, studentId } = insertSubmission;
       
-      const [submission] = await db
-        .insert(scenarioSubmissions)
-        .values(submissionData)
-        .returning();
+      // Execute a direct SQL insert
+      const result = await db.execute(
+        `INSERT INTO scenario_submissions 
+         (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
+         VALUES 
+         ($1, $2, NOW(), $3, $4, $5, $6) 
+         RETURNING *`,
+        [
+          scenarioId,
+          userId,
+          JSON.stringify(answers), // Ensure answers is properly stringified
+          'pending',
+          studentName || '',
+          studentId || ''
+        ]
+      );
       
-      return submission;
+      if (!result.rows || result.rows.length === 0) {
+        throw new Error("Failed to create submission - no rows returned");
+      }
+      
+      return result.rows[0];
     } catch (error) {
       console.error("Error in createScenarioSubmission:", error);
       throw error;

@@ -79,12 +79,12 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   submissionDate: timestamp("submission_date").defaultNow().notNull(),
-  answers: json("answers").notNull(),
+  answers: json("answers").notNull().$type<Array<{questionId: string, answer: string, notes?: string}>>(),
   score: integer("score"),
-  studentName: text("student_name"),
-  studentId: text("student_id"),
+  studentName: text("student_name").default(''),
+  studentId: text("student_id").default(''),
   instructorFeedback: text("instructor_feedback"),
-  markedAnswers: json("marked_answers"),
+  markedAnswers: json("marked_answers").default({}),
   status: text("status").default("pending").notNull(),
 });
 
