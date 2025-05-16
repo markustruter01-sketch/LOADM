@@ -111,7 +111,7 @@ export default function LoadPlanningPage() {
     
     switch (aircraft) {
       case 'c17':
-        // C-17 has 9 columns in 2 rows
+        // C-17 has 9 columns in 2 rows (18 pallets total)
         // Use exact division (not Math.floor) to match balance scale width perfectly
         const c17CellWidth = totalWidth / 9;
         const c17CellHeight = 87;
@@ -126,7 +126,7 @@ export default function LoadPlanningPage() {
         };
       
       case 'c130':
-        // C-130 has 4 columns in 2 rows
+        // C-130 has 4 columns in 2 rows (8 pallets total)
         const c130CellWidth = totalWidth / 4;
         const c130CellHeight = 80;
         return {
@@ -154,7 +154,7 @@ export default function LoadPlanningPage() {
         };
         
       default: // c27j
-        // C-27J has 3 columns in 1 row
+        // C-27J has 3 columns in 1 row (3 pallets total)
         const spartanCellWidth = totalWidth / 3;
         const spartanCellHeight = 96;
         return {
@@ -2045,92 +2045,538 @@ export default function LoadPlanningPage() {
                       </div>
                     ) : (
                       <div className="absolute inset-0">
-                        {/* Grid cells for C-27J/KC30-A - 3 pallets (3x1) */}
+                        {/* Grid cells for different aircraft types */}
                         {(() => {
-                          // Get configuration for current aircraft (C-27J or KC30-A)
-                          const config = getAircraftGridConfig(currentAircraftId);
-                          const cellSpacing = config.cellWidth + config.cellPadding;
+                          // For C-27J - Single row of 3 pallets
+                          if (currentAircraftId === 'c27j') {
+                            const config = getAircraftGridConfig('c27j');
+                            const cellSpacing = config.cellWidth + config.cellPadding;
+                            
+                            return [...Array(config.cols)].map((_, i) => {
+                              // Calculate position label for this grid cell
+                              const positionLabel = `P${i + 1}`;
+                              
+                              // Find if a pallet is assigned to this position
+                              const assignedPallet = pallets.find(p => 
+                                p.location === "cargo" && 
+                                p.positionLabel === positionLabel
+                              );
+                              
+                              // Choose bg color based on occupancy
+                              const bgColor = assignedPallet ? 
+                                'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                'rgba(20, 83, 45, 0.15)';   // Green for empty
+                              
+                              // Choose border color based on occupancy
+                              const borderColor = assignedPallet ?
+                                'border-orange-500' :      // Orange border for occupied
+                                'border-green-800/80';     // Green border for empty
+                              
+                              return (
+                                <div 
+                                  key={`c27j-${i}`}
+                                  data-position-key={`c27j-${i}`}
+                                  data-position-number={i+1}
+                                  draggable={assignedPallet ? true : false}
+                                  onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                  onDragEnd={(e) => {
+                                    console.log("Drag ended for C-27J cell", positionLabel);
+                                  }}
+                                  onClick={(e) => {
+                                    if (assignedPallet) {
+                                      console.log("CLICKING PALLET", assignedPallet.id, positionLabel);
+                                      handlePalletCellClick(e, assignedPallet, positionLabel);
+                                    }
+                                  }}
+                                  className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                  style={{
+                                    left: i * cellSpacing,
+                                    top: 20,
+                                    width: config.cellWidth,
+                                    height: config.cellHeight,
+                                    backgroundColor: bgColor,
+                                    zIndex: assignedPallet ? 10 : 1
+                                  }}
+                                >
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    {/* Position label - Only shown if no pallet is assigned */}
+                                    {!assignedPallet && (
+                                      <div className="text-white/50 font-bold text-xl">
+                                        {positionLabel}
+                                      </div>
+                                    )}
+                                    
+                                    {/* Weight info - only if position is occupied */}
+                                    {assignedPallet && (
+                                      <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                        {assignedPallet.weight !== null ? 
+                                          <span>{assignedPallet.weight} kg</span> : 
+                                          <span className="text-white/80">No weight</span>
+                                        }
+                                      </div>
+                                    )}
+                                    
+                                    {/* Cargo type badge - only if position is occupied */}
+                                    {assignedPallet && assignedPallet.cargoType && (
+                                      <div className="absolute top-0 right-0">
+                                        <Badge 
+                                          variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                          className="text-xs px-1"
+                                        >
+                                          {assignedPallet.cargoType}
+                                        </Badge>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            });
+                          }
                           
-                          return [...Array(config.cols)].map((_, i) => {
-                            // Calculate position label for this grid cell
-                            const positionLabel = `P${i + 1}`;
-                            
-                            // Find if a pallet is assigned to this position
-                            const assignedPallet = pallets.find(p => 
-                              p.location === "cargo" && 
-                              p.positionLabel === positionLabel
-                            );
-                            
-                            // Determine cell background color based on occupation
-                            const bgColor = assignedPallet ? 
-                              'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
-                              'rgba(20, 83, 45, 0.15)';   // Green for empty
-                            
-                            // Determine border color based on occupation
-                            const borderColor = assignedPallet ?
-                              'border-orange-500' :      // Orange border for occupied
-                              'border-green-800/80';     // Green border for empty
+                          // For C-130 - 2 rows of 4 pallets each (8 total)
+                          else if (currentAircraftId === 'c130') {
+                            const config = getAircraftGridConfig('c130');
+                            const cellSpacing = config.cellWidth + config.cellPadding;
                             
                             return (
-                              <div 
-                                key={`spartan-${i}`}
-                                data-position-key={`spartan-${i}`}
-                                data-position-number={i+1}
-                                draggable={assignedPallet ? true : false}
-                                onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
-                                onDragEnd={(e) => {
-                                  console.log("Drag ended for spartan/KC30-A cell", positionLabel);
-                                }}
-                                onClick={(e) => {
-                                  if (assignedPallet) {
-                                    console.log("CLICKING PALLET", assignedPallet.id, positionLabel);
-                                    handlePalletCellClick(e, assignedPallet, positionLabel);
-                                  }
-                                }}
-                                className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
-                                style={{
-                                  left: i * cellSpacing,
-                                  top: 20,
-                                  width: config.cellWidth,
-                                  height: config.cellHeight,
-                                  backgroundColor: bgColor,
-                                  zIndex: assignedPallet ? 10 : 1
-                                }}
-                              >
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  {/* Only show the center label now, corner label removed */}
-                                  {/* If no pallet is assigned, show pale label in center */}
-                                  {!assignedPallet && (
-                                    <div className="text-white/50 font-bold text-xl">
-                                      {positionLabel}
-                                    </div>
-                                  )}
+                              <>
+                                {/* Row 1 - Positions 1-4 */}
+                                {[...Array(config.cols)].map((_, i) => {
+                                  const positionLabel = `P${i + 1}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
                                   
-                                  {/* Weight info - only if position is occupied */}
-                                  {assignedPallet && (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
-                                      {assignedPallet.weight !== null ? 
-                                        <span>{assignedPallet.weight} kg</span> : 
-                                        <span className="text-white/80">No weight</span>
-                                      }
-                                    </div>
-                                  )}
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
                                   
-                                  {/* Cargo type badge - only if position is occupied */}
-                                  {assignedPallet && assignedPallet.cargoType && (
-                                    <div className="absolute top-1 right-1">
-                                      <Badge 
-                                        variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
-                                        className="text-xs px-1"
-                                      >
-                                        {assignedPallet.cargoType}
-                                      </Badge>
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  return (
+                                    <div 
+                                      key={`c130-row1-${i}`}
+                                      data-position-key={`c130-row1-${i}`}
+                                      data-position-number={i+1}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: i * cellSpacing,
+                                        top: 10,
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-sm">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              </div>
+                                  );
+                                })}
+                                
+                                {/* Row 2 - Positions 5-8 */}
+                                {[...Array(config.cols)].map((_, i) => {
+                                  const positionLabel = `P${i + 5}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  return (
+                                    <div 
+                                      key={`c130-row2-${i}`}
+                                      data-position-key={`c130-row2-${i}`}
+                                      data-position-number={i+5}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: i * cellSpacing,
+                                        top: 95, // Position below first row
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-sm">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </>
                             );
-                          });
+                          }
+                          
+                          // For C-17 - 2 rows of 9 pallets each (18 total)
+                          else if (currentAircraftId === 'c17') {
+                            const config = getAircraftGridConfig('c17');
+                            const cellSpacing = config.cellWidth + config.cellPadding;
+                            
+                            return (
+                              <>
+                                {/* Row 1 - Positions 1-9 */}
+                                {[...Array(config.cols)].map((_, i) => {
+                                  const positionLabel = `P${i + 1}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  return (
+                                    <div 
+                                      key={`c17-row1-${i}`}
+                                      data-position-key={`c17-row1-${i}`}
+                                      data-position-number={i+1}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: i * cellSpacing,
+                                        top: 10,
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-xs">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Row 2 - Positions 10-18 */}
+                                {[...Array(config.cols)].map((_, i) => {
+                                  const positionLabel = `P${i + 10}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  return (
+                                    <div 
+                                      key={`c17-row2-${i}`}
+                                      data-position-key={`c17-row2-${i}`}
+                                      data-position-number={i+10}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: i * cellSpacing,
+                                        top: 102, // Position below first row
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-xs">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </>
+                            );
+                          }
+                          
+                          // For KC30-A - 2 rows of 13 pallets each (26 total)
+                          else if (currentAircraftId === 'kc30a') {
+                            const config = getAircraftGridConfig('kc30a');
+                            const cellSpacing = config.cellWidth + config.cellPadding;
+                            
+                            // Return JSX fragment containing both rows
+                            return (
+                              <>
+                                {/* Row 1 - Positions 1-13 */}
+                                {[...Array(config.cols)].map((_, i) => {
+                                  const positionLabel = `P${i + 1}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  return (
+                                    <div 
+                                      key={`kc30a-row1-${i}`}
+                                      data-position-key={`kc30a-row1-${i}`}
+                                      data-position-number={i+1}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: i * cellSpacing,
+                                        top: 10,
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-xs">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Row 2 - Positions 14-26 */}
+                                {[...Array(config.cols)].map((_, i) => {
+                                  const positionLabel = `P${i + 14}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' : 
+                                    'rgba(20, 83, 45, 0.15)';
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' : 
+                                    'border-green-800/80';
+                                  
+                                  return (
+                                    <div 
+                                      key={`kc30a-row2-${i}`}
+                                      data-position-key={`kc30a-row2-${i}`}
+                                      data-position-number={i+14}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+                                      style={{
+                                        left: i * cellSpacing,
+                                        top: 65, // Position below first row
+                                        width: config.cellWidth,
+                                        height: config.cellHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-xs">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold text-xs">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-0 right-0">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-[8px] px-0.5"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </>
+                            );
+                          }
                         })()}
                       </div>
                     )}
