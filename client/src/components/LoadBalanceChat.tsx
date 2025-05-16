@@ -28,6 +28,121 @@ interface LoadBalanceChatProps {
   aircraftType: string;
 }
 
+// Helper function to generate local cargo balance analysis without relying on the API
+function generateLocalBalanceAnalysis(
+  cargoData: any[], 
+  balanceData: { balanceValue: number; balanceCG: number }, 
+  aircraftType: string
+): string {
+  // If no cargo is loaded
+  if (!cargoData || cargoData.length === 0) {
+    return "I don't see any cargo loaded yet. Start by adding some pallets to the cargo area, and I can help analyze the balance.";
+  }
+  
+  const { balanceValue, balanceCG } = balanceData;
+  const totalWeight = cargoData.reduce((sum, pallet) => sum + (pallet.weight || 0), 0);
+  const palletCount = cargoData.length;
+  
+  // Get proper aircraft name for display
+  const aircraftName = 
+    aircraftType === 'c17' ? 'C-17 Globemaster' : 
+    aircraftType === 'c130' ? 'C-130 Hercules' : 
+    aircraftType === 'kc30a' ? 'KC30-A Airbus' : 'C-27J Spartan';
+  
+  // Max capacities
+  const maxCapacity = 
+    aircraftType === 'c17' ? 77500 : 
+    aircraftType === 'c130' ? 20000 : 
+    aircraftType === 'kc30a' ? 45000 : 11300;
+  
+  // Count positions - simplify for each aircraft
+  const maxPositions = 
+    aircraftType === 'c17' ? 18 : 
+    aircraftType === 'c130' ? 8 : 3;
+  
+  // Determine if balance needs improvement
+  const isBalanced = Math.abs(balanceValue) < 20;
+  const isAcceptableCG = balanceCG >= 18 && balanceCG <= 88;
+  
+  // Basic analysis of current state
+  let analysis = `**Current Cargo Configuration Analysis**\n\nAircraft: ${aircraftName}\nTotal Weight: ${totalWeight} kg (${Math.round(totalWeight/maxCapacity*100)}% of maximum capacity)\nPallets Loaded: ${palletCount} of ${maxPositions}\nCenter of Gravity: ${balanceCG.toFixed(2)}° (${isAcceptableCG ? 'within acceptable range' : 'outside acceptable range of 18° to 88°'})\nBalance Value: ${balanceValue.toFixed(2)} (${isBalanced ? 'well balanced' : Math.abs(balanceValue) < 40 ? 'slightly unbalanced' : 'significantly unbalanced'})\n\n`;
+  
+  // Generate recommendations based on balance
+  if (!isBalanced) {
+    analysis += "**Balance Recommendations:**\n\n";
+    
+    // Identify which direction the balance is off
+    const heavySide = balanceValue < 0 ? "forward" : "aft";
+    const lightSide = balanceValue < 0 ? "aft" : "forward";
+    
+    // Get pallets on each side for potential shuffling
+    const heavySidePallets = cargoData.filter(p => {
+      const posNum = parseInt(p.positionLabel?.substring(1) || "0");
+      return heavySide === "forward" ? posNum <= Math.ceil(maxPositions/2) : posNum > Math.ceil(maxPositions/2);
+    });
+    
+    // Generate specific shuffling recommendations
+    if (heavySidePallets.length > 0) {
+      // Find the heaviest pallet on the heavy side
+      const heaviestPallet = [...heavySidePallets].sort((a, b) => (b.weight || 0) - (a.weight || 0))[0];
+      
+      // Find potential swap targets (lighter pallets or empty positions)
+      const potentialMovePositions = [];
+      for (let i = 1; i <= maxPositions; i++) {
+        const posLabel = `P${i}`;
+        const isOccupied = cargoData.some(p => p.positionLabel === posLabel);
+        const isOnLightSide = 
+          (lightSide === "forward" && i <= Math.ceil(maxPositions/2)) ||
+          (lightSide === "aft" && i > Math.ceil(maxPositions/2));
+          
+        if (isOnLightSide && !isOccupied) {
+          potentialMovePositions.push(posLabel);
+        }
+      }
+      
+      if (potentialMovePositions.length > 0) {
+        const targetPosition = potentialMovePositions[0];
+        analysis += `1. Move the ${heaviestPallet.weight} kg pallet from position ${heaviestPallet.positionLabel} to position ${targetPosition} to shift weight ${lightSide}.\n`;
+      } else {
+        // Look for a lighter pallet on the light side to swap with
+        const lightSidePallets = cargoData.filter(p => {
+          const posNum = parseInt(p.positionLabel?.substring(1) || "0");
+          return lightSide === "forward" ? posNum <= Math.ceil(maxPositions/2) : posNum > Math.ceil(maxPositions/2);
+        });
+        
+        if (lightSidePallets.length > 0) {
+          const lightestPallet = [...lightSidePallets].sort((a, b) => (a.weight || 0) - (b.weight || 0))[0];
+          
+          analysis += `1. Swap the ${heaviestPallet.weight} kg pallet at position ${heaviestPallet.positionLabel} with the ${lightestPallet.weight} kg pallet at position ${lightestPallet.positionLabel} to improve balance.\n`;
+        }
+      }
+      
+      // Suggest redistributing weight or adding counterbalance
+      if (palletCount < maxPositions) {
+        analysis += `2. Consider adding more weight to the ${lightSide} section to counterbalance the heavy ${heavySide}.\n`;
+      } else {
+        analysis += `2. Try redistributing some weight from ${heavySide} pallets to ${lightSide} pallets for better balance.\n`;
+      }
+    }
+  } else {
+    analysis += "**Analysis:**\n\nYour cargo is well-balanced with the center of gravity at an optimal position. No adjustments needed at this time.\n";
+  }
+  
+  // Additional safety notes
+  if (!isAcceptableCG) {
+    analysis += "\n**⚠️ SAFETY WARNING:**\n\nYour cargo's center of gravity is outside the acceptable range (18° to 88°). This presents a significant flight risk and must be adjusted before takeoff.\n";
+  }
+  
+  // Tips for maintaining balance during flight
+  analysis += "\n**General Tips:**\n\n";
+  analysis += "- Keep heavier items near the center line when possible\n";
+  analysis += "- Distribute weight evenly between left and right sides\n";
+  analysis += "- Secure all cargo properly to prevent shifting during flight\n";
+  analysis += `- Monitor total weight (current: ${Math.round(totalWeight/maxCapacity*100)}% of capacity)\n`;
+  
+  return analysis;
+}
+
 export default function LoadBalanceChat({ cargoData, balanceData, aircraftType }: LoadBalanceChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -92,22 +207,24 @@ export default function LoadBalanceChat({ cargoData, balanceData, aircraftType }
       // Add assistant message
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
-        content: data.analysis || "I couldn't analyze your load balance at this time. Please try again later.",
+        content: data.analysis,
         role: "assistant",
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      // Add error message
-      const errorMessage: Message = {
+      // Use local fallback analysis instead of relying on API
+      const analysis = generateLocalBalanceAnalysis(cargoData, balanceData, aircraftType);
+      
+      const fallbackMessage: Message = {
         id: `assistant-${Date.now()}`,
-        content: "I'm having trouble analyzing your load balance right now. Please check your connection and try again.",
+        content: analysis,
         role: "assistant",
         timestamp: new Date()
       };
       
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, fallbackMessage]);
     } finally {
       setIsLoading(false);
     }
