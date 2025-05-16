@@ -139,8 +139,23 @@ export default function LoadPlanningPage() {
           palletHeight: c130CellHeight * 0.9
         };
       
-      default: // c27j, kc30a
-        // C-27J/KC30-A has 3 columns in 1 row
+      case 'kc30a':
+        // KC30-A has 30 pallets (14 aft + 16 forward)
+        // For UI layout, we'll use 2 rows: 15 positions each row
+        const kc30aCellWidth = totalWidth / 15;
+        const kc30aCellHeight = 75;
+        return {
+          rows: 2,
+          cols: 15, 
+          cellWidth: kc30aCellWidth,
+          cellHeight: kc30aCellHeight,
+          cellPadding: 0, // No padding to ensure perfect alignment
+          palletWidth: kc30aCellWidth * 0.9,
+          palletHeight: kc30aCellHeight * 0.9
+        };
+        
+      default: // c27j
+        // C-27J has 3 columns in 1 row
         const spartanCellWidth = totalWidth / 3;
         const spartanCellHeight = 96;
         return {
@@ -1608,7 +1623,8 @@ export default function LoadPlanningPage() {
                     <p className="text-lg">
                       {pallets.filter(p => p.location === "cargo").length} of {
                         currentAircraftId === 'c17' ? '18' : 
-                        currentAircraftId === 'c130' ? '8' : '3'
+                        currentAircraftId === 'c130' ? '8' :
+                        currentAircraftId === 'kc30a' ? '30' : '3'
                       }
                     </p>
                   </div>
@@ -1663,7 +1679,9 @@ export default function LoadPlanningPage() {
                         ? 'h-[320px]' 
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
-                          : 'h-[150px]'
+                          : currentAircraftId === 'kc30a'
+                            ? 'h-[230px]'
+                            : 'h-[150px]'
                     } overflow-visible bg-transparent`}
                     style={{
                       // Set exact width to match balance scale width for perfect alignment
