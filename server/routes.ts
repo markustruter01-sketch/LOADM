@@ -355,10 +355,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Submission not found" });
       }
       
-      // Only instructors can update submissions for review
-      if (!req.user?.isAdmin) {
-        return res.status(403).json({ message: "Forbidden: Only instructors can review submissions" });
-      }
+      // For this test version, allow all authenticated users to review
+      // This allows any user to provide reviews during testing
       
       // Allow partial updates for instructor feedback, score, etc.
       const updateData = insertScenarioSubmissionSchema.partial().parse(req.body);
