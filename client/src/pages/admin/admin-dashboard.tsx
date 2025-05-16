@@ -36,9 +36,26 @@ export default function AdminDashboard() {
       </Helmet>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Admin Dashboard</h2>
-          <p className="text-muted-foreground">Manage documents, scenarios, and view submission data.</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Admin Dashboard</h2>
+            <p className="text-muted-foreground">Manage documents, scenarios, and view submission data.</p>
+          </div>
+          
+          <div className="mt-4 md:mt-0">
+            <Link href="/admin/users">
+              <Button className="bg-red-600 hover:bg-red-700 text-white flex items-center space-x-2">
+                <UserCircle className="h-5 w-5" />
+                <span>User Management</span>
+                {user?.isSuperAdmin && (
+                  <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-800">
+                    <ShieldAlert className="h-3 w-3 mr-1" />
+                    Super Admin
+                  </span>
+                )}
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Overview Cards */}
