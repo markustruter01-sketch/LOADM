@@ -29,10 +29,14 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  // Generate a random secret if one is not provided
+  // Ensure we have a session secret for production
   if (!process.env.SESSION_SECRET) {
-    console.warn('WARNING: SESSION_SECRET not set. Using a random secret for this session only.');
-    process.env.SESSION_SECRET = randomBytes(32).toString('hex');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('SESSION_SECRET must be set in production environment');
+    } else {
+      console.warn('WARNING: SESSION_SECRET not set. Using a random secret for this development session only.');
+      process.env.SESSION_SECRET = randomBytes(32).toString('hex');
+    }
   }
 
   const sessionSettings: session.SessionOptions = {

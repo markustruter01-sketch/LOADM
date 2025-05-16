@@ -71,7 +71,6 @@ export default function SubmissionReview() {
           const marked = JSON.parse(data.markedAnswers as string);
           if (typeof marked === 'object') {
             setMarkedAnswers(marked);
-            console.log("Initialized marked answers:", marked);
           }
         } catch (e) {
           console.error("Failed to parse marked answers:", e);
