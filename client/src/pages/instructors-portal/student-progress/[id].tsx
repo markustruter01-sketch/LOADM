@@ -460,9 +460,9 @@ export default function SubmissionReview() {
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Label htmlFor="pass-fail" className="font-medium">
-                                  {currentScore >= 70 ? "PASS" : "FAIL"}
+                                  {currentScore >= (scenario?.passingThreshold || 70) ? "PASS" : "FAIL"}
                                 </Label>
-                                <div className={`w-3 h-3 rounded-full ${currentScore >= 70 ? "bg-green-500" : "bg-red-500"}`}></div>
+                                <div className={`w-3 h-3 rounded-full ${currentScore >= (scenario?.passingThreshold || 70) ? "bg-green-500" : "bg-red-500"}`}></div>
                               </div>
                             </div>
                             <div className="text-xl font-bold">
