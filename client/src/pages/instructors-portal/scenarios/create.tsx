@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { insertScenarioSchema } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -56,6 +57,7 @@ type ScenarioFormValues = z.infer<typeof scenarioFormSchema>;
 
 export default function CreateScenario() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [_, navigate] = useLocation();
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -85,10 +87,15 @@ export default function CreateScenario() {
       data.numberOfQuestions = data.questions.length;
       
       try {
+        console.log("Creating scenario with user:", user);
+        
+        // Add additional logging to debug the request
         const res = await apiRequest("POST", "/api/scenarios", data);
+        console.log("API response status:", res.status);
         
         if (!res.ok) {
           const errorData = await res.json();
+          console.error("API error response:", errorData);
           throw new Error(errorData.message || "Failed to create scenario");
         }
         
