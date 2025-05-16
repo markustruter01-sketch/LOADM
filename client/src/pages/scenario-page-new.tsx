@@ -182,6 +182,16 @@ export default function ScenarioPage() {
 
   return (
     <>
+      {/* Success Animation */}
+      <SuccessAnimation 
+        type="submission"
+        show={showSubmissionSuccess}
+        onComplete={() => {
+          setShowSubmissionSuccess(false);
+          setShowResults(true);
+        }}
+      />
+      
       <Helmet>
         <title>{scenario.title} - LOADMworkflow</title>
         <meta name="description" content={scenario.description} />
