@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Scenario, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,14 @@ import ScenarioAnalytics from "./analytics";
 export default function StudentProgress() {
   const [searchTerm, setSearchTerm] = useState("");
   const [scenarioFilter, setScenarioFilter] = useState<number | "all">("all");
+  // Check if we should default to analytics tab based on URL
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      return window.location.search.includes('tab=analytics') ? 'analytics' : 'submissions';
+    }
+    return 'submissions';
+  });
   
   // Fetch all scenario submissions
   const { data: submissions, isLoading: isLoadingSubmissions } = useQuery<ScenarioSubmission[]>({
@@ -120,7 +128,7 @@ export default function StudentProgress() {
         </div>
         
         {/* Tabs for Submissions and Analytics */}
-        <Tabs defaultValue="submissions" className="mb-8">
+        <Tabs defaultValue={activeTab} className="mb-8">
           <TabsList>
             <TabsTrigger value="submissions" className="flex items-center">
               <FileText className="h-4 w-4 mr-2" />
