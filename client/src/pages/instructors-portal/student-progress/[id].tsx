@@ -234,11 +234,7 @@ export default function SubmissionReview() {
   const totalQuestions = questions.length || 0;
   const currentScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   
-  // Debug calculations
-  console.log("Marked answers:", markedAnswers);
-  console.log("Correct answers:", correctAnswers);
-  console.log("Total questions:", totalQuestions);
-  console.log("Current score:", currentScore);
+  // Clean up debug logs for production
   
   if (isLoadingSubmission) {
     return (

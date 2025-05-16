@@ -78,8 +78,13 @@ export default function ScenarioPage() {
       );
       
       // Use a more basic payload with string-based answers
+      // Make sure we have a valid scenario ID before submission
+      if (!scenario) {
+        throw new Error("Scenario data not found");
+      }
+      
       const payload = {
-        scenarioId: parseInt(scenarioId),
+        scenarioId: scenario.id,
         userId: user.id,
         studentName,
         studentId,
