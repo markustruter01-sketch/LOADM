@@ -549,13 +549,25 @@ export default function LoadPlanningPage() {
     // Set the state for display purposes
     setBalanceCG(cg);
     
-    // SIMPLIFIED APPROACH: 
-    // Direct string comparison of the display value that's shown to users in the UI
+    // DIRECT APPROACH: Always show warning when CG value reaches 88.00
     const displayValue = balanceCG.toFixed(2);
     
-    // Check if we're at or beyond limits based on the rounded display value
-    // This matches exactly what users see in the UI
-    if (displayValue === "88.00" || displayValue === "18.00" || parseFloat(displayValue) < 18 || parseFloat(displayValue) > 88) {
+    // Check if the displayed value in the UI matches our target values
+    const atLimit = (displayValue === "88.00" || displayValue === "18.00");
+    const beyondLimit = (parseFloat(displayValue) < 18 || parseFloat(displayValue) > 88);
+    
+    console.log(`CG Check: Value = ${displayValue}°, At Limit = ${atLimit}, Beyond Limit = ${beyondLimit}`);
+    
+    // IMPORTANT: For testing, force the warning to show when we're at 88.00
+    if (displayValue === "88.00") {
+      // Force warning popup - hardcoded check for exact 88.00 value
+      console.log("EXACT 88.00 MATCH - WARNING TRIGGERED");
+      setWarningPopup(true);
+      
+      // Skip the timeout for testing
+    } 
+    // Also check for 18.00 and out of bounds
+    else if (displayValue === "18.00" || beyondLimit) {
       console.log(`WARNING TRIGGERED: CG Value = ${displayValue}°`);
       setWarningPopup(true);
       
@@ -1462,22 +1474,46 @@ export default function LoadPlanningPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Ultra Simple Warning Popup */}
+      {/* Emergency Fixed Position Warning Popup */}
       {warningPopup && (
-        <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-red-600 text-white p-6 rounded-lg shadow-2xl border-4 border-white w-[500px] animate-bounce">
-            <div className="flex items-center gap-4">
-              <AlertTriangleIcon className="h-12 w-12 text-yellow-300 flex-shrink-0" />
-              <div>
-                <h3 className="text-2xl font-bold mb-2">OUT OF BALANCE LIMITS!</h3>
-                <p className="text-white text-lg">
-                  Centre of Gravity value of <span className="font-bold text-xl">{balanceCG.toFixed(2)}°</span> 
-                  {balanceCG <= 18 ? " is below" : " is at/exceeds"} the safe range of 18° to 88°.
-                </p>
-                <p className="mt-2 font-semibold text-yellow-200 text-lg">
-                  ADJUST CARGO PLACEMENT IMMEDIATELY
-                </p>
-              </div>
+        <div style={{
+          position: 'fixed',
+          top: '100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          backgroundColor: 'red',
+          color: 'white',
+          padding: '20px',
+          borderRadius: '10px',
+          border: '5px solid white',
+          boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+          width: '600px',
+          animation: 'bounce 1s infinite'
+        }}>
+          <style>
+            {`
+              @keyframes bounce {
+                0%, 100% { transform: translateX(-50%) translateY(0px); }
+                50% { transform: translateX(-50%) translateY(-15px); }
+              }
+            `}
+          </style>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ flexShrink: 0 }}>
+              <AlertTriangleIcon style={{ width: '48px', height: '48px', color: 'yellow' }} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
+                OUT OF BALANCE LIMITS!
+              </h3>
+              <p style={{ fontSize: '18px', marginBottom: '8px' }}>
+                Centre of Gravity value of <span style={{ fontWeight: 'bold', fontSize: '20px' }}>{balanceCG.toFixed(2)}°</span> 
+                {balanceCG <= 18 ? " is below" : " is at/exceeds"} the safe range of 18° to 88°.
+              </p>
+              <p style={{ fontSize: '20px', fontWeight: 'bold', color: 'yellow' }}>
+                ADJUST CARGO PLACEMENT IMMEDIATELY
+              </p>
             </div>
           </div>
         </div>
