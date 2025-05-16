@@ -319,6 +319,32 @@ export default function SubmissionReview() {
                 <p className="text-sm text-muted-foreground">
                   {correctAnswers} correct out of {totalQuestions} questions
                 </p>
+                
+                {/* Pass/Fail indicator based on custom threshold */}
+                {submission?.status === "reviewed" && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-center gap-2">
+                      {(() => {
+                        const passingThreshold = scenario?.passingThreshold || 70;
+                        const passed = currentScore >= passingThreshold;
+                        return (
+                          <>
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              passed 
+                                ? "bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400" 
+                                : "bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400"
+                            }`}>
+                              {passed ? "PASS" : "FAIL"}
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              Threshold: {passingThreshold}%
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
