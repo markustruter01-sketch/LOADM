@@ -179,24 +179,24 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
           
-          {/* User Management Card */}
+          {/* Workforce Analytics Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">User Management</CardTitle>
-                <UserCircle className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Workforce Analytics</CardTitle>
+                <BarChart2 className="h-5 w-5 text-primary" />
               </div>
-              <CardDescription>Manage system users</CardDescription>
+              <CardDescription>Track student performance</CardDescription>
             </CardHeader>
             <CardContent className="h-28 flex items-center justify-center">
               <div className="text-center text-muted-foreground text-sm">
-                View and manage registered users in the system. Only Super Admins can delete user accounts.
+                Performance Analytics - Track student performance across scenarios. View comprehensive statistics and progress data.
               </div>
             </CardContent>
             <CardFooter>
-              <Link href="/instructors-portal/users">
+              <Link href="/instructors-portal/student-progress?tab=analytics">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  Manage Users
+                  View Analytics
                 </Button>
               </Link>
             </CardFooter>

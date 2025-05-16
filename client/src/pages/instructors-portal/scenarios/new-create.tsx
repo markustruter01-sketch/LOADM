@@ -163,7 +163,7 @@ export default function CreateScenario() {
 
       <div className="container mx-auto px-4 py-8 mb-16">
         <div className="flex items-center mb-6">
-          <Link href="/instructors-portal/scenarios">
+          <Link href="/instructors-portal">
             <Button variant="ghost" className="text-primary hover:text-primary/80 mr-4 p-2">
               <ArrowLeft className="h-5 w-5" />
             </Button>
