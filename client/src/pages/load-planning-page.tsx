@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangleIcon } from "lucide-react";
+import LoadBalanceChat from "@/components/LoadBalanceChat";
 
 interface Pallet {
   id: number;
@@ -1597,6 +1598,18 @@ export default function LoadPlanningPage() {
                     </p>
                   </div>
                   {/* Storage area has been removed */}
+                </div>
+
+                {/* AI-powered cargo balance chat */}
+                <div className="mt-4">
+                  <LoadBalanceChat 
+                    cargoData={pallets.filter(p => p.location === "cargo")} 
+                    balanceData={{
+                      balanceValue: balanceValue,
+                      balanceCG: balanceCG
+                    }}
+                    aircraftType={currentAircraftId}
+                  />
                 </div>
               </CardContent>
             </Card>
