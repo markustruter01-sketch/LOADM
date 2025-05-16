@@ -4,8 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, ClipboardList, Users, BarChart3, Layers, FileCheck, UserCircle, ShieldAlert } from "lucide-react";
+import { FileText, ClipboardList, Users, BarChart3, Layers, FileCheck, UserCircle, ShieldAlert, UserCog } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -36,25 +37,36 @@ export default function AdminDashboard() {
       </Helmet>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">Admin Dashboard</h2>
-            <p className="text-muted-foreground">Manage documents, scenarios, and view submission data.</p>
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Admin Dashboard</h2>
+              <p className="text-muted-foreground">Manage documents, scenarios, and view submission data.</p>
+            </div>
           </div>
           
-          <div className="mt-4 md:mt-0">
-            <a href="/admin/users">
-              <Button className="bg-red-600 hover:bg-red-700 text-white flex items-center space-x-2">
-                <UserCircle className="h-5 w-5" />
-                <span>User Management</span>
-                {user?.isSuperAdmin && (
-                  <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-800">
-                    <ShieldAlert className="h-3 w-3 mr-1" />
-                    Super Admin
-                  </span>
-                )}
-              </Button>
-            </a>
+          {/* LARGE USER MANAGEMENT BUTTON - ALWAYS VISIBLE */}
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 mb-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between">
+              <div className="flex items-center mb-4 sm:mb-0">
+                <UserCog className="h-8 w-8 text-red-500 mr-3" />
+                <div>
+                  <h3 className="text-xl font-bold">User Management</h3>
+                  <p className="text-muted-foreground">View and manage user accounts</p>
+                </div>
+              </div>
+              <a href="/admin/users" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6">
+                  Manage Users
+                  {user?.isSuperAdmin && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-800">
+                      <ShieldAlert className="h-3 w-3 mr-1" />
+                      Super Admin
+                    </span>
+                  )}
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
 
