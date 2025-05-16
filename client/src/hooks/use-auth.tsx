@@ -38,10 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${user.username}!`,
-      });
+      // Login success will be handled with animation in auth-page
     },
     onError: (error: Error) => {
       toast({
@@ -59,10 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Registration Successful",
-        description: `Welcome, ${user.username}!`,
-      });
+      // Registration success will be handled with animation in auth-page
     },
     onError: (error: Error) => {
       toast({

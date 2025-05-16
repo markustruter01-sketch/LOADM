@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { insertUserSchema } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import SuccessAnimation from "@/components/SuccessAnimation";
 
 const loginSchema = insertUserSchema.pick({
   username: true,
@@ -38,6 +39,8 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { user, loginMutation, registerMutation, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
+  const [showLoginAnimation, setShowLoginAnimation] = useState(false);
+  const [showRegisterAnimation, setShowRegisterAnimation] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -63,12 +66,22 @@ export default function AuthPage() {
   });
 
   const onLoginSubmit = (data: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        setShowLoginAnimation(true);
+        // Animation will redirect after completion
+      }
+    });
   };
 
   const onRegisterSubmit = (data: z.infer<typeof registerSchema>) => {
     const { confirmPassword, ...userData } = data;
-    registerMutation.mutate(userData);
+    registerMutation.mutate(userData, {
+      onSuccess: () => {
+        setShowRegisterAnimation(true);
+        // Animation will redirect after completion
+      }
+    });
   };
 
   if (isLoading) {
@@ -81,6 +94,24 @@ export default function AuthPage() {
 
   return (
     <>
+      <SuccessAnimation 
+        type="login"
+        show={showLoginAnimation}
+        onComplete={() => {
+          setShowLoginAnimation(false);
+          setLocation("/");
+        }}
+      />
+      
+      <SuccessAnimation 
+        type="register"
+        show={showRegisterAnimation}
+        onComplete={() => {
+          setShowRegisterAnimation(false);
+          setLocation("/");
+        }}
+      />
+      
       <Helmet>
         <title>Login or Register - LOADMworkflow</title>
         <meta 
