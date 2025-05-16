@@ -86,8 +86,12 @@ export default function LoadPlanningPage() {
   const [balanceCG, setBalanceCG] = useState(53.00); // Centre of Gravity value (18-88 degrees) with decimal precision
   const [balanceStatus, setBalanceStatus] = useState<'safe' | 'moderate' | 'warning' | 'caution'>('safe');
   
-  // Out of limits warning state
-  const [showOutOfLimitsWarning, setShowOutOfLimitsWarning] = useState(false);
+  // New comprehensive warning popup system
+  const [limitWarning, setLimitWarning] = useState({
+    visible: false,
+    type: 'limit' as 'limit' | 'exceeded',
+    value: 0
+  });
   
   // Keep track of the balance scale width to make cargo area match it
   const [balanceScaleWidth, setBalanceScaleWidth] = useState(0);
@@ -549,24 +553,47 @@ export default function LoadPlanningPage() {
     // Set the state for display purposes
     setBalanceCG(cg);
     
-    // Let's directly check the rounded and string values
-    console.log(`CG Value: ${cg}, String Value: ${cgFixedString}`);
+    // Direct string comparison for exact values
+    // This is more reliable for exact boundary comparisons
     
-    // Special handling for the 88.00° case - directly check the string representation
-    if (cgFixedString === "88.00" || cgFixedString === "18.00" || cg <= 18 || cg >= 88) {
-      // Show the warning popup
-      setShowOutOfLimitsWarning(true);
+    // Helper to check if our value is exactly 18 or 88 degrees
+    const isAtLimit = cgFixedString === "18.00" || cgFixedString === "88.00";
+    
+    // Helper to check if our value is beyond limits
+    const isBeyondLimits = cg < 18 || cg > 88;
+    
+    // Debug info
+    console.log(`CG: ${cgFixedString}°, At Limit: ${isAtLimit}, Beyond Limits: ${isBeyondLimits}`);
+    
+    if (isAtLimit) {
+      // At exact limit value - show warning
+      setLimitWarning({
+        visible: true,
+        type: 'limit',
+        value: cg
+      });
       
-      // Log the exact value that triggered the warning
-      console.log(`WARNING: C of G value ${cgFixedString}° is at or beyond safety limits (18°-88°)`);
-      
-      // Clear the warning after 8 seconds
+      // Auto-hide after 8 seconds
       setTimeout(() => {
-        setShowOutOfLimitsWarning(false);
+        setLimitWarning(prev => ({...prev, visible: false}));
       }, 8000);
+      
+    } else if (isBeyondLimits) {
+      // Beyond limits - show danger warning
+      setLimitWarning({
+        visible: true,
+        type: 'exceeded',
+        value: cg
+      });
+      
+      // Auto-hide after 8 seconds
+      setTimeout(() => {
+        setLimitWarning(prev => ({...prev, visible: false}));
+      }, 8000);
+      
     } else {
-      // Ensure warning is cleared if CG is back in safe range
-      setShowOutOfLimitsWarning(false);
+      // Within safe range - hide any warnings
+      setLimitWarning(prev => ({...prev, visible: false}));
     }
     
     // Determine balance status - using more gradual transitions
@@ -1463,18 +1490,36 @@ export default function LoadPlanningPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Out of Limits Warning Popup - Bright red and clearly visible */}
-      {showOutOfLimitsWarning && (
+      {/* New Enhanced Warning Popup System */}
+      {limitWarning.visible && (
         <div className="fixed top-1/3 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-red-600 text-white p-6 rounded-lg shadow-2xl border-4 border-white w-[500px] animate-pulse">
+          <div className={`${
+            limitWarning.type === 'exceeded' 
+              ? 'bg-red-600 border-red-300' 
+              : 'bg-amber-600 border-amber-300'
+          } text-white p-6 rounded-lg shadow-2xl border-4 w-[500px] animate-pulse`}>
             <div className="flex items-center gap-4">
               <AlertTriangleIcon className="h-12 w-12 text-yellow-300 flex-shrink-0" />
               <div>
-                <h3 className="text-2xl font-bold mb-2">OUT OF BALANCE LIMITS!</h3>
+                <h3 className="text-2xl font-bold mb-2">
+                  {limitWarning.type === 'exceeded' 
+                    ? 'OUT OF BALANCE LIMITS!' 
+                    : 'AT BALANCE LIMIT!'}
+                </h3>
                 <p className="text-white text-lg">
-                  Centre of Gravity value of <span className="font-bold text-xl">{balanceCG.toFixed(2)}°</span> {balanceCG <= 18 ? "is below" : "exceeds"} the safe range of 18° to 88°.
+                  Centre of Gravity value of <span className="font-bold text-xl">{limitWarning.value.toFixed(2)}°</span> 
+                  {limitWarning.type === 'exceeded' 
+                    ? (limitWarning.value < 18 ? ' is below' : ' exceeds') 
+                    : ' is at'} 
+                  {limitWarning.type === 'exceeded' 
+                    ? ' the safe range of 18° to 88°.' 
+                    : ' the limit of the safe range (18° to 88°).'}
                 </p>
-                <p className="mt-2 font-semibold text-yellow-200 text-lg">ADJUST CARGO PLACEMENT IMMEDIATELY</p>
+                <p className="mt-2 font-semibold text-yellow-200 text-lg">
+                  {limitWarning.type === 'exceeded' 
+                    ? 'ADJUST CARGO PLACEMENT IMMEDIATELY' 
+                    : 'CONSIDER ADJUSTING CARGO PLACEMENT'}
+                </p>
               </div>
             </div>
           </div>
