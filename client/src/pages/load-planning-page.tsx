@@ -2442,11 +2442,11 @@ export default function LoadPlanningPage() {
                             // Return JSX fragment containing both cargo areas
                             return (
                               <>
-                                {/* Vertical separation lines for Row 1 - between L6 and L8 (with reduced padding) */}
+                                {/* Vertical separation lines for Row 1 - centered between L6 and L8 */}
                                 <div 
                                   className="absolute border-r-2 border-white h-[45px]" 
                                   style={{
-                                    left: (6 * cellSpacing) + config.cellWidth * 0.3, // After L6 with reduced spacing (70% less)
+                                    left: (6 * cellSpacing) + config.cellWidth * 0.5, // Centered between positions
                                     top: 10, // Same top alignment as the row
                                     zIndex: 5
                                   }}
@@ -2530,11 +2530,11 @@ export default function LoadPlanningPage() {
                                   );
                                 })}
                                 
-                                {/* Vertical separation lines for Row 2 - between L19 and L20 */}
+                                {/* Vertical separation lines for Row 2 - exactly aligned with row 1 separator */}
                                 <div 
                                   className="absolute border-r-2 border-white h-[45px]" 
                                   style={{
-                                    left: (6 * cellSpacing) + config.cellWidth * 0.3, // Match the reduced spacing of first row
+                                    left: (6 * cellSpacing) + config.cellWidth * 0.5, // Exactly aligned with row 1 separator
                                     top: 65, // Same top alignment as row 2
                                     zIndex: 5
                                   }}
@@ -2624,11 +2624,11 @@ export default function LoadPlanningPage() {
                                   Cargo Deck (8 positions)
                                 </div>
                                 
-                                {/* Vertical separation line for bottom cargo deck - between P4 and P5 */}
+                                {/* Vertical separation line for bottom cargo deck - aligned with separators above */}
                                 <div 
                                   className="absolute border-r-2 border-white h-[45px]" 
                                   style={{
-                                    left: 4 * (cellSpacing * 13 / 9) + (cellSpacing * 13 / 9) * 0.3, // After P4
+                                    left: (6 * cellSpacing) + config.cellWidth * 0.5, // Exact same position as upper separators
                                     top: 145, // Same top alignment as bottom cargo row
                                     zIndex: 5
                                   }}
@@ -2654,8 +2654,19 @@ export default function LoadPlanningPage() {
                                   const cargoWidth = cellSpacing * 13; // Total width of top cargo area
                                   const cellWidthFullSpan = cargoWidth / 9; // Account for separation by dividing by 9 instead of 8
                                   
-                                  // Adjust position for the separation between P4 and P5
-                                  const adjustedIndex = i >= 4 ? i + 1 : i; // Skip a position after P4
+                                  // Calculate position relative to separator that's at the same position as upper rows
+                                  // For bottom cargo area, we want P1-P4 on left side and P5-P8 on right side
+                                  // with the separator at the same position as the upper separators
+                                  let adjustedIndex;
+                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5; // Position of vertical separator
+                                  if (i < 4) {
+                                    // P1-P4: Distribute evenly on left side of separator
+                                    adjustedIndex = i * (separatorPosition / 4);
+                                  } else {
+                                    // P5-P8: Distribute evenly on right side of separator
+                                    const rightSideWidth = cargoWidth - separatorPosition;
+                                    adjustedIndex = separatorPosition + ((i - 4) * (rightSideWidth / 4));
+                                  }
                                   
                                   return (
                                     <div 
@@ -2671,9 +2682,9 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: adjustedIndex * cellWidthFullSpan, // Use adjusted index for positions with separation
+                                        left: adjustedIndex, // Use the direct calculated position
                                         top: 145, // Position below title with spacing
-                                        width: cellWidthFullSpan * 0.9, // Make slightly smaller than cell for spacing
+                                        width: (i < 4 ? separatorPosition/4 : (cargoWidth-separatorPosition)/4) * 0.9, // Adjust width based on position
                                         height: config.cellHeight,
                                         backgroundColor: bgColor,
                                         zIndex: assignedPallet ? 10 : 1
