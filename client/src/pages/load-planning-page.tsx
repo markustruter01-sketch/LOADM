@@ -111,7 +111,7 @@ export default function LoadPlanningPage() {
     // Calculate the optimal cell dimensions based on the balance scale width
     // Use exact balance scale width to ensure perfect alignment
     const totalWidth = balanceScaleWidth || 715; // Default if not measured yet
-    console.log(`Grid config: Aircraft ${aircraft}, balance scale width: ${totalWidth}px`);
+    // Grid configuration for aircraft
     
     switch (aircraft) {
       case 'c17':
@@ -350,7 +350,7 @@ export default function LoadPlanningPage() {
   // Handle direct click on an existing pallet in the cargo area
   const handlePalletCellClick = (event: React.MouseEvent, pallet: Pallet, posLabel: string) => {
     event.stopPropagation(); // Prevent event bubbling
-    console.log("PALLET CLICKED", pallet, posLabel);
+    // Pallet clicked in cargo area
     
     // Update dialog state
     setEditingPalletId(pallet.id);
@@ -382,16 +382,15 @@ export default function LoadPlanningPage() {
   
   // Handle pallet click - this will be called when a pallet in the cargo area is clicked
   const handlePalletClick = (palletId: number, position: string) => {
-    console.log("handlePalletClick called with ID:", palletId, "position:", position);
     showPalletInput(palletId, position);
   };
 
   // Show pallet input dialog
   const showPalletInput = (palletId: number, position?: string) => {
-    console.log("showPalletInput called with ID:", palletId, "position:", position);
+    // Show pallet configuration dialog
     
     const selectedPallet = pallets.find(p => p.id === palletId);
-    console.log("Found pallet:", selectedPallet);
+    // Get selected pallet data
     
     // Set defaults even if pallet is not found yet
     setEditingPalletId(palletId);
