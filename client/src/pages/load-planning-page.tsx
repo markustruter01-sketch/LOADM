@@ -976,12 +976,18 @@ export default function LoadPlanningPage() {
             }
           }
           
+          // Define position number calculations for each row
+          const getPositionNumber = (row: number, col: number) => {
+            if (row === 0) return col + 1; // First row is P1-P9
+            return col + 10; // Second row is P10-P18
+          };
+          
           // If we found a closest cell, position the pallet there
           if (closestCell !== -1) {
-            const cellIndex = closestRow * 9 + closestCell;
-            const positionNumber = cellIndex + 1;
+            const positionNumber = getPositionNumber(closestRow, closestCell);
             newPositionLabel = `P${positionNumber}`;
             
+            const cellIndex = closestRow * 9 + closestCell;
             if (gridCells.length > cellIndex) {
               const rect = (gridCells[cellIndex] as HTMLElement).getBoundingClientRect();
               const cargoRect = cargoRef.current ? cargoRef.current.getBoundingClientRect() : null;
@@ -996,7 +1002,7 @@ export default function LoadPlanningPage() {
             // Fallback to calculation if DOM elements not found
             const cellRow = dropY > rowHeight ? 1 : 0;
             const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
-            const positionNumber = cellRow * 9 + cellColumn + 1;
+            const positionNumber = getPositionNumber(cellRow, cellColumn);
             newPositionLabel = `P${positionNumber}`;
             
             // Position pallet in the appropriate cell with proper spacing
@@ -1008,6 +1014,25 @@ export default function LoadPlanningPage() {
           // Use the pallet size from the configuration
           palletSize.width = config.palletWidth;
           palletSize.height = config.palletHeight;
+          
+          console.log(`C-17 pallet will be assigned to position ${newPositionLabel} at (${newX}, ${newY})`);
+          
+          // Set the position label for the new pallet
+          if (dataTransfer === "template") {
+            const newPallet = {
+              id: Date.now(),
+              position: { x: newX, y: newY },
+              location: "cargo" as const,
+              weight: defaultWeight,
+              size: palletSize,
+              cargoType: selectedCargoType as "C" | "DG",
+              cargoCategory: selectedCargoCategory,
+              positionLabel: newPositionLabel
+            };
+            
+            setPallets([...pallets, newPallet]);
+            return;
+          }
         } else {
           // For other aircraft types (C-130, C-27J, KC30-A)
           // Get grid configuration for the current aircraft
