@@ -1519,8 +1519,7 @@ export default function LoadPlanningPage() {
     setBalanceStatus('safe');
     setWarningPopup(false);
     
-    // Log reset action for debugging
-    console.log("Reset all pallets and balance values");
+    // Reset complete - all pallets removed and balance values reset
   };
 
   // Get constants for current aircraft
@@ -1920,7 +1919,7 @@ export default function LoadPlanningPage() {
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                     onClick={(e) => {
                                       if (assignedPallet) {
-                                        console.log("CLICKING C-17 ROW1 PALLET", assignedPallet.id, positionLabel);
+                                        // C-17 Row 1 pallet clicked
                                         handlePalletCellClick(e, assignedPallet, positionLabel);
                                       }
                                     }}
@@ -1998,7 +1997,7 @@ export default function LoadPlanningPage() {
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                     onClick={(e) => {
                                       if (assignedPallet) {
-                                        console.log("CLICKING C-17 ROW2 PALLET", assignedPallet.id, positionLabel);
+                                        // C-17 Row 2 pallet clicked
                                         handlePalletCellClick(e, assignedPallet, positionLabel);
                                       }
                                     }}
@@ -2090,7 +2089,7 @@ export default function LoadPlanningPage() {
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                     onClick={(e) => {
                                       if (assignedPallet) {
-                                        console.log("CLICKING C-130 ROW1 PALLET", assignedPallet.id, positionLabel);
+                                        // C-130 Row 1 pallet clicked
                                         handlePalletCellClick(e, assignedPallet, positionLabel);
                                       }
                                     }}
