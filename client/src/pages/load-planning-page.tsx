@@ -801,8 +801,24 @@ export default function LoadPlanningPage() {
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
     
-    // Get the dragged item ID from the data transfer
-    const dataTransfer = e.dataTransfer.getData("text/plain");
+    // Try to get the dragged item ID from multiple formats
+    let dataTransfer;
+    try {
+      // First try application/json format we set in CargoGridCell
+      const jsonData = e.dataTransfer.getData("application/json");
+      if (jsonData) {
+        const parsed = JSON.parse(jsonData);
+        dataTransfer = parsed.id.toString();
+      } else {
+        // Fall back to text/plain
+        dataTransfer = e.dataTransfer.getData("text/plain");
+      }
+    } catch (err) {
+      // If JSON parsing fails, use text/plain
+      dataTransfer = e.dataTransfer.getData("text/plain");
+    }
+    
+    console.log("Drop received with data:", dataTransfer);
     
     // Reset dragging states
     if (isDraggingTemplate) {

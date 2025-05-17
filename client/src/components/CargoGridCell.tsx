@@ -47,16 +47,7 @@ export default function CargoGridCell({
   return (
     <div 
       key={`cell-${positionLabel}`}
-      draggable={!!assignedPallet}
-      onDragStart={assignedPallet && onDragStart ? 
-        (e) => {
-          // Fix drag and drop by setting the data transfer without using the custom handler
-          e.dataTransfer.setData("text/plain", assignedPallet.id.toString());
-          // Make sure we capture and bubble the event properly
-          if (onDragStart) onDragStart(e, assignedPallet.id);
-        } : 
-        undefined
-      }
+      draggable={false}
       onClick={onClick}
       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
       style={{
