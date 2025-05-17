@@ -427,16 +427,33 @@ export default function LoadPlanningPage() {
       // Never allow negative weights
       if (weightValue < 0) weightValue = 0;
       
-      // Check if pallet weight exceeds maximum pallet capacity
+      // Check if pallet weight exceeds 10,000 lbs limit (including base weight)
+      if (weightValue > MAX_USER_WEIGHT_KG) {
+        // Show shake animation
+        setIsShaking(true);
+        // Set a timeout to remove the shake class after animation completes
+        setTimeout(() => setIsShaking(false), 600);
+        
+        showAlert(
+          'warning',
+          'Weight Limit Exceeded',
+          `The total weight (${weightValue + PALLET_BASE_WEIGHT} kg) exceeds the maximum allowed weight of ${MAX_WEIGHT_KG} kg (10,000 lbs) including the base weight of ${PALLET_BASE_WEIGHT} kg.`
+        );
+        
+        // Limit weight to max user weight capacity
+        weightValue = MAX_USER_WEIGHT_KG;
+      }
+      
+      // Also check if pallet weight exceeds aircraft's maximum pallet capacity
       if (weightValue > MAX_PALLET_WEIGHT) {
         showAlert(
           'error',
-          'Pallet Weight Limit Exceeded',
-          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
+          'Aircraft Pallet Weight Limit Exceeded',
+          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg for this aircraft.`
         );
         
-        // Limit weight to max pallet capacity
-        weightValue = MAX_PALLET_WEIGHT;
+        // Limit weight to max pallet capacity for this aircraft
+        weightValue = Math.min(MAX_PALLET_WEIGHT, MAX_USER_WEIGHT_KG);
       }
       
       // Calculate total weight excluding the current pallet
