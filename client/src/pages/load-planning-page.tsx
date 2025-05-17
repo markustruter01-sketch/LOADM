@@ -1140,7 +1140,8 @@ export default function LoadPlanningPage() {
             
             console.log(`Distance to P${col+1}: ${distance}`);
             
-            if (distance < closestDistance) {
+            // Use a simple distance check instead of comparing to possibly undefined closestDistance
+            if (distance < 200) {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
               
