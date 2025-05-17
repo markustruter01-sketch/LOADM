@@ -349,10 +349,10 @@ export default function LoadPlanningPage() {
   
   // Handle direct click on an existing pallet in the cargo area
   const handlePalletCellClick = (event: React.MouseEvent, pallet: Pallet, posLabel: string) => {
+    event.preventDefault(); // Prevent default behavior
     event.stopPropagation(); // Prevent event bubbling
-    // Pallet clicked in cargo area
     
-    // Update dialog state
+    // Update dialog state for the pallet configuration popup
     setEditingPalletId(pallet.id);
     setPalletWeight(pallet.weight ? pallet.weight.toString() : "");
     setPalletCargoType(pallet.cargoType || "C");
@@ -360,6 +360,8 @@ export default function LoadPlanningPage() {
     setPalletCargoCategory(pallet.cargoCategory || "");
     setPalletDgClass(pallet.dgClass || "");
     setIsDangerousGoods(pallet.cargoType === "DG");
+    
+    // Open the pallet configuration dialog
     setPalletInputOpen(true);
   };
   
@@ -677,19 +679,27 @@ export default function LoadPlanningPage() {
   };
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
+    e.stopPropagation();
+    
     if (id === null) {
       // We're dragging the template pallet
       setIsDraggingTemplate(true);
       e.dataTransfer.setData("text/plain", "template");
+      // Add an effect to show it's draggable
+      e.dataTransfer.effectAllowed = "move";
     } else {
       // We're dragging an existing pallet
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
+      // Add an effect to show it's draggable
+      e.dataTransfer.effectAllowed = "move";
     }
   };
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    // Show that the element can be dropped here
+    e.dataTransfer.dropEffect = "move";
   };
   
   const handleWeightChange = (id: number, newWeight: string) => {
@@ -753,6 +763,7 @@ export default function LoadPlanningPage() {
   
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
+    e.stopPropagation();
     
     const dataTransfer = e.dataTransfer.getData("text/plain");
     
