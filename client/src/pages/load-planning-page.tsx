@@ -944,12 +944,45 @@ export default function LoadPlanningPage() {
             palletSize.width = config.palletWidth;
             palletSize.height = config.palletHeight;
           } else {
-            // For C-27J and KC30-A (single row of 3 pallets)
-            const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
-            
-            // Calculate position to center the pallet within the cell
-            newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
-            newY = 20 + (config.cellHeight - config.palletHeight) / 2; // Fixed top offset with vertical centering
+            // Special handling for KC30-A (two distinct sections, upper L1-L26 and lower P1-P8)
+            if (currentAircraftId === 'kc30a') {
+              // Determine if we're in the top (L) or bottom (P) section based on Y position
+              const isTopSection = dropY < 200; // Top section is above 200px
+              const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
+              
+              if (isTopSection) {
+                // Top section with L positions
+                // Determine which row (L1-L13 or L14-L26)
+                const rowIndex = dropY < 95 ? 0 : 1; // First or second row
+                const yOffset = rowIndex === 0 ? 10 : 110; // Top margin for each row
+                
+                // Calculate position number based on row
+                const positionNumber = rowIndex === 0 
+                  ? cellColumn + 1  // First row: L1-L13
+                  : cellColumn + 14; // Second row: L14-L26
+                
+                // Set position
+                newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
+                newY = yOffset + (config.cellHeight - config.palletHeight) / 2;
+                assignedPosition = `L${positionNumber}`;
+              } else {
+                // Bottom section with P positions
+                const yOffset = 300; // Top margin for bottom section
+                
+                // Set position (P1-P8)
+                newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
+                newY = yOffset + (config.cellHeight - config.palletHeight) / 2;
+                assignedPosition = `P${cellColumn + 1}`;
+              }
+            } else {
+              // Original handling for C-27J (single row of 3 pallets)
+              const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
+              
+              // Calculate position to center the pallet within the cell
+              newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
+              newY = 20 + (config.cellHeight - config.palletHeight) / 2; // Fixed top offset with vertical centering
+              assignedPosition = `P${cellColumn + 1}`;
+            }
             
             // Use the pallet size from the configuration
             palletSize.width = config.palletWidth;
