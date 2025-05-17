@@ -47,6 +47,14 @@ export default function LoadPlanningPage() {
   const [match, params] = useRoute("/load-planning/:aircraftId");
   const { toast } = useToast();
   
+  // Get badge variant based on cargo type
+  const getCargoTypeBadgeVariant = (cargoType?: string) => {
+    if (cargoType === "C") return "outline";
+    if (cargoType === "LD3") return "secondary";
+    if (cargoType === "DG") return "destructive";
+    return "outline"; // Default
+  };
+  
   // Aircraft configurations
   const aircraftConfigs: Record<string, AircraftConfig> = {
     c27j: {
