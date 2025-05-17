@@ -155,17 +155,21 @@ export default function LoadBalanceChat({ cargoData, balanceData, aircraftType }
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
   
-  // Auto-scroll to bottom only when new messages are added (not on initial load)
+  // Auto-scroll to bottom only when user has interacted with the chat
+  // and when new messages are added
   useEffect(() => {
-    // Only scroll if messages change and it's not the initial load
-    if (messagesEndRef.current && messages.length > 1) {
+    // Only scroll if the user has interacted with the chat
+    if (messagesEndRef.current && hasInteracted && messages.length > 1) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, hasInteracted]);
 
   // Function to generate a balance analysis message
   const generateBalanceAnalysis = async () => {
+    // Set the interaction flag to true when the user generates an analysis
+    setHasInteracted(true);
     // Create a message that asks for balance analysis
     await sendMessage("Can you analyze my current cargo balance and provide suggestions?");
   };
@@ -173,6 +177,9 @@ export default function LoadBalanceChat({ cargoData, balanceData, aircraftType }
   // Function to handle sending a message
   const sendMessage = async (content = inputValue) => {
     if (!content.trim()) return;
+    
+    // Set the interaction flag to true when the user sends a message
+    setHasInteracted(true);
     
     // Add user message to chat
     const userMessage: Message = {
