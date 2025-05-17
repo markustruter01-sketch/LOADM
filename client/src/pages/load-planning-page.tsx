@@ -879,8 +879,45 @@ export default function LoadPlanningPage() {
             // Use the pallet size from the configuration
             palletSize.width = config.palletWidth;
             palletSize.height = config.palletHeight;
+          } else if (currentAircraftId === 'kc30a') {
+            // Special handling for KC30-A with upper (L1-L26) and lower (P1-P8) cargo areas
+            const config = getAircraftGridConfig('kc30a');
+            
+            // Determine if we're in the upper (L) or lower (P) section based on Y position
+            // Upper section is the top half, lower section is the bottom half
+            const isUpperSection = dropY < 300; // Assuming 300px is the dividing line
+            
+            if (isUpperSection) {
+              // Upper section (L1-L26) handling
+              // Determine row (0 or 1) and column (0-12)
+              const cellRow = dropY < 80 ? 0 : 1; // First or second row in upper section
+              const cellColumn = Math.min(12, Math.max(0, Math.floor(dropX / config.cellWidth)));
+              
+              // Calculate position to center the pallet within the cell
+              const rowTopOffset = cellRow === 0 ? 10 : 70; // Top margin for each row
+              newX = (cellColumn * config.cellWidth) + (config.cellWidth - config.palletWidth) / 2;
+              newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
+              
+              // Generate position label (L1-L26)
+              const posNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
+              assignedPosition = `L${posNumber}`;
+            } else {
+              // Lower section (P1-P8) handling
+              // Determine column (0-7) for P positions
+              const cellColumn = Math.min(7, Math.max(0, Math.floor(dropX / 88))); // 88px width per position
+              
+              // Fixed height of 108px for P section boxes
+              newX = cellColumn * 88 + (88 - 79) / 2; // 79px is 90% of 88px for the pallet
+              newY = 350 + (108 - 97) / 2; // 350px offset for lower section, 97px is 90% of 108px
+              
+              // Fixed size for the lower section pallets
+              palletSize = { width: 79, height: 97 }; // 90% of the cell size
+              
+              // Generate position label (P1-P8)
+              assignedPosition = `P${cellColumn + 1}`;
+            }
           } else {
-            // For C-27J and KC30-A (single row of 3 pallets)
+            // For C-27J (single row of 3 pallets)
             const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
             
             // Calculate position to center the pallet within the cell
