@@ -939,20 +939,70 @@ export default function LoadPlanningPage() {
           const config = getAircraftGridConfig('c17');
           const rowHeight = 98; // Fixed row height separation (matches grid in UI)
           
-          // Determine which cell the pallet was dropped in
-          const cellRow = dropY > rowHeight ? 1 : 0;
-          const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
+          // Get grid cell positions from DOM for precise positioning
+          const gridCells = document.querySelectorAll('[data-position-key^="c17-"]');
+          let closestDistance = Number.MAX_VALUE;
+          let closestCell = -1;
+          let closestRow = -1;
           
-          // Position pallet in the appropriate cell with proper spacing
-          const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
+          // Find the closest cell to the drop position
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 9; col++) {
+              const cellIndex = row * 9 + col;
+              if (gridCells.length > cellIndex) {
+                const rect = (gridCells[cellIndex] as HTMLElement).getBoundingClientRect();
+                const cargoRect = cargoRef.current ? cargoRef.current.getBoundingClientRect() : null;
+                
+                if (cargoRect) {
+                  // Get the center of the cell relative to the cargo container
+                  const cellCenterX = rect.left - cargoRect.left + rect.width / 2;
+                  const cellCenterY = rect.top - cargoRect.top + rect.height / 2;
+                  
+                  // Calculate distance to this cell center
+                  const distance = Math.sqrt(
+                    Math.pow(dropX - cellCenterX, 2) + 
+                    Math.pow(dropY - cellCenterY, 2)
+                  );
+                  
+                  // Update if this is the closest cell so far
+                  if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestCell = col;
+                    closestRow = row;
+                  }
+                }
+              }
+            }
+          }
           
-          // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
-          const cellCenterX = cellColumn * (config.cellWidth + config.cellPadding) + config.cellWidth / 2;
-          const cellCenterY = rowTopOffset + config.cellHeight / 2;
-          
-          // Calculate final position by centering the pallet on the closest cell center
-          newX = cellCenterX - config.palletWidth / 2;
-          newY = cellCenterY - config.palletHeight / 2;
+          // If we found a closest cell, position the pallet there
+          if (closestCell !== -1) {
+            const cellIndex = closestRow * 9 + closestCell;
+            const positionNumber = cellIndex + 1;
+            positionLabel = `P${positionNumber}`;
+            
+            if (gridCells.length > cellIndex) {
+              const rect = (gridCells[cellIndex] as HTMLElement).getBoundingClientRect();
+              const cargoRect = cargoRef.current ? cargoRef.current.getBoundingClientRect() : null;
+              
+              if (cargoRect) {
+                // Center the pallet in the selected cell
+                newX = rect.left - cargoRect.left + (rect.width - config.palletWidth) / 2;
+                newY = rect.top - cargoRect.top + (rect.height - config.palletHeight) / 2;
+              }
+            }
+          } else {
+            // Fallback to calculation if DOM elements not found
+            const cellRow = dropY > rowHeight ? 1 : 0;
+            const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
+            const positionNumber = cellRow * 9 + cellColumn + 1;
+            positionLabel = `P${positionNumber}`;
+            
+            // Position pallet in the appropriate cell with proper spacing
+            const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
+            newX = cellColumn * (config.cellWidth + config.cellPadding) + (config.cellWidth - config.palletWidth) / 2;
+            newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
+          }
           
           // Use the pallet size from the configuration
           palletSize.width = config.palletWidth;

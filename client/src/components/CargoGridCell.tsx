@@ -52,6 +52,12 @@ export default function CargoGridCell({
   return (
     <div 
       key={`cell-${positionLabel}`}
+      data-position-key={positionLabel.toLowerCase().includes('p') ? 
+        `${positionLabel.toLowerCase().includes('c17') ? 'c17' : 
+          positionLabel.toLowerCase().includes('c130') ? 'c130' : 
+          positionLabel.toLowerCase().includes('kc30a') ? 'kc30a' : 
+          'spartan'}-${positionLabel}`
+        : positionLabel}
       draggable={!!assignedPallet}
       onDragStart={handleDragStart}
       onClick={onClick}
