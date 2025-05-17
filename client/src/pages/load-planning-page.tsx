@@ -946,9 +946,13 @@ export default function LoadPlanningPage() {
           // Position pallet in the appropriate cell with proper spacing
           const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
           
-          // Calculate position to center the pallet within the cell
-          newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
-          newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
+          // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
+          const cellCenterX = cellColumn * (config.cellWidth + config.cellPadding) + config.cellWidth / 2;
+          const cellCenterY = rowTopOffset + config.cellHeight / 2;
+          
+          // Calculate final position by centering the pallet on the closest cell center
+          newX = cellCenterX - config.palletWidth / 2;
+          newY = cellCenterY - config.palletHeight / 2;
           
           // Use the pallet size from the configuration
           palletSize.width = config.palletWidth;
@@ -966,9 +970,13 @@ export default function LoadPlanningPage() {
             // Position pallet in the appropriate cell with proper spacing
             const rowTopOffset = cellRow === 0 ? 10 : 100; // top margin for each row
             
-            // Calculate position to center the pallet within the cell
-            newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
-            newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
+            // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
+            const cellCenterX = cellColumn * (config.cellWidth + config.cellPadding) + config.cellWidth / 2;
+            const cellCenterY = rowTopOffset + config.cellHeight / 2;
+            
+            // Calculate final position by centering the pallet on the closest cell center
+            newX = cellCenterX - config.palletWidth / 2;
+            newY = cellCenterY - config.palletHeight / 2;
             
             // Use the pallet size from the configuration
             palletSize.width = config.palletWidth;
@@ -989,9 +997,13 @@ export default function LoadPlanningPage() {
             // Set vertical position based on row
             const rowTopOffset = cellRow === 0 ? 20 : 110;
             
-            // Calculate position to center the pallet within the cell
-            newX = cellColumn * config.cellWidth + (config.cellWidth - config.palletWidth) / 2;
-            newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
+            // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
+            const cellCenterX = cellColumn * config.cellWidth + config.cellWidth / 2;
+            const cellCenterY = rowTopOffset + config.cellHeight / 2;
+            
+            // Calculate final position by centering the pallet on the closest cell center
+            newX = cellCenterX - config.palletWidth / 2;
+            newY = cellCenterY - config.palletHeight / 2;
             
             // Use the pallet size from the configuration
             palletSize.width = config.palletWidth;
