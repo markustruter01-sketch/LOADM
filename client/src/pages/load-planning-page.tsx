@@ -854,8 +854,10 @@ export default function LoadPlanningPage() {
             const positionNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
             const positionLabel = `P${positionNumber}`;
             
-            // Update position label of the pallet
-            draggedPallet.positionLabel = positionLabel;
+            // Update position label of the pallet if it exists
+            if (draggedPallet) {
+              draggedPallet.positionLabel = positionLabel;
+            }
             
             // Set vertical position based on row
             const rowTopOffset = cellRow === 0 ? 20 : 110;
