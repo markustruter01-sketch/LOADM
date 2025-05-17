@@ -1622,7 +1622,8 @@ export default function LoadPlanningPage() {
                     <p className="text-lg">
                       {pallets.filter(p => p.location === "cargo").length} of {
                         currentAircraftId === 'c17' ? '18' : 
-                        currentAircraftId === 'c130' ? '8' : '3'
+                        currentAircraftId === 'c130' ? '8' : 
+                        currentAircraftId === 'kc30a' ? '26' : '3'
                       }
                     </p>
                   </div>
