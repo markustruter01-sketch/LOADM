@@ -47,6 +47,9 @@ export default function LoadPlanningPage() {
   const [match, params] = useRoute("/load-planning/:aircraftId");
   const { toast } = useToast();
   
+  // State for cargo type selection (Pallets or LD3's)
+  const [cargoType, setCargoType] = useState<"pallets" | "ld3s">("pallets");
+  
   // Aircraft configurations
   const aircraftConfigs: Record<string, AircraftConfig> = {
     c27j: {
@@ -1805,15 +1808,33 @@ export default function LoadPlanningPage() {
               {/* Cargo Area - Always on the left */}
               <Card className="lg:col-span-7">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center">
-                    <Plane className="h-5 w-5 mr-2 text-primary" />
-                    Cargo Area
-                    <span className="text-sm font-normal text-muted-foreground ml-2">
-                      ({currentAircraftId === 'c17' ? '18 pallets' : 
-                         currentAircraftId === 'c130' ? '8 pallets' : 
-                         currentAircraftId === 'kc30a' ? '26 pallets' : '3 pallets'})
-                    </span>
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center">
+                      <Plane className="h-5 w-5 mr-2 text-primary" />
+                      Cargo Area
+                      <span className="text-sm font-normal text-muted-foreground ml-2">
+                        ({currentAircraftId === 'c17' ? '18 pallets' : 
+                           currentAircraftId === 'c130' ? '8 pallets' : 
+                           currentAircraftId === 'kc30a' ? '26 pallets' : '3 pallets'})
+                      </span>
+                    </CardTitle>
+                    
+                    {/* Cargo Type Selection Dropdown */}
+                    <div className="flex items-center">
+                      <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
+                        Cargo Type:
+                      </label>
+                      <select 
+                        id="cargo-type" 
+                        className="h-8 px-2 py-0 rounded-md text-sm border border-input bg-transparent"
+                        value={cargoType}
+                        onChange={(e) => setCargoType(e.target.value as "pallets" | "ld3s")}
+                      >
+                        <option value="pallets">Pallets</option>
+                        <option value="ld3s">LD3's</option>
+                      </select>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div 
