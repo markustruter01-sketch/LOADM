@@ -140,12 +140,12 @@ export default function LoadPlanningPage() {
         };
       
       case 'kc30a':
-        // KC30-A has 13 columns in 2 rows (26 pallets total)
-        const kc30aCellWidth = totalWidth / 13;
+        // KC30-A has 12 columns in 2 rows (24 pallets in top section, after vertical separations)
+        const kc30aCellWidth = totalWidth / 14; // Divide by 14 to account for separation space
         const kc30aCellHeight = 50; // Smaller height to fit 2 rows
         return {
           rows: 2,
-          cols: 13,
+          cols: 13, // Keep at 13 as we're manually adjusting in the render code
           cellWidth: kc30aCellWidth,
           cellHeight: kc30aCellHeight,
           cellPadding: 0, // No padding to ensure perfect alignment
@@ -1667,7 +1667,7 @@ export default function LoadPlanningPage() {
                     <span className="text-sm font-normal text-muted-foreground ml-2">
                       ({currentAircraftId === 'c17' ? '18 pallets' : 
                          currentAircraftId === 'c130' ? '8 pallets' : 
-                         currentAircraftId === 'kc30a' ? '34 pallets (26+8)' : 
+                         currentAircraftId === 'kc30a' ? '32 pallets (24+8)' : 
                          '3 pallets'})
                     </span>
                   </CardTitle>
@@ -2442,6 +2442,16 @@ export default function LoadPlanningPage() {
                             // Return JSX fragment containing both cargo areas
                             return (
                               <>
+                                {/* Vertical separation lines for Row 1 - between L6 and L8 */}
+                                <div 
+                                  className="absolute border-r-2 border-white h-[45px]" 
+                                  style={{
+                                    left: (6 * cellSpacing) + config.cellWidth + 3, // After L6 with some spacing
+                                    top: 10, // Same top alignment as the row
+                                    zIndex: 5
+                                  }}
+                                ></div>
+                                
                                 {/* Row 1 - Positions L1-L13 (changed from P to L) */}
                                 {[...Array(config.cols)].map((_, i) => {
                                   const positionLabel = `L${i + 1}`;
@@ -2450,6 +2460,12 @@ export default function LoadPlanningPage() {
                                     p.positionLabel === positionLabel
                                   );
                                   
+                                  // Skip L7 as it's in the separation space
+                                  if (i === 6) return null; // Skip L7
+                                  
+                                  // Adjust for gap after separation
+                                  const adjustedIndex = i > 6 ? i + 1 : i;
+                                  
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
                                     'rgba(20, 83, 45, 0.15)';
@@ -2457,6 +2473,9 @@ export default function LoadPlanningPage() {
                                   const borderColor = assignedPallet ?
                                     'border-orange-500' : 
                                     'border-green-800/80';
+                                    
+                                  // Determine position offset
+                                  const leftPos = adjustedIndex * cellSpacing;
                                   
                                   return (
                                     <div 
@@ -2472,7 +2491,7 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: i * cellSpacing,
+                                        left: leftPos,
                                         top: 10,
                                         width: config.cellWidth,
                                         height: config.cellHeight,
@@ -2511,6 +2530,16 @@ export default function LoadPlanningPage() {
                                   );
                                 })}
                                 
+                                {/* Vertical separation lines for Row 2 - between L19 and L20 */}
+                                <div 
+                                  className="absolute border-r-2 border-white h-[45px]" 
+                                  style={{
+                                    left: (6 * cellSpacing) + config.cellWidth + 3, // Same horizontal position as the first separation line
+                                    top: 65, // Same top alignment as row 2
+                                    zIndex: 5
+                                  }}
+                                ></div>
+                                
                                 {/* Row 2 - Positions L14-L26 (changed from P to L) */}
                                 {[...Array(config.cols)].map((_, i) => {
                                   const positionLabel = `L${i + 14}`;
@@ -2519,6 +2548,12 @@ export default function LoadPlanningPage() {
                                     p.positionLabel === positionLabel
                                   );
                                   
+                                  // Skip L20 as it's in the separation space (index 6 corresponds to position L20)
+                                  if (i === 6) return null;
+                                  
+                                  // Adjust for gap after separation
+                                  const adjustedIndex = i > 6 ? i + 1 : i;
+                                  
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
                                     'rgba(20, 83, 45, 0.15)';
@@ -2526,6 +2561,9 @@ export default function LoadPlanningPage() {
                                   const borderColor = assignedPallet ?
                                     'border-orange-500' : 
                                     'border-green-800/80';
+                                  
+                                  // Determine position offset with adjusted index
+                                  const leftPos = adjustedIndex * cellSpacing;
                                   
                                   return (
                                     <div 
@@ -2541,7 +2579,7 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: i * cellSpacing,
+                                        left: leftPos,
                                         top: 65, // Position below first row
                                         width: config.cellWidth,
                                         height: config.cellHeight,
