@@ -2442,11 +2442,11 @@ export default function LoadPlanningPage() {
                             // Return JSX fragment containing both cargo areas
                             return (
                               <>
-                                {/* Vertical separation lines for Row 1 - between L6 and L8 */}
+                                {/* Vertical separation lines for Row 1 - between L6 and L8 (with reduced padding) */}
                                 <div 
                                   className="absolute border-r-2 border-white h-[45px]" 
                                   style={{
-                                    left: (6 * cellSpacing) + config.cellWidth + 3, // After L6 with some spacing
+                                    left: (6 * cellSpacing) + config.cellWidth * 0.3, // After L6 with reduced spacing (70% less)
                                     top: 10, // Same top alignment as the row
                                     zIndex: 5
                                   }}
@@ -2534,7 +2534,7 @@ export default function LoadPlanningPage() {
                                 <div 
                                   className="absolute border-r-2 border-white h-[45px]" 
                                   style={{
-                                    left: (6 * cellSpacing) + config.cellWidth + 3, // Same horizontal position as the first separation line
+                                    left: (6 * cellSpacing) + config.cellWidth * 0.3, // Match the reduced spacing of first row
                                     top: 65, // Same top alignment as row 2
                                     zIndex: 5
                                   }}
@@ -2624,9 +2624,19 @@ export default function LoadPlanningPage() {
                                   Cargo Deck (8 positions)
                                 </div>
                                 
-                                {/* Second Cargo Area - 8 positions wide - full width */}
+                                {/* Vertical separation line for bottom cargo deck - between P4 and P5 */}
+                                <div 
+                                  className="absolute border-r-2 border-white h-[45px]" 
+                                  style={{
+                                    left: 4 * (cellSpacing * 13 / 9) + (cellSpacing * 13 / 9) * 0.3, // After P4
+                                    top: 145, // Same top alignment as bottom cargo row
+                                    zIndex: 5
+                                  }}
+                                ></div>
+                                
+                                {/* Second Cargo Area - 8 positions wide - full width, with separation between P4 and P5 */}
                                 {[...Array(8)].map((_, i) => {
-                                  const positionLabel = `P${i + 1}`; // Changed from D to P
+                                  const positionLabel = `P${i + 1}`;
                                   const assignedPallet = pallets.find(p => 
                                     p.location === "cargo" && 
                                     p.positionLabel === positionLabel
@@ -2640,9 +2650,12 @@ export default function LoadPlanningPage() {
                                     'border-orange-500' : 
                                     'border-green-800/80';
                                   
-                                  // Calculate position - spread 8 cells to full width
-                                  const totalWidth = cellSpacing * 13; // Total width of top cargo area
-                                  const cellWidthFullSpan = totalWidth / 8; // Evenly distribute across full width
+                                  // Calculate position - spread 8 cells to full width with separation
+                                  const cargoWidth = cellSpacing * 13; // Total width of top cargo area
+                                  const cellWidthFullSpan = cargoWidth / 9; // Account for separation by dividing by 9 instead of 8
+                                  
+                                  // Adjust position for the separation between P4 and P5
+                                  const adjustedIndex = i >= 4 ? i + 1 : i; // Skip a position after P4
                                   
                                   return (
                                     <div 
@@ -2658,7 +2671,7 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: i * cellWidthFullSpan, // Use full width positions
+                                        left: adjustedIndex * cellWidthFullSpan, // Use adjusted index for positions with separation
                                         top: 145, // Position below title with spacing
                                         width: cellWidthFullSpan * 0.9, // Make slightly smaller than cell for spacing
                                         height: config.cellHeight,
