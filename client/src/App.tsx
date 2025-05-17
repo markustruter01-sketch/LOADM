@@ -31,6 +31,9 @@ import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
+import C17LoadPlanningPage from "@/pages/aircraft/c17";
+import C130LoadPlanningPage from "@/pages/aircraft/c130";
+import C27JLoadPlanningPage from "@/pages/aircraft/c27j";
 
 function Router() {
   return (
@@ -46,6 +49,9 @@ function Router() {
           <Route path="/scenarios/:id" component={ScenarioPage} />
           <Route path="/load-planning" component={LoadPlanningSelectionPage} />
           <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
+          <Route path="/load-planning/c17" component={require('./pages/aircraft/c17').default} />
+          <Route path="/load-planning/c130" component={require('./pages/aircraft/c130').default} />
+          <Route path="/load-planning/c27j" component={require('./pages/aircraft/c27j').default} />
           <Route path="/documents" component={DocumentsPage} /> {/* Renamed from cargo-manifest */}
           <Route path="/cargo-manifest" component={DocumentsPage} /> {/* Keep old path working */}
           <Route path="/profile" component={ProfilePage} />
