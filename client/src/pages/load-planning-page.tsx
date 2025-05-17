@@ -314,6 +314,12 @@ export default function LoadPlanningPage() {
   // Storage area has been removed
   const configureRef = useRef<HTMLDivElement>(null);
   
+  // Weight limit constants (in kg)
+  const PALLET_BASE_WEIGHT = 136; // 300 lbs base weight for all pallets
+  const MAX_WEIGHT_LBS = 10000; // 10,000 lbs limit including base weight
+  const MAX_WEIGHT_KG = Math.floor(MAX_WEIGHT_LBS / 2.20462); // Convert to kg
+  const MAX_USER_WEIGHT_KG = MAX_WEIGHT_KG - PALLET_BASE_WEIGHT; // Maximum weight user can enter
+  
   // Alert dialog state
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
@@ -329,6 +335,7 @@ export default function LoadPlanningPage() {
   const [palletCargoCategory, setPalletCargoCategory] = useState<string>("");
   const [palletDgClass, setPalletDgClass] = useState<string>("");
   const [isDangerousGoods, setIsDangerousGoods] = useState(false);
+  const [isShaking, setIsShaking] = useState(false); // For shake animation
   
   // Show alert dialog
   const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
@@ -502,8 +509,7 @@ export default function LoadPlanningPage() {
     };
   }, []);
   
-  // Constant for base pallet weight - 136kg (300lbs)
-  const PALLET_BASE_WEIGHT = 136;
+  // Using the PALLET_BASE_WEIGHT from the top of the component
   
   // Helper function to render pallet weight with base weight included
   const renderPalletWeight = (pallet: Pallet) => {
@@ -1574,10 +1580,32 @@ export default function LoadPlanningPage() {
                 id="weight"
                 type="number"
                 value={palletWeight}
-                onChange={(e) => setPalletWeight(e.target.value)}
+                onChange={(e) => {
+                  const newValue = parseInt(e.target.value) || 0;
+                  
+                  // Check if total weight (including base weight) exceeds 10,000 lbs limit
+                  if (newValue > MAX_USER_WEIGHT_KG) {
+                    // Show shake animation
+                    setIsShaking(true);
+                    // Set a timeout to remove the shake class after animation completes
+                    setTimeout(() => setIsShaking(false), 600);
+                    
+                    // Show warning
+                    showAlert(
+                      'warning',
+                      'Weight Limit Exceeded',
+                      `The total weight (${newValue + PALLET_BASE_WEIGHT} kg) exceeds the maximum allowed weight of ${MAX_WEIGHT_KG} kg (10,000 lbs) including the base weight of ${PALLET_BASE_WEIGHT} kg.`
+                    );
+                    
+                    // Set to maximum allowed value
+                    setPalletWeight(MAX_USER_WEIGHT_KG.toString());
+                  } else {
+                    setPalletWeight(e.target.value);
+                  }
+                }}
                 min="0"
-                max={currentAircraft?.maxPalletWeight.toString() || "10000"}
-                className="col-span-2"
+                max={MAX_USER_WEIGHT_KG.toString()}
+                className={`col-span-2 ${isShaking ? 'shake-animation' : ''}`}
               />
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
