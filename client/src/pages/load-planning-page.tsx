@@ -144,34 +144,18 @@ export default function LoadPlanningPage() {
         };
       
       case 'kc30a':
-        // Different configurations for KC30-A based on selected cargo type
-        if (cargoType === "ld3s") {
-          // For LD3's: Show 26 positions in a 2x13 grid
-          const kc30aLd3CellWidth = totalWidth / 13;
-          const kc30aLd3CellHeight = 80;
-          return {
-            rows: 2,
-            cols: 13,
-            cellWidth: kc30aLd3CellWidth,
-            cellHeight: kc30aLd3CellHeight,
-            cellPadding: 0,
-            palletWidth: kc30aLd3CellWidth * 0.9,
-            palletHeight: kc30aLd3CellHeight * 0.9
-          };
-        } else {
-          // For Pallets: Show 8 positions in a single row
-          const kc30aPalletCellWidth = totalWidth / 8;
-          const kc30aPalletCellHeight = 110; // Taller for larger pallets
-          return {
-            rows: 1,
-            cols: 8,
-            cellWidth: kc30aPalletCellWidth,
-            cellHeight: kc30aPalletCellHeight,
-            cellPadding: 0,
-            palletWidth: kc30aPalletCellWidth * 0.9,
-            palletHeight: kc30aPalletCellHeight * 0.9
-          };
-        }
+        // KC30-A has 26 positions in a 2x13 grid with 14 forward and 12 aft
+        const kc30aCellWidth = totalWidth / 13;
+        const kc30aCellHeight = 80;
+        return {
+          rows: 2,
+          cols: 13,
+          cellWidth: kc30aCellWidth,
+          cellHeight: kc30aCellHeight,
+          cellPadding: 0,
+          palletWidth: kc30aCellWidth * 0.9,
+          palletHeight: kc30aCellHeight * 0.9
+        };
         
       default: // c27j only
         // C-27J has 3 columns in 1 row
@@ -522,14 +506,6 @@ export default function LoadPlanningPage() {
   // Constant for base pallet weight - 136kg (300lbs)
   const PALLET_BASE_WEIGHT = 136;
   
-  // Helper function to get position label prefix based on aircraft and cargo type
-  const getPositionPrefix = () => {
-    if (currentAircraftId === 'kc30a' && cargoType === 'ld3s') {
-      return "L"; // Use L for LD3 containers
-    }
-    return "P"; // Default to P for pallets
-  };
-  
   // Helper function to render pallet weight with base weight included
   const renderPalletWeight = (pallet: Pallet) => {
     return (
@@ -826,8 +802,7 @@ export default function LoadPlanningPage() {
       // Get aircraft constraints
       const maxPallets = currentAircraftId === 'c17' ? 18 : 
                          currentAircraftId === 'c130' ? 8 : 
-                         currentAircraftId === 'kc30a' ? 
-                            (cargoType === "ld3s" ? 26 : 8) : 3;
+                         currentAircraftId === 'kc30a' ? 26 : 3;
                           
       // Count existing pallets in cargo area
       const existingPalletCount = pallets.filter(p => 
@@ -1853,8 +1828,7 @@ export default function LoadPlanningPage() {
                       <span className="text-sm font-normal text-muted-foreground ml-2">
                         ({currentAircraftId === 'c17' ? '18 pallets' : 
                            currentAircraftId === 'c130' ? '8 pallets' : 
-                           currentAircraftId === 'kc30a' ? 
-                           (cargoType === "ld3s" ? '26 LD3\'s' : '8 pallets') : '3 pallets'})
+                           currentAircraftId === 'kc30a' ? '26 pallets' : '3 pallets'})
                       </span>
                     </CardTitle>
                     
