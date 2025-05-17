@@ -694,14 +694,26 @@ export default function LoadPlanningPage() {
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
       
-      // Create a small drag image to improve visibility
-      const dragImage = document.createElement('div');
-      dragImage.style.width = '20px';
-      dragImage.style.height = '20px';
-      dragImage.style.background = 'transparent';
-      document.body.appendChild(dragImage);
-      e.dataTransfer.setDragImage(dragImage, 10, 10);
-      setTimeout(() => document.body.removeChild(dragImage), 0);
+      // Get the pallet that's being dragged
+      const pallet = pallets.find(p => p.id === id);
+      if (pallet) {
+        // Create a visible drag image
+        const dragImage = document.createElement('div');
+        dragImage.style.width = '80px';
+        dragImage.style.height = '80px';
+        dragImage.style.backgroundColor = '#ea580c'; // Orange color
+        dragImage.style.color = 'white';
+        dragImage.style.display = 'flex';
+        dragImage.style.alignItems = 'center';
+        dragImage.style.justifyContent = 'center';
+        dragImage.style.borderRadius = '4px';
+        dragImage.style.fontWeight = 'bold';
+        dragImage.textContent = pallet.positionLabel || 'Pallet';
+        
+        document.body.appendChild(dragImage);
+        e.dataTransfer.setDragImage(dragImage, 40, 40);
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+      }
     }
   };
   
