@@ -680,7 +680,7 @@ export default function LoadPlanningPage() {
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
     e.stopPropagation();
-    e.preventDefault();
+    // Removed preventDefault() which was preventing drag operation
     
     if (id === null) {
       // We're dragging the template pallet
