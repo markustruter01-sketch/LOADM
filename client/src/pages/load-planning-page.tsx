@@ -51,26 +51,8 @@ export default function LoadPlanningPage() {
   // State for cargo type selection (Pallets or LD3's)
   const [cargoType, setCargoType] = useState<"pallets" | "ld3s">("pallets");
   
-  // Aircraft configurations
+  // Aircraft configuration - only KC30-A
   const aircraftConfigs: Record<string, AircraftConfig> = {
-    c27j: {
-      id: 'c27j',
-      name: 'Spartan C-27J',
-      maxPayload: 11300, // kg
-      maxPalletWeight: 4536, // kg (10,000 lbs)
-    },
-    c17: {
-      id: 'c17',
-      name: 'Globemaster C-17',
-      maxPayload: 77500, // kg
-      maxPalletWeight: 10000, // kg
-    },
-    c130: {
-      id: 'c130',
-      name: 'Hercules C-130',
-      maxPayload: 20000, // kg
-      maxPalletWeight: 4536, // kg (10,000 lbs)
-    },
     kc30a: {
       id: 'kc30a',
       name: 'Airbus KC30-A',
@@ -79,9 +61,9 @@ export default function LoadPlanningPage() {
     }
   };
   
-  // Get current aircraft configuration or default to C-27J
-  const currentAircraftId = match ? params.aircraftId : 'c27j';
-  const currentAircraft = aircraftConfigs[currentAircraftId] || aircraftConfigs.c27j;
+  // Get current aircraft configuration - always KC30-A
+  const currentAircraftId = 'kc30a';
+  const currentAircraft = aircraftConfigs.kc30a;
   
   // Create pallets array - in new design, we start with empty pallets array
   const [pallets, setPallets] = useState<Pallet[]>([]);
