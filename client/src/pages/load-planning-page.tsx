@@ -772,7 +772,7 @@ export default function LoadPlanningPage() {
   
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
-    e.stopPropagation();
+    console.log("Drop event triggered:", dropArea);
     
     const dataTransfer = e.dataTransfer.getData("text/plain");
     
@@ -1899,8 +1899,8 @@ export default function LoadPlanningPage() {
                   >
                     {/* Grid lines */}
                     {currentAircraftId === 'c17' ? (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {/* Custom grid for 9x2 layout with 88x108 pallets */}
+                      <div className="absolute inset-0">
+                        {/* Custom grid for 9x2 layout with 88x108 pallets - removed pointer-events-none to allow dragging */}
                         
                         {/* Grid cells for C-17 */}
                         {(() => {
