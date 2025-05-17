@@ -499,10 +499,15 @@ export default function LoadPlanningPage() {
     };
   }, []);
   
+  // Constant for base pallet weight - 136kg (300lbs)
+  const PALLET_BASE_WEIGHT = 136;
+  
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
+    // Add base pallet weight (136kg/300lbs) to each pallet but don't show in UI
     const weight = pallets.reduce((total, pallet) => {
-      return pallet.location === "cargo" ? total + (pallet.weight || 0) : total;
+      // Add base weight (136kg) plus configured weight for each pallet in cargo area
+      return pallet.location === "cargo" ? total + (pallet.weight || 0) + PALLET_BASE_WEIGHT : total;
     }, 0);
     
     setTotalWeight(weight);
@@ -536,8 +541,8 @@ export default function LoadPlanningPage() {
     // Determine proper cell positioning based on the grid rather than pallet positions
     // This ensures correct weight distribution calculations for the balance scale
     cargoPallets.forEach(pallet => {
-      // Skip pallets with no weight
-      if (pallet.weight === null) return;
+      // Add base weight (136kg) to each pallet's entered weight
+      const palletWeight = (pallet.weight || 0) + PALLET_BASE_WEIGHT;
       
       // Extract position number from pallet label (e.g., 'P2' => 2)
       let positionNumber = 0;
@@ -573,11 +578,11 @@ export default function LoadPlanningPage() {
         normalizedPosition = (centerPosition * 2) - 1;
       }
       
-      console.log(`Pallet ${pallet.positionLabel} weight ${pallet.weight} at normalized position ${normalizedPosition}`);
+      console.log(`Pallet ${pallet.positionLabel} weight ${palletWeight}kg (includes 136kg base) at normalized position ${normalizedPosition}`);
       
       // Calculate moment (weight * position)
-      totalWeightMoment += pallet.weight * normalizedPosition;
-      totalWeightInCargo += pallet.weight;
+      totalWeightMoment += palletWeight * normalizedPosition;
+      totalWeightInCargo += palletWeight;
     });
     
     // Calculate balance value (-100 to 100)
