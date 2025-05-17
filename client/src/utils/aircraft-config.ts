@@ -54,9 +54,7 @@ export const getAircraftGridConfig = (balanceScaleWidth: number = 715): GridConf
  * Specific to KC30-A: 13 columns, 2 rows layout with 14 forward and 12 aft positions
  */
 export const calculateNormalizedPosition = (
-  positionNumber: number, 
-  width: number = 0, 
-  x: number = 0
+  positionNumber: number
 ): number => {
   // For KC30-A: 13 columns, 2 rows - normalize position with 14 forward and 12 aft
   const col = positionNumber % 13;
@@ -100,9 +98,7 @@ export const calculateBalance = (
       : 0;
     
     const normalizedPosition = calculateNormalizedPosition(
-      positionNumber, 
-      pallet.size.width, 
-      pallet.position.x
+      positionNumber
     );
     
     // Calculate moment (weight * position)

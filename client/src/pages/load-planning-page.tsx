@@ -1444,7 +1444,7 @@ export default function LoadPlanningPage() {
     // Clear all pallets and reset state
     setPallets([]);
     setNextPalletId(1);
-    setDropZones(generateDropZones(currentAircraftId));
+    setDropZones(generateDropZones());
     
     // Reset balance values to default
     setBalanceValue(0);
