@@ -715,6 +715,8 @@ export default function LoadPlanningPage() {
   };
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
+    console.log("Drag started on pallet with ID:", id);
+    
     if (id === null) {
       // We're dragging the template pallet
       setIsDraggingTemplate(true);
@@ -724,14 +726,27 @@ export default function LoadPlanningPage() {
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
       
-      // Set dragged image to be the element itself
-      const draggedElement = e.currentTarget as HTMLElement;
-      if (draggedElement) {
-        // This helps the browser know what element is being dragged
-        e.dataTransfer.setDragImage(draggedElement, draggedElement.offsetWidth / 2, draggedElement.offsetHeight / 2);
-        // Set effectAllowed to move to indicate this is a move operation
-        e.dataTransfer.effectAllowed = 'move';
+      // Find the pallet in our state
+      const pallet = pallets.find(p => p.id === id);
+      if (pallet) {
+        console.log("Found pallet to drag:", pallet);
       }
+      
+      // Make sure the draggable attribute is set
+      const target = e.currentTarget as HTMLElement;
+      if (target) {
+        target.setAttribute('draggable', 'true');
+      }
+      
+      // Set the drag image to the element itself
+      try {
+        e.dataTransfer.setDragImage(e.currentTarget as Element, 0, 0);
+      } catch (err) {
+        console.error("Error setting drag image:", err);
+      }
+      
+      // Set the correct drag effect
+      e.dataTransfer.effectAllowed = 'move';
     }
   };
   
@@ -801,7 +816,9 @@ export default function LoadPlanningPage() {
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
     
+    // Get the dragged item ID from the data transfer
     const dataTransfer = e.dataTransfer.getData("text/plain");
+    console.log("Drop event detected with data:", dataTransfer);
     
     // Reset the template dragging flag
     if (isDraggingTemplate) {

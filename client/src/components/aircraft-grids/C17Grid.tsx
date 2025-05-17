@@ -64,13 +64,24 @@ export default function C17Grid({
               };
               
               return (
-                <CargoGridCell
+                <div 
                   key={`c17-cell-row1-${i}`}
-                  positionLabel={positionLabel}
-                  assignedPallet={assignedPallet}
-                  cellStyle={cellStyle}
-                  onDragStart={onDragStart}
-                  weightUnitLabel={weightUnitLabel}
+                  className="absolute"
+                  style={{
+                    left: cellStyle.left,
+                    top: cellStyle.top,
+                    width: cellStyle.width,
+                    height: cellStyle.height,
+                    zIndex: assignedPallet ? 10 : 1,
+                  }}
+                  draggable={!!assignedPallet}
+                  onDragStart={assignedPallet ? (e) => onDragStart(e, assignedPallet.id) : undefined}
+                >
+                  <CargoGridCell
+                    positionLabel={positionLabel}
+                    assignedPallet={assignedPallet}
+                    cellStyle={{...cellStyle, left: 0, top: 0}}
+                    weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C17 position clicked", { 
