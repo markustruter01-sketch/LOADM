@@ -513,12 +513,26 @@ export default function LoadPlanningPage() {
     // Determine proper cell positioning based on the grid rather than pallet positions
     // This ensures correct weight distribution calculations for the balance scale
     cargoPallets.forEach(pallet => {
-      // Skip pallets with no weight
-      if (pallet.weight === null) return;
+      // Get total weight for this pallet (including base weight)
+      let palletTotalWeight = 0;
+      
+      // First add assigned cargo weight if it exists
+      palletTotalWeight += pallet.weight || 0;
+      
+      // Then add base weight of the pallet itself (always present)
+      if (pallet.cargoType === "LD3") {
+        // LD3 containers have a base weight of 110kg
+        palletTotalWeight += 110;
+      } else {
+        // Regular pallets and DG have a base weight of 136kg (300 pounds)
+        palletTotalWeight += 136;
+      }
       
       // Extract position number from pallet label (e.g., 'P2' => 2)
       let positionNumber = 0;
       if (pallet.positionLabel && pallet.positionLabel.startsWith('P')) {
+        positionNumber = parseInt(pallet.positionLabel.substring(1)) - 1; // 0-based index
+      } else if (pallet.positionLabel && pallet.positionLabel.startsWith('L')) {
         positionNumber = parseInt(pallet.positionLabel.substring(1)) - 1; // 0-based index
       }
       
@@ -543,11 +557,11 @@ export default function LoadPlanningPage() {
         normalizedPosition = (centerPosition * 2) - 1;
       }
       
-      console.log(`Pallet ${pallet.positionLabel} weight ${pallet.weight} at normalized position ${normalizedPosition}`);
+      console.log(`Pallet ${pallet.positionLabel} weight ${palletTotalWeight} (cargo: ${pallet.weight || 0}, base: ${pallet.cargoType === "LD3" ? 110 : 136}) at normalized position ${normalizedPosition}`);
       
       // Calculate moment (weight * position)
-      totalWeightMoment += pallet.weight * normalizedPosition;
-      totalWeightInCargo += pallet.weight;
+      totalWeightMoment += palletTotalWeight * normalizedPosition;
+      totalWeightInCargo += palletTotalWeight;
     });
     
     // Calculate balance value (-100 to 100)
@@ -784,8 +798,8 @@ export default function LoadPlanningPage() {
         p.location === "cargo"
       ).length;
       
-      // For LD3 load devices, check if we're dropping on a position that doesn't start with 'L'
-      if (dataTransfer === "template-ld3" && dropArea === "cargo") {
+      // Position validation for templates
+      if (dropArea === "cargo") {
         // Determine which position we're dropping into (if any)
         const gridConfig = getAircraftGridConfig(currentAircraftId);
         const cellWidth = gridConfig.cellWidth + gridConfig.cellPadding;
@@ -795,22 +809,28 @@ export default function LoadPlanningPage() {
         const cellX = Math.floor(dropX / cellWidth);
         const cellY = Math.floor(dropY / cellHeight);
         
-        // For KC30-A, check if position starts with 'L' (top area only for LD3)
+        // For KC30-A, check position validity based on template type
         if (currentAircraftId === 'kc30a') {
           // Determine which row we're in
           const rowIndex = cellY < 1 ? 0 : 1; // Row 0 or 1 for top area
-          const colIndex = cellX;
+          const isTopArea = cellY < 2; // Top area is first two rows (L positions)
           
-          // Calculate position number based on row and column
-          const posNum = rowIndex === 0 ? colIndex + 1 : colIndex + 14;
-          const expectedPrefix = "L";
-          
-          // If we're not in the top cargo area (L prefix), show warning and return
-          if (cellY >= 2 || !expectedPrefix) {
+          // For LD3 template - must be in L positions (top area)
+          if (dataTransfer === "template-ld3" && !isTopArea) {
             showAlert(
               'warning',
               'Invalid Placement',
               'LD3 load devices can only be placed in the upper cargo area (L positions).'
+            );
+            return;
+          }
+          
+          // For regular template - must be in P positions (bottom area)
+          if (dataTransfer === "template" && isTopArea) {
+            showAlert(
+              'warning',
+              'Invalid Placement',
+              'Regular pallets can only be placed in the lower cargo area (P positions).'
             );
             return;
           }
