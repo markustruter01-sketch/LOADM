@@ -406,13 +406,27 @@ export default function LoadPlanningPage() {
         weightValue = MAX_PALLET_WEIGHT;
       }
       
-      // Calculate total weight excluding the current pallet
+      // Calculate total weight excluding the current pallet (include base weights)
       const otherPalletsWeight = pallets
-        .filter(p => p.id !== editingPalletId && p.location === "cargo" && p.weight !== null)
-        .reduce((sum, p) => sum + (p.weight || 0), 0);
+        .filter(p => p.id !== editingPalletId && p.location === "cargo")
+        .reduce((sum, p) => {
+          // Start with cargo weight
+          let palletTotalWeight = p.weight || 0;
+          
+          // Add base weight (136kg for regular pallets, 110kg for LD3)
+          if (p.cargoType === "LD3") {
+            palletTotalWeight += 110;
+          } else {
+            palletTotalWeight += 136;
+          }
+          
+          return sum + palletTotalWeight;
+        }, 0);
       
       // Check if total payload exceeds maximum aircraft capacity
-      const totalWeight = otherPalletsWeight + weightValue;
+      // Add the base weight for this pallet too
+      const palletBaseWeight = isDangerousGoods || palletCargoType === "C" ? 136 : 110;
+      const totalWeight = otherPalletsWeight + weightValue + palletBaseWeight;
       if (totalWeight > MAX_PAYLOAD) {
         showAlert(
           'error',
@@ -477,9 +491,22 @@ export default function LoadPlanningPage() {
   }, []);
   
   useEffect(() => {
-    // Calculate total weight of pallets in cargo area
+    // Calculate total weight of pallets in cargo area including base weights
     const weight = pallets.reduce((total, pallet) => {
-      return pallet.location === "cargo" ? total + (pallet.weight || 0) : total;
+      if (pallet.location === "cargo") {
+        // Start with cargo weight
+        let palletTotalWeight = pallet.weight || 0;
+        
+        // Add base weight of pallet (136kg for regular pallets, 110kg for LD3)
+        if (pallet.cargoType === "LD3") {
+          palletTotalWeight += 110; // LD3 containers have 110kg base weight
+        } else {
+          palletTotalWeight += 136; // Regular pallets have 136kg (300 pounds) base weight
+        }
+        
+        return total + palletTotalWeight;
+      }
+      return total;
     }, 0);
     
     setTotalWeight(weight);
@@ -717,21 +744,36 @@ export default function LoadPlanningPage() {
       weightValue = MAX_PALLET_WEIGHT;
     }
     
-    // Calculate total weight excluding the current pallet
+    // Calculate total weight excluding the current pallet (include base weights)
     const otherPalletsWeight = pallets
       .filter(p => p.id !== id && p.location === "cargo")
-      .reduce((sum, p) => sum + (p.weight || 0), 0);
+      .reduce((sum, p) => {
+        // Start with cargo weight
+        let palletTotalWeight = p.weight || 0;
+        
+        // Add base weight (136kg for regular pallets, 110kg for LD3)
+        if (p.cargoType === "LD3") {
+          palletTotalWeight += 110;
+        } else {
+          palletTotalWeight += 136;
+        }
+        
+        return sum + palletTotalWeight;
+      }, 0);
+    
+    // Add base weight for the current pallet
+    const palletBaseWeight = pallet.cargoType === "LD3" ? 110 : 136;
     
     // Check if the new weight would exceed the maximum payload
-    if (weightValue + otherPalletsWeight > MAX_PAYLOAD) {
+    if (weightValue + otherPalletsWeight + palletBaseWeight > MAX_PAYLOAD) {
       showAlert(
         'error',
         'Aircraft Payload Limit Exceeded',
         `The total weight exceeds the maximum payload capacity of ${currentAircraft.name} (${MAX_PAYLOAD.toLocaleString()} kg).`
       );
       
-      // Limit the weight to the maximum allowed
-      weightValue = Math.max(0, MAX_PAYLOAD - otherPalletsWeight);
+      // Limit the weight to the maximum allowed (accounting for base weight)
+      weightValue = Math.max(0, MAX_PAYLOAD - otherPalletsWeight - palletBaseWeight);
     }
     
     setPallets(prev => prev.map(pallet => {
