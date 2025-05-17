@@ -781,111 +781,60 @@ export default function C27JLoadPlanningPage() {
             </div>
           </div>
           
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Balance Indicator and Controls - Left Column */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center">
+          {/* Load Summary Card */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <Scale className="h-5 w-5 mr-2 text-primary" />
-                  Cargo Balance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Balance Indicator Component */}
-                <div ref={balanceScaleRef}>
-                  <BalanceIndicator 
-                    balanceValue={balanceValue} 
-                    balanceCG={balanceCG}
-                    balanceStatus={balanceStatus}
-                  />
+                  <span className="text-lg font-medium">Load Summary</span>
                 </div>
-                
-                {/* Balance Status and Weight */}
-                <div className="mt-4 grid grid-cols-3 gap-4">
-                  <Card className="col-span-1 p-2 flex flex-col items-center">
-                    <span className="text-sm font-medium text-muted-foreground">Status</span>
-                    <Badge 
-                      className={`mt-1 ${
-                        balanceStatus === 'safe' ? 'bg-green-500' : 
-                        balanceStatus === 'moderate' ? 'bg-yellow-400' : 
-                        balanceStatus === 'warning' ? 'bg-orange-500' : 
-                        'bg-red-500'
-                      }`}
-                    >
-                      {balanceStatus.charAt(0).toUpperCase() + balanceStatus.slice(1)}
-                    </Badge>
-                  </Card>
-                  
-                  <Card className="col-span-1 p-2 flex flex-col items-center">
-                    <span className="text-sm font-medium text-muted-foreground">CG Value</span>
-                    <span className="text-lg font-bold">{balanceCG.toFixed(2)}°</span>
-                  </Card>
-                  
-                  <Card className="col-span-1 p-2 flex flex-col items-center">
-                    <span className="text-sm font-medium text-muted-foreground">Total Weight</span>
-                    <span className="text-lg font-bold">{totalWeight.toLocaleString()} kg</span>
-                  </Card>
+                <Badge className="bg-orange-500 text-white">
+                  {totalWeight}/{MAX_PAYLOAD} kg
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Load</p>
+                  <p className="text-lg font-bold">{totalWeight} kg</p>
                 </div>
-                
-                {/* Load Percentage */}
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Load Capacity</span>
-                    <span>{Math.min(100, Math.round((totalWeight / MAX_PAYLOAD) * 100))}%</span>
-                  </div>
-                  <Progress 
-                    value={Math.min(100, (totalWeight / MAX_PAYLOAD) * 100)} 
-                    className="h-2"
-                  />
+                <div>
+                  <p className="text-sm text-muted-foreground">Maximum Payload</p>
+                  <p className="text-lg font-bold">{MAX_PAYLOAD.toLocaleString()} kg</p>
                 </div>
-                
-                {/* Controls */}
-                <div className="mt-6 flex flex-col md:flex-row gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={handleReset}
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Reset All
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={toggleChatVisibility}
-                  >
-                    <MessagesSquare className="mr-2 h-4 w-4" />
-                    {isChatVisible ? 'Hide Assistant' : 'Cargo Balance Assistant'}
-                  </Button>
+                <div>
+                  <p className="text-sm text-muted-foreground">Cargo Positions Filled</p>
+                  <p className="text-lg font-bold">{pallets.filter(p => p.location === 'cargo').length} of 26</p>
                 </div>
-              </CardContent>
-            </Card>
-            
-            {/* Cargo Area and Configuration - Right Column */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Cargo Area - Where pallets are loaded */}
+                <div>
+                  <p className="text-sm text-muted-foreground">Centre of Gravity</p>
+                  <p className="text-lg font-bold text-green-500">{balanceCG.toFixed(2)}°</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Cargo Area */}
+            <div className="lg:col-span-2">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center">
+                <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
+                  <div className="flex items-center">
                     <Plane className="h-5 w-5 mr-2 text-primary" />
-                    C-27J Cargo Area
-                    <span className="text-sm font-normal text-muted-foreground ml-2">
-                      (Click or drag pallets to position)
-                    </span>
-                  </CardTitle>
+                    <CardTitle>C-27J Cargo Area <span className="text-sm font-normal text-muted-foreground">(Click or drag pallets to position)</span></CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4">
                   <div 
                     ref={cargoRef}
                     className="bg-blue-950/20 border border-blue-900/40 rounded-md p-4 min-h-[220px] relative"
                     onDragOver={handleDragOver}
                     onDrop={handleDropOnCargo}
                   >
-                    {/* Aircraft Grid - KC30-A only (using same grid for C-27J to simplify) */}
+                    {/* Aircraft Grid */}
                     <div className="absolute inset-0">
-                      {/* Grid cells for C-27J (using KC30A component) */}
                       <KC30AGrid
                         config={getAircraftGridConfig()}
                         pallets={pallets}
@@ -894,57 +843,101 @@ export default function C27JLoadPlanningPage() {
                       />
                     </div>
                   </div>
+                  
+                  {/* Balance Indicator below grid */}
+                  <div className="mt-4" ref={balanceScaleRef}>
+                    <div className="flex justify-between text-xs mb-1 text-muted-foreground">
+                      <span>Heavy Forward</span>
+                      <span>Center of Gravity (degrees)</span>
+                      <span>Heavy Aft</span>
+                    </div>
+                    <BalanceIndicator 
+                      balanceValue={balanceValue} 
+                      balanceCG={balanceCG}
+                      balanceStatus={balanceStatus}
+                    />
+                  </div>
+                  
+                  <div className="flex mt-4">
+                    <Button 
+                      className="w-full"
+                      variant="outline"
+                      onClick={handleReset}
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Reset All Pallets
+                    </Button>
+                  </div>
+                  
+                  <div className="flex mt-2">
+                    <Button 
+                      className="w-full bg-orange-500 hover:bg-orange-600"
+                      onClick={toggleChatVisibility}
+                    >
+                      <MessagesSquare className="mr-2 h-4 w-4" />
+                      Cargo Balance Assistant
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-              
-              {/* Configure Pallets - Always on the right */}
+            </div>
+            
+            {/* Configure Pallets */}
+            <div className="lg:col-span-1">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center">
+                <CardHeader className="py-3 px-4">
+                  <div className="flex items-center">
                     <Package2 className="h-5 w-5 mr-2 text-primary" />
-                    Configure Pallets
-                    <span className="text-sm font-normal text-muted-foreground ml-2">
-                      (Max: 3)
-                    </span>
-                  </CardTitle>
+                    <CardTitle>Configure Pallets <span className="text-sm font-normal text-muted-foreground">(Max: 3)</span></CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4">
                   {/* Template Pallet */}
-                  <div className="mb-6 p-4 border-2 border-dashed border-primary rounded-lg">
+                  <div className="p-4 border-2 border-dashed border-orange-500 rounded-lg">
                     <h3 className="text-sm font-medium flex items-center mb-3">
-                      <Package2 className="h-4 w-4 mr-2 text-primary" />
+                      <Package2 className="h-4 w-4 mr-2 text-orange-500" />
                       Template Pallet
                     </h3>
                     
                     <p className="text-sm text-muted-foreground mb-3">
-                      Drag template pallet to cargo area or click empty position
+                      Drag this template pallet to the cargo area to create new pallets.You can add up to 26 pallets for the C-27J.
                     </p>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Draggable template pallet */}
-                      <div 
-                        className="border-2 border-primary rounded p-3 flex items-center cursor-move"
-                        draggable
-                        onDragStart={handleDragTemplateStart}
-                      >
-                        <div className="w-12 h-10 bg-primary/20 border border-primary/40 rounded mr-3 flex items-center justify-center">
-                          <Package2 className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-medium">Add Pallet</div>
-                          <div className="text-xs text-muted-foreground">Drag or click to place</div>
-                        </div>
+                    <div 
+                      className="border-2 border-orange-500 rounded p-3 flex items-center cursor-move mb-4"
+                      draggable
+                      onDragStart={handleDragTemplateStart}
+                    >
+                      <div className="w-12 h-12 bg-orange-500/20 border border-orange-500/40 rounded mr-3 flex items-center justify-center">
+                        <Package2 className="h-6 w-6 text-orange-500" />
                       </div>
-                      
-                      {/* Instructions */}
-                      <div className="text-sm text-muted-foreground">
-                        <ul className="list-disc list-inside space-y-1">
-                          <li>Drag to position pallet</li>
-                          <li>Click on pallet to edit weight</li>
-                          <li>Click on position to add pallet</li>
-                        </ul>
+                      <div>
+                        <div className="font-medium">Add Pallet</div>
+                        <div className="text-xs text-muted-foreground">Drag to cargo area</div>
                       </div>
                     </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <ul className="space-y-1">
+                        <li>• Drag to position pallet</li>
+                        <li>• Click on pallet to edit weight</li>
+                        <li>• Click on position to add pallet</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium mb-2">Current Pallets (0)</h3>
+                    
+                    {pallets.length === 0 ? (
+                      <div className="text-sm text-center py-8 text-muted-foreground">
+                        No pallets created yet. Drag the template pallet above to create new pallets.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {/* Pallet list will appear here */}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
