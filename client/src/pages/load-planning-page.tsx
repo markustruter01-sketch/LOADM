@@ -434,8 +434,8 @@ export default function LoadPlanningPage() {
           `The total weight (${totalWeight.toLocaleString()} kg) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} kg.`
         );
         
-        // Update weight but don't close dialog so user can adjust
-        setPalletWeight(Math.max(0, MAX_PAYLOAD - otherPalletsWeight).toString());
+        // Update weight but don't close dialog so user can adjust (account for base weight)
+        setPalletWeight(Math.max(0, MAX_PAYLOAD - otherPalletsWeight - palletBaseWeight).toString());
         return;
       }
     }
