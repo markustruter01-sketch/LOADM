@@ -734,6 +734,9 @@ export default function LoadPlanningPage() {
     const dataTransfer = e.dataTransfer.getData("text/plain");
     console.log("Handling drop event, data:", dataTransfer, "area:", dropArea);
     
+    // Initialize position label variable
+    let assignedPosition: string | undefined;
+    
     // Reset the template dragging flag
     if (isDraggingTemplate) {
       setIsDraggingTemplate(false);
@@ -900,7 +903,8 @@ export default function LoadPlanningPage() {
               
               // Generate position label (L1-L26)
               const posNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
-              assignedPosition = `L${posNumber}`;
+              const assignedPositionL = `L${posNumber}`;
+              assignedPosition = assignedPositionL;
             } else {
               // Lower section (P1-P8) handling
               // Determine column (0-7) for P positions
@@ -914,7 +918,8 @@ export default function LoadPlanningPage() {
               palletSize = { width: 79, height: 97 }; // 90% of the cell size
               
               // Generate position label (P1-P8)
-              assignedPosition = `P${cellColumn + 1}`;
+              const assignedPositionP = `P${cellColumn + 1}`;
+              assignedPosition = assignedPositionP;
             }
           } else {
             // For C-27J (single row of 3 pallets)
