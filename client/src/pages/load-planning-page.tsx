@@ -522,6 +522,14 @@ export default function LoadPlanningPage() {
   // Constant for base pallet weight - 136kg (300lbs)
   const PALLET_BASE_WEIGHT = 136;
   
+  // Helper function to get position label prefix based on aircraft and cargo type
+  const getPositionPrefix = () => {
+    if (currentAircraftId === 'kc30a' && cargoType === 'ld3s') {
+      return "L"; // Use L for LD3 containers
+    }
+    return "P"; // Default to P for pallets
+  };
+  
   // Helper function to render pallet weight with base weight included
   const renderPalletWeight = (pallet: Pallet) => {
     return (
