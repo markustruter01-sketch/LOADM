@@ -314,11 +314,26 @@ export default function LoadPlanningPage() {
   // Storage area has been removed
   const configureRef = useRef<HTMLDivElement>(null);
   
-  // Weight limit constants (in kg)
-  const PALLET_BASE_WEIGHT = 136; // 300 lbs base weight for all pallets
+  // Weight limit constants and conversion functions
+  const PALLET_BASE_WEIGHT_KG = 136; // 300 lbs base weight for all pallets in kg
+  const PALLET_BASE_WEIGHT_LBS = 300; // 300 lbs base weight for all pallets in lbs
   const MAX_WEIGHT_LBS = 10000; // 10,000 lbs limit including base weight
   const MAX_WEIGHT_KG = Math.floor(MAX_WEIGHT_LBS / 2.20462); // Convert to kg
-  const MAX_USER_WEIGHT_KG = MAX_WEIGHT_KG - PALLET_BASE_WEIGHT; // Maximum weight user can enter
+  const MAX_USER_WEIGHT_KG = MAX_WEIGHT_KG - PALLET_BASE_WEIGHT_KG; // Maximum weight user can enter in kg
+  const MAX_USER_WEIGHT_LBS = MAX_WEIGHT_LBS - PALLET_BASE_WEIGHT_LBS; // Maximum weight user can enter in lbs
+  
+  // Display in kg only for KC30-A, otherwise use lbs
+  const useKilograms = currentAircraftId === 'kc30a';
+  
+  // Conversion functions
+  const kgToLbs = (kg: number) => Math.round(kg * 2.20462);
+  const lbsToKg = (lbs: number) => Math.round(lbs / 2.20462);
+  
+  // Get the base weight in appropriate units based on aircraft
+  const getPalletBaseWeight = () => useKilograms ? PALLET_BASE_WEIGHT_KG : PALLET_BASE_WEIGHT_LBS;
+  
+  // Weight unit label based on aircraft
+  const weightUnitLabel = useKilograms ? 'kg' : 'lbs';
   
   // Alert dialog state
   const [alertOpen, setAlertOpen] = useState(false);
@@ -1591,7 +1606,7 @@ export default function LoadPlanningPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="weight" className="text-right">
-                Weight (kg)
+                Weight ({weightUnitLabel})
               </Label>
               <Input
                 id="weight"
