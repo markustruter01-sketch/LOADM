@@ -772,7 +772,8 @@ export default function LoadPlanningPage() {
       
       // Get aircraft constraints
       const maxPallets = currentAircraftId === 'c17' ? 18 : 
-                         currentAircraftId === 'c130' ? 8 : 3;
+                         currentAircraftId === 'c130' ? 8 : 
+                         currentAircraftId === 'kc30a' ? 26 : 3;
                           
       // Count existing pallets in cargo area
       const existingPalletCount = pallets.filter(p => 
@@ -853,11 +854,6 @@ export default function LoadPlanningPage() {
             // Calculate position label based on row and column
             const positionNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
             const positionLabel = `P${positionNumber}`;
-            
-            // Update position label of the pallet if it exists
-            if (draggedPallet) {
-              draggedPallet.positionLabel = positionLabel;
-            }
             
             // Set vertical position based on row
             const rowTopOffset = cellRow === 0 ? 20 : 110;
@@ -2471,7 +2467,11 @@ export default function LoadPlanningPage() {
                     <Package2 className="h-5 w-5 mr-2 text-primary" />
                     Configure Pallets
                     <span className="text-sm font-normal text-muted-foreground ml-2">
-                      (Max: {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'})
+                      (Max: {
+                        currentAircraftId === 'c17' ? '18' : 
+                        currentAircraftId === 'c130' ? '8' : 
+                        currentAircraftId === 'kc30a' ? '26' : '3'
+                      })
                     </span>
                   </CardTitle>
                 </CardHeader>
@@ -2485,7 +2485,11 @@ export default function LoadPlanningPage() {
                     
                     <p className="text-sm text-muted-foreground mb-3">
                       Drag this template pallet to the cargo area to create new pallets.
-                      You can add up to {currentAircraftId === 'c17' ? '18' : currentAircraftId === 'c130' ? '8' : '3'} pallets
+                      You can add up to {
+                        currentAircraftId === 'c17' ? '18' : 
+                        currentAircraftId === 'c130' ? '8' : 
+                        currentAircraftId === 'kc30a' ? '26' : '3'
+                      } pallets
                       for the {currentAircraft.name}.
                     </p>
                     
