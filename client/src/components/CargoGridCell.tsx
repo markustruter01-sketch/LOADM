@@ -23,6 +23,7 @@ interface CargoGridCellProps {
   };
   onDragStart?: (e: React.DragEvent, id: number) => void;
   onClick?: (e: React.MouseEvent) => void;
+  weightUnitLabel?: string; // Add prop for weight unit (kg or lbs)
 }
 
 export default function CargoGridCell({
@@ -30,7 +31,8 @@ export default function CargoGridCell({
   assignedPallet,
   cellStyle,
   onDragStart,
-  onClick
+  onClick,
+  weightUnitLabel = 'kg' // Default to kg if not specified
 }: CargoGridCellProps) {
   // Determine cell background color based on occupation
   const bgColor = assignedPallet ? 
@@ -73,7 +75,7 @@ export default function CargoGridCell({
         {assignedPallet && (
           <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
             {assignedPallet.weight !== null ? 
-              <span>{assignedPallet.weight} kg</span> : 
+              <span>{assignedPallet.weight} {weightUnitLabel}</span> : 
               <span className="text-white/80">No weight</span>
             }
           </div>

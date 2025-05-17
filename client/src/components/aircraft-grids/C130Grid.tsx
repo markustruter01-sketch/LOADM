@@ -20,13 +20,15 @@ interface C130GridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
+  weightUnitLabel?: string; // Add weight unit label (lbs for C130)
 }
 
 export default function C130Grid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart 
+  onDragStart,
+  weightUnitLabel = 'lbs' // Default to lbs for C130
 }: C130GridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
