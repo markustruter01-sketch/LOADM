@@ -309,6 +309,7 @@ export default function LoadPlanningPage() {
   const [isDraggingTemplate, setIsDraggingTemplate] = useState(false);
   
   const [draggedPallet, setDraggedPallet] = useState<number | null>(null);
+  const [selectedPallet, setSelectedPallet] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState(0);
   const cargoRef = useRef<HTMLDivElement>(null);
   // Storage area has been removed
@@ -761,12 +762,36 @@ export default function LoadPlanningPage() {
     // Never allow negative weights
     if (weightValue < 0) weightValue = 0;
     
-    // Check if pallet weight exceeds maximum pallet capacity
+    // Convert to appropriate units for validation based on aircraft
+    const baseWeight = getPalletBaseWeight();
+    const maxUserEnteredWeight = useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS;
+    
+    // Check if pallet weight exceeds 10,000 lbs limit (including base weight)
+    if (weightValue > maxUserEnteredWeight) {
+      // Trigger shake animation for the input field
+      const inputElement = document.getElementById(`pallet-weight-${id}`);
+      if (inputElement) {
+        inputElement.classList.add('shake-animation');
+        setTimeout(() => inputElement.classList.remove('shake-animation'), 500);
+      }
+      
+      // Show warning toast
+      toast({
+        title: "Weight Limit Exceeded",
+        description: `The maximum weight per pallet is ${MAX_WEIGHT_LBS.toLocaleString()} lbs (including ${baseWeight} ${weightUnitLabel} base weight)`,
+        variant: "destructive",
+      });
+      
+      // Set weight to maximum allowed
+      weightValue = maxUserEnteredWeight;
+    }
+    
+    // Also check against aircraft's maximum pallet weight if needed
     if (weightValue > MAX_PALLET_WEIGHT) {
       showAlert(
         'error',
         'Pallet Weight Limit Exceeded',
-        `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
+        `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} ${weightUnitLabel}.`
       );
       
       // Limit weight to max pallet capacity
