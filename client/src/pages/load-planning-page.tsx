@@ -2071,8 +2071,8 @@ export default function LoadPlanningPage() {
                         })()}
                       </div>
                     ) : currentAircraftId === 'c130' ? (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {/* Grid cells for C-130 - 8 pallets (4x2) */}
+                      <div className="absolute inset-0">
+                        {/* Grid cells for C-130 - 8 pallets (4x2) - removed pointer-events-none to allow dragging */}
                         {(() => {
                           // Get configuration for C-130
                           const config = getAircraftGridConfig('c130');
@@ -2405,8 +2405,8 @@ export default function LoadPlanningPage() {
                         })()}
                       </div>
                     ) : (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {/* Grid cells for C-27J - 3 pallets (3x1) */}
+                      <div className="absolute inset-0">
+                        {/* Grid cells for C-27J - 3 pallets (3x1) - removed pointer-events-none to allow dragging */}
                         {(() => {
                           // Get configuration for C-27J
                           const config = getAircraftGridConfig(currentAircraftId);
