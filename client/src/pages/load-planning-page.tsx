@@ -2167,7 +2167,7 @@ export default function LoadPlanningPage() {
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                     onClick={(e) => {
                                       if (assignedPallet) {
-                                        console.log("CLICKING C-130 ROW2 PALLET", assignedPallet.id, positionLabel);
+                                        // C-130 Row 2 pallet clicked
                                         handlePalletCellClick(e, assignedPallet, positionLabel);
                                       }
                                     }}
@@ -2421,7 +2421,7 @@ export default function LoadPlanningPage() {
                                 onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                 onClick={(e) => {
                                   if (assignedPallet) {
-                                    console.log("CLICKING PALLET", assignedPallet.id, positionLabel);
+                                    // C-27J pallet clicked
                                     handlePalletCellClick(e, assignedPallet, positionLabel);
                                   }
                                 }}
