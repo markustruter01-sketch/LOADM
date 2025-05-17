@@ -335,6 +335,9 @@ export default function LoadPlanningPage() {
   // Weight unit label based on aircraft
   const weightUnitLabel = useKilograms ? 'kg' : 'lbs';
   
+  // Track if we're currently dragging an item
+  const [isDragging, setIsDragging] = useState(false);
+  
   // Alert dialog state
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
@@ -715,37 +718,19 @@ export default function LoadPlanningPage() {
   };
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
-    console.log("Drag started on pallet with ID:", id);
-    
     if (id === null) {
       // We're dragging the template pallet
       setIsDraggingTemplate(true);
       e.dataTransfer.setData("text/plain", "template");
     } else {
-      // We're dragging an existing pallet
+      // We're dragging an existing pallet - set the ID in the data transfer
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
       
-      // Find the pallet in our state
-      const pallet = pallets.find(p => p.id === id);
-      if (pallet) {
-        console.log("Found pallet to drag:", pallet);
-      }
-      
-      // Make sure the draggable attribute is set
-      const target = e.currentTarget as HTMLElement;
-      if (target) {
-        target.setAttribute('draggable', 'true');
-      }
-      
-      // Set the drag image to the element itself
-      try {
-        e.dataTransfer.setDragImage(e.currentTarget as Element, 0, 0);
-      } catch (err) {
-        console.error("Error setting drag image:", err);
-      }
-      
-      // Set the correct drag effect
+      // Set dragging state to true
+      setIsDragging(true);
+            
+      // Set the drag effect to move
       e.dataTransfer.effectAllowed = 'move';
     }
   };
@@ -818,12 +803,14 @@ export default function LoadPlanningPage() {
     
     // Get the dragged item ID from the data transfer
     const dataTransfer = e.dataTransfer.getData("text/plain");
-    console.log("Drop event detected with data:", dataTransfer);
     
-    // Reset the template dragging flag
+    // Reset dragging states
     if (isDraggingTemplate) {
       setIsDraggingTemplate(false);
     }
+    
+    // Reset general dragging state
+    setIsDragging(false);
     
     // Get area dimensions to calculate relative position
     let rect;

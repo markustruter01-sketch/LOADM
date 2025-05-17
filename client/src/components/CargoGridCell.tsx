@@ -36,7 +36,7 @@ export default function CargoGridCell({
 }: CargoGridCellProps) {
   // Determine cell background color based on occupation
   const bgColor = assignedPallet ? 
-    'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+    'rgba(234, 88, 12, 0.3)' :  // Semi-transparent orange for occupied
     'rgba(20, 83, 45, 0.15)';   // Green for empty
   
   // Determine border color based on occupation
