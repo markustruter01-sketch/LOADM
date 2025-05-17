@@ -22,8 +22,8 @@ interface Pallet {
   location: "cargo" | "configure";
   weight: number | null;
   size: { width: number; height: number };
-  cargoType?: "C" | "DG"; // C = Normal Cargo, DG = Dangerous Goods
-  cargoCategory?: string; // Like "Pax Bags", "Mechanical", "Medical Equipment", etc.
+  cargoType?: "C" | "DG" | "LD3"; // C = Normal Cargo, DG = Dangerous Goods, LD3 = Container
+  cargoCategory?: string; // Like "Pax Bags", "Mechanical", "Medical Equipment", "LD3 Container" etc.
   dgClass?: string; // Class of dangerous goods (1-9)
   positionLabel?: string; // Store position label like "P1", "P2", etc.
 }
@@ -289,7 +289,7 @@ export default function LoadPlanningPage() {
   const [palletInputOpen, setPalletInputOpen] = useState(false);
   const [editingPalletId, setEditingPalletId] = useState<number | null>(null);
   const [palletWeight, setPalletWeight] = useState<string>("");
-  const [palletCargoType, setPalletCargoType] = useState<"C" | "DG">("C"); // C = Normal Cargo, DG = Dangerous Goods
+  const [palletCargoType, setPalletCargoType] = useState<"C" | "DG" | "LD3">("C"); // C = Normal Cargo, DG = Dangerous Goods, LD3 = Container
   const [palletPosition, setPalletPosition] = useState<string>("");
   const [palletCargoCategory, setPalletCargoCategory] = useState<string>("");
   const [palletDgClass, setPalletDgClass] = useState<string>("");
@@ -2892,6 +2892,36 @@ export default function LoadPlanningPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* LD3 Container Template - Only available for KC30-A */}
+                  {currentAircraftId === 'kc30a' && (
+                    <div className="mb-6 p-4 border-2 border-dashed border-primary/60 rounded-lg">
+                      <h3 className="text-sm font-medium flex items-center mb-3">
+                        <PackageOpen className="h-4 w-4 mr-2 text-primary" />
+                        LD3 Container
+                      </h3>
+                      
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Drag this LD3 container to the upper cargo area (L positions only).
+                      </p>
+                      
+                      {/* Draggable LD3 template */}
+                      <div 
+                        className="rounded p-4 flex items-center justify-center bg-blue-500/70 border-2 border-blue-500 cursor-move"
+                        style={{ 
+                          width: '90px', 
+                          height: '90px',
+                          borderRadius: '10px'
+                        }}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, null, "ld3")}
+                      >
+                        <div className="flex items-center justify-center">
+                          <PackageOpen className="h-6 w-6" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* List of existing pallets */}
                   <div className="space-y-4 h-[400px] overflow-y-auto pr-2" ref={configureRef} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, "configure")}>
