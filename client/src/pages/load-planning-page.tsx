@@ -2602,7 +2602,7 @@ export default function LoadPlanningPage() {
                       </Button>
                     </div>
                     
-                    {/* Cargo Balance Assistant Button - scrolls to chat */}
+                    {/* Cargo Balance Assistant Button - scrolls to chat only when clicked */}
                     <div className="mt-2">
                       <Button 
                         variant="outline" 
