@@ -477,7 +477,7 @@ export default function LoadPlanningPage() {
       if (balanceScaleRef.current) {
         const width = balanceScaleRef.current.offsetWidth;
         setBalanceScaleWidth(width);
-        console.log("Balance scale width measured:", width);
+        // Balance scale width updated
       }
     };
     
@@ -564,8 +564,7 @@ export default function LoadPlanningPage() {
     let totalWeightInCargo = 0;
     
     // Log balance calculation info
-    console.log("Balance calculation - cargo width:", cargoWidth);
-    console.log("Cargo pallets:", cargoPallets);
+    // Balance calculation based on cargo width and pallet configuration
     
     // Determine proper cell positioning based on the grid rather than pallet positions
     // This ensures correct weight distribution calculations for the balance scale
@@ -607,7 +606,7 @@ export default function LoadPlanningPage() {
         normalizedPosition = (centerPosition * 2) - 1;
       }
       
-      console.log(`Pallet ${pallet.positionLabel} weight ${palletWeight}kg (includes 136kg base) at normalized position ${normalizedPosition}`);
+      // Calculate weight moment for balance calculation
       
       // Calculate moment (weight * position)
       totalWeightMoment += palletWeight * normalizedPosition;
@@ -641,7 +640,7 @@ export default function LoadPlanningPage() {
     const atLimit = (displayValue === "88.00" || displayValue === "18.00");
     const beyondLimit = (cg < 18 || cg > 88);
     
-    console.log(`CG Check: Value = ${displayValue}°, At Limit = ${atLimit}, Beyond Limit = ${beyondLimit}`);
+    // Check if CG value is at or beyond acceptable limits
     
     // Now set the state for display purposes
     setBalanceCG(cg);
@@ -649,7 +648,7 @@ export default function LoadPlanningPage() {
     // Check limits and set warning popup
     if (atLimit || beyondLimit) {
       // Force warning popup for any at-limit or beyond-limit values
-      console.log(`WARNING TRIGGERED: CG Value = ${displayValue}°`);
+      // Show warning for CG value outside acceptable range
       setWarningPopup(true);
       
       // Auto hide after 10 seconds
