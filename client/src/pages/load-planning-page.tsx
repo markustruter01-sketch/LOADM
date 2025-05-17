@@ -1345,13 +1345,57 @@ export default function LoadPlanningPage() {
               }
             }
           }
+        } else if (currentAircraftId === 'kc30a') {
+          // For KC30-A with 2x13 grid (26 positions total)
+          const config = getAircraftGridConfig('kc30a');
+          
+          // Check both rows for closest position
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 13; col++) {
+              const cellWidth = config.cellWidth;
+              const cellHeight = config.cellHeight;
+              
+              // Calculate cell center position
+              const cellX = col * cellWidth + cellWidth/2; // center of cell
+              const cellY = (row === 0 ? 20 : 110) + cellHeight/2; // center of cell based on row
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              const posNumber = (row === 0 ? col + 1 : col + 14); // P1-P26
+              const posLabel = `P${posNumber}`; 
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = posLabel;
+                
+                // Update pallet size to be 10% smaller than cell
+                draggedPallet.size = {
+                  width: cellWidth * 0.9,
+                  height: cellHeight * 0.9
+                };
+                
+                // Calculate snap position (centered in cell)
+                snapX = col * cellWidth + (cellWidth - draggedPallet.size.width) / 2;
+                snapY = (row === 0 ? 20 : 110) + (cellHeight - draggedPallet.size.height) / 2;
+              }
+            }
+          }
         } else {
-          // For C-27J/KC30-A with 3x1 grid
+          // For C-27J with 3x1 grid
+          const config = getAircraftGridConfig('c27j');
+          
+          // Get exact cell dimensions from config
+          const cellWidth = config.cellWidth;
+          const cellHeight = config.cellHeight;
+          const cellSpacing = cellWidth; // Use width as spacing for exact positioning
+          
           for (let col = 0; col < 3; col++) {
-            const cellWidth = 132;
-            const cellHeight = 96;
-            const cellX = col * 144 + cellWidth/2; // center of cell
-            const cellY = 20 + cellHeight/2; // center of cell
+            // Calculate cell center position with proper spacing
+            const cellX = col * cellSpacing + cellWidth/2; // center of cell
+            const cellY = 50 + cellHeight/2; // center of cell (centered vertically)
             
             const distance = Math.sqrt(
               Math.pow(dropX - cellX, 2) + 
@@ -1362,18 +1406,20 @@ export default function LoadPlanningPage() {
               closestDistance = distance;
               positionLabel = `P${col + 1}`;
               
-              // Use helper functions for consistent sizing
-              const dimensions = calculatePalletDimensions(cellWidth, cellHeight);
-              
-              // Update the pallet size to be consistently 10% smaller
-              draggedPallet.size = {
-                width: dimensions.width,
-                height: dimensions.height
+              // Use dimension calculations from config
+              const dimensions = {
+                width: config.palletWidth,
+                height: config.palletHeight
               };
               
+              // Update the pallet size to be consistently 10% smaller
+              draggedPallet.size = dimensions;
+              
               // Calculate snap position (centered in cell)
-              snapX = col * 144 + (cellWidth - dimensions.width) / 2;
-              snapY = 20 + (cellHeight - dimensions.height) / 2;
+              snapX = col * cellSpacing + (cellWidth - dimensions.width) / 2;
+              snapY = 50 + (cellHeight - dimensions.height) / 2;
+              
+              console.log(`Snapping to position P${col + 1} at (${snapX}, ${snapY})`);
             }
           }
         }
