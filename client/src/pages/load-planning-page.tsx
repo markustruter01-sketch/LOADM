@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare } from "lucide-react";
+import { ArrowLeft, Scale, Package2, PackageOpen, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -424,7 +424,7 @@ export default function LoadPlanningPage() {
         return { 
           ...pallet, 
           weight: weightValue, 
-          cargoType: isDangerousGoods ? "DG" : "C",
+          cargoType: isDangerousGoods ? "DG" : (pallet.cargoType === "LD3" ? "LD3" : "C"),
           cargoCategory: palletCargoCategory,
           dgClass: isDangerousGoods ? palletDgClass : undefined,
           positionLabel: palletPosition || pallet.positionLabel
@@ -2897,7 +2897,7 @@ export default function LoadPlanningPage() {
                   {currentAircraftId === 'kc30a' && (
                     <div className="mb-6 p-4 border-2 border-dashed border-primary/60 rounded-lg">
                       <h3 className="text-sm font-medium flex items-center mb-3">
-                        <PackageOpen className="h-4 w-4 mr-2 text-primary" />
+                        <Package2 className="h-4 w-4 mr-2 text-primary" />
                         LD3 Container
                       </h3>
                       
@@ -2917,7 +2917,7 @@ export default function LoadPlanningPage() {
                         onDragStart={(e) => handleDragStart(e, null, "ld3")}
                       >
                         <div className="flex items-center justify-center">
-                          <PackageOpen className="h-6 w-6" />
+                          <Package2 className="h-6 w-6" />
                         </div>
                       </div>
                     </div>
