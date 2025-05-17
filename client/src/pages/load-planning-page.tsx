@@ -680,7 +680,6 @@ export default function LoadPlanningPage() {
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
     e.stopPropagation();
-    e.preventDefault();
     
     if (id === null) {
       // We're dragging the template pallet
@@ -688,31 +687,12 @@ export default function LoadPlanningPage() {
       e.dataTransfer.setData("text/plain", "template");
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
-      // Add a drag image or ghost element to make dragging more visible
-      const dragIcon = document.createElement('div');
-      dragIcon.className = 'drag-ghost';
-      dragIcon.innerHTML = `<div style="padding: 10px; background-color: #f97316; color: white; border-radius: 4px;">Template Pallet</div>`;
-      document.body.appendChild(dragIcon);
-      e.dataTransfer.setDragImage(dragIcon, 50, 25);
-      setTimeout(() => document.body.removeChild(dragIcon), 0);
     } else {
       // We're dragging an existing pallet
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
-      
-      // Get the pallet being dragged
-      const pallet = pallets.find(p => p.id === id);
-      if (pallet) {
-        // Create a custom drag image
-        const dragIcon = document.createElement('div');
-        dragIcon.className = 'drag-ghost';
-        dragIcon.innerHTML = `<div style="padding: 10px; background-color: #f97316; color: white; border-radius: 4px;">Pallet ${pallet.positionLabel}</div>`;
-        document.body.appendChild(dragIcon);
-        e.dataTransfer.setDragImage(dragIcon, 50, 25);
-        setTimeout(() => document.body.removeChild(dragIcon), 0);
-      }
     }
   };
   
