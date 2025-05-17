@@ -464,11 +464,11 @@ export default function LoadPlanningPage() {
         showAlert(
           'error',
           'Aircraft Pallet Weight Limit Exceeded',
-          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg for this aircraft.`
+          `The weight exceeds the maximum pallet capacity of ${useKilograms ? MAX_PALLET_WEIGHT.toLocaleString() : kgToLbs(MAX_PALLET_WEIGHT).toLocaleString()} ${weightUnitLabel} for this aircraft.`
         );
         
         // Limit weight to max pallet capacity for this aircraft
-        weightValue = Math.min(MAX_PALLET_WEIGHT, MAX_USER_WEIGHT_KG);
+        weightValue = Math.min(MAX_PALLET_WEIGHT, useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS);
       }
       
       // Calculate total weight excluding the current pallet
@@ -482,7 +482,7 @@ export default function LoadPlanningPage() {
         showAlert(
           'error',
           'Aircraft Payload Exceeded',
-          `The total weight (${totalWeight.toLocaleString()} kg) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} kg.`
+          `The total weight (${totalWeight.toLocaleString()} ${weightUnitLabel}) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} ${weightUnitLabel}.`
         );
         
         // Update weight but don't close dialog so user can adjust
