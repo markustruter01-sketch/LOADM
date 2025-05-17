@@ -1022,6 +1022,10 @@ export default function LoadPlanningPage() {
       if (dropArea === "cargo") {
         // Find closest position based on aircraft type
         // Start with standard position detection code
+        let positionLabel = "";
+        let closestDistance = Number.MAX_VALUE;
+        let snapX = newX;
+        let snapY = newY;
         
         // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
@@ -1134,7 +1138,7 @@ export default function LoadPlanningPage() {
               Math.pow(dropY - cellY, 2)
             );
             
-            console.log(`Distance to P${col+1}: ${distance}, Current closest: ${closestDistance}`);
+            console.log(`Distance to P${col+1}: ${distance}`);
             
             if (distance < closestDistance) {
               closestDistance = distance;
