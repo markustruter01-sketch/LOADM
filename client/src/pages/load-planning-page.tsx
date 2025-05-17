@@ -964,9 +964,6 @@ export default function LoadPlanningPage() {
                 // Set position
                 newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
                 newY = yOffset + (config.cellHeight - config.palletHeight) / 2;
-                
-                // Set position label for the pallet
-                const positionString = `L${positionNumber}`;
               } else {
                 // Bottom section with P positions
                 const yOffset = 300; // Top margin for bottom section
@@ -974,7 +971,6 @@ export default function LoadPlanningPage() {
                 // Set position (P1-P8)
                 newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
                 newY = yOffset + (config.cellHeight - config.palletHeight) / 2;
-                assignedPosition = `P${cellColumn + 1}`;
               }
             } else {
               // Original handling for C-27J (single row of 3 pallets)
@@ -983,7 +979,6 @@ export default function LoadPlanningPage() {
               // Calculate position to center the pallet within the cell
               newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
               newY = 20 + (config.cellHeight - config.palletHeight) / 2; // Fixed top offset with vertical centering
-              assignedPosition = `P${cellColumn + 1}`;
             }
             
             // Use the pallet size from the configuration
