@@ -51,7 +51,7 @@ export default function CargoGridCell({
         undefined
       }
       onClick={onClick}
-      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
+      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
       style={{
         left: cellStyle.left,
         top: cellStyle.top,

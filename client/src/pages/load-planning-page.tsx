@@ -679,8 +679,7 @@ export default function LoadPlanningPage() {
   };
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
-    e.stopPropagation();
-    // No preventDefault() to allow drag operation
+    // Don't stop propagation - this was preventing the drag from working properly
     
     if (id === null) {
       // We're dragging the template pallet
@@ -688,18 +687,12 @@ export default function LoadPlanningPage() {
       e.dataTransfer.setData("text/plain", "template");
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
-      
-      // Use the element itself as the drag image instead of creating a custom one
-      // This will prevent the orange graphic issue
     } else {
       // We're dragging an existing pallet
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
-      
-      // Use the element itself as the drag image instead of creating a custom one
-      // This will prevent the orange graphic issue
     }
   };
   
