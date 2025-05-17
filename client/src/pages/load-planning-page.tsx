@@ -582,25 +582,32 @@ export default function LoadPlanningPage() {
     
     // Calculate balance value (-100 to 100)
     let balance = 0;
+    let cgValue = 53.00; // Default center position when no cargo is loaded (53 is center of 18-88 range)
+    
     if (totalWeightInCargo > 0) {
       // Normalize to -100 to 100 range and add dampening factor
       balance = (totalWeightMoment / totalWeightInCargo) * 100;
+      
+      // Calculate Centre of Gravity value (18-88 degrees)
+      // Map from -100:100 to 18:88 (70 degree range) with 2 decimal precision
+      const cgExact = ((balance + 100) / 200) * 70 + 18;
+      
+      // Convert to fixed string with 2 decimal places to display consistently
+      const cgFixedString = cgExact.toFixed(2);
+      
+      // Parse back to number for calculations - this helps with boundary checking
+      cgValue = parseFloat(cgFixedString);
+    } else {
+      // Reset to centered position when no cargo is loaded
+      balance = 0;
+      cgValue = 53.00;
+      console.log("No cargo loaded - resetting balance to center position");
     }
     
     setBalanceValue(balance);
     
-    // Calculate Centre of Gravity value (18-88 degrees)
-    // Map from -100:100 to 18:88 (70 degree range) with 2 decimal precision
-    const cgExact = ((balance + 100) / 200) * 70 + 18;
-    
-    // Convert to fixed string with 2 decimal places to display consistently
-    const cgFixedString = cgExact.toFixed(2);
-    
-    // Parse back to number for calculations - this helps with boundary checking
-    const cg = parseFloat(cgFixedString);
-    
     // Set the state for display purposes
-    setBalanceCG(cg);
+    setBalanceCG(cgValue);
     
     // DIRECT APPROACH: Always show warning when CG value reaches 88.00
     const displayValue = balanceCG.toFixed(2);
