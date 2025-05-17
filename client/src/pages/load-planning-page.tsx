@@ -964,7 +964,10 @@ export default function LoadPlanningPage() {
                 // Set position
                 newX = (cellColumn * (config.cellWidth + config.cellPadding)) + (config.cellWidth - config.palletWidth) / 2;
                 newY = yOffset + (config.cellHeight - config.palletHeight) / 2;
-                assignedPosition = `L${positionNumber}`;
+                
+                // Set position label for the pallet
+                const positionString = `L${positionNumber}`;
+                assignedPosition = positionString;
               } else {
                 // Bottom section with P positions
                 const yOffset = 300; // Top margin for bottom section
@@ -1021,13 +1024,34 @@ export default function LoadPlanningPage() {
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
       
-      // If pallet is being placed in cargo area, find nearest position label and position
+      // If pallet is being placed in cargo area, assign position label based on aircraft type and drop location
       if (dropArea === "cargo") {
-        // Extract position label based on nearest grid cell
+        // Extract position label based on where it was dropped
         let positionLabel = "";
-        let closestDistance = Number.MAX_VALUE;
-        let snapX = newX;
-        let snapY = newY;
+        
+        // For KC30-A, we need special handling for L and P positions
+        if (currentAircraftId === 'kc30a') {
+          // Determine if we're in the top (L) section or bottom (P) section
+          const isTopSection = dropY < 200; // Top section is above 200px
+          const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
+          
+          if (isTopSection) {
+            // Top section with L positions
+            const rowIndex = dropY < 95 ? 0 : 1; // First or second row
+            const positionNumber = rowIndex === 0 
+              ? cellColumn + 1    // First row: L1-L13
+              : cellColumn + 14;  // Second row: L14-L26
+              
+            positionLabel = `L${positionNumber}`;
+          } else {
+            // Bottom section with P positions
+            positionLabel = `P${cellColumn + 1}`;
+          }
+        } else {
+          // For other aircraft types, keep the standard positioning logic
+          let closestDistance = Number.MAX_VALUE;
+          let snapX = newX;
+          let snapY = newY;
         
         // Find closest position based on aircraft type
         if (currentAircraftId === 'c17') {
