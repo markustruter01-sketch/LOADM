@@ -611,11 +611,17 @@ export default function LoadPlanningPage() {
     navigate("/load-planning");
   };
   
-  const handleDragStart = (e: React.DragEvent, id: number | null) => {
+  const handleDragStart = (e: React.DragEvent, id: number | null, palletType?: string) => {
     if (id === null) {
-      // We're dragging the template pallet
+      // We're dragging a template
       setIsDraggingTemplate(true);
-      e.dataTransfer.setData("text/plain", "template");
+      if (palletType === "ld3") {
+        // We're dragging the LD3 load device template
+        e.dataTransfer.setData("text/plain", "template-ld3");
+      } else {
+        // We're dragging the regular template pallet
+        e.dataTransfer.setData("text/plain", "template");
+      }
     } else {
       // We're dragging an existing pallet
       console.log("Starting drag for pallet ID:", id);
@@ -757,9 +763,9 @@ export default function LoadPlanningPage() {
     let newX = 0;
     let newY = 0;
     
-    // Check if we're dropping a template pallet
-    if (dataTransfer === "template") {
-      // For template pallet, create a new pallet
+    // Check if we're dropping a template pallet or LD3 load device
+    if (dataTransfer === "template" || dataTransfer === "template-ld3") {
+      // For template, create a new pallet
       
       // Get aircraft constraints
       const maxPallets = currentAircraftId === 'c17' ? 18 : 
@@ -769,6 +775,39 @@ export default function LoadPlanningPage() {
       const existingPalletCount = pallets.filter(p => 
         p.location === "cargo"
       ).length;
+      
+      // For LD3 load devices, check if we're dropping on a position that doesn't start with 'L'
+      if (dataTransfer === "template-ld3" && dropArea === "cargo") {
+        // Determine which position we're dropping into (if any)
+        const gridConfig = getAircraftGridConfig(currentAircraftId);
+        const cellWidth = gridConfig.cellWidth + gridConfig.cellPadding;
+        const cellHeight = gridConfig.cellHeight + gridConfig.cellPadding;
+        
+        // Get nearest cell
+        const cellX = Math.floor(dropX / cellWidth);
+        const cellY = Math.floor(dropY / cellHeight);
+        
+        // For KC30-A, check if position starts with 'L' (top area only for LD3)
+        if (currentAircraftId === 'kc30a') {
+          // Determine which row we're in
+          const rowIndex = cellY < 1 ? 0 : 1; // Row 0 or 1 for top area
+          const colIndex = cellX;
+          
+          // Calculate position number based on row and column
+          const posNum = rowIndex === 0 ? colIndex + 1 : colIndex + 14;
+          const expectedPrefix = "L";
+          
+          // If we're not in the top cargo area (L prefix), show warning and return
+          if (cellY >= 2 || !expectedPrefix) {
+            showAlert(
+              'warning',
+              'Invalid Placement',
+              'LD3 load devices can only be placed in the upper cargo area (L positions).'
+            );
+            return;
+          }
+        }
+      }
       
       // Check if we've reached the maximum pallets for this aircraft
       if (existingPalletCount >= maxPallets) {
@@ -866,7 +905,9 @@ export default function LoadPlanningPage() {
         position: { x: newX, y: newY },
         location: dropArea,
         weight: null,
-        size: palletSize
+        size: palletSize,
+        cargoType: dataTransfer === "template-ld3" ? "LD3" : "C", // Mark as LD3 or regular cargo
+        cargoCategory: dataTransfer === "template-ld3" ? "LD3 Container" : "Pax Bags" // Default category
       };
       
       // Add the new pallet to the pallets array first
