@@ -2384,7 +2384,9 @@ export default function LoadPlanningPage() {
                         style={{ 
                           backgroundColor: '#40C4D9', // Light blue/teal color
                           width: '1px',
-                          left: `${(balanceValue + 100) / 2}%`,
+                          // Calculate constrained position to ensure needle stays within 18-88 degree visual range
+                          // Map balanceCG (18-88) to percentage (0-100%), but clamp to never go outside these bounds
+                          left: `${Math.max(0, Math.min(100, ((Math.max(18, Math.min(88, balanceCG)) - 18) / 70) * 100))}%`,
                           top: '-50%', // Extends 50% above
                           height: '200%', // Makes it extend 50% below as well
                           transform: 'translateX(-50%)',
