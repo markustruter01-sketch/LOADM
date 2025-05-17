@@ -20,15 +20,13 @@ interface C17GridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
-  weightUnitLabel?: string; // Add weight unit label (lbs for C17)
 }
 
 export default function C17Grid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart,
-  weightUnitLabel = 'lbs' // Default to lbs for C17
+  onDragStart 
 }: C17GridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -70,7 +68,6 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-                  weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C17 position clicked", { 
@@ -110,7 +107,6 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-                  weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C17 position clicked", { 

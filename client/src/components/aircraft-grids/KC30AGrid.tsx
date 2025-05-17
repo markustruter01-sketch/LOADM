@@ -20,15 +20,13 @@ interface KC30AGridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
-  weightUnitLabel?: string; // Add weight unit label (kg for KC30A)
 }
 
 export default function KC30AGrid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart,
-  weightUnitLabel = 'kg' // Default to kg for KC30A
+  onDragStart 
 }: KC30AGridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -70,7 +68,6 @@ export default function KC30AGrid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-                  weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("KC30A position clicked", { 
@@ -110,7 +107,6 @@ export default function KC30AGrid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-                  weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("KC30A position clicked", { 

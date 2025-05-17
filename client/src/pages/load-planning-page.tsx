@@ -309,7 +309,6 @@ export default function LoadPlanningPage() {
   const [isDraggingTemplate, setIsDraggingTemplate] = useState(false);
   
   const [draggedPallet, setDraggedPallet] = useState<number | null>(null);
-  const [selectedPallet, setSelectedPallet] = useState<number | null>(null);
   const [totalWeight, setTotalWeight] = useState(0);
   const cargoRef = useRef<HTMLDivElement>(null);
   // Storage area has been removed
@@ -335,9 +334,6 @@ export default function LoadPlanningPage() {
   
   // Weight unit label based on aircraft
   const weightUnitLabel = useKilograms ? 'kg' : 'lbs';
-  
-  // Track if we're currently dragging an item
-  const [isDragging, setIsDragging] = useState(false);
   
   // Alert dialog state
   const [alertOpen, setAlertOpen] = useState(false);
@@ -724,15 +720,9 @@ export default function LoadPlanningPage() {
       setIsDraggingTemplate(true);
       e.dataTransfer.setData("text/plain", "template");
     } else {
-      // We're dragging an existing pallet - set the ID in the data transfer
+      // We're dragging an existing pallet
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
-      
-      // Set dragging state to true
-      setIsDragging(true);
-            
-      // Set the drag effect to move
-      e.dataTransfer.effectAllowed = 'move';
     }
   };
   
@@ -762,36 +752,12 @@ export default function LoadPlanningPage() {
     // Never allow negative weights
     if (weightValue < 0) weightValue = 0;
     
-    // Convert to appropriate units for validation based on aircraft
-    const baseWeight = getPalletBaseWeight();
-    const maxUserEnteredWeight = useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS;
-    
-    // Check if pallet weight exceeds 10,000 lbs limit (including base weight)
-    if (weightValue > maxUserEnteredWeight) {
-      // Trigger shake animation for the input field
-      const inputElement = document.getElementById(`pallet-weight-${id}`);
-      if (inputElement) {
-        inputElement.classList.add('shake-animation');
-        setTimeout(() => inputElement.classList.remove('shake-animation'), 500);
-      }
-      
-      // Show warning toast
-      toast({
-        title: "Weight Limit Exceeded",
-        description: `The maximum weight per pallet is ${MAX_WEIGHT_LBS.toLocaleString()} lbs (including ${baseWeight} ${weightUnitLabel} base weight)`,
-        variant: "destructive",
-      });
-      
-      // Set weight to maximum allowed
-      weightValue = maxUserEnteredWeight;
-    }
-    
-    // Also check against aircraft's maximum pallet weight if needed
+    // Check if pallet weight exceeds maximum pallet capacity
     if (weightValue > MAX_PALLET_WEIGHT) {
       showAlert(
         'error',
         'Pallet Weight Limit Exceeded',
-        `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} ${weightUnitLabel}.`
+        `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
       );
       
       // Limit weight to max pallet capacity
@@ -826,32 +792,12 @@ export default function LoadPlanningPage() {
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
     
-    // Try to get the dragged item ID from multiple formats
-    let dataTransfer;
-    try {
-      // First try application/json format we set in CargoGridCell
-      const jsonData = e.dataTransfer.getData("application/json");
-      if (jsonData) {
-        const parsed = JSON.parse(jsonData);
-        dataTransfer = parsed.id.toString();
-      } else {
-        // Fall back to text/plain
-        dataTransfer = e.dataTransfer.getData("text/plain");
-      }
-    } catch (err) {
-      // If JSON parsing fails, use text/plain
-      dataTransfer = e.dataTransfer.getData("text/plain");
-    }
+    const dataTransfer = e.dataTransfer.getData("text/plain");
     
-    console.log("Drop received with data:", dataTransfer);
-    
-    // Reset dragging states
+    // Reset the template dragging flag
     if (isDraggingTemplate) {
       setIsDraggingTemplate(false);
     }
-    
-    // Reset general dragging state
-    setIsDragging(false);
     
     // Get area dimensions to calculate relative position
     let rect;

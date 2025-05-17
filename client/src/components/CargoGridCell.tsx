@@ -23,7 +23,6 @@ interface CargoGridCellProps {
   };
   onDragStart?: (e: React.DragEvent, id: number) => void;
   onClick?: (e: React.MouseEvent) => void;
-  weightUnitLabel?: string; // Add prop for weight unit (kg or lbs)
 }
 
 export default function CargoGridCell({
@@ -31,12 +30,11 @@ export default function CargoGridCell({
   assignedPallet,
   cellStyle,
   onDragStart,
-  onClick,
-  weightUnitLabel = 'kg' // Default to kg if not specified
+  onClick
 }: CargoGridCellProps) {
   // Determine cell background color based on occupation
   const bgColor = assignedPallet ? 
-    'rgba(234, 88, 12, 0.3)' :  // Semi-transparent orange for occupied
+    'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
     'rgba(20, 83, 45, 0.15)';   // Green for empty
   
   // Determine border color based on occupation
@@ -47,9 +45,13 @@ export default function CargoGridCell({
   return (
     <div 
       key={`cell-${positionLabel}`}
-      draggable={false}
+      draggable={!!assignedPallet}
+      onDragStart={assignedPallet && onDragStart ? 
+        (e) => onDragStart(e, assignedPallet.id) : 
+        undefined
+      }
       onClick={onClick}
-      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
+      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
       style={{
         left: cellStyle.left,
         top: cellStyle.top,
@@ -71,7 +73,7 @@ export default function CargoGridCell({
         {assignedPallet && (
           <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
             {assignedPallet.weight !== null ? 
-              <span>{assignedPallet.weight} {weightUnitLabel}</span> : 
+              <span>{assignedPallet.weight} kg</span> : 
               <span className="text-white/80">No weight</span>
             }
           </div>
