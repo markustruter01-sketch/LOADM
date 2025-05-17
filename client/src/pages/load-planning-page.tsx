@@ -1666,7 +1666,9 @@ export default function LoadPlanningPage() {
                     <Plane className="h-5 w-5 mr-2 text-primary" />
                     Cargo Area
                     <span className="text-sm font-normal text-muted-foreground ml-2">
-                      ({currentAircraftId === 'c17' ? '18 pallets' : currentAircraftId === 'c130' ? '8 pallets' : '3 pallets'})
+                      ({currentAircraftId === 'c17' ? '18 pallets' : 
+                         currentAircraftId === 'c130' ? '8 pallets' : 
+                         currentAircraftId === 'kc30a' ? '26 pallets' : '3 pallets'})
                     </span>
                   </CardTitle>
                 </CardHeader>
@@ -1678,7 +1680,9 @@ export default function LoadPlanningPage() {
                         ? 'h-[320px]' 
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
-                          : 'h-[150px]'
+                          : currentAircraftId === 'kc30a'
+                            ? 'h-[200px]'
+                            : 'h-[150px]'
                     } overflow-visible bg-transparent`}
                     style={{
                       // Set exact width to match balance scale width for perfect alignment
