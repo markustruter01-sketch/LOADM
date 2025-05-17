@@ -26,6 +26,7 @@ interface Pallet {
   cargoCategory?: string; // Like "Pax Bags", "Mechanical", "Medical Equipment", etc.
   dgClass?: string; // Class of dangerous goods (1-9)
   positionLabel?: string; // Store position label like "P1", "P2", etc.
+  containerType?: "pallet" | "ld3"; // The type of container (pallet or LD3)
 }
 
 interface DropZone {
@@ -818,14 +819,25 @@ export default function LoadPlanningPage() {
         return;
       }
       
-      // Create a new pallet with size based on aircraft type
+      // Create a new container (pallet or LD3) with size based on aircraft type and selected cargo type
       let palletSize;
       
       // Get pallet size from our aircraft configuration
       const config = getAircraftGridConfig(currentAircraftId);
-      palletSize = {
-        width: config.palletWidth,
-        height: config.palletHeight
+      
+      // Adjust size based on selected cargo type
+      if (cargoType === "ld3s") {
+        // LD3 containers are typically more cubic in shape
+        palletSize = {
+          width: config.palletWidth * 0.9, // Slightly smaller width
+          height: config.palletHeight * 1.1 // Slightly taller height
+        };
+      } else {
+        // Standard pallet size
+        palletSize = {
+          width: config.palletWidth,
+          height: config.palletHeight
+        };
       };
       
       // Position the new pallet in the cargo area
@@ -929,7 +941,8 @@ export default function LoadPlanningPage() {
         position: { x: newX, y: newY },
         location: dropArea,
         weight: null,
-        size: palletSize
+        size: palletSize,
+        containerType: cargoType === "ld3s" ? "ld3" : "pallet" // Set container type based on dropdown selection
       };
       
       // Add the new pallet to the pallets array first
@@ -2620,11 +2633,11 @@ export default function LoadPlanningPage() {
                   <div className="mb-6 p-4 border-2 border-dashed border-primary rounded-lg">
                     <h3 className="text-sm font-medium flex items-center mb-3">
                       <Package2 className="h-4 w-4 mr-2 text-primary" />
-                      Template Pallet
+                      Template {cargoType === "ld3s" ? "LD3" : "Pallet"}
                     </h3>
                     
                     <p className="text-sm text-muted-foreground mb-3">
-                      Drag this template pallet to the cargo area to create new pallets.
+                      Drag this template {cargoType === "ld3s" ? "LD3" : "pallet"} to the cargo area to create new {cargoType === "ld3s" ? "LD3 containers" : "pallets"}.
                       You can add up to {
                         currentAircraftId === 'c17' ? '18' : 
                         currentAircraftId === 'c130' ? '8' : 
