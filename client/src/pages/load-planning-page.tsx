@@ -2099,7 +2099,7 @@ export default function LoadPlanningPage() {
                         })()}
                       </div>
                     ) : currentAircraftId === 'kc30a' ? (
-                      <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-0">
                         {/* Grid cells for KC30-A - 26 pallets (2x13) */}
                         {(() => {
                           // Get configuration for KC30-A
