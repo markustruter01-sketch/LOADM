@@ -1018,16 +1018,14 @@ export default function LoadPlanningPage() {
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
       
-      // If pallet is being placed in cargo area, we need to determine and update the position label
+      // If pallet is being placed in cargo area, we need to determine the position
       if (dropArea === "cargo") {
-        // Find closest position based on aircraft type
-        // Start with standard position detection code
+        // Variable declaration for position detection
         let positionLabel = "";
-        let closestDistance = Number.MAX_VALUE;
         let snapX = newX;
         let snapY = newY;
         
-        // Find closest position based on aircraft type
+        // Simple direct positioning based on aircraft type (avoiding variable scoping issues)
         if (currentAircraftId === 'c17') {
           // For C-17 with 9x2 grid
           for (let row = 0; row < 2; row++) {
@@ -1140,9 +1138,9 @@ export default function LoadPlanningPage() {
             
             console.log(`Distance to P${col+1}: ${distance}`);
             
-            // Use a simple distance check instead of comparing to possibly undefined closestDistance
+            // Use a direct distance check (fixed threshold) for positioning
             if (distance < 200) {
-              closestDistance = distance;
+              // Set position label for this cell
               positionLabel = `P${col + 1}`;
               
               // Calculate dimensions using helper function for consistent sizing
