@@ -1427,8 +1427,15 @@ export default function LoadPlanningPage() {
     setPallets([]);
     setNextPalletId(1);
     setDropZones(generateDropZones(currentAircraftId));
+    
+    // Reset balance values to default
     setBalanceValue(0);
+    setBalanceCG(53.00); // Reset to default CG value (middle of 18-88 range)
     setBalanceStatus('safe');
+    setWarningPopup(false);
+    
+    // Log reset action for debugging
+    console.log("Reset all pallets and balance values");
   };
 
   // Get constants for current aircraft
