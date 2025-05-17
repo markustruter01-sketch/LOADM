@@ -454,6 +454,63 @@ export default function LoadPlanningPage() {
       }
     }
     
+    // Check if position has changed and is valid for cargo area
+    const originalPallet = pallets.find(p => p.id === editingPalletId);
+    const hasPositionChanged = originalPallet && originalPallet.positionLabel !== palletPosition;
+    
+    // Find the grid coordinates for the new position if position has changed
+    let newGridPosition = undefined;
+    
+    if (hasPositionChanged && originalPallet?.location === "cargo") {
+      // Get aircraft grid config for calculating new position
+      const config = getAircraftGridConfig(currentAircraftId);
+      const cellWidth = config.cellWidth;
+      const cellHeight = config.cellHeight;
+      
+      // Extract position number from the position label (e.g., "P5" -> 5)
+      const positionNumber = parseInt(palletPosition.substring(1));
+      
+      // Calculate grid position based on aircraft type
+      if (currentAircraftId === 'c17') {
+        // For C-17 with 9x2 grid
+        const row = positionNumber > 9 ? 1 : 0;
+        const col = row === 0 ? positionNumber - 1 : positionNumber - 10;
+        const cellSpacing = config.cellWidth + config.cellPadding;
+        
+        newGridPosition = {
+          x: col * cellSpacing,
+          y: row === 0 ? 14 : 140
+        };
+      } else if (currentAircraftId === 'c130') {
+        // For C-130 with 4x2 grid
+        const row = positionNumber > 4 ? 1 : 0;
+        const col = row === 0 ? positionNumber - 1 : positionNumber - 5;
+        const cellSpacing = config.cellWidth + config.cellPadding;
+        
+        newGridPosition = {
+          x: col * cellSpacing,
+          y: row === 0 ? 10 : 105
+        };
+      } else if (currentAircraftId === 'kc30a') {
+        // For KC30A with 13x2 grid
+        const row = positionNumber > 13 ? 1 : 0;
+        const col = row === 0 ? positionNumber - 1 : positionNumber - 14;
+        const cellSpacing = config.cellWidth;
+        
+        newGridPosition = {
+          x: col * cellSpacing,
+          y: row === 0 ? 14 : 94
+        };
+      } else {
+        // For C-27J with 3x1 grid
+        const cellSpacing = config.cellWidth + config.cellPadding;
+        newGridPosition = {
+          x: (positionNumber - 1) * cellSpacing,
+          y: 50
+        };
+      }
+    }
+    
     // Update the pallet
     setPallets(prev => prev.map(pallet => {
       if (pallet.id === editingPalletId) {
@@ -463,7 +520,11 @@ export default function LoadPlanningPage() {
           cargoType: isDangerousGoods ? "DG" : "C",
           cargoCategory: palletCargoCategory,
           dgClass: isDangerousGoods ? palletDgClass : undefined,
-          positionLabel: palletPosition || pallet.positionLabel
+          positionLabel: palletPosition,
+          // Update position coordinates if position has changed and pallet is in cargo area
+          position: newGridPosition ? 
+            { ...pallet.position, ...newGridPosition } : 
+            pallet.position
         };
       }
       return pallet;
