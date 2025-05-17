@@ -349,8 +349,7 @@ export default function LoadPlanningPage() {
   
   // Handle direct click on an existing pallet in the cargo area
   const handlePalletCellClick = (event: React.MouseEvent, pallet: Pallet, posLabel: string) => {
-    event.preventDefault(); // Prevent default behavior
-    event.stopPropagation(); // Prevent event bubbling
+    // Don't prevent default or stop propagation - this was causing issues with click and drag
     
     // Update dialog state for the pallet configuration popup
     setEditingPalletId(pallet.id);
