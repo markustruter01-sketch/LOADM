@@ -841,8 +841,36 @@ export default function LoadPlanningPage() {
             // Use the pallet size from the configuration
             palletSize.width = config.palletWidth;
             palletSize.height = config.palletHeight;
+          } else if (currentAircraftId === 'kc30a') {
+            // Special handling for KC30-A (2 rows of 13 pallets)
+            const config = getAircraftGridConfig('kc30a');
+            
+            // Determine which row based on drop position
+            const cellRow = dropY > 70 ? 1 : 0; // Threshold to determine row 1 vs row 2
+            // Get column position - KC30-A has 13 columns
+            const cellColumn = Math.min(12, Math.max(0, Math.floor(dropX / config.cellWidth)));
+            
+            // Calculate position label based on row and column
+            const positionNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
+            const positionLabel = `P${positionNumber}`;
+            
+            // Update position label of the pallet
+            draggedPallet.positionLabel = positionLabel;
+            
+            // Set vertical position based on row
+            const rowTopOffset = cellRow === 0 ? 20 : 110;
+            
+            // Calculate position to center the pallet within the cell
+            newX = cellColumn * config.cellWidth + (config.cellWidth - config.palletWidth) / 2;
+            newY = rowTopOffset + (config.cellHeight - config.palletHeight) / 2;
+            
+            // Use the pallet size from the configuration
+            palletSize.width = config.palletWidth;
+            palletSize.height = config.palletHeight;
+            
+            console.log(`KC30-A pallet dropped at row ${cellRow}, column ${cellColumn}, position ${positionLabel}`);
           } else {
-            // For C-27J and KC30-A (single row of 3 pallets)
+            // For C-27J (single row of 3 pallets)
             const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
             
             // Calculate position to center the pallet within the cell
