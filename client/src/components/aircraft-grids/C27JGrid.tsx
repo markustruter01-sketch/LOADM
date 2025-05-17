@@ -20,13 +20,15 @@ interface C27JGridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
+  weightUnitLabel?: string; // Add weight unit label (lbs for C27J)
 }
 
 export default function C27JGrid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart 
+  onDragStart,
+  weightUnitLabel = 'lbs' // Default to lbs for C27J
 }: C27JGridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +65,7 @@ export default function C27JGrid({
             assignedPallet={assignedPallet}
             cellStyle={cellStyle}
             onDragStart={onDragStart}
+            weightUnitLabel={weightUnitLabel}
             onClick={(e) => {
               if (assignedPallet) {
                 debugLog("C27J position clicked", { 

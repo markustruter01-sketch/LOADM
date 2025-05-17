@@ -70,6 +70,7 @@ export default function C130Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C130 position clicked", { 
@@ -109,6 +110,7 @@ export default function C130Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  weightUnitLabel={weightUnitLabel}
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C130 position clicked", { 
