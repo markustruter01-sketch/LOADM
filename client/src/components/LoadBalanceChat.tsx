@@ -156,9 +156,10 @@ export default function LoadBalanceChat({ cargoData, balanceData, aircraftType }
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Auto-scroll to bottom when messages update
+  // Auto-scroll to bottom only when new messages are added (not on initial load)
   useEffect(() => {
-    if (messagesEndRef.current) {
+    // Only scroll if messages change and it's not the initial load
+    if (messagesEndRef.current && messages.length > 1) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
