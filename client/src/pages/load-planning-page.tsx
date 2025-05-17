@@ -502,6 +502,32 @@ export default function LoadPlanningPage() {
   // Constant for base pallet weight - 136kg (300lbs)
   const PALLET_BASE_WEIGHT = 136;
   
+  // Helper function to render pallet weight with base weight included
+  const renderPalletWeight = (pallet: Pallet) => {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+        {pallet.weight !== null ? (
+          <>
+            <span>{pallet.weight} kg</span>
+            <span className="text-[9px] text-white/70 mt-0.5">
+              +136kg base
+            </span>
+            <span className="text-[10px] text-white/90 mt-0.5">
+              Total: {pallet.weight + PALLET_BASE_WEIGHT} kg
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-white/80">No cargo</span>
+            <span className="text-[9px] text-white/70 mt-0.5">
+              136kg base
+            </span>
+          </>
+        )}
+      </div>
+    );
+  };
+  
   useEffect(() => {
     // Calculate total weight of pallets in cargo area
     // Add base pallet weight (136kg/300lbs) to each pallet but don't show in UI
