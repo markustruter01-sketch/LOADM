@@ -2467,15 +2467,8 @@ export default function LoadPlanningPage() {
                                   const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
                                   const paddingFromSeparator = cellSpacing * 0.3;
                                   
-                                  let adjustedIndex;
-                                  if (i <= 5) {
-                                    // Positions L1-L6
-                                    adjustedIndex = i * cellSpacing;
-                                  } else {
-                                    // Positions L8-L13 (since L7 is skipped)
-                                    // Position L8 should have padding from the separator
-                                    adjustedIndex = separatorPosition + paddingFromSeparator + ((i - 7) * cellSpacing);
-                                  }
+                                  // Revert to the original positioning with slight padding adjustment
+                                  const adjustedIndex = i > 6 ? (i + 1) * cellSpacing : i * cellSpacing;
                                   
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
@@ -2566,15 +2559,8 @@ export default function LoadPlanningPage() {
                                   const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
                                   const paddingFromSeparator = cellSpacing * 0.3;
                                   
-                                  let adjustedIndex;
-                                  if (i <= 5) {
-                                    // Positions L14-L19
-                                    adjustedIndex = i * cellSpacing;
-                                  } else {
-                                    // Positions L21-L26 (since L20 is skipped)
-                                    // Position L21 should have padding from the separator
-                                    adjustedIndex = separatorPosition + paddingFromSeparator + ((i - 7) * cellSpacing);
-                                  }
+                                  // Revert to the original positioning with slight padding adjustment
+                                  const adjustedIndex = i > 6 ? (i + 1) * cellSpacing : i * cellSpacing;
                                   
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
