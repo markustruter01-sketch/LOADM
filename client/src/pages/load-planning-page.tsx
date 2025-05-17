@@ -1591,45 +1591,48 @@ export default function LoadPlanningPage() {
       </Dialog>
       
       {/* Emergency Fixed Position Warning Popup */}
+      {/* Balance Warning Popup - Redesigned to match app style with grays and orange */}
       {warningPopup && (
-        <div style={{
-          position: 'fixed',
-          top: '100px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          backgroundColor: 'red',
-          color: 'white',
-          padding: '20px',
-          borderRadius: '10px',
-          border: '5px solid white',
-          boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-          width: '600px',
-          animation: 'bounce 1s infinite'
-        }}>
-          <style>
-            {`
-              @keyframes bounce {
-                0%, 100% { transform: translateX(-50%) translateY(0px); }
-                50% { transform: translateX(-50%) translateY(-15px); }
-              }
-            `}
-          </style>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ flexShrink: 0 }}>
-              <AlertTriangleIcon style={{ width: '48px', height: '48px', color: 'yellow' }} />
+        <div 
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[550px] max-w-[95vw] rounded-md border border-orange-500 bg-gray-900 shadow-lg"
+          style={{
+            boxShadow: '0 0 20px rgba(234, 88, 12, 0.35)'
+          }}
+        >
+          <div className="px-6 py-5">
+            <div className="flex items-center">
+              <AlertTriangleIcon className="h-6 w-6 text-orange-500 mr-3" />
+              <h3 className="text-xl font-bold text-white">Centre of Gravity Warning</h3>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="ml-auto -mr-2 text-gray-400 hover:text-white hover:bg-gray-800"
+                onClick={() => setWarningPopup(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-            <div>
-              <h3 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-                OUT OF BALANCE LIMITS!
-              </h3>
-              <p style={{ fontSize: '18px', marginBottom: '8px' }}>
-                Centre of Gravity value of <span style={{ fontWeight: 'bold', fontSize: '20px' }}>{balanceCG.toFixed(2)}°</span> 
-                {balanceCG <= 18 ? " is below" : " is at/exceeds"} the safe range of 18° to 88°.
+            
+            <div className="mt-3 text-gray-200">
+              <p className="mb-2">
+                Centre of Gravity value of <span className="text-orange-500 font-bold">{balanceCG.toFixed(2)}°</span> 
+                {balanceCG <= 18 ? " is below" : " exceeds"} the safe range of 18° to 88°.
               </p>
-              <p style={{ fontSize: '20px', fontWeight: 'bold', color: 'yellow' }}>
-                ADJUST CARGO PLACEMENT IMMEDIATELY
+              <p className="text-sm text-gray-400 mb-1">
+                This load configuration may cause aircraft instability.
               </p>
+              <p className="text-sm font-semibold text-orange-500">
+                ADJUST CARGO PLACEMENT TO RESTORE BALANCE
+              </p>
+            </div>
+            
+            <div className="mt-4 flex justify-end">
+              <Button 
+                onClick={() => setWarningPopup(false)}
+                className="bg-orange-600 hover:bg-orange-700 text-white border-none"
+              >
+                Acknowledge
+              </Button>
             </div>
           </div>
         </div>
