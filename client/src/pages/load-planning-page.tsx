@@ -1018,14 +1018,13 @@ export default function LoadPlanningPage() {
       // Increment the next pallet ID
       setNextPalletId(prev => prev + 1);
       
-      // If pallet is being placed in cargo area, we need to determine the position
+          // If pallet is being placed in cargo area, determine position by aircraft type
       if (dropArea === "cargo") {
-        // Variable declaration for position detection
+        // Set default position values
         let positionLabel = "";
         let snapX = newX;
         let snapY = newY;
-        
-        // Simple direct positioning based on aircraft type (avoiding variable scoping issues)
+        const config = getAircraftGridConfig(currentAircraftId);
         if (currentAircraftId === 'c17') {
           // For C-17 with 9x2 grid
           for (let row = 0; row < 2; row++) {
