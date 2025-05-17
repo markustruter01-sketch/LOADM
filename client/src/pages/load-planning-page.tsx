@@ -139,8 +139,22 @@ export default function LoadPlanningPage() {
           palletHeight: c130CellHeight * 0.9
         };
       
-      default: // c27j, kc30a
-        // C-27J/KC30-A has 3 columns in 1 row
+      case 'kc30a':
+        // KC30-A has 26 positions in a 2x13 grid with 14 forward and 12 aft
+        const kc30aCellWidth = totalWidth / 13;
+        const kc30aCellHeight = 80;
+        return {
+          rows: 2,
+          cols: 13,
+          cellWidth: kc30aCellWidth,
+          cellHeight: kc30aCellHeight,
+          cellPadding: 0,
+          palletWidth: kc30aCellWidth * 0.9,
+          palletHeight: kc30aCellHeight * 0.9
+        };
+        
+      default: // c27j only
+        // C-27J has 3 columns in 1 row
         const spartanCellWidth = totalWidth / 3;
         const spartanCellHeight = 96;
         return {
@@ -238,6 +252,37 @@ export default function LoadPlanningPage() {
         // C-130 Hercules - 8 slots
         const c130CargoZones = createDropZones(8, "cargo", 60, 60, 90);
         return c130CargoZones;
+        
+      case 'kc30a':
+        // KC30-A - 26 slots (13 wide x 2 high) with 14 forward and 12 aft
+        const kc30aCargoZones: DropZone[] = [];
+        
+        // Calculate grid cell dimensions
+        const config = getAircraftGridConfig('kc30a');
+        const kc30aCellWidth = config.cellWidth;
+        const kc30aCellHeight = config.cellHeight;
+        
+        // First row - 13 positions
+        for (let i = 0; i < 13; i++) {
+          kc30aCargoZones.push({
+            id: i + 1,
+            position: { x: i * kc30aCellWidth, y: 14 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Second row - 13 positions
+        for (let i = 0; i < 13; i++) {
+          kc30aCargoZones.push({
+            id: i + 14, // IDs 14-26
+            position: { x: i * kc30aCellWidth, y: 94 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        return kc30aCargoZones;
         
       default:
         // C-27J Spartan (default) - 3 slots
@@ -504,7 +549,14 @@ export default function LoadPlanningPage() {
       let normalizedPosition = 0;
       
       // Aircraft specific handling for weight distribution 
-      if (currentAircraftId === 'c27j' || currentAircraftId === 'kc30a') {
+      if (currentAircraftId === 'kc30a') {
+        // For KC30-A: 13 columns, 2 rows - normalize position with 14 forward and 12 aft
+        const col = positionNumber % 13;
+        // First 7 positions in each row (14 total) are forward section
+        // Remaining 6 positions in each row (12 total) are aft section
+        const rowOffset = positionNumber < 13 ? 0 : 0.2; // Slight adjustment for aft row
+        normalizedPosition = (col - 6) / 6 + rowOffset; // -1 to 1 across columns with row adjustment
+      } else if (currentAircraftId === 'c27j') {
         // For 3-position aircraft: -0.66 (left/P1), 0 (center/P2), 0.66 (right/P3)
         normalizedPosition = (positionNumber - 1) * 0.66; // -0.66, 0, 0.66
       } else if (currentAircraftId === 'c17') {
