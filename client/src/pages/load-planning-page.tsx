@@ -159,12 +159,12 @@ export default function LoadPlanningPage() {
             palletHeight: kc30aLd3CellHeight * 0.9
           };
         } else {
-          // For Pallets: Show 4 positions in a single row
-          const kc30aPalletCellWidth = totalWidth / 4;
+          // For Pallets: Show 8 positions in a single row
+          const kc30aPalletCellWidth = totalWidth / 8;
           const kc30aPalletCellHeight = 110; // Taller for larger pallets
           return {
             rows: 1,
-            cols: 4,
+            cols: 8,
             cellWidth: kc30aPalletCellWidth,
             cellHeight: kc30aPalletCellHeight,
             cellPadding: 0,
@@ -819,7 +819,7 @@ export default function LoadPlanningPage() {
       const maxPallets = currentAircraftId === 'c17' ? 18 : 
                          currentAircraftId === 'c130' ? 8 : 
                          currentAircraftId === 'kc30a' ? 
-                            (cargoType === "ld3s" ? 26 : 4) : 3;
+                            (cargoType === "ld3s" ? 26 : 8) : 3;
                           
       // Count existing pallets in cargo area
       const existingPalletCount = pallets.filter(p => 
@@ -1846,7 +1846,7 @@ export default function LoadPlanningPage() {
                         ({currentAircraftId === 'c17' ? '18 pallets' : 
                            currentAircraftId === 'c130' ? '8 pallets' : 
                            currentAircraftId === 'kc30a' ? 
-                           (cargoType === "ld3s" ? '26 LD3\'s' : '4 pallets') : '3 pallets'})
+                           (cargoType === "ld3s" ? '26 LD3\'s' : '8 pallets') : '3 pallets'})
                       </span>
                     </CardTitle>
                     
