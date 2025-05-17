@@ -761,8 +761,10 @@ export default function LoadPlanningPage() {
         return sum + palletTotalWeight;
       }, 0);
     
-    // Add base weight for the current pallet
-    const palletBaseWeight = pallet.cargoType === "LD3" ? 110 : 136;
+    // Get base weight based on cargo type
+    // For this edit case, we look at the cargo type directly
+    const editedPallet = pallets.find(p => p.id === id);
+    const palletBaseWeight = editedPallet?.cargoType === "LD3" ? 110 : 136;
     
     // Check if the new weight would exceed the maximum payload
     if (weightValue + otherPalletsWeight + palletBaseWeight > MAX_PAYLOAD) {
