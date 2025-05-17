@@ -41,15 +41,19 @@ export default function CargoGridCell({
   const borderColor = assignedPallet ?
     'border-orange-500' :      // Orange border for occupied
     'border-green-800/80';     // Green border for empty
+    
+  // Handle drag start event
+  const handleDragStart = (e: React.DragEvent) => {
+    if (assignedPallet && onDragStart) {
+      onDragStart(e, assignedPallet.id);
+    }
+  };
 
   return (
     <div 
       key={`cell-${positionLabel}`}
       draggable={!!assignedPallet}
-      onDragStart={assignedPallet && onDragStart ? 
-        (e) => onDragStart(e, assignedPallet.id) : 
-        undefined
-      }
+      onDragStart={handleDragStart}
       onClick={onClick}
       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
       style={{
