@@ -45,13 +45,32 @@ interface AircraftConfig {
 
 export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
+  const [match, params] = useRoute("/load-planning/:aircraftId");
   const { toast } = useToast();
   
   // State for cargo type selection (Pallets or LD3's)
   const [cargoType, setCargoType] = useState<"pallets" | "ld3s">("pallets");
   
-  // Aircraft configuration - only KC30-A
+  // Aircraft configurations
   const aircraftConfigs: Record<string, AircraftConfig> = {
+    c27j: {
+      id: 'c27j',
+      name: 'Spartan C-27J',
+      maxPayload: 11300, // kg
+      maxPalletWeight: 4536, // kg (10,000 lbs)
+    },
+    c17: {
+      id: 'c17',
+      name: 'Globemaster C-17',
+      maxPayload: 77500, // kg
+      maxPalletWeight: 10000, // kg
+    },
+    c130: {
+      id: 'c130',
+      name: 'Hercules C-130',
+      maxPayload: 20000, // kg
+      maxPalletWeight: 4536, // kg (10,000 lbs)
+    },
     kc30a: {
       id: 'kc30a',
       name: 'Airbus KC30-A',
@@ -60,9 +79,9 @@ export default function LoadPlanningPage() {
     }
   };
   
-  // Get current aircraft configuration - always KC30-A
-  const currentAircraftId = 'kc30a';
-  const currentAircraft = aircraftConfigs.kc30a;
+  // Get current aircraft configuration or default to C-27J
+  const currentAircraftId = match ? params.aircraftId : 'c27j';
+  const currentAircraft = aircraftConfigs[currentAircraftId] || aircraftConfigs.c27j;
   
   // Create pallets array - in new design, we start with empty pallets array
   const [pallets, setPallets] = useState<Pallet[]>([]);
@@ -188,41 +207,100 @@ export default function LoadPlanningPage() {
     };
   };
   
-  // Generate drop zones for KC30-A only
-  const generateDropZones = (): DropZone[] => {
-    // KC30-A - 26 slots (13 wide x 2 high) with 14 forward and 12 aft
-    const kc30aCargoZones: DropZone[] = [];
-    
-    // Calculate grid cell dimensions
-    const config = getAircraftGridConfig('kc30a');
-    const kc30aCellWidth = config.cellWidth;
-    const kc30aCellHeight = config.cellHeight;
-    
-    // First row - 13 positions
-    for (let i = 0; i < 13; i++) {
-      kc30aCargoZones.push({
-        id: i + 1,
-        position: { x: i * kc30aCellWidth, y: 14 },
+  // Generate drop zones based on aircraft type
+  const generateDropZones = (aircraftId: string): DropZone[] => {
+    // Common drop zone creation function
+    const createDropZones = (count: number, areaType: "cargo", startX: number, startY: number, spacingX: number) => {
+      return Array.from({ length: count }, (_, index) => ({
+        id: areaType === "cargo" ? index + 1 : count + index + 1,
+        position: { x: startX + (index * spacingX), y: startY },
         occupied: false,
-        area: "cargo"
-      });
-    }
+        area: areaType
+      }));
+    };
     
-    // Second row - 13 positions
-    for (let i = 0; i < 13; i++) {
-      kc30aCargoZones.push({
-        id: i + 14, // IDs 14-26
-        position: { x: i * kc30aCellWidth, y: 94 },
-        occupied: false,
-        area: "cargo"
-      });
+    switch (aircraftId) {
+      case 'c17':
+        // C-17 Globemaster - 18 slots (9 wide x 2 high)
+        // Create custom drop zones for the 9x2 grid layout
+        const c17CargoZones: DropZone[] = [];
+        
+        // Calculate grid cell dimensions
+        const cellWidth = 100;  // Width of each grid cell
+        const cellHeight = 126; // Height of each grid cell
+        
+        // First row - 9 positions
+        for (let i = 0; i < 9; i++) {
+          c17CargoZones.push({
+            id: i + 1,
+            position: { x: i * cellWidth + 4, y: 14 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Second row - 9 positions
+        for (let i = 0; i < 9; i++) {
+          c17CargoZones.push({
+            id: i + 10, // IDs 10-18
+            position: { x: i * cellWidth + 4, y: 140 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Storage zones have been removed
+        return c17CargoZones;
+        
+      case 'c130':
+        // C-130 Hercules - 8 slots
+        const c130CargoZones = createDropZones(8, "cargo", 60, 60, 90);
+        return c130CargoZones;
+        
+      case 'kc30a':
+        // KC30-A - 26 slots (13 wide x 2 high) with 14 forward and 12 aft
+        const kc30aCargoZones: DropZone[] = [];
+        
+        // Calculate grid cell dimensions
+        const config = getAircraftGridConfig('kc30a');
+        const kc30aCellWidth = config.cellWidth;
+        const kc30aCellHeight = config.cellHeight;
+        
+        // First row - 13 positions
+        for (let i = 0; i < 13; i++) {
+          kc30aCargoZones.push({
+            id: i + 1,
+            position: { x: i * kc30aCellWidth, y: 14 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Second row - 13 positions
+        for (let i = 0; i < 13; i++) {
+          kc30aCargoZones.push({
+            id: i + 14, // IDs 14-26
+            position: { x: i * kc30aCellWidth, y: 94 },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        return kc30aCargoZones;
+        
+      default:
+        // C-27J Spartan (default) - 3 slots
+        return [
+          // Cargo area - where the pallets are loaded for transport
+          { id: 1, position: { x: 80, y: 60 }, occupied: false, area: "cargo" },
+          { id: 2, position: { x: 160, y: 60 }, occupied: false, area: "cargo" },
+          { id: 3, position: { x: 240, y: 60 }, occupied: false, area: "cargo" },
+        ];
     }
-    
-    return kc30aCargoZones;
   };
   
   // Drop zones for the cargo area
-  const [dropZones, setDropZones] = useState<DropZone[]>(generateDropZones());
+  const [dropZones, setDropZones] = useState<DropZone[]>(generateDropZones(currentAircraftId));
   
   // Keep track of the next pallet ID for newly created pallets
   const [nextPalletId, setNextPalletId] = useState(1);
@@ -602,6 +680,7 @@ export default function LoadPlanningPage() {
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
     e.stopPropagation();
+    e.preventDefault();
     
     if (id === null) {
       // We're dragging the template pallet
@@ -609,12 +688,31 @@ export default function LoadPlanningPage() {
       e.dataTransfer.setData("text/plain", "template");
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
+      // Add a drag image or ghost element to make dragging more visible
+      const dragIcon = document.createElement('div');
+      dragIcon.className = 'drag-ghost';
+      dragIcon.innerHTML = `<div style="padding: 10px; background-color: #f97316; color: white; border-radius: 4px;">Template Pallet</div>`;
+      document.body.appendChild(dragIcon);
+      e.dataTransfer.setDragImage(dragIcon, 50, 25);
+      setTimeout(() => document.body.removeChild(dragIcon), 0);
     } else {
       // We're dragging an existing pallet
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
+      
+      // Get the pallet being dragged
+      const pallet = pallets.find(p => p.id === id);
+      if (pallet) {
+        // Create a custom drag image
+        const dragIcon = document.createElement('div');
+        dragIcon.className = 'drag-ghost';
+        dragIcon.innerHTML = `<div style="padding: 10px; background-color: #f97316; color: white; border-radius: 4px;">Pallet ${pallet.positionLabel}</div>`;
+        document.body.appendChild(dragIcon);
+        e.dataTransfer.setDragImage(dragIcon, 50, 25);
+        setTimeout(() => document.body.removeChild(dragIcon), 0);
+      }
     }
   };
   
@@ -1444,7 +1542,7 @@ export default function LoadPlanningPage() {
     // Clear all pallets and reset state
     setPallets([]);
     setNextPalletId(1);
-    setDropZones(generateDropZones());
+    setDropZones(generateDropZones(currentAircraftId));
     
     // Reset balance values to default
     setBalanceValue(0);

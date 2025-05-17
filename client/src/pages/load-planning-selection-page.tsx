@@ -9,10 +9,10 @@ export default function LoadPlanningSelectionPage() {
   
   const aircraftOptions = [
     {
-      id: 'kc30a',
-      name: 'Airbus KC30-A',
-      description: 'Multi-role tanker transport with a maximum payload of 45,000 kg',
-      path: '/load-planning/kc30a'
+      id: 'c27j',
+      name: 'Spartan C-27J',
+      description: 'Tactical transport aircraft with a maximum payload of 11,300 kg',
+      path: '/load-planning/c27j'
     },
     {
       id: 'c17',
@@ -27,10 +27,10 @@ export default function LoadPlanningSelectionPage() {
       path: '/load-planning/c130'
     },
     {
-      id: 'c27j',
-      name: 'Spartan C-27J',
-      description: 'Tactical transport aircraft with a maximum payload of 11,300 kg',
-      path: '/load-planning/c27j'
+      id: 'kc30a',
+      name: 'Airbus KC30-A',
+      description: 'Multi-role tanker transport with a maximum payload of 45,000 kg',
+      path: '/load-planning/kc30a'
     }
   ];
   
