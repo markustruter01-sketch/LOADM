@@ -9,24 +9,6 @@ export default function LoadPlanningSelectionPage() {
   
   const aircraftOptions = [
     {
-      id: 'c27j',
-      name: 'Spartan C-27J',
-      description: 'Tactical transport aircraft with a maximum payload of 11,300 kg',
-      path: '/load-planning/c27j'
-    },
-    {
-      id: 'c17',
-      name: 'Globemaster C-17',
-      description: 'Strategic airlift aircraft with a maximum payload of 77,500 kg',
-      path: '/load-planning/c17'
-    },
-    {
-      id: 'c130',
-      name: 'Hercules C-130',
-      description: 'Versatile tactical airlifter with a maximum payload of 20,000 kg',
-      path: '/load-planning/c130'
-    },
-    {
       id: 'kc30a',
       name: 'Airbus KC30-A',
       description: 'Multi-role tanker transport with a maximum payload of 45,000 kg',

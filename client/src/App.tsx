@@ -45,9 +45,6 @@ function Router() {
           <Route path="/scenarios" component={ScenariosPage} />
           <Route path="/scenarios/:id" component={ScenarioPage} />
           <Route path="/load-planning" component={LoadPlanningSelectionPage} />
-          <Route path="/load-planning/c27j" component={LoadPlanningPage} />
-          <Route path="/load-planning/c17" component={LoadPlanningPage} />
-          <Route path="/load-planning/c130" component={LoadPlanningPage} />
           <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
           <Route path="/documents" component={DocumentsPage} /> {/* Renamed from cargo-manifest */}
           <Route path="/cargo-manifest" component={DocumentsPage} /> {/* Keep old path working */}
