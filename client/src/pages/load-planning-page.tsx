@@ -1681,7 +1681,7 @@ export default function LoadPlanningPage() {
                         : currentAircraftId === 'c130' 
                           ? 'h-[220px]' 
                           : currentAircraftId === 'kc30a'
-                            ? 'h-[210px]' // Increased height for KC30-A to accommodate second cargo area
+                            ? 'h-[270px]' // Increased height for KC30-A to accommodate second cargo area with 108px tall boxes
                             : 'h-[150px]'
                     } overflow-visible bg-transparent`}
                     style={{
@@ -2581,8 +2581,8 @@ export default function LoadPlanningPage() {
                                 })}
                                 
                                 {/* Cargo Deck Title - Add separator and title for second cargo area */}
-                                <div className="absolute w-full border-t border-gray-600" style={{ top: 120 }}></div>
-                                <div className="absolute text-white/80 text-xs font-medium" style={{ top: 125, left: 0 }}>
+                                <div className="absolute w-full border-t border-gray-600" style={{ top: 130 }}></div>
+                                <div className="absolute text-white/80 text-xs font-medium" style={{ top: 140, left: 0 }}>
                                   Cargo Deck (8 positions)
                                 </div>
                                 
@@ -2620,10 +2620,11 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: i * cellWidthFullSpan, // Use full width positions
-                                        top: 145, // Position below title with spacing
-                                        width: cellWidthFullSpan * 0.9, // Make slightly smaller than cell for spacing
-                                        height: config.cellHeight,
+                                        // Position boxes across full width but with fixed dimensions of 88x108
+                                        left: i * cellWidthFullSpan + ((cellWidthFullSpan - 88) / 2), // Center within cell
+                                        top: 155, // Position below title with spacing
+                                        width: 88, // Fixed width of 88px
+                                        height: 108, // Fixed height of 108px
                                         backgroundColor: bgColor,
                                         zIndex: assignedPallet ? 10 : 1
                                       }}
