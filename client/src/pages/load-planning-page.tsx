@@ -452,11 +452,11 @@ export default function LoadPlanningPage() {
         showAlert(
           'warning',
           'Weight Limit Exceeded',
-          `The total weight (${weightValue + PALLET_BASE_WEIGHT} kg) exceeds the maximum allowed weight of ${MAX_WEIGHT_KG} kg (10,000 lbs) including the base weight of ${PALLET_BASE_WEIGHT} kg.`
+          `The total weight (${weightValue + getPalletBaseWeight()} ${weightUnitLabel}) exceeds the maximum allowed weight of ${useKilograms ? MAX_WEIGHT_KG : MAX_WEIGHT_LBS} ${weightUnitLabel} including the base weight of ${getPalletBaseWeight()} ${weightUnitLabel}.`
         );
         
         // Limit weight to max user weight capacity
-        weightValue = MAX_USER_WEIGHT_KG;
+        weightValue = useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS;
       }
       
       // Also check if pallet weight exceeds aircraft's maximum pallet capacity
@@ -549,19 +549,19 @@ export default function LoadPlanningPage() {
       <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
         {pallet.weight !== null ? (
           <>
-            <span>{pallet.weight} kg</span>
+            <span>{pallet.weight} {weightUnitLabel}</span>
             <span className="text-[9px] text-white/70 mt-0.5">
-              +136kg base
+              +{useKilograms ? '136kg' : '300lbs'} base
             </span>
             <span className="text-[10px] text-white/90 mt-0.5">
-              Total: {pallet.weight + PALLET_BASE_WEIGHT} kg
+              Total: {pallet.weight + getPalletBaseWeight()} {weightUnitLabel}
             </span>
           </>
         ) : (
           <>
             <span className="text-white/80">No cargo</span>
             <span className="text-[9px] text-white/70 mt-0.5">
-              136kg base
+              {useKilograms ? '136kg' : '300lbs'} base
             </span>
           </>
         )}
@@ -573,8 +573,8 @@ export default function LoadPlanningPage() {
     // Calculate total weight of pallets in cargo area
     // Add base pallet weight (136kg/300lbs) to each pallet but don't show in UI
     const weight = pallets.reduce((total, pallet) => {
-      // Add base weight (136kg) plus configured weight for each pallet in cargo area
-      return pallet.location === "cargo" ? total + (pallet.weight || 0) + PALLET_BASE_WEIGHT : total;
+      // Add base weight plus configured weight for each pallet in cargo area
+      return pallet.location === "cargo" ? total + (pallet.weight || 0) + getPalletBaseWeight() : total;
     }, 0);
     
     setTotalWeight(weight);
@@ -1615,8 +1615,13 @@ export default function LoadPlanningPage() {
                 onChange={(e) => {
                   const newValue = parseInt(e.target.value) || 0;
                   
+                  // Get base weight and max values based on aircraft type (kg or lbs)
+                  const baseWeight = getPalletBaseWeight();
+                  const maxUserWeight = useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS;
+                  const maxTotalWeight = useKilograms ? MAX_WEIGHT_KG : MAX_WEIGHT_LBS;
+                
                   // Check if total weight (including base weight) exceeds 10,000 lbs limit
-                  if (newValue > MAX_USER_WEIGHT_KG) {
+                  if (newValue > maxUserWeight) {
                     // Show shake animation
                     setIsShaking(true);
                     // Set a timeout to remove the shake class after animation completes
@@ -1626,17 +1631,17 @@ export default function LoadPlanningPage() {
                     showAlert(
                       'warning',
                       'Weight Limit Exceeded',
-                      `The total weight (${newValue + PALLET_BASE_WEIGHT} kg) exceeds the maximum allowed weight of ${MAX_WEIGHT_KG} kg (10,000 lbs) including the base weight of ${PALLET_BASE_WEIGHT} kg.`
+                      `The total weight (${newValue + baseWeight} ${weightUnitLabel}) exceeds the maximum allowed weight of ${maxTotalWeight} ${weightUnitLabel} (10,000 lbs) including the base weight of ${baseWeight} ${weightUnitLabel}.`
                     );
                     
                     // Set to maximum allowed value
-                    setPalletWeight(MAX_USER_WEIGHT_KG.toString());
+                    setPalletWeight(maxUserWeight.toString());
                   } else {
                     setPalletWeight(e.target.value);
                   }
                 }}
                 min="0"
-                max={MAX_USER_WEIGHT_KG.toString()}
+                max={useKilograms ? MAX_USER_WEIGHT_KG.toString() : MAX_USER_WEIGHT_LBS.toString()}
                 className={`col-span-2 ${isShaking ? 'shake-animation' : ''}`}
               />
             </div>
