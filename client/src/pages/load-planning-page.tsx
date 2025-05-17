@@ -989,8 +989,44 @@ export default function LoadPlanningPage() {
               }
             }
           }
+        } else if (currentAircraftId === 'kc30a') {
+          // For KC30-A with 2x13 grid (26 positions total)
+          const config = getAircraftGridConfig('kc30a');
+          
+          // Check both rows for closest position
+          for (let row = 0; row < 2; row++) {
+            for (let col = 0; col < 13; col++) {
+              const cellWidth = config.cellWidth;
+              const cellHeight = config.cellHeight;
+              
+              // Calculate cell center position
+              const cellX = col * cellWidth + cellWidth/2; // center of cell
+              const cellY = (row === 0 ? 20 : 110) + cellHeight/2; // center of cell based on row
+              
+              const distance = Math.sqrt(
+                Math.pow(dropX - cellX, 2) + 
+                Math.pow(dropY - cellY, 2)
+              );
+              
+              const posNumber = (row === 0 ? col + 1 : col + 14); // P1-P26
+              const posLabel = `P${posNumber}`; 
+              
+              if (distance < closestDistance) {
+                closestDistance = distance;
+                positionLabel = posLabel;
+                
+                // Update pallet size to be 10% smaller than cell
+                palletSize.width = cellWidth * 0.9;
+                palletSize.height = cellHeight * 0.9;
+                
+                // Calculate snap position (centered in cell)
+                snapX = col * cellWidth + (cellWidth - palletSize.width) / 2;
+                snapY = (row === 0 ? 20 : 110) + (cellHeight - palletSize.height) / 2;
+              }
+            }
+          }
         } else {
-          // For C-27J/KC30-A with 3x1 grid
+          // For C-27J with 3x1 grid
           for (let col = 0; col < 3; col++) {
             // Make positions 120% bigger for Spartan cargo area
             const cellWidth = 132; // 110 * 1.2
