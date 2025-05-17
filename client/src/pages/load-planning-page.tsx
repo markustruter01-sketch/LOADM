@@ -599,28 +599,22 @@ export default function LoadPlanningPage() {
     // Parse back to number for calculations - this helps with boundary checking
     const cg = parseFloat(cgFixedString);
     
-    // Set the state for display purposes
-    setBalanceCG(cg);
-    
-    // DIRECT APPROACH: Always show warning when CG value reaches 88.00
-    const displayValue = balanceCG.toFixed(2);
+    // Use the new CG value directly for limit checking BEFORE updating state
+    // This ensures we detect limits on the first pallet
+    const displayValue = cg.toFixed(2);
     
     // Check if the displayed value in the UI matches our target values
     const atLimit = (displayValue === "88.00" || displayValue === "18.00");
-    const beyondLimit = (parseFloat(displayValue) < 18 || parseFloat(displayValue) > 88);
+    const beyondLimit = (cg < 18 || cg > 88);
     
     console.log(`CG Check: Value = ${displayValue}°, At Limit = ${atLimit}, Beyond Limit = ${beyondLimit}`);
     
-    // IMPORTANT: For testing, force the warning to show when we're at 88.00
-    if (displayValue === "88.00") {
-      // Force warning popup - hardcoded check for exact 88.00 value
-      console.log("EXACT 88.00 MATCH - WARNING TRIGGERED");
-      setWarningPopup(true);
-      
-      // Skip the timeout for testing
-    } 
-    // Also check for 18.00 and out of bounds
-    else if (displayValue === "18.00" || beyondLimit) {
+    // Now set the state for display purposes
+    setBalanceCG(cg);
+    
+    // Check limits and set warning popup
+    if (atLimit || beyondLimit) {
+      // Force warning popup for any at-limit or beyond-limit values
       console.log(`WARNING TRIGGERED: CG Value = ${displayValue}°`);
       setWarningPopup(true);
       
