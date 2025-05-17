@@ -1688,18 +1688,53 @@ export default function LoadPlanningPage() {
                 )}
               </div>
             </div>
-            {palletPosition && (
-              <div className="grid grid-cols-3 items-center gap-4">
-                <Label htmlFor="position" className="text-right">
-                  Position
-                </Label>
-                <div className="col-span-2">
-                  <Badge variant="outline" className="px-3 py-1 text-base">
-                    {palletPosition}
-                  </Badge>
-                </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="position" className="text-right">
+                Position
+              </Label>
+              <div className="col-span-2">
+                <Select 
+                  value={palletPosition}
+                  onValueChange={setPalletPosition}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select position" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* Generate position options based on current aircraft type */}
+                    {(() => {
+                      const positions = [];
+                      const maxPositions = 
+                        currentAircraftId === 'c17' ? 18 : 
+                        currentAircraftId === 'c130' ? 8 : 
+                        currentAircraftId === 'kc30a' ? 26 : 3;
+                      
+                      // Generate position labels based on aircraft type
+                      for (let i = 1; i <= maxPositions; i++) {
+                        positions.push(`P${i}`);
+                      }
+                      
+                      return positions.map(pos => (
+                        <SelectItem 
+                          key={pos} 
+                          value={pos}
+                          // If position is already taken by a different pallet, disable it
+                          disabled={pallets.some(p => 
+                            p.positionLabel === pos && 
+                            (!editingPalletId || p.id !== editingPalletId)
+                          )}
+                        >
+                          {pos} {pallets.some(p => 
+                            p.positionLabel === pos && 
+                            (!editingPalletId || p.id !== editingPalletId)
+                          ) ? '(Occupied)' : ''}
+                        </SelectItem>
+                      ));
+                    })()}
+                  </SelectContent>
+                </Select>
               </div>
-            )}
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setPalletInputOpen(false)}>
