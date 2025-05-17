@@ -679,7 +679,7 @@ export default function LoadPlanningPage() {
   };
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
-    // Don't stop propagation - this was preventing the drag from working properly
+    console.log("Drag start:", id);
     
     if (id === null) {
       // We're dragging the template pallet
@@ -693,6 +693,15 @@ export default function LoadPlanningPage() {
       setDraggedPallet(id);
       // Add an effect to show it's draggable
       e.dataTransfer.effectAllowed = "move";
+      
+      // Create a small drag image to improve visibility
+      const dragImage = document.createElement('div');
+      dragImage.style.width = '20px';
+      dragImage.style.height = '20px';
+      dragImage.style.background = 'transparent';
+      document.body.appendChild(dragImage);
+      e.dataTransfer.setDragImage(dragImage, 10, 10);
+      setTimeout(() => document.body.removeChild(dragImage), 0);
     }
   };
   
@@ -1926,7 +1935,7 @@ export default function LoadPlanningPage() {
                                 return (
                                   <div 
                                     key={`cell-row1-${i}`}
-                                    draggable={assignedPallet ? true : false}
+                                    draggable={!!assignedPallet}
                                     onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
                                     onClick={(e) => {
                                       if (assignedPallet) {
@@ -1934,7 +1943,7 @@ export default function LoadPlanningPage() {
                                         handlePalletCellClick(e, assignedPallet, positionLabel);
                                       }
                                     }}
-                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
+                                    className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
                                       top: 10,
