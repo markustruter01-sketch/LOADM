@@ -723,6 +723,15 @@ export default function LoadPlanningPage() {
       // We're dragging an existing pallet
       e.dataTransfer.setData("text/plain", id.toString());
       setDraggedPallet(id);
+      
+      // Set dragged image to be the element itself
+      const draggedElement = e.currentTarget as HTMLElement;
+      if (draggedElement) {
+        // This helps the browser know what element is being dragged
+        e.dataTransfer.setDragImage(draggedElement, draggedElement.offsetWidth / 2, draggedElement.offsetHeight / 2);
+        // Set effectAllowed to move to indicate this is a move operation
+        e.dataTransfer.effectAllowed = 'move';
+      }
     }
   };
   
