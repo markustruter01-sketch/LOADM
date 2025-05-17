@@ -140,12 +140,12 @@ export default function LoadPlanningPage() {
         };
       
       case 'kc30a':
-        // KC30-A has 12 columns in 2 rows (24 pallets in top section, after vertical separations)
-        const kc30aCellWidth = totalWidth / 14; // Divide by 14 to account for separation space
+        // KC30-A has 13 columns in 2 rows (26 pallets total)
+        const kc30aCellWidth = totalWidth / 13;
         const kc30aCellHeight = 50; // Smaller height to fit 2 rows
         return {
           rows: 2,
-          cols: 13, // Keep at 13 as we're manually adjusting in the render code
+          cols: 13,
           cellWidth: kc30aCellWidth,
           cellHeight: kc30aCellHeight,
           cellPadding: 0, // No padding to ensure perfect alignment
@@ -1667,7 +1667,7 @@ export default function LoadPlanningPage() {
                     <span className="text-sm font-normal text-muted-foreground ml-2">
                       ({currentAircraftId === 'c17' ? '18 pallets' : 
                          currentAircraftId === 'c130' ? '8 pallets' : 
-                         currentAircraftId === 'kc30a' ? '32 pallets (24+8)' : 
+                         currentAircraftId === 'kc30a' ? '34 pallets (26+8)' : 
                          '3 pallets'})
                     </span>
                   </CardTitle>
@@ -2442,16 +2442,6 @@ export default function LoadPlanningPage() {
                             // Return JSX fragment containing both cargo areas
                             return (
                               <>
-                                {/* Vertical separation lines for Row 1 - centered between L6 and L8 */}
-                                <div 
-                                  className="absolute border-r-2 border-white h-[45px]" 
-                                  style={{
-                                    left: (6 * cellSpacing) + config.cellWidth * 0.5, // Centered between positions
-                                    top: 10, // Same top alignment as the row
-                                    zIndex: 5
-                                  }}
-                                ></div>
-                                
                                 {/* Row 1 - Positions L1-L13 (changed from P to L) */}
                                 {[...Array(config.cols)].map((_, i) => {
                                   const positionLabel = `L${i + 1}`;
@@ -2460,16 +2450,6 @@ export default function LoadPlanningPage() {
                                     p.positionLabel === positionLabel
                                   );
                                   
-                                  // Skip L7 as it's in the separation space
-                                  if (i === 6) return null; // Skip L7
-                                  
-                                  // Apply the same padding around separator as in bottom row
-                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
-                                  const paddingFromSeparator = cellSpacing * 0.3;
-                                  
-                                  // Revert to the original positioning with slight padding adjustment
-                                  const adjustedIndex = i > 6 ? (i + 1) * cellSpacing : i * cellSpacing;
-                                  
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
                                     'rgba(20, 83, 45, 0.15)';
@@ -2477,9 +2457,6 @@ export default function LoadPlanningPage() {
                                   const borderColor = assignedPallet ?
                                     'border-orange-500' : 
                                     'border-green-800/80';
-                                    
-                                  // Determine position offset
-                                  const leftPos = adjustedIndex * cellSpacing;
                                   
                                   return (
                                     <div 
@@ -2495,7 +2472,7 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: leftPos,
+                                        left: i * cellSpacing,
                                         top: 10,
                                         width: config.cellWidth,
                                         height: config.cellHeight,
@@ -2534,16 +2511,6 @@ export default function LoadPlanningPage() {
                                   );
                                 })}
                                 
-                                {/* Vertical separation lines for Row 2 - exactly aligned with row 1 separator */}
-                                <div 
-                                  className="absolute border-r-2 border-white h-[45px]" 
-                                  style={{
-                                    left: (6 * cellSpacing) + config.cellWidth * 0.5, // Exactly aligned with row 1 separator
-                                    top: 65, // Same top alignment as row 2
-                                    zIndex: 5
-                                  }}
-                                ></div>
-                                
                                 {/* Row 2 - Positions L14-L26 (changed from P to L) */}
                                 {[...Array(config.cols)].map((_, i) => {
                                   const positionLabel = `L${i + 14}`;
@@ -2552,16 +2519,6 @@ export default function LoadPlanningPage() {
                                     p.positionLabel === positionLabel
                                   );
                                   
-                                  // Skip L20 as it's in the separation space (index 6 corresponds to position L20)
-                                  if (i === 6) return null;
-                                  
-                                  // Apply the same padding around separator as in row 1 and bottom row
-                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
-                                  const paddingFromSeparator = cellSpacing * 0.3;
-                                  
-                                  // Revert to the original positioning with slight padding adjustment
-                                  const adjustedIndex = i > 6 ? (i + 1) * cellSpacing : i * cellSpacing;
-                                  
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
                                     'rgba(20, 83, 45, 0.15)';
@@ -2569,9 +2526,6 @@ export default function LoadPlanningPage() {
                                   const borderColor = assignedPallet ?
                                     'border-orange-500' : 
                                     'border-green-800/80';
-                                  
-                                  // Determine position offset with adjusted index
-                                  const leftPos = adjustedIndex * cellSpacing;
                                   
                                   return (
                                     <div 
@@ -2587,7 +2541,7 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: leftPos,
+                                        left: i * cellSpacing,
                                         top: 65, // Position below first row
                                         width: config.cellWidth,
                                         height: config.cellHeight,
@@ -2632,19 +2586,9 @@ export default function LoadPlanningPage() {
                                   Cargo Deck (8 positions)
                                 </div>
                                 
-                                {/* Vertical separation line for bottom cargo deck - aligned with separators above */}
-                                <div 
-                                  className="absolute border-r-2 border-white h-[45px]" 
-                                  style={{
-                                    left: (6 * cellSpacing) + config.cellWidth * 0.5, // Exact same position as upper separators
-                                    top: 145, // Same top alignment as bottom cargo row
-                                    zIndex: 5
-                                  }}
-                                ></div>
-                                
-                                {/* Second Cargo Area - 8 positions wide - full width, with separation between P4 and P5 */}
+                                {/* Second Cargo Area - 8 positions wide - full width */}
                                 {[...Array(8)].map((_, i) => {
-                                  const positionLabel = `P${i + 1}`;
+                                  const positionLabel = `P${i + 1}`; // Changed from D to P
                                   const assignedPallet = pallets.find(p => 
                                     p.location === "cargo" && 
                                     p.positionLabel === positionLabel
@@ -2658,40 +2602,9 @@ export default function LoadPlanningPage() {
                                     'border-orange-500' : 
                                     'border-green-800/80';
                                   
-                                  // Calculate position - spread 8 cells to full width with separation
-                                  const cargoWidth = cellSpacing * 13; // Total width of top cargo area
-                                  const cellWidthFullSpan = cargoWidth / 9; // Account for separation by dividing by 9 instead of 8
-                                  
-                                  // Calculate position relative to separator that's at the same position as upper rows
-                                  // Ensuring equal spacing on both sides of the separator
-                                  let adjustedIndex;
-                                  // Position separator exactly in the middle of positions L6 and L8 
-                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
-                                  
-                                  // The padding between the separator and the closest cells (P4 and P5)
-                                  const paddingFromSeparator = cellSpacing * 0.3;
-                                  
-                                  if (i < 4) {
-                                    // Calculate position for P1-P4
-                                    // Adjust the last position (P4) to have proper padding from separator
-                                    if (i === 3) { // P4
-                                      adjustedIndex = separatorPosition - paddingFromSeparator - config.cellWidth;
-                                    } else {
-                                      // Distribute P1-P3 evenly in remaining space
-                                      const leftWidth = separatorPosition - paddingFromSeparator - config.cellWidth;
-                                      adjustedIndex = i * (leftWidth / 3);
-                                    }
-                                  } else {
-                                    // Calculate position for P5-P8
-                                    if (i === 4) { // P5
-                                      adjustedIndex = separatorPosition + paddingFromSeparator;
-                                    } else {
-                                      // Distribute P6-P8 evenly in remaining space
-                                      const rightStartPos = separatorPosition + paddingFromSeparator + config.cellWidth;
-                                      const remainingWidth = cargoWidth - rightStartPos;
-                                      adjustedIndex = rightStartPos + ((i - 5) * (remainingWidth / 3));
-                                    }
-                                  }
+                                  // Calculate position - spread 8 cells to full width
+                                  const totalWidth = cellSpacing * 13; // Total width of top cargo area
+                                  const cellWidthFullSpan = totalWidth / 8; // Evenly distribute across full width
                                   
                                   return (
                                     <div 
@@ -2707,22 +2620,9 @@ export default function LoadPlanningPage() {
                                       }}
                                       className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-move' : ''}`}
                                       style={{
-                                        left: adjustedIndex, // Use the direct calculated position
+                                        left: i * cellWidthFullSpan, // Use full width positions
                                         top: 145, // Position below title with spacing
-                                        width: (() => {
-                                          if (i === 3) { // P4
-                                            return config.cellWidth * 0.9;
-                                          } else if (i === 4) { // P5
-                                            return config.cellWidth * 0.9;
-                                          } else if (i < 3) { // P1-P3
-                                            const leftWidth = separatorPosition - paddingFromSeparator - config.cellWidth;
-                                            return (leftWidth / 3) * 0.9;
-                                          } else { // P6-P8
-                                            const rightStartPos = separatorPosition + paddingFromSeparator + config.cellWidth;
-                                            const remainingWidth = cargoWidth - rightStartPos;
-                                            return (remainingWidth / 3) * 0.9;
-                                          }
-                                        })(), // Calculate width based on position
+                                        width: cellWidthFullSpan * 0.9, // Make slightly smaller than cell for spacing
                                         height: config.cellHeight,
                                         backgroundColor: bgColor,
                                         zIndex: assignedPallet ? 10 : 1
