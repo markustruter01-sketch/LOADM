@@ -944,6 +944,7 @@ export default function LoadPlanningPage() {
           let closestDistance = Number.MAX_VALUE;
           let closestCell = -1;
           let closestRow = -1;
+          let newPositionLabel = "";
           
           // Find the closest cell to the drop position
           for (let row = 0; row < 2; row++) {
@@ -979,7 +980,7 @@ export default function LoadPlanningPage() {
           if (closestCell !== -1) {
             const cellIndex = closestRow * 9 + closestCell;
             const positionNumber = cellIndex + 1;
-            positionLabel = `P${positionNumber}`;
+            newPositionLabel = `P${positionNumber}`;
             
             if (gridCells.length > cellIndex) {
               const rect = (gridCells[cellIndex] as HTMLElement).getBoundingClientRect();
@@ -996,7 +997,7 @@ export default function LoadPlanningPage() {
             const cellRow = dropY > rowHeight ? 1 : 0;
             const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
             const positionNumber = cellRow * 9 + cellColumn + 1;
-            positionLabel = `P${positionNumber}`;
+            newPositionLabel = `P${positionNumber}`;
             
             // Position pallet in the appropriate cell with proper spacing
             const rowTopOffset = cellRow === 0 ? 10 : 105; // top margin for each row
