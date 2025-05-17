@@ -2463,8 +2463,19 @@ export default function LoadPlanningPage() {
                                   // Skip L7 as it's in the separation space
                                   if (i === 6) return null; // Skip L7
                                   
-                                  // Adjust for gap after separation
-                                  const adjustedIndex = i > 6 ? i + 1 : i;
+                                  // Apply the same padding around separator as in bottom row
+                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
+                                  const paddingFromSeparator = cellSpacing * 0.3;
+                                  
+                                  let adjustedIndex;
+                                  if (i <= 5) {
+                                    // Positions L1-L6
+                                    adjustedIndex = i * cellSpacing;
+                                  } else {
+                                    // Positions L8-L13 (since L7 is skipped)
+                                    // Position L8 should have padding from the separator
+                                    adjustedIndex = separatorPosition + paddingFromSeparator + ((i - 7) * cellSpacing);
+                                  }
                                   
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
@@ -2551,8 +2562,19 @@ export default function LoadPlanningPage() {
                                   // Skip L20 as it's in the separation space (index 6 corresponds to position L20)
                                   if (i === 6) return null;
                                   
-                                  // Adjust for gap after separation
-                                  const adjustedIndex = i > 6 ? i + 1 : i;
+                                  // Apply the same padding around separator as in row 1 and bottom row
+                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
+                                  const paddingFromSeparator = cellSpacing * 0.3;
+                                  
+                                  let adjustedIndex;
+                                  if (i <= 5) {
+                                    // Positions L14-L19
+                                    adjustedIndex = i * cellSpacing;
+                                  } else {
+                                    // Positions L21-L26 (since L20 is skipped)
+                                    // Position L21 should have padding from the separator
+                                    adjustedIndex = separatorPosition + paddingFromSeparator + ((i - 7) * cellSpacing);
+                                  }
                                   
                                   const bgColor = assignedPallet ? 
                                     'rgba(234, 88, 12, 0.7)' : 
@@ -2655,17 +2677,34 @@ export default function LoadPlanningPage() {
                                   const cellWidthFullSpan = cargoWidth / 9; // Account for separation by dividing by 9 instead of 8
                                   
                                   // Calculate position relative to separator that's at the same position as upper rows
-                                  // For bottom cargo area, we want P1-P4 on left side and P5-P8 on right side
-                                  // with the separator at the same position as the upper separators
+                                  // Ensuring equal spacing on both sides of the separator
                                   let adjustedIndex;
-                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5; // Position of vertical separator
+                                  // Position separator exactly in the middle of positions L6 and L8 
+                                  const separatorPosition = (6 * cellSpacing) + config.cellWidth * 0.5;
+                                  
+                                  // The padding between the separator and the closest cells (P4 and P5)
+                                  const paddingFromSeparator = cellSpacing * 0.3;
+                                  
                                   if (i < 4) {
-                                    // P1-P4: Distribute evenly on left side of separator
-                                    adjustedIndex = i * (separatorPosition / 4);
+                                    // Calculate position for P1-P4
+                                    // Adjust the last position (P4) to have proper padding from separator
+                                    if (i === 3) { // P4
+                                      adjustedIndex = separatorPosition - paddingFromSeparator - config.cellWidth;
+                                    } else {
+                                      // Distribute P1-P3 evenly in remaining space
+                                      const leftWidth = separatorPosition - paddingFromSeparator - config.cellWidth;
+                                      adjustedIndex = i * (leftWidth / 3);
+                                    }
                                   } else {
-                                    // P5-P8: Distribute evenly on right side of separator
-                                    const rightSideWidth = cargoWidth - separatorPosition;
-                                    adjustedIndex = separatorPosition + ((i - 4) * (rightSideWidth / 4));
+                                    // Calculate position for P5-P8
+                                    if (i === 4) { // P5
+                                      adjustedIndex = separatorPosition + paddingFromSeparator;
+                                    } else {
+                                      // Distribute P6-P8 evenly in remaining space
+                                      const rightStartPos = separatorPosition + paddingFromSeparator + config.cellWidth;
+                                      const remainingWidth = cargoWidth - rightStartPos;
+                                      adjustedIndex = rightStartPos + ((i - 5) * (remainingWidth / 3));
+                                    }
                                   }
                                   
                                   return (
@@ -2684,7 +2723,20 @@ export default function LoadPlanningPage() {
                                       style={{
                                         left: adjustedIndex, // Use the direct calculated position
                                         top: 145, // Position below title with spacing
-                                        width: (i < 4 ? separatorPosition/4 : (cargoWidth-separatorPosition)/4) * 0.9, // Adjust width based on position
+                                        width: (() => {
+                                          if (i === 3) { // P4
+                                            return config.cellWidth * 0.9;
+                                          } else if (i === 4) { // P5
+                                            return config.cellWidth * 0.9;
+                                          } else if (i < 3) { // P1-P3
+                                            const leftWidth = separatorPosition - paddingFromSeparator - config.cellWidth;
+                                            return (leftWidth / 3) * 0.9;
+                                          } else { // P6-P8
+                                            const rightStartPos = separatorPosition + paddingFromSeparator + config.cellWidth;
+                                            const remainingWidth = cargoWidth - rightStartPos;
+                                            return (remainingWidth / 3) * 0.9;
+                                          }
+                                        })(), // Calculate width based on position
                                         height: config.cellHeight,
                                         backgroundColor: bgColor,
                                         zIndex: assignedPallet ? 10 : 1
