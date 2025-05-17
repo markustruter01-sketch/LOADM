@@ -314,27 +314,6 @@ export default function LoadPlanningPage() {
   // Storage area has been removed
   const configureRef = useRef<HTMLDivElement>(null);
   
-  // Weight limit constants and conversion functions
-  const PALLET_BASE_WEIGHT_KG = 136; // 300 lbs base weight for all pallets in kg
-  const PALLET_BASE_WEIGHT_LBS = 300; // 300 lbs base weight for all pallets in lbs
-  const MAX_WEIGHT_LBS = 10000; // 10,000 lbs limit including base weight
-  const MAX_WEIGHT_KG = Math.floor(MAX_WEIGHT_LBS / 2.20462); // Convert to kg
-  const MAX_USER_WEIGHT_KG = MAX_WEIGHT_KG - PALLET_BASE_WEIGHT_KG; // Maximum weight user can enter in kg
-  const MAX_USER_WEIGHT_LBS = MAX_WEIGHT_LBS - PALLET_BASE_WEIGHT_LBS; // Maximum weight user can enter in lbs
-  
-  // Display in kg only for KC30-A, otherwise use lbs
-  const useKilograms = currentAircraftId === 'kc30a';
-  
-  // Conversion functions
-  const kgToLbs = (kg: number) => Math.round(kg * 2.20462);
-  const lbsToKg = (lbs: number) => Math.round(lbs / 2.20462);
-  
-  // Get the base weight in appropriate units based on aircraft
-  const getPalletBaseWeight = () => useKilograms ? PALLET_BASE_WEIGHT_KG : PALLET_BASE_WEIGHT_LBS;
-  
-  // Weight unit label based on aircraft
-  const weightUnitLabel = useKilograms ? 'kg' : 'lbs';
-  
   // Alert dialog state
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
@@ -350,7 +329,6 @@ export default function LoadPlanningPage() {
   const [palletCargoCategory, setPalletCargoCategory] = useState<string>("");
   const [palletDgClass, setPalletDgClass] = useState<string>("");
   const [isDangerousGoods, setIsDangerousGoods] = useState(false);
-  const [isShaking, setIsShaking] = useState(false); // For shake animation
   
   // Show alert dialog
   const showAlert = (type: 'warning' | 'error', title: string, message: string) => {
@@ -442,33 +420,16 @@ export default function LoadPlanningPage() {
       // Never allow negative weights
       if (weightValue < 0) weightValue = 0;
       
-      // Check if pallet weight exceeds 10,000 lbs limit (including base weight)
-      if (weightValue > MAX_USER_WEIGHT_KG) {
-        // Show shake animation
-        setIsShaking(true);
-        // Set a timeout to remove the shake class after animation completes
-        setTimeout(() => setIsShaking(false), 600);
-        
-        showAlert(
-          'warning',
-          'Weight Limit Exceeded',
-          `The total weight (${weightValue + getPalletBaseWeight()} ${weightUnitLabel}) exceeds the maximum allowed weight of ${useKilograms ? MAX_WEIGHT_KG : MAX_WEIGHT_LBS} ${weightUnitLabel} including the base weight of ${getPalletBaseWeight()} ${weightUnitLabel}.`
-        );
-        
-        // Limit weight to max user weight capacity
-        weightValue = useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS;
-      }
-      
-      // Also check if pallet weight exceeds aircraft's maximum pallet capacity
+      // Check if pallet weight exceeds maximum pallet capacity
       if (weightValue > MAX_PALLET_WEIGHT) {
         showAlert(
           'error',
-          'Aircraft Pallet Weight Limit Exceeded',
-          `The weight exceeds the maximum pallet capacity of ${useKilograms ? MAX_PALLET_WEIGHT.toLocaleString() : kgToLbs(MAX_PALLET_WEIGHT).toLocaleString()} ${weightUnitLabel} for this aircraft.`
+          'Pallet Weight Limit Exceeded',
+          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
         );
         
-        // Limit weight to max pallet capacity for this aircraft
-        weightValue = Math.min(MAX_PALLET_WEIGHT, useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS);
+        // Limit weight to max pallet capacity
+        weightValue = MAX_PALLET_WEIGHT;
       }
       
       // Calculate total weight excluding the current pallet
@@ -482,7 +443,7 @@ export default function LoadPlanningPage() {
         showAlert(
           'error',
           'Aircraft Payload Exceeded',
-          `The total weight (${totalWeight.toLocaleString()} ${weightUnitLabel}) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} ${weightUnitLabel}.`
+          `The total weight (${totalWeight.toLocaleString()} kg) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} kg.`
         );
         
         // Update weight but don't close dialog so user can adjust
@@ -541,7 +502,8 @@ export default function LoadPlanningPage() {
     };
   }, []);
   
-  // Using the PALLET_BASE_WEIGHT from the top of the component
+  // Constant for base pallet weight - 136kg (300lbs)
+  const PALLET_BASE_WEIGHT = 136;
   
   // Helper function to render pallet weight with base weight included
   const renderPalletWeight = (pallet: Pallet) => {
@@ -549,19 +511,19 @@ export default function LoadPlanningPage() {
       <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
         {pallet.weight !== null ? (
           <>
-            <span>{pallet.weight} {weightUnitLabel}</span>
+            <span>{pallet.weight} kg</span>
             <span className="text-[9px] text-white/70 mt-0.5">
-              +{useKilograms ? '136kg' : '300lbs'} base
+              +136kg base
             </span>
             <span className="text-[10px] text-white/90 mt-0.5">
-              Total: {pallet.weight + getPalletBaseWeight()} {weightUnitLabel}
+              Total: {pallet.weight + PALLET_BASE_WEIGHT} kg
             </span>
           </>
         ) : (
           <>
             <span className="text-white/80">No cargo</span>
             <span className="text-[9px] text-white/70 mt-0.5">
-              {useKilograms ? '136kg' : '300lbs'} base
+              136kg base
             </span>
           </>
         )}
@@ -573,8 +535,8 @@ export default function LoadPlanningPage() {
     // Calculate total weight of pallets in cargo area
     // Add base pallet weight (136kg/300lbs) to each pallet but don't show in UI
     const weight = pallets.reduce((total, pallet) => {
-      // Add base weight plus configured weight for each pallet in cargo area
-      return pallet.location === "cargo" ? total + (pallet.weight || 0) + getPalletBaseWeight() : total;
+      // Add base weight (136kg) plus configured weight for each pallet in cargo area
+      return pallet.location === "cargo" ? total + (pallet.weight || 0) + PALLET_BASE_WEIGHT : total;
     }, 0);
     
     setTotalWeight(weight);
@@ -607,8 +569,8 @@ export default function LoadPlanningPage() {
     // Determine proper cell positioning based on the grid rather than pallet positions
     // This ensures correct weight distribution calculations for the balance scale
     cargoPallets.forEach(pallet => {
-      // Add base weight to each pallet's entered weight
-      const palletWeight = (pallet.weight || 0) + getPalletBaseWeight();
+      // Add base weight (136kg) to each pallet's entered weight
+      const palletWeight = (pallet.weight || 0) + PALLET_BASE_WEIGHT;
       
       // Extract position number from pallet label (e.g., 'P2' => 2)
       let positionNumber = 0;
@@ -1606,43 +1568,16 @@ export default function LoadPlanningPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="weight" className="text-right">
-                Weight ({weightUnitLabel})
+                Weight (kg)
               </Label>
               <Input
                 id="weight"
                 type="number"
                 value={palletWeight}
-                onChange={(e) => {
-                  const newValue = parseInt(e.target.value) || 0;
-                  
-                  // Get base weight and max values based on aircraft type (kg or lbs)
-                  const baseWeight = getPalletBaseWeight();
-                  const maxUserWeight = useKilograms ? MAX_USER_WEIGHT_KG : MAX_USER_WEIGHT_LBS;
-                  const maxTotalWeight = useKilograms ? MAX_WEIGHT_KG : MAX_WEIGHT_LBS;
-                
-                  // Check if total weight (including base weight) exceeds 10,000 lbs limit
-                  if (newValue > maxUserWeight) {
-                    // Show shake animation
-                    setIsShaking(true);
-                    // Set a timeout to remove the shake class after animation completes
-                    setTimeout(() => setIsShaking(false), 600);
-                    
-                    // Show warning
-                    showAlert(
-                      'warning',
-                      'Weight Limit Exceeded',
-                      `The total weight (${newValue + baseWeight} ${weightUnitLabel}) exceeds the maximum allowed weight of ${maxTotalWeight} ${weightUnitLabel} (10,000 lbs) including the base weight of ${baseWeight} ${weightUnitLabel}.`
-                    );
-                    
-                    // Set to maximum allowed value
-                    setPalletWeight(maxUserWeight.toString());
-                  } else {
-                    setPalletWeight(e.target.value);
-                  }
-                }}
+                onChange={(e) => setPalletWeight(e.target.value)}
                 min="0"
-                max={useKilograms ? MAX_USER_WEIGHT_KG.toString() : MAX_USER_WEIGHT_LBS.toString()}
-                className={`col-span-2 ${isShaking ? 'shake-animation' : ''}`}
+                max={currentAircraft?.maxPalletWeight.toString() || "10000"}
+                className="col-span-2"
               />
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
@@ -1808,12 +1743,7 @@ export default function LoadPlanningPage() {
             <div>
               <h2 className="text-2xl font-bold">{currentAircraft.name} Load Planning</h2>
               <p className="text-muted-foreground text-sm">
-                Max Payload: {useKilograms 
-                  ? `${MAX_PAYLOAD.toLocaleString()} kg` 
-                  : `${kgToLbs(MAX_PAYLOAD).toLocaleString()} lbs`} | 
-                Max Pallet Weight: {useKilograms 
-                  ? `${MAX_PALLET_WEIGHT.toLocaleString()} kg` 
-                  : `${kgToLbs(MAX_PALLET_WEIGHT).toLocaleString()} lbs`}
+                Max Payload: {MAX_PAYLOAD.toLocaleString()} kg | Max Pallet Weight: {MAX_PALLET_WEIGHT.toLocaleString()} kg
               </p>
             </div>
           </div>
@@ -1829,7 +1759,7 @@ export default function LoadPlanningPage() {
                     Load Summary
                   </CardTitle>
                   <Badge variant={totalWeight > MAX_PAYLOAD * 0.97 ? "destructive" : "default"}>
-                    {totalWeight.toLocaleString()} / {MAX_PAYLOAD.toLocaleString()} {weightUnitLabel}
+                    {totalWeight.toLocaleString()} / {MAX_PAYLOAD.toLocaleString()} kg
                   </Badge>
                 </div>
               </CardHeader>
@@ -1837,11 +1767,11 @@ export default function LoadPlanningPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Current Load</p>
-                    <p className="text-lg">{totalWeight.toLocaleString()} {weightUnitLabel}</p>
+                    <p className="text-lg">{totalWeight.toLocaleString()} kg</p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Maximum Payload</p>
-                    <p className="text-lg">{MAX_PAYLOAD.toLocaleString()} {weightUnitLabel}</p>
+                    <p className="text-lg">{MAX_PAYLOAD.toLocaleString()} kg</p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Cargo Positions Filled</p>
