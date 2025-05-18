@@ -232,9 +232,19 @@ export default function SubmissionReview() {
     },
   });
   
-  // Handle saving review
+  // Handle saving review with pass/fail validation
   const handleSaveReview = () => {
     if (isSubmitting) return;
+    
+    // Validate that pass/fail decision has been made
+    if (manualPassFail === null) {
+      toast({
+        title: "Action Required",
+        description: "Please mark the submission as Pass or Fail before submitting your review.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     saveReviewMutation.mutate();
