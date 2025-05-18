@@ -586,17 +586,36 @@ export default function LoadPlanningPage() {
       // Never allow negative weights
       if (weightValue < 0) weightValue = 0;
       
-      // Check if pallet weight exceeds maximum pallet capacity
-      if (weightValue > MAX_PALLET_WEIGHT) {
-        const weightUnit = currentAircraftId === 'kc30a' ? 'kg' : 'lbs';
-        showAlert(
-          'error',
-          'Pallet Weight Limit Exceeded',
-          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} ${weightUnit}.`
-        );
+      // Implementation of new logic for pallet weight limits
+      // For aircraft using lbs, limit includes the base weight (total must be ≤ 10,000 lbs)
+      // For KC30A (using kg), keep the existing max pallet weight limit
+      if (currentAircraftId === 'kc30a') {
+        // For KC30A, only check against the specified max pallet weight
+        if (weightValue > MAX_PALLET_WEIGHT) {
+          showAlert(
+            'error',
+            'Pallet Weight Limit Exceeded',
+            `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
+          );
+          
+          // Limit weight to max pallet capacity
+          weightValue = MAX_PALLET_WEIGHT;
+        }
+      } else {
+        // For all other aircraft using lbs, check that cargo + base weight ≤ 10,000 lbs
+        const MAX_TOTAL_PALLET_WEIGHT = 10000; // 10,000 lbs limit including base weight
+        const totalPalletWeight = weightValue + PALLET_BASE_WEIGHT;
         
-        // Limit weight to max pallet capacity
-        weightValue = MAX_PALLET_WEIGHT;
+        if (totalPalletWeight > MAX_TOTAL_PALLET_WEIGHT) {
+          showAlert(
+            'error',
+            'Pallet Weight Limit Exceeded',
+            `The total weight (${totalPalletWeight.toLocaleString()} lbs including ${PALLET_BASE_WEIGHT} lbs base weight) exceeds the maximum pallet capacity of 10,000 lbs.`
+          );
+          
+          // Limit weight to max pallet capacity minus base weight
+          weightValue = MAX_TOTAL_PALLET_WEIGHT - PALLET_BASE_WEIGHT;
+        }
       }
       
       // Calculate total weight excluding the current pallet
@@ -753,7 +772,7 @@ export default function LoadPlanningPage() {
           <>
             <span className="text-white/80">No cargo</span>
             <span className="text-[9px] text-white/70 mt-0.5">
-              136kg base
+              +{PALLET_BASE_WEIGHT} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'} base
             </span>
           </>
         )}
@@ -2860,7 +2879,7 @@ export default function LoadPlanningPage() {
                                   {assignedPallet && (
                                     <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
                                       {assignedPallet.weight !== null ? 
-                                        <span>{assignedPallet.weight} kg</span> : 
+                                        <span>{assignedPallet.weight} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}</span> : 
                                         <span className="text-white/80">No weight</span>
                                       }
                                     </div>
@@ -3150,7 +3169,7 @@ export default function LoadPlanningPage() {
                                   placeholder="Enter weight"
                                 />
                               </div>
-                              <div className="ml-1 text-xs text-muted-foreground">kg</div>
+                              <div className="ml-1 text-xs text-muted-foreground">{currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}</div>
                             </div>
                             
                             <div className="flex items-center">
