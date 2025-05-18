@@ -68,6 +68,7 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C17 position clicked", { 
@@ -107,6 +108,7 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C17 position clicked", { 

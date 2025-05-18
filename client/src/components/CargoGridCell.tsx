@@ -23,6 +23,7 @@ interface CargoGridCellProps {
   };
   onDragStart?: (e: React.DragEvent, id: number) => void;
   onClick?: (e: React.MouseEvent) => void;
+  aircraftId?: string;
 }
 
 export default function CargoGridCell({
@@ -30,7 +31,8 @@ export default function CargoGridCell({
   assignedPallet,
   cellStyle,
   onDragStart,
-  onClick
+  onClick,
+  aircraftId = 'c17'  // Default to C-17 if not specified
 }: CargoGridCellProps) {
   // Determine cell background color based on occupation
   const bgColor = assignedPallet ? 
@@ -77,7 +79,7 @@ export default function CargoGridCell({
         {assignedPallet && (
           <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
             {assignedPallet.weight !== null ? 
-              <span>{assignedPallet.weight} kg</span> : 
+              <span>{assignedPallet.weight} {aircraftId === 'kc30a' ? 'kg' : 'lbs'}</span> : 
               <span className="text-white/80">No weight</span>
             }
           </div>
