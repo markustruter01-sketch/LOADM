@@ -62,11 +62,17 @@ export default function StudentProgress() {
     queryKey: ["/api/scenarios"],
   });
   
+  // Add console logging to debug submissions
+  console.log("Raw submissions:", submissions);
+  
   // Filter submissions based on search term, scenario filter, and squadron filter
   const filteredSubmissions = submissions?.filter(submission => {
+    // Add debug logging for each submission's filtering
+    console.log("Processing submission:", submission);
+    
     const matchesSearch = 
-      submission.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      submission.studentId?.toLowerCase().includes(searchTerm.toLowerCase());
+      (submission.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+       submission.studentId?.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesScenario = scenarioFilter === "all" || submission.scenarioId === scenarioFilter;
     
@@ -75,6 +81,14 @@ export default function StudentProgress() {
     const matchesSquadron = 
       squadronFilter === "AMG" || // AMG shows all submissions
       (submission.studentId && submission.studentId.includes(` - ${squadronFilter}`));
+    
+    // Log the result of filtering
+    console.log(`Submission ID ${submission.id} filtering:`, { 
+      matchesSearch, 
+      matchesScenario, 
+      matchesSquadron,
+      result: matchesSearch && matchesScenario && matchesSquadron 
+    });
     
     return matchesSearch && matchesScenario && matchesSquadron;
   });
