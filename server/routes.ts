@@ -287,21 +287,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      // Import pool directly to use raw queries
+      // Import pool for direct query
       const { pool } = await import('./db');
       
+      // Create a safer, simpler query with error handling
       try {
-        // Use a simple query to get all scenario submissions
-        const result = await pool.query('SELECT * FROM scenario_submissions ORDER BY submission_date DESC');
+        const query = `
+          SELECT 
+            ss.id, 
+            ss.scenario_id AS "scenarioId", 
+            ss.user_id AS "userId", 
+            ss.submission_date AS "submissionDate", 
+            ss.answers,
+            ss.score, 
+            ss.student_name AS "studentName", 
+            ss.student_id AS "studentId", 
+            ss.instructor_feedback AS "instructorFeedback", 
+            ss.marked_answers AS "markedAnswers", 
+            ss.status, 
+            ss.passed,
+            s.title AS "scenarioTitle"
+          FROM 
+            scenario_submissions ss
+          LEFT JOIN
+            scenarios s ON ss.scenario_id = s.id
+          ORDER BY 
+            ss.submission_date DESC
+        `;
+        
+        const result = await pool.query(query);
         console.log(`Found ${result.rows.length} scenario submissions`);
+        
+        if (result.rows.length > 0) {
+          console.log("Sample submission:", JSON.stringify(result.rows[0]).substring(0, 200) + "...");
+        }
+        
         res.json(result.rows);
       } catch (dbError) {
-        console.error("Database error:", dbError);
-        res.status(500).json({ message: "Database error retrieving submissions" });
+        console.error("Database error in scenario submissions:", dbError);
+        res.status(500).json({ 
+          message: "Database error retrieving submissions", 
+          error: dbError.message 
+        });
       }
     } catch (error) {
-      console.error("Error in scenario submissions:", error);
-      res.status(500).json({ message: "Failed to retrieve scenario submissions" });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error("General error in scenario submissions:", errorMessage);
+      res.status(500).json({ 
+        message: "Failed to retrieve scenario submissions"
+      });
     }
   });
   
