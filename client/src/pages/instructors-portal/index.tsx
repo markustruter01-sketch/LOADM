@@ -49,13 +49,13 @@ export default function InstructorsPortal() {
     enabled: !!user,
   });
   
-  // For scenario submissions, we filter based on squadron
-  // Note: We only filter scenario submissions as they have studentId with squadron information
-  const filteredScenarioSubmissions = selectedSquadron === "AMG" 
-    ? scenarioSubmissions
-    : scenarioSubmissions?.filter(submission => 
-        submission.studentId && submission.studentId.includes(` - ${selectedSquadron}`)
-      );
+  // Calculate total submissions shown based on squadron filter
+  const filteredCount = selectedSquadron === "AMG"
+    ? documentSubmissions?.length || 0
+    : documentSubmissions?.filter(submission => {
+        // Since document submissions don't have squadron info yet, we only show AMG
+        return selectedSquadron === "AMG";
+      }).length || 0;
 
   return (
     <>
@@ -133,7 +133,7 @@ export default function InstructorsPortal() {
               <FileCheck className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{filteredSubmissions?.length || 0}</div>
+              <div className="text-2xl font-bold">{filteredCount}</div>
               <p className="text-xs text-muted-foreground">Total forms completed</p>
             </CardContent>
           </Card>
