@@ -2574,29 +2574,31 @@ export default function LoadPlanningPage() {
                       </div>
                     ) : currentAircraftId === 'kc30a' ? (
                       <div className="absolute inset-0">
-                        {cargoType === "pallets" ? (
-                          // Single row of 8 pallets when "Pallets" is selected
-                          <div className="absolute inset-0">
-                            {[...Array(8)].map((_, i) => {
+                        {/* Get configuration for KC30-A */}
+                        {(() => {
+                          const config = getAircraftGridConfig('kc30a');
+                          
+                          // Only show 8 pallet positions in a single row when "Pallets" is selected
+                          if (cargoType === "pallets") {
+                            return [...Array(8)].map((_, i) => {
+                              // Calculate position label
                               const positionLabel = `P${i + 1}`;
+                              
+                              // Find if a pallet is assigned to this position
                               const assignedPallet = pallets.find(p => 
                                 p.location === "cargo" && 
                                 p.positionLabel === positionLabel
                               );
                               
+                              // Determine cell background color
                               const bgColor = assignedPallet ? 
-                                'rgba(234, 88, 12, 0.7)' :  
-                                'rgba(20, 83, 45, 0.15)';
+                                'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                'rgba(20, 83, 45, 0.15)';   // Green for empty
                               
+                              // Determine border color
                               const borderColor = assignedPallet ?
-                                'border-orange-500' :
-                                'border-green-800/40';
-                                
-                              // Get the configuration
-                              const config = getAircraftGridConfig('kc30a');
-                              const palletWidth = config.palletWidth;
-                              const palletHeight = config.palletHeight;
-                              const cellWidth = config.cellWidth;
+                                'border-orange-500' :      // Orange border for occupied
+                                'border-green-800/40';     // Green border for empty
                               
                               return (
                                 <div 
@@ -2610,10 +2612,10 @@ export default function LoadPlanningPage() {
                                   }}
                                   className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                   style={{
-                                    left: i * cellWidth,
-                                    top: 60, // Center the pallets in the cargo area
-                                    width: palletWidth,
-                                    height: palletHeight,
+                                    left: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+                                    top: 60, // Center vertically in the cargo area
+                                    width: config.palletWidth,
+                                    height: config.palletHeight,
                                     backgroundColor: bgColor,
                                     zIndex: assignedPallet ? 10 : 1
                                   }}
@@ -2647,10 +2649,83 @@ export default function LoadPlanningPage() {
                                   </div>
                                 </div>
                               );
-                            })}
-                          </div>
-                        ) : (
-                          // Original 2x13 grid for LD3s
+                            });
+                          } else {
+                            // For LD3s: Show the original 2x13 grid
+                          
+                          if (cargoType === "pallets") {
+                            // For "pallets" type: single row of 8 positions
+                            return (
+                              <>
+                                {/* Create 8 pallet positions in a single row */}
+                                {[...Array(8)].map((_, i) => {
+                                  const positionLabel = `P${i + 1}`;
+                                  const assignedPallet = pallets.find(p => 
+                                    p.location === "cargo" && 
+                                    p.positionLabel === positionLabel
+                                  );
+                                  
+                                  const bgColor = assignedPallet ? 
+                                    'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
+                                    'rgba(20, 83, 45, 0.15)';   // Green for empty
+                                  
+                                  const borderColor = assignedPallet ?
+                                    'border-orange-500' :      // Orange border for occupied
+                                    'border-green-800/40';     // Green border for empty
+                                  
+                                  return (
+                                    <div 
+                                      key={`kc30a-pallet-${i}`}
+                                      draggable={assignedPallet ? true : false}
+                                      onDragStart={assignedPallet ? (e) => handleDragStart(e, assignedPallet.id) : undefined}
+                                      onClick={(e) => {
+                                        if (assignedPallet) {
+                                          handlePalletCellClick(e, assignedPallet, positionLabel);
+                                        }
+                                      }}
+                                      className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
+                                      style={{
+                                        left: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+                                        top: 60, // Center the pallets vertically
+                                        width: config.palletWidth,
+                                        height: config.palletHeight,
+                                        backgroundColor: bgColor,
+                                        zIndex: assignedPallet ? 10 : 1
+                                      }}
+                                    >
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        {!assignedPallet && (
+                                          <div className="text-white/50 font-bold text-lg">
+                                            {positionLabel}
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && (
+                                          <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
+                                            {assignedPallet.weight !== null ? 
+                                              <span>{assignedPallet.weight} kg</span> : 
+                                              <span className="text-white/80">No weight</span>
+                                            }
+                                          </div>
+                                        )}
+                                        
+                                        {assignedPallet && assignedPallet.cargoType && (
+                                          <div className="absolute top-1 right-1">
+                                            <Badge 
+                                              variant={assignedPallet.cargoType === "C" ? "outline" : "destructive"}
+                                              className="text-xs px-1"
+                                            >
+                                              {assignedPallet.cargoType}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </>
+                            );
+                          } else {
                       </div>
                     ) : (
                       <div className="absolute inset-0">
