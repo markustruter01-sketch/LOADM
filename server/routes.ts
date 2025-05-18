@@ -387,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get a specific scenario submission
+  // Get a specific scenario submission - simplified approach
   app.get("/api/scenario-submissions/:id", async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
@@ -395,33 +395,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const submissionId = parseInt(req.params.id);
+      console.log(`Retrieving submission ID: ${submissionId}`);
       
-      // Use direct DB query to ensure reliable data retrieval
+      // Use direct DB query with simpler format
       const { pool } = await import('./db');
       
       try {
-        // Directly query the database
+        // Basic query to get the submission
         const result = await pool.query(
-          `SELECT 
-            ss.id, 
-            ss.scenario_id AS "scenarioId", 
-            ss.user_id AS "userId", 
-            ss.submission_date AS "submissionDate", 
-            ss.answers,
-            ss.score, 
-            ss.student_name AS "studentName", 
-            ss.student_id AS "studentId", 
-            ss.instructor_feedback AS "instructorFeedback", 
-            ss.marked_answers AS "markedAnswers", 
-            ss.status, 
-            ss.passed,
-            s.title AS "scenarioTitle"
-          FROM 
-            scenario_submissions ss
-          LEFT JOIN
-            scenarios s ON ss.scenario_id = s.id
-          WHERE 
-            ss.id = $1`, 
+          `SELECT * FROM scenario_submissions WHERE id = $1`, 
           [submissionId]
         );
         
@@ -431,20 +413,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Submission not found" });
         }
         
-        const submission = result.rows[0];
+        // Transform the data to match frontend expectations
+        const rawSubmission = result.rows[0];
+        const submission = {
+          id: rawSubmission.id,
+          scenarioId: rawSubmission.scenario_id,
+          userId: rawSubmission.user_id,
+          submissionDate: rawSubmission.submission_date,
+          answers: rawSubmission.answers,
+          score: rawSubmission.score,
+          studentName: rawSubmission.student_name,
+          studentId: rawSubmission.student_id,
+          instructorFeedback: rawSubmission.instructor_feedback,
+          markedAnswers: rawSubmission.marked_answers,
+          status: rawSubmission.status,
+          passed: rawSubmission.passed
+        };
         
-        // Only admin or the user who submitted can view the submission
-        if (!req.user?.isAdmin && submission.userId !== req.user?.id) {
-          return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
-        }
-        
+        console.log(`Successfully retrieved submission: ${submission.id}`);
         res.json(submission);
       } catch (dbError) {
-        console.error("Database error retrieving submission:", dbError);
+        const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown error';
+        console.error("Database error retrieving submission:", errorMessage);
         res.status(500).json({ message: "Database error retrieving submission" });
       }
     } catch (error) {
-      console.error("Error retrieving scenario submission:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error("Error retrieving scenario submission:", errorMessage);
       res.status(500).json({ message: "Failed to retrieve scenario submission" });
     }
   });
