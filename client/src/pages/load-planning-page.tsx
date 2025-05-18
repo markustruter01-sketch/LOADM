@@ -225,6 +225,73 @@ export default function LoadPlanningPage() {
     };
   };
   
+  // Helper function to generate KC30A drop zones with 8 pallets in a single row
+  const generateKC30APalletDropZones = (): DropZone[] => {
+    const config = getAircraftGridConfig('kc30a');
+    const dropZones: DropZone[] = [];
+    
+    // Create 8 positions in a single row
+    for (let col = 0; col < 8; col++) {
+      const cellCenterX = col * config.cellWidth + config.cellWidth / 2;
+      const cellCenterY = 50 + config.cellHeight / 2;
+      
+      // Calculate position with proper alignment
+      const x = cellCenterX - config.palletWidth / 2;
+      const y = cellCenterY - config.palletHeight / 2;
+      
+      dropZones.push({
+        id: col + 1,
+        position: { x, y },
+        occupied: false,
+        area: "cargo"
+      });
+    }
+    
+    return dropZones;
+  };
+  
+  // Helper function to generate KC30A drop zones with 26 LD3 positions in a 2x13 grid
+  const generateKC30ALD3DropZones = (): DropZone[] => {
+    const config = getAircraftGridConfig('kc30a');
+    const dropZones: DropZone[] = [];
+    
+    // Row 1 (Forward) - 13 positions
+    for (let col = 0; col < 13; col++) {
+      const cellCenterX = col * config.cellWidth + config.cellWidth / 2;
+      const cellCenterY = 20 + config.cellHeight / 2;
+      
+      // Calculate position with proper alignment
+      const x = cellCenterX - config.palletWidth / 2;
+      const y = cellCenterY - config.palletHeight / 2;
+      
+      dropZones.push({
+        id: col + 1,
+        position: { x, y },
+        occupied: false,
+        area: "cargo"
+      });
+    }
+    
+    // Row 2 (Aft) - 13 positions
+    for (let col = 0; col < 13; col++) {
+      const cellCenterX = col * config.cellWidth + config.cellWidth / 2;
+      const cellCenterY = 110 + config.cellHeight / 2;
+      
+      // Calculate position with proper alignment
+      const x = cellCenterX - config.palletWidth / 2;
+      const y = cellCenterY - config.palletHeight / 2;
+      
+      dropZones.push({
+        id: col + 14,
+        position: { x, y },
+        occupied: false,
+        area: "cargo"
+      });
+    }
+    
+    return dropZones;
+  };
+  
   // Generate drop zones based on aircraft type and cargo type
   const generateDropZones = (aircraftId: string): DropZone[] => {
     // Common drop zone creation function
@@ -237,11 +304,75 @@ export default function LoadPlanningPage() {
       }));
     };
     
-    // Handle KC30A based on cargoType (pallets or ld3s)
+    // Handle KC30A separately based on cargoType
     if (aircraftId === 'kc30a') {
-      return cargoType === "pallets" ? generateKC30APalletDropZones() : generateKC30ALD3DropZones();
+      if (cargoType === "pallets") {
+        // 8 positions in a single row for pallets
+        const config = getAircraftGridConfig('kc30a');
+        const dropZones: DropZone[] = [];
+        
+        // Create 8 positions in a single row
+        for (let col = 0; col < 8; col++) {
+          const cellCenterX = col * config.cellWidth + config.cellWidth / 2;
+          const cellCenterY = 50 + config.cellHeight / 2;
+          
+          // Calculate position with proper alignment
+          const x = cellCenterX - config.palletWidth / 2;
+          const y = cellCenterY - config.palletHeight / 2;
+          
+          dropZones.push({
+            id: col + 1,
+            position: { x, y },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        return dropZones;
+      } else {
+        // 26 positions in a 2x13 grid for LD3s
+        const config = getAircraftGridConfig('kc30a');
+        const dropZones: DropZone[] = [];
+        
+        // Row 1 (Forward) - 13 positions
+        for (let col = 0; col < 13; col++) {
+          const cellCenterX = col * config.cellWidth + config.cellWidth / 2;
+          const cellCenterY = 20 + config.cellHeight / 2;
+          
+          // Calculate position with proper alignment
+          const x = cellCenterX - config.palletWidth / 2;
+          const y = cellCenterY - config.palletHeight / 2;
+          
+          dropZones.push({
+            id: col + 1,
+            position: { x, y },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        // Row 2 (Aft) - 13 positions
+        for (let col = 0; col < 13; col++) {
+          const cellCenterX = col * config.cellWidth + config.cellWidth / 2;
+          const cellCenterY = 110 + config.cellHeight / 2;
+          
+          // Calculate position with proper alignment
+          const x = cellCenterX - config.palletWidth / 2;
+          const y = cellCenterY - config.palletHeight / 2;
+          
+          dropZones.push({
+            id: col + 14,
+            position: { x, y },
+            occupied: false,
+            area: "cargo"
+          });
+        }
+        
+        return dropZones;
+      }
     }
     
+    // Handle other aircraft types
     switch (aircraftId) {
       case 'c17':
         // C-17 Globemaster - 18 slots (9 wide x 2 high)
@@ -281,35 +412,9 @@ export default function LoadPlanningPage() {
         return c130CargoZones;
         
       case 'kc30a':
-        // KC30-A - 26 slots (13 wide x 2 high) with 14 forward and 12 aft
-        const kc30aCargoZones: DropZone[] = [];
-        
-        // Calculate grid cell dimensions
-        const config = getAircraftGridConfig('kc30a');
-        const kc30aCellWidth = config.cellWidth;
-        const kc30aCellHeight = config.cellHeight;
-        
-        // First row - 13 positions
-        for (let i = 0; i < 13; i++) {
-          kc30aCargoZones.push({
-            id: i + 1,
-            position: { x: i * kc30aCellWidth, y: 14 },
-            occupied: false,
-            area: "cargo"
-          });
-        }
-        
-        // Second row - 13 positions
-        for (let i = 0; i < 13; i++) {
-          kc30aCargoZones.push({
-            id: i + 14, // IDs 14-26
-            position: { x: i * kc30aCellWidth, y: 94 },
-            occupied: false,
-            area: "cargo"
-          });
-        }
-        
-        return kc30aCargoZones;
+        // This case should never be reached as KC30A is handled in the if-condition above
+        // Return an empty array as a fallback
+        return [];
         
       default:
         // C-27J Spartan (default) - 3 slots
