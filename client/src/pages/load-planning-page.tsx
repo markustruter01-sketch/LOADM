@@ -144,18 +144,36 @@ export default function LoadPlanningPage() {
         };
       
       case 'kc30a':
-        // KC30-A has 26 positions in a 2x13 grid with 14 forward and 12 aft
-        const kc30aCellWidth = totalWidth / 13;
-        const kc30aCellHeight = 80;
-        return {
-          rows: 2,
-          cols: 13,
-          cellWidth: kc30aCellWidth,
-          cellHeight: kc30aCellHeight,
-          cellPadding: 0,
-          palletWidth: kc30aCellWidth * 0.9,
-          palletHeight: kc30aCellHeight * 0.9
-        };
+        // For KC30-A, use different layout based on cargoType:
+        // - "pallets": 8 positions in a single row (like Hercules)
+        // - "ld3s": 26 positions in a 2x13 grid with 14 forward and 12 aft
+        if (cargoType === "pallets") {
+          // Single row of 8 pallets like Hercules
+          const kc30aPalletCellWidth = totalWidth / 8;
+          const kc30aPalletHeight = 100;
+          return {
+            rows: 1,
+            cols: 8,
+            cellWidth: kc30aPalletCellWidth,
+            cellHeight: kc30aPalletHeight,
+            cellPadding: 0,
+            palletWidth: kc30aPalletCellWidth * 0.9,
+            palletHeight: kc30aPalletHeight * 0.9
+          };
+        } else {
+          // Original 2x13 grid for LD3s
+          const kc30aCellWidth = totalWidth / 13;
+          const kc30aCellHeight = 80;
+          return {
+            rows: 2,
+            cols: 13,
+            cellWidth: kc30aCellWidth,
+            cellHeight: kc30aCellHeight,
+            cellPadding: 0,
+            palletWidth: kc30aCellWidth * 0.9,
+            palletHeight: kc30aCellHeight * 0.9
+          };
+        }
         
       default: // c27j only
         // C-27J has 3 columns in 1 row
@@ -207,7 +225,7 @@ export default function LoadPlanningPage() {
     };
   };
   
-  // Generate drop zones based on aircraft type
+  // Generate drop zones based on aircraft type and cargo type
   const generateDropZones = (aircraftId: string): DropZone[] => {
     // Common drop zone creation function
     const createDropZones = (count: number, areaType: "cargo", startX: number, startY: number, spacingX: number) => {
@@ -218,6 +236,11 @@ export default function LoadPlanningPage() {
         area: areaType
       }));
     };
+    
+    // Handle KC30A based on cargoType (pallets or ld3s)
+    if (aircraftId === 'kc30a') {
+      return cargoType === "pallets" ? generateKC30APalletDropZones() : generateKC30ALD3DropZones();
+    }
     
     switch (aircraftId) {
       case 'c17':
@@ -982,34 +1005,62 @@ export default function LoadPlanningPage() {
             palletSize.width = config.palletWidth;
             palletSize.height = config.palletHeight;
           } else if (currentAircraftId === 'kc30a') {
-            // Special handling for KC30-A (2 rows of 13 pallets)
+            // Special handling for KC30-A
             const config = getAircraftGridConfig('kc30a');
             
-            // Determine which row based on drop position
-            const cellRow = dropY > 70 ? 1 : 0; // Threshold to determine row 1 vs row 2
-            // Get column position - KC30-A has 13 columns
-            const cellColumn = Math.min(12, Math.max(0, Math.floor(dropX / config.cellWidth)));
-            
-            // Calculate position label based on row and column
-            const positionNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
-            const positionLabel = `P${positionNumber}`;
-            
-            // Set vertical position based on row
-            const rowTopOffset = cellRow === 0 ? 20 : 110;
-            
-            // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
-            const cellCenterX = cellColumn * config.cellWidth + config.cellWidth / 2;
-            const cellCenterY = rowTopOffset + config.cellHeight / 2;
-            
-            // Calculate final position by centering the pallet on the closest cell center
-            newX = cellCenterX - config.palletWidth / 2;
-            newY = cellCenterY - config.palletHeight / 2;
-            
-            // Use the pallet size from the configuration
-            palletSize.width = config.palletWidth;
-            palletSize.height = config.palletHeight;
-            
-            console.log(`KC30-A pallet dropped at row ${cellRow}, column ${cellColumn}, position ${positionLabel}`);
+            if (cargoType === "pallets") {
+              // For "pallets" type: 8 positions in a single row, similar to Hercules
+              // Get column position - KC30-A has 8 columns for pallets
+              const cellColumn = Math.min(7, Math.max(0, Math.floor(dropX / config.cellWidth)));
+              
+              // Position labels for pallets are simply P1 through P8
+              const positionNumber = cellColumn + 1;
+              const positionLabel = `P${positionNumber}`;
+              
+              // Single row, centered vertically
+              const rowTopOffset = 50;
+              
+              // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
+              const cellCenterX = cellColumn * config.cellWidth + config.cellWidth / 2;
+              const cellCenterY = rowTopOffset + config.cellHeight / 2;
+              
+              // Calculate final position by centering the pallet on the closest cell center
+              newX = cellCenterX - config.palletWidth / 2;
+              newY = cellCenterY - config.palletHeight / 2;
+              
+              // Use the pallet size from the configuration
+              palletSize.width = config.palletWidth;
+              palletSize.height = config.palletHeight;
+              
+              console.log(`KC30-A pallet (pallets config) dropped at column ${cellColumn}, position ${positionLabel}`);
+            } else {
+              // For "ld3s" type: Original 2x13 grid
+              // Determine which row based on drop position
+              const cellRow = dropY > 70 ? 1 : 0; // Threshold to determine row 1 vs row 2
+              // Get column position - KC30-A has 13 columns for LD3s
+              const cellColumn = Math.min(12, Math.max(0, Math.floor(dropX / config.cellWidth)));
+              
+              // Calculate position label based on row and column
+              const positionNumber = cellRow === 0 ? cellColumn + 1 : cellColumn + 14;
+              const positionLabel = `P${positionNumber}`;
+              
+              // Set vertical position based on row
+              const rowTopOffset = cellRow === 0 ? 20 : 110;
+              
+              // Calculate exact position based on where the pallet was dropped, with snapping to cell centers
+              const cellCenterX = cellColumn * config.cellWidth + config.cellWidth / 2;
+              const cellCenterY = rowTopOffset + config.cellHeight / 2;
+              
+              // Calculate final position by centering the pallet on the closest cell center
+              newX = cellCenterX - config.palletWidth / 2;
+              newY = cellCenterY - config.palletHeight / 2;
+              
+              // Use the pallet size from the configuration
+              palletSize.width = config.palletWidth;
+              palletSize.height = config.palletHeight;
+              
+              console.log(`KC30-A pallet (LD3s config) dropped at row ${cellRow}, column ${cellColumn}, position ${positionLabel}`);
+            }
           } else {
             // For C-27J (single row of 3 pallets)
             const cellColumn = Math.min(config.cols - 1, Math.max(0, Math.floor(dropX / (config.cellWidth + config.cellPadding))));
