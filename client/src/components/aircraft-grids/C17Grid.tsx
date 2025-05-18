@@ -64,7 +64,7 @@ export default function C17Grid({
               return (
                 <CargoGridCell
                   key={`c17-cell-row1-${i}`}
-                  positionLabel={`c17-${positionLabel}`}
+                  positionLabel={positionLabel}
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
@@ -103,7 +103,7 @@ export default function C17Grid({
               return (
                 <CargoGridCell
                   key={`c17-cell-row2-${i}`}
-                  positionLabel={`c17-${positionLabel}`}
+                  positionLabel={positionLabel}
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
