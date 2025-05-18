@@ -76,7 +76,7 @@ export default function StudentProgress() {
   return (
     <>
       <Helmet>
-        <title>Student Progress - LOADMworkflow</title>
+        <title>Student Submissions - LOADMworkflow</title>
         <meta name="description" content="Manage and review student scenario submissions" />
       </Helmet>
       
@@ -87,7 +87,7 @@ export default function StudentProgress() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h2 className="text-2xl font-bold text-foreground">Student Progress</h2>
+          <h2 className="text-2xl font-bold text-foreground">Student Submissions</h2>
         </div>
         
         {/* Overview Cards */}

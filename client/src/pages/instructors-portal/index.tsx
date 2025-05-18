@@ -189,7 +189,7 @@ export default function InstructorsPortal() {
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Student Progress</CardTitle>
+                <CardTitle className="text-lg">Student Submissions</CardTitle>
                 <BarChart2 className="h-5 w-5 text-primary" />
               </div>
               <CardDescription>View student performance and results</CardDescription>
@@ -202,7 +202,7 @@ export default function InstructorsPortal() {
             <CardFooter>
               <Link href="/instructors-portal/student-progress">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  View Student Progress
+                  View Student Submissions
                 </Button>
               </Link>
             </CardFooter>

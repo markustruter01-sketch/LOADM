@@ -632,7 +632,7 @@ export default function SubmissionReview() {
                 onClick={() => navigate("/instructors-portal/student-progress")}
                 className="mr-2"
               >
-                Cancel
+                Back to Submissions
               </Button>
               <Button
                 onClick={handleSaveReview}
