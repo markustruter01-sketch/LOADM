@@ -74,6 +74,7 @@ export default function ScenarioPage() {
       }
       
       // Simplify to a basic string-based answers array for reliability
+      // Include squadron information in the answers metadata
       const answersString = JSON.stringify(
         Object.entries(answers).map(([questionId, answer]) => ({
           questionId,

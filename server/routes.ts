@@ -314,6 +314,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use the raw pool directly to avoid ORM type issues
       const { pool } = await import('./db');
       
+      // Store squadron information in the student_id field (format: "ID - Squadron")
+      const studentIdWithSquadron = req.body.squadron 
+        ? `${req.body.studentId} - ${req.body.squadron}`
+        : req.body.studentId;
+      
       const result = await pool.query(
         `INSERT INTO scenario_submissions 
          (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
@@ -326,7 +331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.body.answers, // Already a JSON string from client
           'pending',
           req.body.studentName || '',
-          req.body.studentId || ''
+          studentIdWithSquadron || ''
         ]
       );
       
