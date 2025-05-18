@@ -2966,9 +2966,9 @@ export default function LoadPlanningPage() {
                       
                       {/* Labels */}
                       <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
-                        <span>FWD</span>
+                        <span className="font-bold">FWD</span>
                         <span className="mx-auto">BALANCED</span>
-                        <span>AFT</span>
+                        <span className="font-bold">AFT</span>
                       </div>
                     </div>
                     
