@@ -41,6 +41,7 @@ import ScenarioAnalytics from "./analytics";
 export default function StudentProgress() {
   const [searchTerm, setSearchTerm] = useState("");
   const [scenarioFilter, setScenarioFilter] = useState<number | "all">("all");
+  const [squadronFilter, setSquadronFilter] = useState<string>("AMG");
   // Check if we should default to analytics tab based on URL
   const [activeTab, setActiveTab] = useState(() => {
     // Check if we're in a browser environment
@@ -61,7 +62,7 @@ export default function StudentProgress() {
     queryKey: ["/api/scenarios"],
   });
   
-  // Filter submissions based on search term and scenario filter
+  // Filter submissions based on search term, scenario filter, and squadron filter
   const filteredSubmissions = submissions?.filter(submission => {
     const matchesSearch = 
       submission.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,7 +70,13 @@ export default function StudentProgress() {
     
     const matchesScenario = scenarioFilter === "all" || submission.scenarioId === scenarioFilter;
     
-    return matchesSearch && matchesScenario;
+    // Check if submission matches the selected squadron
+    // Squadron info is stored in studentId field with format "ID - Squadron"
+    const matchesSquadron = 
+      squadronFilter === "AMG" || // AMG shows all submissions
+      (submission.studentId && submission.studentId.includes(` - ${squadronFilter}`));
+    
+    return matchesSearch && matchesScenario && matchesSquadron;
   });
   
   // Calculate statistics
@@ -147,7 +154,25 @@ export default function StudentProgress() {
                 <CardTitle>Filter Submissions</CardTitle>
                 <CardDescription>Narrow down submissions by scenario or student</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-6 md:grid-cols-2">
+              <CardContent className="grid gap-6 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="squadronFilter">Squadron</Label>
+                  <Select
+                    value={squadronFilter}
+                    onValueChange={setSquadronFilter}
+                  >
+                    <SelectTrigger id="squadronFilter">
+                      <SelectValue placeholder="Select squadron" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AMG">AMG</SelectItem>
+                      <SelectItem value="33SQN">33SQN</SelectItem>
+                      <SelectItem value="35SQN">35SQN</SelectItem>
+                      <SelectItem value="36SQN">36SQN</SelectItem>
+                      <SelectItem value="37SQN">37SQN</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="scenarioFilter">Scenario</Label>
                   <Select
