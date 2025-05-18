@@ -415,44 +415,40 @@ export default function LoadPlanningPage() {
         // KC30A layout based on cargo type
         const config = getAircraftGridConfig('kc30a');
         
-        // Helper function to properly create drop zones with the correct type
-        function createTypedDropZone(id: number, x: number, y: number): DropZone {
-          return {
-            id,
-            position: { x, y },
-            occupied: false,
-            area: "cargo"
-          };
-        }
-        
         if (cargoType === "pallets") {
-          // For pallets: 8 positions in a single row
-          const kc30aPalletZones: DropZone[] = [];
-          
-          // Create 8 positions in a single row
-          for (let i = 0; i < 8; i++) {
-            const xPos = i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2;
-            kc30aPalletZones.push(createTypedDropZone(i + 1, xPos, 60));
-          }
-          
-          return kc30aPalletZones;
+          // For pallets: 8 positions in a single row (similar to C-130)
+          return Array.from({ length: 8 }, (_, i) => ({
+            id: i + 1,
+            position: { 
+              x: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+              y: 60 // Center vertically
+            },
+            occupied: false,
+            area: "cargo" as const
+          }));
         } else {
           // For LD3s: 26 positions in a 2x13 grid
-          const kc30aLD3Zones: DropZone[] = [];
+          const firstRow = Array.from({ length: 13 }, (_, i) => ({
+            id: i + 1,
+            position: { 
+              x: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+              y: 20
+            },
+            occupied: false,
+            area: "cargo" as const
+          }));
           
-          // First row - 13 positions
-          for (let i = 0; i < 13; i++) {
-            const xPos = i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2;
-            kc30aLD3Zones.push(createTypedDropZone(i + 1, xPos, 20));
-          }
+          const secondRow = Array.from({ length: 13 }, (_, i) => ({
+            id: i + 14,
+            position: { 
+              x: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+              y: 110
+            },
+            occupied: false,
+            area: "cargo" as const
+          }));
           
-          // Second row - 13 positions
-          for (let i = 0; i < 13; i++) {
-            const xPos = i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2;
-            kc30aLD3Zones.push(createTypedDropZone(i + 14, xPos, 110));
-          }
-          
-          return kc30aLD3Zones;
+          return [...firstRow, ...secondRow] as DropZone[];
         }
         
       default:
