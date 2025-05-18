@@ -287,17 +287,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      const scenarioId = req.query.scenarioId ? parseInt(req.query.scenarioId as string) : undefined;
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      // Import pool directly to use raw queries
+      const { pool } = await import('./db');
       
-      // Only admin can see all submissions or other user's submissions
-      if ((!req.user?.isAdmin) && (userId !== undefined && userId !== req.user?.id)) {
-        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
+      try {
+        // Use a simple query to get all scenario submissions
+        const result = await pool.query('SELECT * FROM scenario_submissions ORDER BY submission_date DESC');
+        console.log(`Found ${result.rows.length} scenario submissions`);
+        res.json(result.rows);
+      } catch (dbError) {
+        console.error("Database error:", dbError);
+        res.status(500).json({ message: "Database error retrieving submissions" });
       }
-      
-      const submissions = await storage.getScenarioSubmissions(scenarioId, userId || req.user?.id);
-      res.json(submissions);
     } catch (error) {
+      console.error("Error in scenario submissions:", error);
       res.status(500).json({ message: "Failed to retrieve scenario submissions" });
     }
   });
