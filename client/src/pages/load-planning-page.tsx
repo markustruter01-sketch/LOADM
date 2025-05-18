@@ -1864,7 +1864,7 @@ export default function LoadPlanningPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="weight" className="text-right">
-                Weight (kg)
+                Weight ({currentAircraftId === 'kc30a' ? 'kg' : 'lbs'})
               </Label>
               <Input
                 id="weight"
@@ -2096,7 +2096,7 @@ export default function LoadPlanningPage() {
             <div>
               <h2 className="text-2xl font-bold">{currentAircraft.name} Load Planning</h2>
               <p className="text-muted-foreground text-sm">
-                Max Payload: {MAX_PAYLOAD.toLocaleString()} kg | Max Pallet Weight: {MAX_PALLET_WEIGHT.toLocaleString()} kg
+                Max Payload: {MAX_PAYLOAD.toLocaleString()} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'} | Max Pallet Weight: {MAX_PALLET_WEIGHT.toLocaleString()} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}
               </p>
             </div>
           </div>
@@ -2112,7 +2112,7 @@ export default function LoadPlanningPage() {
                     Load Summary
                   </CardTitle>
                   <Badge variant={totalWeight > MAX_PAYLOAD * 0.97 ? "destructive" : "default"}>
-                    {totalWeight.toLocaleString()} / {MAX_PAYLOAD.toLocaleString()} kg
+                    {totalWeight.toLocaleString()} / {MAX_PAYLOAD.toLocaleString()} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -2120,11 +2120,11 @@ export default function LoadPlanningPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Current Load</p>
-                    <p className="text-lg">{totalWeight.toLocaleString()} kg</p>
+                    <p className="text-lg">{totalWeight.toLocaleString()} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}</p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Maximum Payload</p>
-                    <p className="text-lg">{MAX_PAYLOAD.toLocaleString()} kg</p>
+                    <p className="text-lg">{MAX_PAYLOAD.toLocaleString()} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}</p>
                   </div>
                   <div className="bg-muted rounded-md p-3">
                     <p className="text-xs font-medium">Cargo Positions Filled</p>
