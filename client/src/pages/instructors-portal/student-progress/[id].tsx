@@ -234,10 +234,16 @@ export default function SubmissionReview() {
     });
   };
   
-  // Calculate current score and make it reactive to changes
-  const correctAnswers = Object.values(markedAnswers).filter(Boolean).length || 0;
+  // Calculate current score and make it reactive to changes in real-time
+  const correctAnswers = useMemo(() => {
+    return Object.values(markedAnswers).filter(Boolean).length || 0;
+  }, [markedAnswers]);
+  
   const totalQuestions = questions.length || 0;
-  const currentScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  
+  const currentScore = useMemo(() => {
+    return totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  }, [correctAnswers, totalQuestions]);
   
   // Log score calculation details to help debug
   console.log("Score calculation:", { 
