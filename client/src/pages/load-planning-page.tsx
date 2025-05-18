@@ -2121,7 +2121,9 @@ export default function LoadPlanningPage() {
                       <span className="text-sm font-normal text-muted-foreground ml-2">
                         ({currentAircraftId === 'c17' ? '18 pallets' : 
                            currentAircraftId === 'c130' ? '8 pallets' : 
-                           currentAircraftId === 'kc30a' ? '26 pallets' : '3 pallets'})
+                           currentAircraftId === 'kc30a' ? 
+                             (cargoType === 'pallets' ? '8 pallets' : '26 LD3 positions') : 
+                           '3 pallets'})
                       </span>
                     </CardTitle>
                     
@@ -2152,12 +2154,6 @@ export default function LoadPlanningPage() {
                             <SelectItem value="ld3s">LD3's (26)</SelectItem>
                           </SelectContent>
                         </Select>
-                            paddingRight: '1.5rem'
-                          }}
-                        >
-                          <option value="pallets" className="bg-gray-800 text-white">Pallets</option>
-                          <option value="ld3s" className="bg-gray-800 text-white">LD3's</option>
-                        </select>
                       </div>
                     )}
                   </div>
