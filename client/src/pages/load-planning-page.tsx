@@ -2524,17 +2524,19 @@ export default function LoadPlanningPage() {
                       </div>
                     ) : currentAircraftId === 'kc30a' ? (
                       <div className="absolute inset-0">
-                        {/* Grid cells for KC30-A - 26 pallets (2x13) */}
+                        {/* Grid cells for KC30-A */}
                         {(() => {
                           // Get configuration for KC30-A
                           const config = getAircraftGridConfig('kc30a');
                           const cellSpacing = config.cellWidth;
                           
-                          // Create combined array for both rows
-                          return (
-                            <>
-                              {/* First row - 13 positions */}
-                              {[...Array(13)].map((_, i) => {
+                          // Choose layout based on cargo type
+                          if (cargoType === "pallets") {
+                            // For Pallets: single row of 8 positions
+                            return (
+                              <>
+                                {/* Single row - 8 positions */}
+                                {[...Array(8)].map((_, i) => {
                                 // Calculate position label for this grid cell
                                 const positionLabel = `P${i + 1}`;
                                 
@@ -2567,9 +2569,9 @@ export default function LoadPlanningPage() {
                                     className={`absolute border-2 ${borderColor} rounded-sm ${assignedPallet ? 'cursor-pointer' : ''}`}
                                     style={{
                                       left: i * cellSpacing,
-                                      top: 20,
+                                      top: 50, // Center the single row pallets vertically
                                       width: config.cellWidth,
-                                      height: config.cellHeight,
+                                      height: config.cellHeight, 
                                       backgroundColor: bgColor,
                                       zIndex: assignedPallet ? 10 : 1
                                     }}
