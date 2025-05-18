@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import SuccessAnimation from "@/components/SuccessAnimation";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
@@ -49,6 +50,8 @@ export default function ScenarioPage() {
   const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
   const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("");
+  const [showSquadronDialog, setShowSquadronDialog] = useState(false);
   
   const scenarioId = parseInt(id);
 
@@ -90,6 +93,7 @@ export default function ScenarioPage() {
         userId: user.id,
         studentName,
         studentId,
+        squadron: selectedSquadron,
         answers: answersString,
         status: "pending"
       };
@@ -162,6 +166,22 @@ export default function ScenarioPage() {
       return;
     }
     
+    // Show squadron selection dialog instead of submitting directly
+    setShowSquadronDialog(true);
+  };
+  
+  // Function to handle the final submission after squadron selection
+  const handleFinalSubmit = () => {
+    if (!selectedSquadron) {
+      toast({
+        title: "Squadron Required",
+        description: "Please select your squadron before submitting",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowSquadronDialog(false);
     submitMutation.mutate();
   };
   
@@ -372,6 +392,45 @@ export default function ScenarioPage() {
           )}
         </div>
       </div>
+
+      {/* Squadron Selection Dialog */}
+      <Dialog open={showSquadronDialog} onOpenChange={setShowSquadronDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Your Squadron</DialogTitle>
+            <DialogDescription>
+              Please select which squadron you are submitting this scenario to
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Select 
+              value={selectedSquadron} 
+              onValueChange={setSelectedSquadron}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Squadron" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="33SQN">33SQN</SelectItem>
+                <SelectItem value="35SQN">35SQN</SelectItem>
+                <SelectItem value="36SQN">36SQN</SelectItem>
+                <SelectItem value="37SQN">37SQN</SelectItem>
+                <SelectItem value="AMG">AMG</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSquadronDialog(false)} className="mr-2">
+              Cancel
+            </Button>
+            <Button onClick={handleFinalSubmit} className="bg-primary hover:bg-primary/90">
+              Submit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Results Dialog */}
       <Dialog open={showResults} onOpenChange={setShowResults}>

@@ -89,6 +89,7 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
   score: integer("score"),
   studentName: text("student_name").default(''),
   studentId: text("student_id").default(''),
+  squadron: text("squadron").default(''),
   instructorFeedback: text("instructor_feedback"),
   markedAnswers: json("marked_answers").default({}),
   status: text("status").default("pending").notNull(),
