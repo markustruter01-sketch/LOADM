@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 export default function InstructorsPortal() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedSquadron, setSelectedSquadron] = useState<string>("all");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
 
   // Welcome toast for new instructors (optional)
   useEffect(() => {
@@ -110,12 +110,11 @@ export default function InstructorsPortal() {
                 <SelectValue placeholder="Select Squadron" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Squadrons</SelectItem>
+                <SelectItem value="AMG">AMG</SelectItem>
                 <SelectItem value="33SQN">33SQN</SelectItem>
                 <SelectItem value="35SQN">35SQN</SelectItem>
                 <SelectItem value="36SQN">36SQN</SelectItem>
                 <SelectItem value="37SQN">37SQN</SelectItem>
-                <SelectItem value="AMG">AMG Group</SelectItem>
               </SelectContent>
             </Select>
           </div>
