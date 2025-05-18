@@ -2329,7 +2329,7 @@ export default function LoadPlanningPage() {
                                       {assignedPallet && (
                                         <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
                                           {assignedPallet.weight !== null ? 
-                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span>{assignedPallet.weight} lbs</span> : 
                                             <span className="text-white/80">No weight</span>
                                           }
                                         </div>
@@ -2407,7 +2407,7 @@ export default function LoadPlanningPage() {
                                       {assignedPallet && (
                                         <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
                                           {assignedPallet.weight !== null ? 
-                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span>{assignedPallet.weight} lbs</span> : 
                                             <span className="text-white/80">No weight</span>
                                           }
                                         </div>
@@ -2499,7 +2499,7 @@ export default function LoadPlanningPage() {
                                       {assignedPallet && (
                                         <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
                                           {assignedPallet.weight !== null ? 
-                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span>{assignedPallet.weight} lbs</span> : 
                                             <span className="text-white/80">No weight</span>
                                           }
                                         </div>
@@ -2577,7 +2577,7 @@ export default function LoadPlanningPage() {
                                       {assignedPallet && (
                                         <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
                                           {assignedPallet.weight !== null ? 
-                                            <span>{assignedPallet.weight} kg</span> : 
+                                            <span>{assignedPallet.weight} lbs</span> : 
                                             <span className="text-white/80">No weight</span>
                                           }
                                         </div>
