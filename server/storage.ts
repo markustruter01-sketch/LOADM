@@ -357,6 +357,7 @@ export class DatabaseStorage implements IStorage {
         score: updatedSubmission.score,
         studentName: updatedSubmission.student_name,
         studentId: updatedSubmission.student_id,
+        squadron: updatedSubmission.squadron || '',
         instructorFeedback: updatedSubmission.instructor_feedback,
         markedAnswers: updatedSubmission.marked_answers,
         status: updatedSubmission.status,

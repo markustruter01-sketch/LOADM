@@ -158,13 +158,36 @@ export default function ScenarioAnalytics() {
     
   }, [submissions, selectedScenarioId, scenarios]);
   
-  // Analytics summary 
-  const totalSubmissions = submissions?.length || 0;
-  const averageScore = submissions && submissions.length > 0
-    ? submissions.reduce((sum, sub) => sum + (sub.score || 0), 0) / submissions.length
+  // Get submissions filtered by the selected scenario
+  const filteredSubmissions = submissions 
+    ? (selectedScenarioId === "all" 
+      ? submissions 
+      : submissions.filter(sub => sub.scenarioId === parseInt(selectedScenarioId)))
+    : [];
+    
+  // Analytics summary based on filtered submissions
+  const totalSubmissions = filteredSubmissions.length || 0;
+  const averageScore = filteredSubmissions.length > 0
+    ? filteredSubmissions.reduce((sum, sub) => sum + (sub.score || 0), 0) / filteredSubmissions.length
     : 0;
-  const passRate = submissions && submissions.length > 0
-    ? (submissions.filter(sub => (sub.score || 0) >= 70).length / submissions.length) * 100
+    
+  // Find the scenarios for the submissions to get their passing thresholds
+  const scenarioMap = scenarios?.reduce((map, scenario) => {
+    map.set(scenario.id, scenario);
+    return map;
+  }, new Map<number, Scenario>()) || new Map();
+  
+  // Calculate pass rate based on each submission's passing threshold or the passed flag
+  const passRate = filteredSubmissions.length > 0
+    ? (filteredSubmissions.filter(sub => {
+        if (typeof sub.passed === 'boolean') {
+          return sub.passed; // Use the instructor-set passed flag if available
+        }
+        const score = sub.score || 0;
+        const scenario = scenarioMap.get(sub.scenarioId);
+        const passingThreshold = scenario?.passingThreshold || 70;
+        return score >= passingThreshold;
+      }).length / filteredSubmissions.length) * 100
     : 0;
   
   // AI Insights mutation
