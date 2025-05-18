@@ -4,17 +4,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function InstructorsPortal() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("all");
 
   // Welcome toast for new instructors (optional)
   useEffect(() => {
@@ -97,6 +99,26 @@ export default function InstructorsPortal() {
               <p className="text-xs text-muted-foreground">Document templates</p>
             </CardContent>
           </Card>
+          
+          {/* Squadron Selection Dropdown */}
+          <div className="relative mb-2">
+            <Select 
+              value={selectedSquadron} 
+              onValueChange={setSelectedSquadron}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Squadron" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Squadrons</SelectItem>
+                <SelectItem value="33SQN">33SQN</SelectItem>
+                <SelectItem value="35SQN">35SQN</SelectItem>
+                <SelectItem value="36SQN">36SQN</SelectItem>
+                <SelectItem value="37SQN">37SQN</SelectItem>
+                <SelectItem value="AMG">AMG Group</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
