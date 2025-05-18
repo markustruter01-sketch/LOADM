@@ -292,12 +292,75 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateScenarioSubmission(id: number, updateSubmission: Partial<InsertScenarioSubmission>): Promise<ScenarioSubmission | undefined> {
-    const [submission] = await db
-      .update(scenarioSubmissions)
-      .set(updateSubmission)
-      .where(eq(scenarioSubmissions.id, id))
-      .returning();
-    return submission;
+    try {
+      console.log(`Updating scenario submission ${id} with:`, updateSubmission);
+      
+      // Using direct pool query for more control over the update process
+      const { pool } = await import('./db');
+      
+      // Build the SET part of the query dynamically based on what fields are provided
+      const updateFields: string[] = [];
+      const params: any[] = [];
+      let paramCounter = 1;
+      
+      // Handle each field that might be updated
+      if (updateSubmission.markedAnswers !== undefined) {
+        updateFields.push(`marked_answers = $${paramCounter++}`);
+        params.push(typeof updateSubmission.markedAnswers === 'string' 
+          ? updateSubmission.markedAnswers 
+          : JSON.stringify(updateSubmission.markedAnswers));
+      }
+      
+      if (updateSubmission.instructorFeedback !== undefined) {
+        updateFields.push(`instructor_feedback = $${paramCounter++}`);
+        params.push(updateSubmission.instructorFeedback);
+      }
+      
+      if (updateSubmission.score !== undefined) {
+        updateFields.push(`score = $${paramCounter++}`);
+        params.push(updateSubmission.score);
+      }
+      
+      if (updateSubmission.status !== undefined) {
+        updateFields.push(`status = $${paramCounter++}`);
+        params.push(updateSubmission.status);
+      }
+      
+      if (updateSubmission.passed !== undefined) {
+        updateFields.push(`passed = $${paramCounter++}`);
+        params.push(updateSubmission.passed);
+      }
+      
+      // Add the ID parameter last
+      params.push(id);
+      
+      // If nothing to update, return the current submission
+      if (updateFields.length === 0) {
+        return this.getScenarioSubmission(id);
+      }
+      
+      // Perform the update with raw SQL
+      const query = `
+        UPDATE scenario_submissions 
+        SET ${updateFields.join(', ')} 
+        WHERE id = $${paramCounter} 
+        RETURNING *
+      `;
+      
+      console.log(`Executing update query with ${params.length} parameters`);
+      const result = await pool.query(query, params);
+      
+      if (result.rows.length === 0) {
+        console.warn(`No submission found with ID: ${id}`);
+        return undefined;
+      }
+      
+      console.log(`Successfully updated submission: ${id}`);
+      return result.rows[0];
+    } catch (error) {
+      console.error(`Error updating scenario submission ${id}:`, error);
+      throw error;
+    }
   }
 }
 

@@ -452,6 +452,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const submissionId = parseInt(req.params.id);
+      console.log(`Updating submission ID: ${submissionId} with data:`, JSON.stringify(req.body));
+      
       const submission = await storage.getScenarioSubmission(submissionId);
       
       if (!submission) {
@@ -461,18 +463,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For this test version, allow all authenticated users to review
       // This allows any user to provide reviews during testing
       
-      // Allow partial updates for instructor feedback, score, etc.
-      const updateData = insertScenarioSubmissionSchema.partial().parse(req.body);
-      
-      // Add updateScenarioSubmission method to storage
-      const updatedSubmission = await storage.updateScenarioSubmission(submissionId, updateData);
-      
-      res.json(updatedSubmission);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid update data", errors: error.errors });
+      try {
+        // Allow partial updates for instructor feedback, score, etc.
+        const updateData = insertScenarioSubmissionSchema.partial().parse(req.body);
+        
+        // Add updateScenarioSubmission method to storage
+        const updatedSubmission = await storage.updateScenarioSubmission(submissionId, updateData);
+        
+        console.log(`Successfully updated submission: ${submissionId}`);
+        res.json(updatedSubmission);
+      } catch (parseError) {
+        console.error("Error parsing update data:", parseError);
+        if (parseError instanceof z.ZodError) {
+          return res.status(400).json({ message: "Invalid update data", errors: parseError.errors });
+        }
+        throw parseError; // Re-throw to be caught by outer catch
       }
-      res.status(500).json({ message: "Failed to update scenario submission" });
+    } catch (error) {
+      console.error("Error updating scenario submission:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      res.status(500).json({ message: "Failed to update scenario submission", error: errorMessage });
     }
   });
   
