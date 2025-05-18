@@ -412,9 +412,59 @@ export default function LoadPlanningPage() {
         return c130CargoZones;
         
       case 'kc30a':
-        // This case should never be reached as KC30A is handled in the if-condition above
-        // Return an empty array as a fallback
-        return [];
+        // KC30A layout based on cargo type
+        if (cargoType === "pallets") {
+          // For pallets: 8 positions in a single row
+          const kc30aPalletZones = [];
+          const config = getAircraftGridConfig('kc30a');
+          
+          // Create 8 positions in a single row
+          for (let i = 0; i < 8; i++) {
+            kc30aPalletZones.push({
+              id: i + 1,
+              position: { 
+                x: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+                y: 60 // Center vertically
+              },
+              occupied: false,
+              area: "cargo"
+            });
+          }
+          
+          return kc30aPalletZones;
+        } else {
+          // For LD3s: 26 positions in a 2x13 grid
+          const kc30aLD3Zones = [];
+          const config = getAircraftGridConfig('kc30a');
+          
+          // First row - 13 positions
+          for (let i = 0; i < 13; i++) {
+            kc30aLD3Zones.push({
+              id: i + 1,
+              position: { 
+                x: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+                y: 20
+              },
+              occupied: false,
+              area: "cargo"
+            });
+          }
+          
+          // Second row - 13 positions
+          for (let i = 0; i < 13; i++) {
+            kc30aLD3Zones.push({
+              id: i + 14, // IDs 14-26
+              position: { 
+                x: i * config.cellWidth + (config.cellWidth - config.palletWidth) / 2,
+                y: 110
+              },
+              occupied: false,
+              area: "cargo"
+            });
+          }
+          
+          return kc30aLD3Zones;
+        }
         
       default:
         // C-27J Spartan (default) - 3 slots
@@ -2524,23 +2574,15 @@ export default function LoadPlanningPage() {
                       </div>
                     ) : currentAircraftId === 'kc30a' ? (
                       <div className="absolute inset-0">
-                        {/* Grid cells for KC30-A */}
-                        {(() => {
-                          // Get configuration for KC30-A
-                          const config = getAircraftGridConfig('kc30a');
-                          const cellSpacing = config.cellWidth;
-                          
-                          // Choose layout based on cargo type
-                          if (cargoType === "pallets") {
-                            // For Pallets: single row of 8 positions
-                            return (
-                              <>
-                                {/* Single row - 8 positions */}
-                                {[...Array(8)].map((_, i) => {
-                                // Calculate position label for this grid cell
-                                const positionLabel = `P${i + 1}`;
-                                
-                                // Find if a pallet is assigned to this position
+                        {/* Different grid layout based on cargo type */}
+                        {cargoType === "pallets" ? (
+                          // Single row of 8 pallets layout
+                          <div className="absolute inset-0">
+                            {[...Array(8)].map((_, i) => {
+                              // Calculate position label for this grid cell
+                              const positionLabel = `P${i + 1}`;
+                              
+                              // Find if a pallet is assigned to this position
                                 const assignedPallet = pallets.find(p => 
                                   p.location === "cargo" && 
                                   p.positionLabel === positionLabel
