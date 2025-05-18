@@ -9,6 +9,15 @@ export interface AircraftConfig {
   useKg?: boolean; // Flag to indicate if this aircraft uses kg (true) or lbs (false/undefined)
 }
 
+// Conversion functions
+export const kgToLbs = (kg: number): number => {
+  return kg * 2.20462;
+};
+
+export const lbsToKg = (lbs: number): number => {
+  return lbs / 2.20462;
+};
+
 // Aircraft configurations
 export const aircraftConfigs: Record<string, AircraftConfig> = {
   c27j: {

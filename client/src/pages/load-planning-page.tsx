@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangleIcon } from "lucide-react";
 import LoadBalanceChat from "@/components/LoadBalanceChat";
+import { lbsToKg, kgToLbs } from "@/utils/aircraft-config";
 
 interface Pallet {
   id: number;
@@ -728,8 +729,9 @@ export default function LoadPlanningPage() {
     };
   }, []);
   
-  // Constant for base pallet weight - 136kg (300lbs)
-  const PALLET_BASE_WEIGHT = 136;
+  // Base pallet weight will use the appropriate unit based on aircraft type
+  // 136kg (300lbs)
+  const PALLET_BASE_WEIGHT = currentAircraftId === 'kc30a' ? 136 : 300;
   
   // Helper function to render pallet weight with base weight included
   const renderPalletWeight = (pallet: Pallet) => {
