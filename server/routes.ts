@@ -395,19 +395,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const submissionId = parseInt(req.params.id);
-      const submission = await storage.getScenarioSubmission(submissionId);
       
-      if (!submission) {
-        return res.status(404).json({ message: "Submission not found" });
+      // Use direct DB query to ensure reliable data retrieval
+      const { pool } = await import('./db');
+      
+      try {
+        // Directly query the database
+        const result = await pool.query(
+          `SELECT 
+            ss.id, 
+            ss.scenario_id AS "scenarioId", 
+            ss.user_id AS "userId", 
+            ss.submission_date AS "submissionDate", 
+            ss.answers,
+            ss.score, 
+            ss.student_name AS "studentName", 
+            ss.student_id AS "studentId", 
+            ss.instructor_feedback AS "instructorFeedback", 
+            ss.marked_answers AS "markedAnswers", 
+            ss.status, 
+            ss.passed,
+            s.title AS "scenarioTitle"
+          FROM 
+            scenario_submissions ss
+          LEFT JOIN
+            scenarios s ON ss.scenario_id = s.id
+          WHERE 
+            ss.id = $1`, 
+          [submissionId]
+        );
+        
+        // Check if submission exists
+        if (result.rows.length === 0) {
+          console.log(`Submission with ID ${submissionId} not found`);
+          return res.status(404).json({ message: "Submission not found" });
+        }
+        
+        const submission = result.rows[0];
+        
+        // Only admin or the user who submitted can view the submission
+        if (!req.user?.isAdmin && submission.userId !== req.user?.id) {
+          return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
+        }
+        
+        res.json(submission);
+      } catch (dbError) {
+        console.error("Database error retrieving submission:", dbError);
+        res.status(500).json({ message: "Database error retrieving submission" });
       }
-      
-      // Only admin or the user who submitted can view the submission
-      if (!req.user?.isAdmin && submission.userId !== req.user?.id) {
-        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
-      }
-      
-      res.json(submission);
     } catch (error) {
+      console.error("Error retrieving scenario submission:", error);
       res.status(500).json({ message: "Failed to retrieve scenario submission" });
     }
   });
