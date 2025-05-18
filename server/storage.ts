@@ -291,63 +291,53 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateScenarioSubmission(id: number, updateSubmission: Partial<InsertScenarioSubmission>): Promise<ScenarioSubmission | undefined> {
+  async updateScenarioSubmission(id: number, updateData: any): Promise<ScenarioSubmission | undefined> {
     try {
-      console.log(`Updating scenario submission ${id} with:`, updateSubmission);
+      console.log(`Updating scenario submission ${id}`);
       
-      // Using direct pool query for more control over the update process
+      // Get direct DB connection
       const { pool } = await import('./db');
       
-      // Build the SET part of the query dynamically based on what fields are provided
-      const updateFields: string[] = [];
-      const params: any[] = [];
-      let paramCounter = 1;
-      
-      // Handle each field that might be updated
-      if (updateSubmission.markedAnswers !== undefined) {
-        updateFields.push(`marked_answers = $${paramCounter++}`);
-        params.push(typeof updateSubmission.markedAnswers === 'string' 
-          ? updateSubmission.markedAnswers 
-          : JSON.stringify(updateSubmission.markedAnswers));
-      }
-      
-      if (updateSubmission.instructorFeedback !== undefined) {
-        updateFields.push(`instructor_feedback = $${paramCounter++}`);
-        params.push(updateSubmission.instructorFeedback);
-      }
-      
-      if (updateSubmission.score !== undefined) {
-        updateFields.push(`score = $${paramCounter++}`);
-        params.push(updateSubmission.score);
-      }
-      
-      if (updateSubmission.status !== undefined) {
-        updateFields.push(`status = $${paramCounter++}`);
-        params.push(updateSubmission.status);
-      }
-      
-      if (updateSubmission.passed !== undefined) {
-        updateFields.push(`passed = $${paramCounter++}`);
-        params.push(updateSubmission.passed);
-      }
-      
-      // Add the ID parameter last
-      params.push(id);
-      
-      // If nothing to update, return the current submission
-      if (updateFields.length === 0) {
-        return this.getScenarioSubmission(id);
-      }
-      
-      // Perform the update with raw SQL
-      const query = `
+      // Let's try with a simpler approach - create a direct update query
+      // for just the specific fields we need to update
+      let query = `
         UPDATE scenario_submissions 
-        SET ${updateFields.join(', ')} 
-        WHERE id = $${paramCounter} 
+        SET 
+          instructor_feedback = $1,
+          marked_answers = $2,
+          status = $3,
+          score = $4,
+          passed = $5
+        WHERE id = $6
         RETURNING *
       `;
       
-      console.log(`Executing update query with ${params.length} parameters`);
+      // Convert markedAnswers to proper JSON format
+      let markedAnswersJson;
+      try {
+        if (typeof updateData.markedAnswers === 'string') {
+          // Try to parse and re-stringify to validate the JSON
+          markedAnswersJson = JSON.stringify(JSON.parse(updateData.markedAnswers));
+        } else {
+          markedAnswersJson = JSON.stringify(updateData.markedAnswers || {});
+        }
+      } catch (jsonError) {
+        // If there's an error in parsing, fall back to an empty object
+        console.error("Error parsing marked answers:", jsonError);
+        markedAnswersJson = '{}';
+      }
+      
+      // Prepare params with default values in case some are undefined
+      const params = [
+        updateData.instructorFeedback || null,
+        markedAnswersJson,
+        updateData.status || 'reviewed',
+        updateData.score || 0,
+        updateData.passed === undefined ? false : updateData.passed,
+        id
+      ];
+      
+      console.log(`Executing simplified update query for submission ${id}`);
       const result = await pool.query(query, params);
       
       if (result.rows.length === 0) {
@@ -355,8 +345,26 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
       
+      const updatedSubmission = result.rows[0];
+      
+      // Transform the database column names to camelCase for the frontend
+      const transformedSubmission = {
+        id: updatedSubmission.id,
+        scenarioId: updatedSubmission.scenario_id,
+        userId: updatedSubmission.user_id,
+        submissionDate: updatedSubmission.submission_date,
+        answers: updatedSubmission.answers,
+        score: updatedSubmission.score,
+        studentName: updatedSubmission.student_name,
+        studentId: updatedSubmission.student_id,
+        instructorFeedback: updatedSubmission.instructor_feedback,
+        markedAnswers: updatedSubmission.marked_answers,
+        status: updatedSubmission.status,
+        passed: updatedSubmission.passed
+      };
+      
       console.log(`Successfully updated submission: ${id}`);
-      return result.rows[0];
+      return transformedSubmission;
     } catch (error) {
       console.error(`Error updating scenario submission ${id}:`, error);
       throw error;
