@@ -62,36 +62,11 @@ export default function StudentProgress() {
     queryKey: ["/api/scenarios"],
   });
   
-  // Add console logging to debug submissions
-  console.log("Raw submissions:", submissions);
+  // We need to use raw submissions data directly to ensure proper rendering
+  let filteredSubmissions = submissions;
   
-  // Filter submissions based on search term, scenario filter, and squadron filter
-  const filteredSubmissions = submissions?.filter(submission => {
-    // Add debug logging for each submission's filtering
-    console.log("Processing submission:", submission);
-    
-    const matchesSearch = 
-      (submission.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-       submission.studentId?.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesScenario = scenarioFilter === "all" || submission.scenarioId === scenarioFilter;
-    
-    // Check if submission matches the selected squadron
-    // Squadron info is stored in studentId field with format "ID - Squadron"
-    const matchesSquadron = 
-      squadronFilter === "AMG" || // AMG shows all submissions
-      (submission.studentId && submission.studentId.includes(` - ${squadronFilter}`));
-    
-    // Log the result of filtering
-    console.log(`Submission ID ${submission.id} filtering:`, { 
-      matchesSearch, 
-      matchesScenario, 
-      matchesSquadron,
-      result: matchesSearch && matchesScenario && matchesSquadron 
-    });
-    
-    return matchesSearch && matchesScenario && matchesSquadron;
-  });
+  // Log the raw data to help debugging
+  console.log("Raw submissions data:", JSON.stringify(submissions));
   
   // Calculate statistics
   const totalSubmissions = submissions?.length || 0;
