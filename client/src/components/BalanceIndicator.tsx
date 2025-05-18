@@ -62,9 +62,9 @@ export default function BalanceIndicator({
       
       {/* Balance Meter */}
       <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md">
-        {/* Container for the gradient background with overflow hidden - flipped direction for FWD right, AFT left */}
+        {/* Container for the gradient background with overflow hidden */}
         <div className="absolute inset-0 overflow-hidden" style={{ 
-          background: 'linear-gradient(to left, #ea580c 0%, #f59e0b 20%, #84cc16 40%, #22c55e 50%, #84cc16 60%, #f59e0b 80%, #ea580c 100%)'
+          background: 'linear-gradient(to right, #ea580c 0%, #f59e0b 20%, #84cc16 40%, #22c55e 50%, #84cc16 60%, #f59e0b 80%, #ea580c 100%)'
         }}></div>
         
         {/* Indicator needle - light blue/teal needle, extending equally past top and bottom */}
@@ -73,9 +73,9 @@ export default function BalanceIndicator({
           style={{ 
             backgroundColor: '#40C4D9', // Light blue/teal color
             width: '1px',
-            // For flipped scale (FWD right, AFT left): invert the percentage calculation
-            // Calculate position by inverting the scale: 100% - original calculation
-            left: `${100 - Math.max(0, Math.min(100, ((Math.max(18, Math.min(88, balanceCG)) - 18) / 70) * 100))}%`,
+            // Calculate constrained position to ensure needle stays within 18-88 degree visual range
+            // Map balanceCG (18-88) to percentage (0-100%), but clamp to never go outside these bounds
+            left: `${Math.max(0, Math.min(100, ((Math.max(18, Math.min(88, balanceCG)) - 18) / 70) * 100))}%`,
             top: '-50%', // Extends 50% above
             height: '200%', // Makes it extend 50% below as well
             transform: 'translateX(-50%)',
@@ -97,20 +97,19 @@ export default function BalanceIndicator({
           </div>
         </div>
         
-        {/* Labels - flipped so FWD is on right and AFT is on left */}
+        {/* Labels */}
         <div className="absolute inset-0 flex justify-between px-2 items-center text-[10px] font-medium text-white">
-          <span>AFT</span>
-          <span className="mx-auto">BALANCED</span>
           <span>FWD</span>
+          <span className="mx-auto">BALANCED</span>
+          <span>AFT</span>
         </div>
       </div>
       
-      {/* CG Scale Markings - flipped for FWD right, AFT left */}
+      {/* CG Scale Markings */}
       <div className="relative h-8 mb-4">
         {/* Generate tick marks and labels */}
         {[...Array(71)].map((_, i) => {
-          // Invert the position calculation for the flipped scale
-          const position = 100 - (i * (100 / 70)); // 100-0% across the width (right to left)
+          const position = i * (100 / 70); // 0-100% across the width
           const value = 18 + i; // 18-88 degrees
           const isMajorTick = value % 5 === 0; // Every 5th tick is major
           const isEndpoint = value === 18 || value === 88; // First or last value
