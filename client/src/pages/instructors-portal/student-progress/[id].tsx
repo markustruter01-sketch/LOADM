@@ -182,7 +182,7 @@ export default function SubmissionReview() {
       
       const payload = {
         instructorFeedback,
-        markedAnswers: JSON.stringify(markedAnswers),
+        markedAnswers: markedAnswers, // The server will handle JSON stringification if needed
         status: "reviewed",
         score,
         passed,
