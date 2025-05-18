@@ -220,18 +220,32 @@ export default function SubmissionReview() {
     saveReviewMutation.mutate();
   };
   
-  // Toggle answer correctness
+  // Toggle answer correctness with improved reactivity
   const toggleCorrectness = (questionId: string) => {
-    setMarkedAnswers(prev => ({
-      ...prev,
-      [questionId]: !prev[questionId]
-    }));
+    setMarkedAnswers(prev => {
+      const newState = {
+        ...prev,
+        [questionId]: !prev[questionId]
+      };
+      
+      // Log the update to help debug
+      console.log("Marked answers updated:", newState);
+      return newState;
+    });
   };
   
-  // Calculate current score
+  // Calculate current score and make it reactive to changes
   const correctAnswers = Object.values(markedAnswers).filter(Boolean).length || 0;
   const totalQuestions = questions.length || 0;
   const currentScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+  
+  // Log score calculation details to help debug
+  console.log("Score calculation:", { 
+    correctAnswers, 
+    totalQuestions, 
+    currentScore,
+    markedAnswers 
+  });
   
   // Clean up debug logs for production
   
