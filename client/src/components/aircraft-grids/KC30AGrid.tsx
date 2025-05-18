@@ -68,6 +68,7 @@ export default function KC30AGrid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  aircraftId="kc30a"
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("KC30A position clicked", { 
@@ -107,6 +108,7 @@ export default function KC30AGrid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  aircraftId="kc30a"
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("KC30A position clicked", { 

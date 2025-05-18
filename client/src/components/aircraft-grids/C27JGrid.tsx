@@ -63,6 +63,7 @@ export default function C27JGrid({
             assignedPallet={assignedPallet}
             cellStyle={cellStyle}
             onDragStart={onDragStart}
+            aircraftId="c27j"
             onClick={(e) => {
               if (assignedPallet) {
                 debugLog("C27J position clicked", { 

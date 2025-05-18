@@ -108,6 +108,7 @@ export default function C130Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+                  aircraftId="c130"
                   onClick={(e) => {
                     if (assignedPallet) {
                       debugLog("C130 position clicked", { 
