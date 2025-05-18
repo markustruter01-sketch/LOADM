@@ -3,9 +3,10 @@
 export interface AircraftConfig {
   id: string;
   name: string;
-  maxPayload: number; // kg
-  maxPalletWeight: number; // kg
+  maxPayload: number; // kg for KC30A, lbs for others
+  maxPalletWeight: number; // kg for KC30A, lbs for others
   positions: number; // Total number of pallet positions
+  useKg?: boolean; // Flag to indicate if this aircraft uses kg (true) or lbs (false/undefined)
 }
 
 // Aircraft configurations
@@ -13,30 +14,34 @@ export const aircraftConfigs: Record<string, AircraftConfig> = {
   c27j: {
     id: 'c27j',
     name: 'Spartan C-27J',
-    maxPayload: 11300, // kg
-    maxPalletWeight: 4536, // kg (10,000 lbs)
-    positions: 3
+    maxPayload: 24912, // lbs (converted from 11,300 kg)
+    maxPalletWeight: 10000, // lbs
+    positions: 3,
+    useKg: false
   },
   c17: {
     id: 'c17',
     name: 'Globemaster C-17',
-    maxPayload: 77500, // kg
-    maxPalletWeight: 10000, // kg
-    positions: 18
+    maxPayload: 170860, // lbs (converted from 77,500 kg)
+    maxPalletWeight: 22046, // lbs (converted from 10,000 kg)
+    positions: 18,
+    useKg: false
   },
   c130: {
     id: 'c130',
     name: 'Hercules C-130',
-    maxPayload: 20000, // kg
-    maxPalletWeight: 4536, // kg (10,000 lbs)
-    positions: 8
+    maxPayload: 44092, // lbs (converted from 20,000 kg)
+    maxPalletWeight: 10000, // lbs
+    positions: 8,
+    useKg: false
   },
   kc30a: {
     id: 'kc30a',
     name: 'Airbus KC30-A',
-    maxPayload: 45000, // kg
-    maxPalletWeight: 6800, // kg (15,000 lbs)
-    positions: 26
+    maxPayload: 45000, // kg (keeping as kg)
+    maxPalletWeight: 6800, // kg (keeping as kg)
+    positions: 26,
+    useKg: true
   }
 };
 
