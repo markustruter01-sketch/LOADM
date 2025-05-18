@@ -588,10 +588,11 @@ export default function LoadPlanningPage() {
       
       // Check if pallet weight exceeds maximum pallet capacity
       if (weightValue > MAX_PALLET_WEIGHT) {
+        const weightUnit = currentAircraftId === 'kc30a' ? 'kg' : 'lbs';
         showAlert(
           'error',
           'Pallet Weight Limit Exceeded',
-          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} kg.`
+          `The weight exceeds the maximum pallet capacity of ${MAX_PALLET_WEIGHT.toLocaleString()} ${weightUnit}.`
         );
         
         // Limit weight to max pallet capacity
@@ -606,10 +607,11 @@ export default function LoadPlanningPage() {
       // Check if total payload exceeds maximum aircraft capacity
       const totalWeight = otherPalletsWeight + weightValue;
       if (totalWeight > MAX_PAYLOAD) {
+        const weightUnit = currentAircraftId === 'kc30a' ? 'kg' : 'lbs';
         showAlert(
           'error',
           'Aircraft Payload Exceeded',
-          `The total weight (${totalWeight.toLocaleString()} kg) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} kg.`
+          `The total weight (${totalWeight.toLocaleString()} ${weightUnit}) exceeds the maximum payload capacity of ${MAX_PAYLOAD.toLocaleString()} ${weightUnit}.`
         );
         
         // Update weight but don't close dialog so user can adjust
@@ -739,12 +741,12 @@ export default function LoadPlanningPage() {
       <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
         {pallet.weight !== null ? (
           <>
-            <span>{pallet.weight} kg</span>
+            <span>{pallet.weight} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}</span>
             <span className="text-[9px] text-white/70 mt-0.5">
-              +136kg base
+              +{PALLET_BASE_WEIGHT} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'} base
             </span>
             <span className="text-[10px] text-white/90 mt-0.5">
-              Total: {pallet.weight + PALLET_BASE_WEIGHT} kg
+              Total: {pallet.weight + PALLET_BASE_WEIGHT} {currentAircraftId === 'kc30a' ? 'kg' : 'lbs'}
             </span>
           </>
         ) : (
