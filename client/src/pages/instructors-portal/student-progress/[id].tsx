@@ -54,6 +54,7 @@ export default function SubmissionReview() {
   const [instructorFeedback, setInstructorFeedback] = useState("");
   const [markedAnswers, setMarkedAnswers] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [manualPassFail, setManualPassFail] = useState<boolean | null>(null);
   
   // Fetch submission data
   const { data: submission, isLoading: isLoadingSubmission } = useQuery<ScenarioSubmission>({
@@ -63,6 +64,11 @@ export default function SubmissionReview() {
       // Initialize feedback if it exists
       if (data.instructorFeedback) {
         setInstructorFeedback(data.instructorFeedback);
+      }
+      
+      // Initialize pass/fail status if it exists
+      if (data.passed !== null) {
+        setManualPassFail(data.passed);
       }
       
       // Initialize marked answers if they exist
@@ -176,9 +182,14 @@ export default function SubmissionReview() {
       const correctAnswers = Object.values(markedAnswers).filter(Boolean).length;
       const score = Math.round((correctAnswers / totalQuestions) * 100);
       
-      // Determine if the student passed based on the scenario's passing threshold
+      // Use manual pass/fail if provided, otherwise calculate based on threshold
       const passingThreshold = scenario?.passingThreshold || 70; // Default to 70% if not set
-      const passed = score >= passingThreshold;
+      const passed = manualPassFail !== null ? manualPassFail : score >= passingThreshold;
+      
+      // Validate that pass/fail has been explicitly set
+      if (manualPassFail === null) {
+        throw new Error("Please mark the submission as Pass or Fail before submitting the review");
+      }
       
       const payload = {
         instructorFeedback,
@@ -197,18 +208,27 @@ export default function SubmissionReview() {
       
       toast({
         title: "Review Saved",
-        description: "Your feedback has been saved successfully",
+        description: `Your feedback has been saved successfully. The submission has been marked as ${manualPassFail ? 'Pass' : 'Fail'}.`,
       });
       
       // Navigate back to submissions list
       navigate("/instructors-portal/student-progress");
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to save review",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Special handling for missing pass/fail decision
+      if (error.message.includes("mark the submission as Pass or Fail")) {
+        toast({
+          title: "Action Required",
+          description: "Please mark the submission as Pass or Fail before submitting your review.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed to save review",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
   
@@ -543,8 +563,53 @@ export default function SubmissionReview() {
                         rows={8}
                         value={instructorFeedback}
                         onChange={(e) => setInstructorFeedback(e.target.value)}
-                        className="bg-background border-border text-foreground"
+                        className="bg-background border-border text-foreground mb-6"
                       />
+                      
+                      <div className="bg-muted p-4 rounded-md">
+                        <h4 className="font-semibold text-lg mb-3">Final Assessment Decision</h4>
+                        <p className="text-muted-foreground mb-4">
+                          Please mark this submission explicitly as Pass or Fail. This decision will be used for analytics.
+                        </p>
+                        
+                        <div className="flex space-x-10">
+                          <div 
+                            className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors ${
+                              manualPassFail === true ? 'bg-green-100 dark:bg-green-900' : 'hover:bg-muted-foreground/10'
+                            }`}
+                            onClick={() => setManualPassFail(true)}
+                          >
+                            <div className={`w-6 h-6 rounded-full ${
+                              manualPassFail === true ? 'bg-green-500' : 'border-2 border-muted-foreground'
+                            } flex items-center justify-center`}>
+                              {manualPassFail === true && (
+                                <CheckCircle className="w-4 h-4 text-white" />
+                              )}
+                            </div>
+                            <span className={`${manualPassFail === true ? 'font-semibold' : ''}`}>
+                              Pass
+                            </span>
+                          </div>
+                          
+                          <div 
+                            className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors ${
+                              manualPassFail === false ? 'bg-red-100 dark:bg-red-900' : 'hover:bg-muted-foreground/10'
+                            }`}
+                            onClick={() => setManualPassFail(false)}
+                          >
+                            <div className={`w-6 h-6 rounded-full ${
+                              manualPassFail === false ? 'bg-red-500' : 'border-2 border-muted-foreground'
+                            } flex items-center justify-center`}>
+                              {manualPassFail === false && (
+                                <XCircle className="w-4 h-4 text-white" />
+                              )}
+                            </div>
+                            <span className={`${manualPassFail === false ? 'font-semibold' : ''}`}>
+                              Fail
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
