@@ -1965,17 +1965,39 @@ export default function LoadPlanningPage() {
                     <SelectValue placeholder="Select position" />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* Generate position options based on current aircraft type */}
+                    {/* Generate position options based on current aircraft type and cargo type */}
                     {(() => {
                       const positions = [];
-                      const maxPositions = 
-                        currentAircraftId === 'c17' ? 18 : 
-                        currentAircraftId === 'c130' ? 8 : 
-                        currentAircraftId === 'kc30a' ? 26 : 3;
                       
-                      // Generate position labels based on aircraft type
-                      for (let i = 1; i <= maxPositions; i++) {
-                        positions.push(`P${i}`);
+                      // Determine max positions based on aircraft type and cargo type
+                      let maxPositions;
+                      if (currentAircraftId === 'kc30a') {
+                        // For KC30A, check the cargo type
+                        if (cargoType === 'pallets') {
+                          maxPositions = 8; // 8 positions for pallets
+                          // Generate position labels for KC30A pallets (P1-P8)
+                          for (let i = 1; i <= maxPositions; i++) {
+                            positions.push(`P${i}`);
+                          }
+                        } else {
+                          // For LD3s, generate 26 positions with L and R prefixes
+                          for (let i = 1; i <= 13; i++) {
+                            positions.push(`L${i}`); // Left side
+                          }
+                          for (let i = 1; i <= 13; i++) {
+                            positions.push(`R${i}`); // Right side
+                          }
+                        }
+                      } else {
+                        // For other aircraft types, use standard P-prefixed positions
+                        maxPositions = 
+                          currentAircraftId === 'c17' ? 18 : 
+                          currentAircraftId === 'c130' ? 8 : 3;
+                        
+                        // Generate position labels
+                        for (let i = 1; i <= maxPositions; i++) {
+                          positions.push(`P${i}`);
+                        }
                       }
                       
                       return positions.map(pos => (
