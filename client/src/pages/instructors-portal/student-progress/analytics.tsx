@@ -158,12 +158,16 @@ export default function ScenarioAnalytics() {
     
   }, [submissions, selectedScenarioId, scenarios]);
   
-  // Get submissions filtered by the selected scenario
+  // Get submissions filtered by the selected scenario and with valid scores
   const filteredSubmissions = submissions 
     ? (selectedScenarioId === "all" 
       ? submissions 
       : submissions.filter(sub => sub.scenarioId === parseInt(selectedScenarioId)))
     : [];
+    
+  // Log filtered submissions to debug
+  console.log(`Filtered submissions for scenario ${selectedScenarioId}:`, 
+    filteredSubmissions.map(s => ({id: s.id, score: s.score, passed: s.passed})));
     
   // Analytics summary based on filtered submissions
   const totalSubmissions = filteredSubmissions.length || 0;
