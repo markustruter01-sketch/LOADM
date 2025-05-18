@@ -3246,10 +3246,12 @@ export default function LoadPlanningPage() {
                 <div className="mt-2 p-2 bg-primary/10 border border-primary/20 rounded-md">
                   <p className="text-sm font-medium text-primary">
                     {currentAircraftId === 'c17' 
-                      ? 'C-17 Globemaster maximum payload is 77,500 kg with 18 pallet positions (9×2 grid).'
+                      ? 'C-17 Globemaster maximum payload is 77,500 lbs with 18 pallet positions (9×2 grid).'
                       : currentAircraftId === 'c130'
-                        ? 'C-130 Hercules maximum payload is 20,000 kg with 8 pallet positions.'
-                        : 'C-27J Spartan maximum payload is 11,300 kg with 3 pallet positions.'}
+                        ? 'C-130 Hercules maximum payload is 20,000 lbs with 8 pallet positions.'
+                        : currentAircraftId === 'c27j'
+                          ? 'C-27J Spartan maximum payload is 11,300 lbs with 3 pallet positions.'
+                          : 'KC30A maximum payload is 45,000 kg with 8 pallet positions or 26 LD3 positions.'}
                   </p>
                 </div>
               </CardContent>
