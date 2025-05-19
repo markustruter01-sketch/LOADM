@@ -156,19 +156,25 @@ export default function ScenarioManagement() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <Tabs defaultValue="training" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-                  <TabsTrigger value="training" className="flex items-center justify-center">
-                    <Book className="h-4 w-4 mr-2" />
+              <div>
+                <div className="bg-muted mb-6 p-1 rounded-lg inline-flex">
+                  <button 
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'training' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
+                    onClick={() => setActiveTab("training")}
+                  >
+                    <Book className="h-4 w-4 mr-2 inline-block" />
                     Training
-                  </TabsTrigger>
-                  <TabsTrigger value="assessment" className="flex items-center justify-center">
-                    <FileCheck className="h-4 w-4 mr-2" />
+                  </button>
+                  <button 
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'assessment' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
+                    onClick={() => setActiveTab("assessment")}
+                  >
+                    <FileCheck className="h-4 w-4 mr-2 inline-block" />
                     Assessment
-                  </TabsTrigger>
-                </TabsList>
+                  </button>
+                </div>
                 
-                <TabsContent value="training" className="mt-0">
+                {activeTab === "training" ? (
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
