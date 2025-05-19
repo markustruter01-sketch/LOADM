@@ -56,8 +56,8 @@ function Router() {
           <Route path="/cargo-manifest" component={DocumentsPage} /> {/* Keep old path working */}
           <Route path="/profile" component={ProfilePage} />
           <Route path="/tools" component={ToolsPage} />
-          <Route path="/tools/wam-calculator" component={lazy(() => import("@/pages/tools/wam-calculator"))} />
-          <Route path="/tools/vehicle-cgfa" component={lazy(() => import("@/pages/tools/vehicle-cgfa"))} />
+          <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
+          <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
