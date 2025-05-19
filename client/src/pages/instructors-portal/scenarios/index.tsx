@@ -30,12 +30,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -244,9 +238,7 @@ export default function ScenarioManagement() {
                       </TableBody>
                     </Table>
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="assessment" className="mt-0">
+                ) : (
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
@@ -316,8 +308,8 @@ export default function ScenarioManagement() {
                       </TableBody>
                     </Table>
                   </div>
-                </TabsContent>
-              </Tabs>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
