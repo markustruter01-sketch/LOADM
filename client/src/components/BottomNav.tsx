@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, FileText, ClipboardList, UserCircle, Package2, FileCheck } from "lucide-react";
+import { Home, FileText, ClipboardList, UserCircle, Package2, FileCheck, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
@@ -29,6 +29,12 @@ export default function BottomNav() {
       label: "Documents",
       icon: FileCheck,
       active: location === "/documents" || location === "/cargo-manifest" || location.startsWith("/documents/")
+    },
+    {
+      href: "/tools",
+      label: "Tools",
+      icon: Wrench,
+      active: location.startsWith("/tools")
     },
     {
       href: "/profile",

@@ -231,7 +231,7 @@ export default function ScenarioPage() {
           {/* Scenario Context Banner */}
           <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48">
             <img
-              src="https://pixabay.com/get/g6a2272a7a8db962bb9c0785fa61ec6059ba077c8a70ca935201dbd65e9850f594bbded54de005975f7cf116008f8b083eaefe8f8bb6ae27fb22b9e6d5262cb99_1280.jpg"
+              src="/air-freight-logistics.jpg"
               alt="Air freight logistics"
               className="w-full h-full object-cover"
             />

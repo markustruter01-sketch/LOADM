@@ -17,6 +17,7 @@ import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page"; // Changed name but kept file
 import ProfilePage from "@/pages/profile-page";
+import ToolsPage from "@/pages/tools-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
