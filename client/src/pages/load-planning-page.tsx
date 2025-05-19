@@ -856,30 +856,20 @@ export default function LoadPlanningPage() {
       }
       
       // Calculate weight moment for balance calculation
-      // The moment of each pallet should be directly proportional to its weight
+      // The moment of each pallet is directly proportional to its weight
       // This means a 10,000 lbs pallet has 2x the effect of a 5,000 lbs pallet
       // and a 2,500 lbs pallet has 1/4 the effect of a 10,000 lbs pallet
       
-      // Calculate moment (weight * position) - weight determines influence on balance
+      // Calculate moment (weight * position)
       totalWeightMoment += palletWeight * normalizedPosition;
       totalWeightInCargo += palletWeight;
-      
-      // Log the pallet's contribution to balance for debugging
-      console.log(`Pallet at ${pallet.positionLabel}: Weight=${palletWeight}, Position=${normalizedPosition.toFixed(2)}, Contribution=${(palletWeight * normalizedPosition).toFixed(2)}`);
     });
     
     // Calculate balance value (-100 to 100)
     let balance = 0;
     if (totalWeightInCargo > 0) {
-      // The critical fix: Use direct weight moment without dividing by total weight
-      // This ensures heavier pallets have more influence than lighter ones
-      // Previous approach normalized by weight which caused equalizing effect
-      balance = (totalWeightMoment / (totalWeightInCargo * 0.01));
-      
-      // Ensure balance stays within bounds (-100 to 100)
-      balance = Math.max(-100, Math.min(100, balance));
-      
-      console.log(`Balance calculation: TotalMoment=${totalWeightMoment.toFixed(2)}, TotalWeight=${totalWeightInCargo}, Balance=${balance.toFixed(2)}`);
+      // Normalize to -100 to 100 range and add dampening factor
+      balance = (totalWeightMoment / totalWeightInCargo) * 100;
     }
     
     setBalanceValue(balance);
