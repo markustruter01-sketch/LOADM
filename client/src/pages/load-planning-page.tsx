@@ -871,8 +871,15 @@ export default function LoadPlanningPage() {
     // Calculate balance value (-100 to 100)
     let balance = 0;
     if (totalWeightInCargo > 0) {
-      // Normalize to -100 to 100 range and add dampening factor
-      balance = (totalWeightMoment / totalWeightInCargo) * 100;
+      // The critical fix: Use direct weight moment without dividing by total weight
+      // This ensures heavier pallets have more influence than lighter ones
+      // Previous approach normalized by weight which caused equalizing effect
+      balance = (totalWeightMoment / (totalWeightInCargo * 0.01));
+      
+      // Ensure balance stays within bounds (-100 to 100)
+      balance = Math.max(-100, Math.min(100, balance));
+      
+      console.log(`Balance calculation: TotalMoment=${totalWeightMoment.toFixed(2)}, TotalWeight=${totalWeightInCargo}, Balance=${balance.toFixed(2)}`);
     }
     
     setBalanceValue(balance);
