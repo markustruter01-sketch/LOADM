@@ -53,6 +53,7 @@ function Router() {
           <Route path="/documents" component={DocumentsPage} /> {/* Renamed from cargo-manifest */}
           <Route path="/cargo-manifest" component={DocumentsPage} /> {/* Keep old path working */}
           <Route path="/profile" component={ProfilePage} />
+          <Route path="/tools" component={ToolsPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
