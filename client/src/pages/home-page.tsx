@@ -1,7 +1,16 @@
 import { Helmet } from "react-helmet";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileCheck, ClipboardList, Package2, UserCircle, Wrench, GraduationCap } from "lucide-react";
+import { 
+  FileCheck, 
+  ClipboardList, 
+  Package2, 
+  UserCircle, 
+  Wrench, 
+  GraduationCap,
+  BookOpen,
+  Plane 
+} from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
 
 export default function HomePage() {
