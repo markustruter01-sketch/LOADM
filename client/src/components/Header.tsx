@@ -3,6 +3,7 @@ import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import DownloadApp from "./DownloadApp";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,7 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center space-x-4">
+          <DownloadApp />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
