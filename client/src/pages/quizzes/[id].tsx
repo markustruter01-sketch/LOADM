@@ -23,7 +23,8 @@ export default function QuizPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<Record<string, {correct: boolean, correctAnswer: string}>>({});
+  const [feedback, setFeedback] = useState<Record<string, {correct: boolean, correctAnswer: string, yourAnswer: string}>>({});
+  const [submissionQuestions, setSubmissionQuestions] = useState<any[]>([]);
 
   const { data: quiz, isLoading } = useQuery({
     queryKey: [`/api/quizzes/${quizId}`],
@@ -92,6 +93,12 @@ export default function QuizPage() {
 
       setScore(response.score);
       setFeedback(response.feedback || {});
+      
+      // Store the submission questions for detailed feedback display
+      if (response.questions) {
+        setSubmissionQuestions(response.questions);
+      }
+      
       setQuizSubmitted(true);
       
       toast({
@@ -200,40 +207,76 @@ export default function QuizPage() {
             <div className="space-y-6">
               <h3 className="text-lg font-semibold mb-2">Question Feedback</h3>
               
-              {questions.map((question: any, index: number) => {
-                const questionFeedback = feedback?.[question.id] || {};
-                const isCorrect = !!questionFeedback.correct;
-                
-                return (
-                  <div 
-                    key={question.id} 
-                    className={`p-4 rounded-lg border ${
-                      isCorrect 
-                        ? "border-green-500/30 bg-green-500/10" 
-                        : "border-red-500/30 bg-red-500/10"
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className={`mt-1 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
-                        {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium mb-2">Question {index + 1}: {question.question}</p>
-                        <div className="mb-2">
-                          <p className="text-sm font-medium">
-                            Your answer: {questionFeedback.yourAnswer || question.options && question.options[Number(answers[question.id])]}
-                          </p>
-                          {!isCorrect && (
-                            <p className="text-sm font-medium text-green-500">
-                              Correct answer: {questionFeedback.correctAnswer || "Not available"}
+              {submissionQuestions.length > 0 ? (
+                // Use the enhanced questions data from submission response
+                submissionQuestions.map((item: any, index: number) => {
+                  return (
+                    <div 
+                      key={item.questionId} 
+                      className={`p-4 rounded-lg border ${
+                        item.isCorrect 
+                          ? "border-green-500/30 bg-green-500/10" 
+                          : "border-red-500/30 bg-red-500/10"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className={`mt-1 ${item.isCorrect ? "text-green-500" : "text-red-500"}`}>
+                          {item.isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium mb-2">Question {index + 1}: {item.questionText}</p>
+                          <div className="mb-2">
+                            <p className="text-sm font-medium">
+                              Your answer: {item.yourAnswer}
                             </p>
-                          )}
+                            {!item.isCorrect && (
+                              <p className="text-sm font-medium text-green-500">
+                                Correct answer: {item.correctAnswer}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                // Fallback to using questions if submission data is not available
+                questions.map((question: any, index: number) => {
+                  const questionFeedback = feedback?.[question.id] || {};
+                  const isCorrect = !!questionFeedback.correct;
+                  
+                  return (
+                    <div 
+                      key={question.id} 
+                      className={`p-4 rounded-lg border ${
+                        isCorrect 
+                          ? "border-green-500/30 bg-green-500/10" 
+                          : "border-red-500/30 bg-red-500/10"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className={`mt-1 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+                          {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium mb-2">Question {index + 1}: {question.question}</p>
+                          <div className="mb-2">
+                            <p className="text-sm font-medium">
+                              Your answer: {questionFeedback.yourAnswer || (question.options && question.options[Number(answers[question.id])])}
+                            </p>
+                            {!isCorrect && (
+                              <p className="text-sm font-medium text-green-500">
+                                Correct answer: {questionFeedback.correctAnswer || "Not available"}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
