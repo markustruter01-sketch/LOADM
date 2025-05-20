@@ -46,12 +46,9 @@ export default function Header() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
-                  <Link href="/instructors-portal">
-                    <div className="w-full cursor-pointer" onClick={(e) => {
-                      // Set a flag in localStorage to indicate we're navigating to the instructors portal
-                      localStorage.setItem('navigatingToInstructorsPortal', 'true');
-                    }}>Instructors Portal</div>
-                  </Link>
+                  <div className="w-full cursor-pointer" onClick={() => {
+                    window.location.href = "/instructors-portal";
+                  }}>Instructors Portal</div>
                 </DropdownMenuItem>
                 {user.isAdmin && (
                   <>

@@ -59,21 +59,24 @@ export default function BottomNav() {
           </Link>
         ))}
         
-        {/* Add Instructor Portal button if user is authenticated and authorized */}
-        {user && (user.isAdmin || user.isSuperAdmin) && (
-          <Link href="/instructors-portal">
-            <div className="flex flex-col items-center justify-center w-full p-2 cursor-pointer">
-              <div 
-                className={cn(
-                  "flex flex-col items-center justify-center",
-                  location.startsWith("/instructors-portal") ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <GraduationCap className="h-5 w-5 mb-1" />
-                <span className="text-xs">Instructor</span>
-              </div>
+        {/* Add Instructor Portal button for all logged-in users */}
+        {user && (
+          <div 
+            className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
+            onClick={() => {
+              window.location.href = "/instructors-portal";
+            }}
+          >
+            <div 
+              className={cn(
+                "flex flex-col items-center justify-center",
+                location.startsWith("/instructors-portal") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <GraduationCap className="h-5 w-5 mb-1" />
+              <span className="text-xs">Instructor</span>
             </div>
-          </Link>
+          </div>
         )}
       </div>
     </div>
