@@ -325,7 +325,7 @@ export default function QuizPage() {
                   <Card key={question.id} className="border-gray-800">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg">
-                        Question {index + 1}: {question.text}
+                        Question {index + 1}: {question.question}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
