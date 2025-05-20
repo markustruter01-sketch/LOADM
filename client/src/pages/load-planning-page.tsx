@@ -1034,7 +1034,7 @@ export default function LoadPlanningPage() {
   
   const handleDrop = (e: React.DragEvent, dropArea: "cargo" | "configure") => {
     e.preventDefault();
-    console.log("Drop event triggered:", dropArea);
+    // Process drop event
     
     const dataTransfer = e.dataTransfer.getData("text/plain");
     
@@ -1198,7 +1198,7 @@ export default function LoadPlanningPage() {
               palletSize.width = config.palletWidth;
               palletSize.height = config.palletHeight;
               
-              console.log(`KC30-A pallet (pallets config) dropped at column ${cellColumn}, position ${positionLabel}`);
+              // Handle KC30-A pallet drop in pallets configuration
             } else {
               // For "ld3s" type: Original 2x13 grid
               // Determine which row based on drop position
@@ -1225,7 +1225,7 @@ export default function LoadPlanningPage() {
               palletSize.width = config.palletWidth;
               palletSize.height = config.palletHeight;
               
-              console.log(`KC30-A pallet (LD3s config) dropped at row ${cellRow}, column ${cellColumn}, position ${positionLabel}`);
+              // Handle KC30-A pallet drop in LD3s configuration
             }
           } else {
             // For C-27J (single row of 3 pallets)
@@ -1418,15 +1418,11 @@ export default function LoadPlanningPage() {
               cellY = 20 + cellHeight/2; // Center of cell
             }
             
-            // Log the coordinates for debugging
-            console.log(`Cell P${col+1} center: (${cellX}, ${cellY}), Drop position: (${dropX}, ${dropY})`);
-            
+            // Calculate distance between drop position and cell center
             const distance = Math.sqrt(
               Math.pow(dropX - cellX, 2) + 
               Math.pow(dropY - cellY, 2)
             );
-            
-            console.log(`Distance to P${col+1}: ${distance}, Current closest: ${closestDistance}`);
             
             if (distance < closestDistance) {
               closestDistance = distance;
@@ -1463,7 +1459,7 @@ export default function LoadPlanningPage() {
                 snapY = 20 + (cellHeight - dimensions.height) / 2;
               }
               
-              console.log(`Setting position to P${col+1}, snapX: ${snapX}, snapY: ${snapY}`);
+              // Set position coordinates for snap
             }
           }
         }
