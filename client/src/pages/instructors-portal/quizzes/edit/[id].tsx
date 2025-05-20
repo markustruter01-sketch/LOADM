@@ -122,7 +122,7 @@ export default function EditQuizPage() {
       await apiRequest({
         url: `/api/quizzes/${quizId}`,
         method: 'PUT',
-        body: {
+        data: {
           title: data.title,
           description: data.description || "",
           questionCount: data.questionCount,

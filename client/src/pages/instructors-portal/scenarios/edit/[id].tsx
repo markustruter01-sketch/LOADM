@@ -106,7 +106,11 @@ export default function EditScenario() {
       // Update the numberOfQuestions field to match the actual number of questions
       data.numberOfQuestions = data.questions.length;
       
-      const res = await apiRequest("PUT", `/api/scenarios/${scenarioId}`, data);
+      const res = await apiRequest({
+        method: "PUT",
+        url: `/api/scenarios/${scenarioId}`,
+        data: data
+      });
       return res.json();
     },
     onSuccess: () => {
