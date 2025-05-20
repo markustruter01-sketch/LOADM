@@ -11,11 +11,11 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
   return (
     <div className="bg-card rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
       {/* Banner */}
-      <div className="bg-gradient-to-r from-blue-950 to-indigo-900 p-4">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-4">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/20 p-2 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+            <div className="bg-orange-500/20 p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
                 <rect width="16" height="16" x="4" y="4" rx="2"/>
                 <rect width="6" height="6" x="9" y="9" rx="1"/>
                 <path d="M15 4v16"/>
@@ -24,7 +24,7 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
             </div>
             <span className="text-xs font-medium">{scenario.numberOfQuestions} questions</span>
           </div>
-          <Badge variant="outline" className="bg-amber-500/20 text-amber-400 border-amber-500/20">
+          <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/20">
             Scenario
           </Badge>
         </div>
