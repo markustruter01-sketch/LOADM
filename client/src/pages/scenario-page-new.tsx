@@ -113,7 +113,7 @@ export default function ScenarioPage() {
       const response = await apiRequest({
         method: "POST",
         url: "/api/scenario-submissions",
-        data: payload
+        body: payload
       });
       
       // Calculate score for multiple choice questions
