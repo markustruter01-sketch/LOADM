@@ -93,7 +93,42 @@ export default function DocumentMenu() {
       description: "Calculate and document aircraft weight distribution and balance.",
       path: "/cargo-manifest#weight-balance-sheet-form",
     },
-
+    {
+      id: 5,
+      title: "Special Handling Form",
+      description: "Document special handling requirements for unusual cargo types or sensitive items.",
+      path: "/cargo-manifest#special-handling-form",
+    },
+    {
+      id: 6,
+      title: "Aircraft Tie-Down Diagram",
+      description: "Detailed cargo restraint planning diagram with tie-down points and calculations.",
+      path: "/cargo-manifest#tie-down-diagram-form",
+    },
+    {
+      id: 7,
+      title: "Cargo Compatibility Checklist",
+      description: "Verify compatibility between different cargo types for mixed loads.",
+      path: "/cargo-manifest#compatibility-checklist-form",
+    },
+    {
+      id: 8,
+      title: "Shoring Requirements Worksheet",
+      description: "Calculate and document shoring requirements for heavy or concentrated loads.",
+      path: "/cargo-manifest#shoring-worksheet-form",
+    },
+    {
+      id: 9,
+      title: "Hazard Certification Form",
+      description: "Certification of hazardous materials for air transport compliance.",
+      path: "/cargo-manifest#hazard-certification-form",
+    },
+    {
+      id: 10,
+      title: "Aircraft Loading Deviation Request",
+      description: "Request and document approval for non-standard loading configurations.",
+      path: "/cargo-manifest#loading-deviation-form",
+    },
   ];
 
   return (
