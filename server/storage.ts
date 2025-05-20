@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, documents, type Document, type InsertDocument, scenarios, type Scenario, type InsertScenario, documentSubmissions, type DocumentSubmission, type InsertDocumentSubmission, scenarioSubmissions, type ScenarioSubmission, type InsertScenarioSubmission } from "@shared/schema";
+import { users, type User, type InsertUser, documents, type Document, type InsertDocument, scenarios, type Scenario, type InsertScenario, documentSubmissions, type DocumentSubmission, type InsertDocumentSubmission, scenarioSubmissions, type ScenarioSubmission, type InsertScenarioSubmission, quizzes, type Quiz, type InsertQuiz, quizSubmissions, type QuizSubmission, type InsertQuizSubmission } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -382,6 +382,49 @@ export class DatabaseStorage implements IStorage {
       console.error(`Error updating scenario submission ${id}:`, error);
       throw error;
     }
+  }
+
+  // Quiz Management Methods
+  async getQuizzes(activeOnly: boolean = false): Promise<Quiz[]> {
+    // We'll use our dedicated storage-quiz module for this
+    const { getQuizzes } = await import('./storage-quiz');
+    return getQuizzes(activeOnly);
+  }
+
+  async getQuiz(id: number): Promise<Quiz | undefined> {
+    const { getQuiz } = await import('./storage-quiz');
+    return getQuiz(id);
+  }
+
+  async createQuiz(quiz: InsertQuiz): Promise<Quiz> {
+    const { createQuiz } = await import('./storage-quiz');
+    return createQuiz(quiz);
+  }
+
+  async updateQuiz(id: number, quiz: Partial<InsertQuiz>): Promise<Quiz | undefined> {
+    const { updateQuiz } = await import('./storage-quiz');
+    return updateQuiz(id, quiz);
+  }
+
+  async deleteQuiz(id: number): Promise<boolean> {
+    const { deleteQuiz } = await import('./storage-quiz');
+    return deleteQuiz(id);
+  }
+
+  // Quiz Submission Methods
+  async getQuizSubmissions(quizId?: number, userId?: number): Promise<QuizSubmission[]> {
+    const { getQuizSubmissions } = await import('./storage-quiz');
+    return getQuizSubmissions(quizId, userId);
+  }
+
+  async getQuizSubmission(id: number): Promise<QuizSubmission | undefined> {
+    const { getQuizSubmission } = await import('./storage-quiz');
+    return getQuizSubmission(id);
+  }
+
+  async createQuizSubmission(submission: InsertQuizSubmission): Promise<QuizSubmission> {
+    const { createQuizSubmission } = await import('./storage-quiz');
+    return createQuizSubmission(submission);
   }
 }
 

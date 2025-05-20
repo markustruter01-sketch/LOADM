@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger 
 } from "@/components/ui/alert-dialog";
-import InstructorLayout from "@/components/InstructorLayout";
+import InstructorLayout from "../../../components/InstructorLayout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -28,7 +28,7 @@ export default function InstructorQuizzes() {
 
   const { data: quizzes, isLoading } = useQuery({
     queryKey: ['/api/quizzes'],
-    queryFn: ({ signal }) => fetch('/api/quizzes', { signal }).then(res => res.json()),
+    queryFn: ({ queryKey, signal }) => fetch('/api/quizzes', { signal }).then(res => res.json()),
   });
 
   const handleDeleteQuiz = async (id: number) => {
@@ -81,7 +81,7 @@ export default function InstructorQuizzes() {
   };
 
   return (
-    <InstructorLayout>
+    <InstructorLayout title="Pop Quizzes">
       <Helmet>
         <title>Pop Quizzes - Instructor Portal | LOADMworkflow</title>
         <meta name="description" content="Create and manage pop quizzes for loadmaster training" />

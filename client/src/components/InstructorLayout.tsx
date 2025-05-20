@@ -1,73 +1,53 @@
-import { ReactNode } from "react";
-import { Link, useLocation } from "wouter";
-import { BookOpenText, UserCog, BarChart3, FolderCheck, BookOpen } from "lucide-react";
+import { Link, useLocation } from 'wouter';
+import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface InstructorLayoutProps {
   children: ReactNode;
+  title: string;
 }
 
-export default function InstructorLayout({ children }: InstructorLayoutProps) {
+export default function InstructorLayout({ children, title }: InstructorLayoutProps) {
   const [location] = useLocation();
 
   const menuItems = [
-    {
-      name: "Overview",
-      path: "/instructors-portal",
-      icon: <BookOpenText className="h-5 w-5" />,
-    },
-    {
-      name: "Scenarios",
-      path: "/instructors-portal/scenarios",
-      icon: <FolderCheck className="h-5 w-5" />,
-    },
-    {
-      name: "Pop Quizzes",
-      path: "/instructors-portal/quizzes",
-      icon: <BookOpen className="h-5 w-5" />,
-    },
-    {
-      name: "Student Progress",
-      path: "/instructors-portal/student-progress",
-      icon: <BarChart3 className="h-5 w-5" />,
-    },
+    { name: 'Dashboard', path: '/instructors-portal' },
+    { name: 'Scenario Submissions', path: '/instructors-portal/submissions' },
+    { name: 'Document Submissions', path: '/instructors-portal/document-submissions' },
+    { name: 'Pop Quizzes', path: '/instructors-portal/quizzes' }
   ];
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-10rem)]">
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white p-4">
-        <div className="container mx-auto">
-          <h1 className="text-xl font-bold flex items-center">
-            <UserCog className="mr-2 h-6 w-6 text-orange-500" />
-            Instructor Portal
-          </h1>
-        </div>
-      </div>
-
-      <div className="bg-muted/30 border-b">
-        <div className="container mx-auto overflow-x-auto">
-          <nav className="flex space-x-1 p-2">
-            {menuItems.map((item) => (
-              <Link key={item.path} href={item.path}>
-                <a
-                  className={`flex items-center py-2 px-3 whitespace-nowrap rounded-md text-sm font-medium transition-colors ${
-                    (location === item.path || 
-                     (item.path !== "/instructors-portal" && location.startsWith(item.path)))
-                      ? "bg-orange-500/10 text-orange-500"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {item.icon}
-                  <span className="ml-2">{item.name}</span>
-                </a>
-              </Link>
-            ))}
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="bg-gray-100 p-6 rounded-lg shadow-sm w-full md:w-1/5">
+          <h2 className="text-xl font-bold mb-4 text-orange-700">Instructor Portal</h2>
+          <nav>
+            <ul className="space-y-2">
+              {menuItems.map(item => (
+                <li key={item.path}>
+                  <Link
+                    href={item.path}
+                    className={cn(
+                      "block px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                      location === item.path
+                        ? "bg-orange-600 text-white"
+                        : "text-gray-700 hover:bg-orange-100 hover:text-orange-600"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </nav>
         </div>
-      </div>
 
-      <main className="flex-1 bg-background">
-        {children}
-      </main>
+        <div className="bg-white p-6 rounded-lg shadow-sm w-full md:w-4/5">
+          <h1 className="text-2xl font-bold mb-6 text-gray-800">{title}</h1>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
