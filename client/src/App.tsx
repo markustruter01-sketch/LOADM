@@ -1,10 +1,14 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { createOfflineQueryClient } from "./lib/offlineQueryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+
+// Create query client with offline support
+const queryClient = createOfflineQueryClient();
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
+import { OfflineProvider } from "@/hooks/use-offline";
 import WAMCalculatorPage from "@/pages/tools/wam-calculator";
 import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
 import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
@@ -50,12 +54,14 @@ import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
+import OfflineStatus from "@/components/OfflineStatus";
 
 function Router() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow">
+        <OfflineStatus />
         <Switch>
           <Route path="/" component={HomePage} />
           <Route path="/auth" component={AuthPage} />
@@ -115,10 +121,12 @@ function App() {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <OfflineProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </OfflineProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
