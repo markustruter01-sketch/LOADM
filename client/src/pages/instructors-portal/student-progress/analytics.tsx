@@ -165,19 +165,18 @@ export default function ScenarioAnalytics() {
       : submissions.filter(sub => sub.scenarioId === parseInt(selectedScenarioId)))
     : [];
     
-  // Log filtered submissions to debug
-  console.log(`Filtered submissions for scenario ${selectedScenarioId}:`, 
-    filteredSubmissions.map(s => ({id: s.id, score: s.score, passed: s.passed})));
-    
-  // Additional logging to debug score calculation
-  console.log("Total score sum:", filteredSubmissions.reduce((sum, sub) => sum + (sub.score || 0), 0));
-  console.log("Number of submissions:", filteredSubmissions.length);
-  console.log("Submissions with scores:", filteredSubmissions.filter(sub => sub.score !== undefined && sub.score !== null).length);
+  // Statistics are calculated based on filtered submission data
     
   // Analytics summary based on filtered submissions
   const totalSubmissions = filteredSubmissions.length || 0;
-  const averageScore = filteredSubmissions.length > 0
-    ? filteredSubmissions.reduce((sum, sub) => sum + (sub.score || 0), 0) / filteredSubmissions.length
+  
+  // Calculate average score only from submissions that have scores
+  const submissionsWithScores = filteredSubmissions.filter(sub => 
+    sub.score !== undefined && sub.score !== null && !isNaN(Number(sub.score))
+  );
+  
+  const averageScore = submissionsWithScores.length > 0
+    ? submissionsWithScores.reduce((sum, sub) => sum + Number(sub.score || 0), 0) / submissionsWithScores.length
     : 0;
     
   // Find the scenarios for the submissions to get their passing thresholds

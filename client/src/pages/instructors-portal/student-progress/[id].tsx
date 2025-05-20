@@ -258,8 +258,6 @@ export default function SubmissionReview() {
         [questionId]: !prev[questionId]
       };
       
-      // Log the update to help debug
-      console.log("Marked answers updated:", newState);
       return newState;
     });
   };
@@ -275,15 +273,7 @@ export default function SubmissionReview() {
     return totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
   }, [correctAnswers, totalQuestions]);
   
-  // Log score calculation details to help debug
-  console.log("Score calculation:", { 
-    correctAnswers, 
-    totalQuestions, 
-    currentScore,
-    markedAnswers 
-  });
-  
-  // Clean up debug logs for production
+  // Score calculation is now reactive to marking changes
   
   if (isLoadingSubmission) {
     return (
