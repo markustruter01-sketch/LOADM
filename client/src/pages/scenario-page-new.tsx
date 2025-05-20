@@ -229,29 +229,16 @@ export default function ScenarioPage() {
           </div>
 
           {/* Scenario Context Banner */}
-          <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48">
-            <img
-              src="/loadmaster-banner.jpg"
-              alt="Aircraft loadmaster operations"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.onerror = null;
-                target.style.display = 'none';
-                // Add a fallback background color
-                target.parentElement!.style.backgroundColor = '#0f172a';
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 to-slate-800/50"></div>
-            <div className="absolute inset-0 flex items-end">
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-2">
+          <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-xl overflow-hidden shadow-xl mb-8 p-6">
+            <div className="flex flex-col">
+              <div className="mb-2">
+                <h3 className="text-xl font-bold text-foreground">
                   Scenario: {scenario.title}
                 </h3>
-                <p className="text-muted-foreground max-w-xl">
-                  {scenario.description}
-                </p>
               </div>
+              <p className="text-muted-foreground max-w-xl">
+                {scenario.description}
+              </p>
             </div>
           </div>
 
