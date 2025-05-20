@@ -131,10 +131,11 @@ router.get('/:id/questions', async (req, res) => {
       Math.min(quiz.questionCount, filteredQuestions.length)
     );
     
-    // Remove correct answers before sending to client
-    const quizQuestions = selectedQuestions.map(({ correctAnswer, ...question }) => ({
-      ...question,
-      id: question.id // Keep original ID for grading
+    // Include full question data but remove correctAnswer for security
+    const quizQuestions = selectedQuestions.map(({ correctAnswer, ...rest }) => ({
+      ...rest,
+      // Ensure we keep the ID for answer matching
+      id: rest.id
     }));
     
     res.json(quizQuestions);
