@@ -74,11 +74,18 @@ export default function QuizPage() {
 
     try {
       setIsSubmitting(true);
+      // Convert answers from record to array format expected by the server
+      const answersArray = Object.entries(answers).map(([questionId, answeredOption]) => ({
+        questionId,
+        answeredOption: parseInt(answeredOption) || answeredOption // Try to convert to number if possible
+      }));
+      
       const response = await apiRequest({
         url: `/api/quizzes/${quizId}/submit`,
         method: 'POST',
         data: {
-          answers,
+          userId: user.id,
+          answers: answersArray,
           squadron
         }
       });
