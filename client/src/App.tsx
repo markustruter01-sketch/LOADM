@@ -7,6 +7,10 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import WAMCalculatorPage from "@/pages/tools/wam-calculator";
 import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
+import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
+import DrumPsiCalculatorPage from "@/pages/tools/drum-psi";
+import SkiddedBoxPsiCalculatorPage from "@/pages/tools/skidded-box-psi";
+import TirePsiCalculatorPage from "@/pages/tools/tire-psi";
 
 import HomePage from "@/pages/home-page";
 import NotFound from "@/pages/not-found";
@@ -58,6 +62,10 @@ function Router() {
           <Route path="/tools" component={ToolsPage} />
           <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
           <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
+          <Route path="/tools/box-psi" component={BoxPsiCalculatorPage} />
+          <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
+          <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
+          <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
