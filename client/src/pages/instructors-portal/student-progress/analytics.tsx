@@ -169,6 +169,11 @@ export default function ScenarioAnalytics() {
   console.log(`Filtered submissions for scenario ${selectedScenarioId}:`, 
     filteredSubmissions.map(s => ({id: s.id, score: s.score, passed: s.passed})));
     
+  // Additional logging to debug score calculation
+  console.log("Total score sum:", filteredSubmissions.reduce((sum, sub) => sum + (sub.score || 0), 0));
+  console.log("Number of submissions:", filteredSubmissions.length);
+  console.log("Submissions with scores:", filteredSubmissions.filter(sub => sub.score !== undefined && sub.score !== null).length);
+    
   // Analytics summary based on filtered submissions
   const totalSubmissions = filteredSubmissions.length || 0;
   const averageScore = filteredSubmissions.length > 0
