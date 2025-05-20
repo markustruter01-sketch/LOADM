@@ -151,13 +151,6 @@ router.post('/:id/submit', async (req, res) => {
     const quizId = parseInt(req.params.id);
     const { userId, answers, squadron } = req.body;
     
-    console.log("Quiz submission received:", {
-      quizId,
-      userId,
-      answersCount: answers?.length,
-      answers
-    });
-    
     if (!userId || !answers || !Array.isArray(answers)) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -167,81 +160,108 @@ router.post('/:id/submit', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    // Calculate score and prepare feedback
+    // Get all questions for this quiz's categories
+    const allPossibleQuestions = loadmasterQuestions.filter(q => 
+      quiz.categories.includes(q.category)
+    );
+    
+    // Initialize scoring variables
     let correctCount = 0;
-    const feedback: Record<string, { correct: boolean; correctAnswer: string }> = {};
+    const feedback: Record<string, { 
+      correct: boolean; 
+      correctAnswer: string;
+      yourAnswer: string;
+    }> = {};
     
-    // Log the questions being processed
-    console.log(`Processing quiz with categories:`, quiz.categories);
-    
-    // Check each submitted answer against the master question bank
+    // Process each answer
     for (const answer of answers) {
       const { questionId, answeredOption } = answer;
-      console.log(`Processing answer for question ID: ${questionId}`);
       
-      // Find the matching question from the full question bank
-      const question = loadmasterQuestions.find(q => q.id === questionId);
+      // Find the question in the full question bank by ID
+      const question = allPossibleQuestions.find(q => q.id === questionId);
       
       if (!question) {
-        console.log(`Question not found: ${questionId}`);
+        console.error(`Question with ID ${questionId} not found in the question bank`);
         continue;
       }
       
-      console.log(`Found question: ${question.question}`);
-      console.log(`Options:`, question.options);
-      console.log(`Correct answer index: ${question.correctAnswer}`);
+      // Get the correct answer index as a number
+      const correctAnswerIndex = Number(question.correctAnswer);
       
-      // Normalize the answer values for comparison
-      const correctIndex = Number(question.correctAnswer);
-      const userIndex = Number(answeredOption);
+      // Convert user answer to a number for comparison
+      const userAnswerIndex = Number(answeredOption);
       
-      // Check if answer is correct
-      const isCorrect = correctIndex === userIndex;
+      // Check if the answer is correct
+      const isCorrect = correctAnswerIndex === userAnswerIndex;
       
+      // Add to score if correct
       if (isCorrect) {
         correctCount++;
-        console.log(`Correct answer! +1 to score`);
-      } else {
-        console.log(`Incorrect answer. User answered: ${userIndex}, correct is: ${correctIndex}`);
       }
       
-      // Get the correct answer text
+      // Prepare answer text for feedback
       let correctAnswerText = "Not available";
+      let userAnswerText = "Not selected";
       
-      if (question.options && 
-          Array.isArray(question.options) && 
-          correctIndex >= 0 && 
-          correctIndex < question.options.length) {
-        correctAnswerText = question.options[correctIndex];
-        console.log(`Correct answer text: "${correctAnswerText}"`);
-      } else {
-        console.log(`Could not find correct answer text in options array`);
+      // Get the correct answer text from the options array
+      if (Array.isArray(question.options) && 
+          correctAnswerIndex >= 0 && 
+          correctAnswerIndex < question.options.length) {
+        correctAnswerText = question.options[correctAnswerIndex];
       }
       
-      // Store feedback for this question
+      // Get the user's answer text
+      if (Array.isArray(question.options) && 
+          userAnswerIndex >= 0 && 
+          userAnswerIndex < question.options.length) {
+        userAnswerText = question.options[userAnswerIndex];
+      }
+      
+      // Store detailed feedback for this question
       feedback[questionId] = {
         correct: isCorrect,
-        correctAnswer: correctAnswerText
+        correctAnswer: correctAnswerText,
+        yourAnswer: userAnswerText
       };
     }
     
+    // Calculate final score
     const score = Math.round((correctCount / answers.length) * 100);
     
-    // Save submission
+    console.log("Quiz feedback:", JSON.stringify(feedback, null, 2));
+    
+    // Store questions with feedback to help debug client display
+    const submissionQuestions = answers.map(answer => {
+      const question = allPossibleQuestions.find(q => q.id === answer.questionId);
+      const answerFeedback = feedback[answer.questionId];
+      
+      return {
+        questionId: answer.questionId,
+        questionText: question?.question || "Unknown Question",
+        yourAnswer: answerFeedback?.yourAnswer || "Not recorded",
+        correctAnswer: answerFeedback?.correctAnswer || "Not available",
+        isCorrect: answerFeedback?.correct || false
+      };
+    });
+    
+    // Save submission with basic data
     const submission = await quizStorage.createQuizSubmission({
       quizId,
       userId,
-      answers,
       score,
+      totalQuestions: answers.length,
       squadron: squadron || 'AMG'
     });
     
+    // Return enhanced response with detailed feedback
     res.status(201).json({
       id: submission.id,
       score,
       correctCount,
       totalQuestions: answers.length,
-      feedback
+      feedback,
+      // Include additional data to help client display
+      questions: submissionQuestions
     });
   } catch (error) {
     console.error(`Error submitting quiz ${req.params.id}:`, error);
