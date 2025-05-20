@@ -40,44 +40,59 @@ export default function BottomNav() {
     }
   ];
 
+  // Create a combined array of all navigation items for consistent spacing
+  const allNavItems = [...navItems];
+  
+  // Add the Instructor Portal item to the navigation array if user is logged in
+  if (user) {
+    allNavItems.push({
+      href: "/instructors-portal",
+      label: "Instructor",
+      icon: GraduationCap,
+      active: location.startsWith("/instructors-portal"),
+      useDirectNavigation: true // Special flag to use direct navigation
+    });
+  }
+
   return (
     <div className="fixed bottom-0 left-0 w-full border-t border-border bg-card shadow-lg z-50">
-      <div className="flex items-center justify-around h-16">
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <div className="flex flex-col items-center justify-center w-full p-2 cursor-pointer">
+      <div className="grid grid-cols-6 h-16">
+        {allNavItems.map((item) => (
+          <div key={item.href} className="flex justify-center">
+            {item.useDirectNavigation ? (
               <div 
-                className={cn(
-                  "flex flex-col items-center justify-center",
-                  item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                )}
+                className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
+                onClick={() => {
+                  window.location.href = item.href;
+                }}
               >
-                <item.icon className="h-5 w-5 mb-1" />
-                <span className="text-xs">{item.label}</span>
+                <div 
+                  className={cn(
+                    "flex flex-col items-center justify-center",
+                    item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-5 w-5 mb-1" />
+                  <span className="text-xs">{item.label}</span>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
-        
-        {/* Add Instructor Portal button for all logged-in users */}
-        {user && (
-          <div 
-            className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
-            onClick={() => {
-              window.location.href = "/instructors-portal";
-            }}
-          >
-            <div 
-              className={cn(
-                "flex flex-col items-center justify-center",
-                location.startsWith("/instructors-portal") ? "text-primary" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <GraduationCap className="h-5 w-5 mb-1" />
-              <span className="text-xs">Instructor</span>
-            </div>
+            ) : (
+              <Link href={item.href}>
+                <div className="flex flex-col items-center justify-center w-full p-2 cursor-pointer">
+                  <div 
+                    className={cn(
+                      "flex flex-col items-center justify-center",
+                      item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5 mb-1" />
+                    <span className="text-xs">{item.label}</span>
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
