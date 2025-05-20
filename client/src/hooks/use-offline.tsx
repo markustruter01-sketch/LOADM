@@ -1,6 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useToast } from './use-toast';
-import { getPendingChanges } from '@/utils/offline-storage';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { 
+  isOnline, 
+  getPendingOperations, 
+  storePendingOperation, 
+  removePendingOperation,
+  PendingOperation
+} from '@/utils/offline-storage';
 
 interface OfflineContextType {
   isOnline: boolean;
@@ -12,98 +17,88 @@ interface OfflineContextType {
 const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
 
 export const OfflineProvider = ({ children }: { children: ReactNode }) => {
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [hasPendingChanges, setHasPendingChanges] = useState<boolean>(false);
-  const { toast } = useToast();
+  const [online, setOnline] = useState(isOnline());
+  const [pendingChanges, setPendingChanges] = useState<PendingOperation[]>([]);
 
+  // Update online status when it changes
   useEffect(() => {
-    // Set up event listeners for online/offline events
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast({
-        title: "You're back online",
-        description: hasPendingChanges ? 
-          "Your changes will now be synchronized." : 
-          "All features are now available.",
-      });
-      
-      if (hasPendingChanges) {
-        syncPendingChanges();
-      }
-    };
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
 
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast({
-        title: "You're offline",
-        description: "Some features may be limited. Changes will be saved locally until you're back online.",
-        variant: "destructive"
-      });
-    };
-
-    // Check for pending changes on startup
-    const checkPendingChanges = () => {
-      const pendingChanges = getPendingChanges();
-      setHasPendingChanges(pendingChanges.length > 0);
-    };
-    
-    checkPendingChanges();
-
-    // Set up listeners
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Clean up event listeners
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [toast, hasPendingChanges]);
+  }, []);
 
-  // Register service worker
+  // Check for pending changes periodically
+  useEffect(() => {
+    const checkPendingChanges = () => {
+      const operations = getPendingOperations();
+      setPendingChanges(operations);
+    };
+
+    // Check initially and then every 5 seconds
+    checkPendingChanges();
+    const interval = setInterval(checkPendingChanges, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Attempt to sync when we come back online
+  useEffect(() => {
+    if (online && pendingChanges.length > 0) {
+      syncPendingChanges();
+    }
+  }, [online, pendingChanges.length]);
+
+  // Register the service worker
   const registerServiceWorker = () => {
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(registration => {
-            console.log('ServiceWorker registration successful:', registration.scope);
-          })
-          .catch(error => {
-            console.log('ServiceWorker registration failed:', error);
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => {
+          console.log('Service Worker registered with scope:', registration.scope);
+          
+          // Listen for messages from the service worker
+          navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data.type === 'SYNC_COMPLETE') {
+              // Refresh pending changes when sync is complete
+              setPendingChanges(getPendingOperations());
+            }
           });
-      });
+        })
+        .catch(error => {
+          console.error('Service Worker registration failed:', error);
+        });
     }
   };
 
-  // Sync pending changes when going back online
+  // Sync pending changes with the server
   const syncPendingChanges = async () => {
-    if (!isOnline) return;
+    if (!online || pendingChanges.length === 0) return;
 
-    try {
-      // In a real implementation, we would iterate through pending changes and submit them
-      // For this demo, we'll just mark that we've checked
-      setHasPendingChanges(false);
-      toast({
-        title: "Changes synchronized",
-        description: "All your offline changes have been saved to the server."
+    // Send a message to the service worker to start syncing
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SYNC_PENDING_DATA'
       });
-    } catch (error) {
-      console.error('Error syncing changes:', error);
-      toast({
-        title: "Sync failed",
-        description: "We couldn't synchronize your changes. We'll try again when your connection improves.",
-        variant: "destructive"
-      });
+    } else {
+      console.warn('No active service worker found for syncing data');
     }
   };
 
   return (
-    <OfflineContext.Provider value={{ 
-      isOnline, 
-      hasPendingChanges,
-      registerServiceWorker,
-      syncPendingChanges
-    }}>
+    <OfflineContext.Provider
+      value={{
+        isOnline: online,
+        hasPendingChanges: pendingChanges.length > 0,
+        registerServiceWorker,
+        syncPendingChanges
+      }}
+    >
       {children}
     </OfflineContext.Provider>
   );

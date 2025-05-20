@@ -1,14 +1,14 @@
 import { Switch, Route } from "wouter";
-import { createOfflineQueryClient } from "./lib/offlineQueryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-
-// Create query client with offline support
-const queryClient = createOfflineQueryClient();
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { OfflineProvider } from "@/hooks/use-offline";
+import { createOfflineQueryClient } from "./lib/offlineQueryClient";
+
+// Create query client with offline support
+const queryClient = createOfflineQueryClient();
 import WAMCalculatorPage from "@/pages/tools/wam-calculator";
 import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
 import BoxPsiCalculatorPage from "@/pages/tools/box-psi";

@@ -1,13 +1,15 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, QueryKey } from "@tanstack/react-query";
 import { getOfflineData, storeOfflineData, isOnline } from "@/utils/offline-storage";
+import { OfflineStorageKey } from "@/utils/offline-storage";
 
 // Modified query function that supports offline functionality
-export const offlineQueryFn: <T>(options: {
+export const offlineQueryFn = <T,>(options: {
   cacheable?: boolean;
-  storageKey?: string;
-}) => QueryFunction<T> =
-  ({ cacheable = false, storageKey = '' }) =>
-  async ({ queryKey }) => {
+  storageKey?: OfflineStorageKey;
+}): QueryFunction<T> => {
+  const { cacheable = false, storageKey } = options;
+  
+  return async ({ queryKey, signal, meta }) => {
     // Check if we're online
     const online = isOnline();
     const endpoint = queryKey[0] as string;
@@ -67,7 +69,7 @@ export const offlineQueryFn: <T>(options: {
   };
 
 // List of endpoints that support offline functionality
-export const offlineEnabledEndpoints = {
+export const offlineEnabledEndpoints: Record<string, { cacheable: boolean; storageKey: OfflineStorageKey }> = {
   // Training modules
   '/api/training-modules': {
     cacheable: true,
@@ -99,7 +101,7 @@ export function isOfflineEnabledEndpoint(endpoint: string): boolean {
 }
 
 // Helper to get offline options for an endpoint
-export function getOfflineOptions(endpoint: string) {
+export function getOfflineOptions(endpoint: string): { cacheable?: boolean; storageKey?: OfflineStorageKey } {
   for (const [key, options] of Object.entries(offlineEnabledEndpoints)) {
     if (endpoint.startsWith(key)) {
       return options;
@@ -113,23 +115,26 @@ export const createOfflineQueryClient = () => {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        queryFn: ({ queryKey }) => {
+        queryFn: async ({ queryKey, signal, meta }) => {
           const endpoint = queryKey[0] as string;
           
           // Use offline-specific query function for supported endpoints
           if (isOfflineEnabledEndpoint(endpoint)) {
             const options = getOfflineOptions(endpoint);
-            return offlineQueryFn(options)({ queryKey });
+            return offlineQueryFn(options)({ queryKey, signal, meta } as any);
           }
           
           // Default query function for online-only endpoints
-          return fetch(endpoint, { credentials: "include" })
-            .then(res => {
-              if (!res.ok) {
-                throw new Error(`${res.status}: ${res.statusText}`);
-              }
-              return res.json();
-            });
+          const res = await fetch(endpoint, { 
+            credentials: "include",
+            signal 
+          });
+          
+          if (!res.ok) {
+            throw new Error(`${res.status}: ${res.statusText}`);
+          }
+          
+          return res.json();
         },
         refetchInterval: false,
         refetchOnWindowFocus: false,
@@ -141,4 +146,5 @@ export const createOfflineQueryClient = () => {
       },
     },
   });
+};
 };
