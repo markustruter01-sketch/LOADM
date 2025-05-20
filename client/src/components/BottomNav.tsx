@@ -2,12 +2,22 @@ import { Link, useLocation } from "wouter";
 import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { ForwardRefExoticComponent, RefAttributes } from "react";
+import { LucideProps } from "lucide-react";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
+  active: boolean;
+}
 
 export default function BottomNav() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       href: "/",
       label: "Home",
@@ -49,48 +59,34 @@ export default function BottomNav() {
       href: "/instructors-portal",
       label: "Instructor",
       icon: GraduationCap,
-      active: location.startsWith("/instructors-portal"),
-      useDirectNavigation: true // Special flag to use direct navigation
+      active: location.startsWith("/instructors-portal")
     });
   }
+
+  const handleNavClick = (href: string) => {
+    // Use the wouter setLocation for a faster navigation with no page refresh
+    setLocation(href);
+  };
 
   return (
     <div className="fixed bottom-0 left-0 w-full border-t border-border bg-card shadow-lg z-50">
       <div className="grid grid-cols-6 h-16">
         {allNavItems.map((item) => (
           <div key={item.href} className="flex justify-center">
-            {item.useDirectNavigation ? (
+            <div 
+              className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
+              onClick={() => handleNavClick(item.href)}
+            >
               <div 
-                className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
-                onClick={() => {
-                  window.location.href = item.href;
-                }}
+                className={cn(
+                  "flex flex-col items-center justify-center",
+                  item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                )}
               >
-                <div 
-                  className={cn(
-                    "flex flex-col items-center justify-center",
-                    item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <item.icon className="h-5 w-5 mb-1" />
-                  <span className="text-xs">{item.label}</span>
-                </div>
+                <item.icon className="h-5 w-5 mb-1" />
+                <span className="text-xs">{item.label}</span>
               </div>
-            ) : (
-              <Link href={item.href}>
-                <div className="flex flex-col items-center justify-center w-full p-2 cursor-pointer">
-                  <div 
-                    className={cn(
-                      "flex flex-col items-center justify-center",
-                      item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <item.icon className="h-5 w-5 mb-1" />
-                    <span className="text-xs">{item.label}</span>
-                  </div>
-                </div>
-              </Link>
-            )}
+            </div>
           </div>
         ))}
       </div>
