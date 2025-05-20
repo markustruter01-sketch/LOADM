@@ -96,8 +96,7 @@ export default function CreateQuiz() {
       await apiRequest({
         url: "/api/quizzes",
         method: "POST",
-        data: quizData,
-        headers: { 'Content-Type': 'application/json' }
+        data: quizData
       });
 
       toast({
