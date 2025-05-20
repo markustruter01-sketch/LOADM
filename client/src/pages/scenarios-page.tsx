@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 import { Scenario } from "@shared/schema";
-import { Loader2, ArrowLeft, Book, FileCheck } from "lucide-react";
+import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle } from "lucide-react";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -12,6 +12,13 @@ export default function ScenariosPage() {
   const [activeTab, setActiveTab] = useState("training");
   const { data: scenarios, isLoading } = useQuery<Scenario[]>({
     queryKey: ["/api/scenarios"],
+  });
+  
+  const { data: quizzes, isLoading: quizzesLoading } = useQuery({
+    queryKey: ["/api/quizzes"],
+    queryFn: ({ queryKey, signal }) => fetch(queryKey[0], { signal })
+      .then(res => res.ok ? res.json() : [])
+      .catch(() => [])
   });
 
   const handleBackClick = () => {
@@ -67,11 +74,22 @@ export default function ScenariosPage() {
               <FileCheck className="h-4 w-4 mr-2 inline-block" />
               Assessment
             </button>
+            <button 
+              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'quiz' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
+              onClick={() => setActiveTab("quiz")}
+            >
+              <HelpCircle className="h-4 w-4 mr-2 inline-block" />
+              Quiz
+            </button>
           </div>
           
           {/* Scenarios Grid */}
           <section>
-            {isLoading ? (
+            {isLoading && activeTab !== "quiz" ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : quizzesLoading && activeTab === "quiz" ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
@@ -90,6 +108,70 @@ export default function ScenariosPage() {
                     {scenarios?.map((scenario) => (
                       <ScenarioCard key={`assessment-${scenario.id}`} scenario={scenario} />
                     ))}
+                  </div>
+                )}
+                
+                {activeTab === "quiz" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {quizzes && quizzes.length > 0 ? (
+                      quizzes.map((quiz: any) => (
+                        <div key={`quiz-${quiz.id}`} className="bg-card rounded-lg border border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
+                          <div className="bg-orange-600/10 p-4 border-b border-gray-800">
+                            <div className="flex justify-between items-start">
+                              <h3 className="text-lg font-semibold text-foreground">{quiz.title}</h3>
+                              {quiz.isActive ? (
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/20 text-green-500">Active</span>
+                              ) : (
+                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-500/20 text-gray-400">Inactive</span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{quiz.description || "No description"}</p>
+                          </div>
+                          <div className="p-4">
+                            <div className="flex flex-col gap-2 mb-4">
+                              <div className="text-sm flex items-center justify-between">
+                                <span className="text-muted-foreground">Questions:</span>
+                                <span className="font-medium">{quiz.questionCount}</span>
+                              </div>
+                              {quiz.expiresAt && (
+                                <div className="text-sm flex items-center justify-between">
+                                  <span className="text-muted-foreground">Expires:</span>
+                                  <span className="font-medium">{new Date(quiz.expiresAt).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-1 mb-4">
+                              {quiz.categories && quiz.categories.slice(0, 3).map((category: string, i: number) => (
+                                <span key={i} className="px-2 py-1 text-xs rounded-full bg-orange-500/10 text-orange-500">
+                                  {category.replace(/-/g, ' ')}
+                                </span>
+                              ))}
+                              {quiz.categories && quiz.categories.length > 3 && (
+                                <span className="px-2 py-1 text-xs rounded-full bg-gray-500/10 text-gray-400">
+                                  +{quiz.categories.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex justify-end">
+                              <Button 
+                                onClick={() => navigate(`/quizzes/${quiz.id}`)}
+                                className="bg-orange-500 hover:bg-orange-600 text-white"
+                              >
+                                Take Quiz
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 bg-card rounded-lg border border-gray-800 p-8 text-center">
+                        <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-xl font-medium mb-2">No Quizzes Available</h3>
+                        <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                          There are currently no quizzes available. Check back later for new knowledge tests.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </>
