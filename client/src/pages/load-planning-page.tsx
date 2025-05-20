@@ -514,7 +514,7 @@ export default function LoadPlanningPage() {
   // Handle direct click on an existing pallet in the cargo area
   const handlePalletCellClick = (event: React.MouseEvent, pallet: Pallet, posLabel: string) => {
     // Log the click for debugging
-    console.log("Pallet clicked:", pallet.id, posLabel);
+    // Handle pallet selection
     
     // Update dialog state for the pallet configuration popup
     setEditingPalletId(pallet.id);
@@ -929,7 +929,7 @@ export default function LoadPlanningPage() {
   };
   
   const handleDragStart = (e: React.DragEvent, id: number | null) => {
-    console.log("Drag start:", id);
+    // Initiate drag operation
     
     if (id === null) {
       // We're dragging the template pallet

@@ -79,7 +79,7 @@ export default function SubmissionReview() {
             setMarkedAnswers(marked);
           }
         } catch (e) {
-          console.error("Failed to parse marked answers:", e);
+          // Silent fail and continue with empty marked answers
         }
       } else {
         // Reset marked answers if none exist

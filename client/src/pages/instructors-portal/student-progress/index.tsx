@@ -66,7 +66,7 @@ export default function StudentProgress() {
   let filteredSubmissions = submissions;
   
   // Log the raw data to help debugging
-  console.log("Raw submissions data:", JSON.stringify(submissions));
+  // Process submissions data for display
   
   // Calculate statistics
   const totalSubmissions = submissions?.length || 0;

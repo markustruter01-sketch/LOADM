@@ -117,7 +117,7 @@ export default function CreateScenario() {
     };
     
     // Log what we're submitting
-    console.log("Submitting scenario:", submitData);
+    // Process scenario data for submission
     
     // Make the API call
     fetch("/api/scenarios", {
