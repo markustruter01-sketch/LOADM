@@ -168,28 +168,57 @@ router.post('/:id/submit', async (req, res) => {
     let correctCount = 0;
     const feedback: Record<string, { correct: boolean; correctAnswer: string }> = {};
     
+    // Debug the filteredQuestions structure
+    console.log(`Found ${filteredQuestions.length} filtered questions`);
+    if (filteredQuestions.length > 0) {
+      console.log(`Sample question: ${JSON.stringify(filteredQuestions[0])}`);
+    }
+    
+    // Debug the submitted answers
+    console.log(`Processing ${answers.length} answers: ${JSON.stringify(answers)}`);
+    
     answers.forEach(answer => {
+      console.log(`Processing answer for question ID: ${answer.questionId}, answer: ${answer.answeredOption}`);
+      
       const question = filteredQuestions.find(q => q.id === answer.questionId);
       if (question) {
-        const isCorrect = question.correctAnswer === answer.answeredOption;
+        console.log(`Found question: ${JSON.stringify(question)}`);
+        console.log(`Question correctAnswer: ${question.correctAnswer}, type: ${typeof question.correctAnswer}`);
+        console.log(`User answeredOption: ${answer.answeredOption}, type: ${typeof answer.answeredOption}`);
+        
+        // Convert both values to same type for comparison
+        const normalizedCorrectAnswer = Number(question.correctAnswer);
+        const normalizedUserAnswer = Number(answer.answeredOption);
+        
+        const isCorrect = !isNaN(normalizedCorrectAnswer) && 
+                         !isNaN(normalizedUserAnswer) && 
+                         normalizedCorrectAnswer === normalizedUserAnswer;
+                         
+        console.log(`Is answer correct: ${isCorrect}`);
+        
         if (isCorrect) {
           correctCount++;
         }
         
         // Add feedback for each question with properly formatted correct answer
-        // Find the correct answer text from the question options
         let correctAnswerText = 'Not available';
         
-        if (typeof question.correctAnswer === 'number' && 
-            Array.isArray(question.options) && 
-            question.options.length > question.correctAnswer) {
+        if (Array.isArray(question.options) && 
+            typeof question.correctAnswer === 'number' &&
+            question.correctAnswer >= 0 && 
+            question.correctAnswer < question.options.length) {
           correctAnswerText = question.options[question.correctAnswer];
+          console.log(`Found correct answer text: ${correctAnswerText}`);
+        } else {
+          console.log(`Could not find correct answer text. Options: ${JSON.stringify(question.options)}`);
         }
           
         feedback[answer.questionId] = {
           correct: isCorrect,
           correctAnswer: correctAnswerText
         };
+      } else {
+        console.log(`Question not found for ID: ${answer.questionId}`);
       }
     });
     
