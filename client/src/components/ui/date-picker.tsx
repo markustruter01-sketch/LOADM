@@ -17,6 +17,14 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ date, setDate, disabled = false }: DatePickerProps) {
+  // Create a handler that adapts the onSelect event to our expected setDate function
+  const handleSelect = React.useCallback(
+    (selectedDate: Date | undefined) => {
+      setDate(selectedDate || null);
+    },
+    [setDate]
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -36,8 +44,8 @@ export function DatePicker({ date, setDate, disabled = false }: DatePickerProps)
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
-          selected={date ?? null}
-          onSelect={(date) => setDate(date)}
+          selected={date}
+          onSelect={handleSelect}
           initialFocus
         />
       </PopoverContent>

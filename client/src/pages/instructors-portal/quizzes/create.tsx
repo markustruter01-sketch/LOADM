@@ -29,8 +29,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePicker } from "@/components/ui/date-picker";
-import InstructorLayout from "@/components/InstructorLayout";
+import { DatePicker } from "../../../components/ui/date-picker";
+import InstructorLayout from "../../../components/InstructorLayout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -96,7 +96,8 @@ export default function CreateQuiz() {
       await apiRequest({
         url: "/api/quizzes",
         method: "POST",
-        data: quizData
+        data: quizData,
+        headers: { 'Content-Type': 'application/json' }
       });
 
       toast({
@@ -117,7 +118,7 @@ export default function CreateQuiz() {
   };
 
   return (
-    <InstructorLayout>
+    <InstructorLayout title="Create Pop Quiz">
       <Helmet>
         <title>Create Pop Quiz - Instructor Portal | LOADMworkflow</title>
         <meta name="description" content="Create a new pop quiz for loadmaster training" />
@@ -244,9 +245,9 @@ export default function CreateQuiz() {
                         <FormLabel>Expiry Date (Optional)</FormLabel>
                         <FormControl>
                           <DatePicker
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            placeholderText="Select expiry date"
+                            date={field.value ?? undefined}
+                            setDate={field.onChange}
+                            disabled={false}
                           />
                         </FormControl>
                         <FormDescription>

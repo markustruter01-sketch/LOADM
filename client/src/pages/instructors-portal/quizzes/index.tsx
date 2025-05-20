@@ -36,6 +36,7 @@ export default function InstructorQuizzes() {
       await apiRequest({
         url: `/api/quizzes/${id}`,
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
       });
 
       toast({
