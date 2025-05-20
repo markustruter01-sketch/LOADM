@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
-  GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle
+  GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
+  HelpCircle
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -141,7 +142,7 @@ export default function InstructorsPortal() {
 
         {/* Management Cards */}
         <h3 className="text-xl font-semibold mb-4 text-foreground">Scenario Management</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -208,6 +209,29 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
           
+          {/* Pop Quizzes Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Pop Quizzes</CardTitle>
+                <HelpCircle className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Create and manage quick knowledge tests</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Create randomized knowledge check quizzes from a library of loadmaster-specific questions to test student knowledge
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/quizzes">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Manage Quizzes
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+
           {/* Workforce Analytics Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
