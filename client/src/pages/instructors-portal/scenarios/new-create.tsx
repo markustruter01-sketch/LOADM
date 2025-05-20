@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +55,20 @@ export default function CreateScenario() {
   const { user } = useAuth();
   const [_, navigate] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Scroll to top of the page when component mounts
+  useEffect(() => {
+    // Force scroll to top with smooth behavior
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+    
+    // Also set the scroll position directly in case the smooth scroll is interrupted
+    document.body.scrollTop = 0; // For Safari
+    document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+  }, []);
   
   // Set up form
   const form = useForm({
