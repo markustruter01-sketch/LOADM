@@ -360,6 +360,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const studentIdWithSquadron = req.body.squadron 
         ? `${req.body.studentId} - ${req.body.squadron}`
         : req.body.studentId;
+        
+      // Ensure answers is valid JSON
+      let sanitizedAnswers;
+      try {
+        // If it's a string, try to parse it to make sure it's valid JSON
+        if (typeof req.body.answers === 'string') {
+          // Parse then stringify to validate
+          sanitizedAnswers = JSON.stringify(JSON.parse(req.body.answers));
+        } else {
+          // If it's already an object, stringify it
+          sanitizedAnswers = JSON.stringify(req.body.answers);
+        }
+      } catch (jsonError) {
+        console.error("Invalid JSON in answers:", jsonError);
+        // Provide a fallback empty array if the JSON is invalid
+        sanitizedAnswers = '[]';
+      }
       
       const result = await pool.query(
         `INSERT INTO scenario_submissions 
@@ -370,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         [
           Number(req.body.scenarioId),
           req.user.id,
-          req.body.answers, // Already a JSON string from client
+          sanitizedAnswers, // Properly validated JSON string
           'pending',
           req.body.studentName || '',
           studentIdWithSquadron || ''

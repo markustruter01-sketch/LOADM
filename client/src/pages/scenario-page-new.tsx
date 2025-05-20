@@ -110,7 +110,11 @@ export default function ScenarioPage() {
         status: "pending"
       };
       
-      const response = await apiRequest("POST", "/api/scenario-submissions", payload);
+      const response = await apiRequest({
+        method: "POST",
+        url: "/api/scenario-submissions",
+        data: payload
+      });
       
       // Calculate score for multiple choice questions
       const multipleChoiceQuestions = questions.filter(q => q.questionType === "multiple-choice" && q.correctAnswer);
