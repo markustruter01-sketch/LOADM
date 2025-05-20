@@ -24,6 +24,8 @@ import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page"; // Changed name but kept file
 import ProfilePage from "@/pages/profile-page";
 import ToolsPage from "@/pages/tools-page";
+import TrainingModulesPage from "@/pages/training-modules";
+import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
@@ -76,6 +78,8 @@ function Router() {
           <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
           <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
           <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
+          <Route path="/training-modules" component={TrainingModulesPage} />
+          <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
