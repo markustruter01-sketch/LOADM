@@ -34,6 +34,8 @@ import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
 import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
 import StudentProgress from "@/pages/instructors-portal/student-progress";
 import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
+import QuizList from "@/pages/instructors-portal/quizzes";
+import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
 import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -77,6 +79,8 @@ function Router() {
           <AuthenticatedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
           <AuthenticatedRoute path="/instructors-portal/student-progress" component={StudentProgress} />
           <AuthenticatedRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
+          <AuthenticatedRoute path="/instructors-portal/quizzes" component={QuizList} />
+          <AuthenticatedRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
           <Route component={NotFound} />
         </Switch>
       </main>
