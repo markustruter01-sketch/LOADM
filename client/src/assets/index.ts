@@ -1,2 +1,2 @@
 // Asset exports
-export const scenarioBannerPath = '/loadmaster-banner.jpg';
+export const scenarioBannerPath = '/banner-image.jpg';

@@ -229,16 +229,24 @@ export default function ScenarioPage() {
           </div>
 
           {/* Scenario Context Banner */}
-          <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-xl overflow-hidden shadow-xl mb-8 p-6">
-            <div className="flex flex-col">
-              <div className="mb-2">
-                <h3 className="text-xl font-bold text-foreground">
+          <div 
+            className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48"
+            style={{
+              backgroundImage: 'url("/banner-image.jpg")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 to-slate-800/50"></div>
+            <div className="absolute inset-0 flex items-end">
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Scenario: {scenario.title}
                 </h3>
+                <p className="text-muted-foreground max-w-xl">
+                  {scenario.description}
+                </p>
               </div>
-              <p className="text-muted-foreground max-w-xl">
-                {scenario.description}
-              </p>
             </div>
           </div>
 
