@@ -58,7 +58,7 @@ export default function HomePage() {
             {/* Sections Navigation */}
             <div className="mb-10">
               <h3 className="text-xl font-bold mb-4 text-left">Sections</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Link href="/scenarios" className="block">
                   <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
                     <CardContent className="flex flex-col items-center justify-center p-6">
@@ -68,6 +68,23 @@ export default function HomePage() {
                       <h3 className="text-lg font-medium mb-2">Scenarios</h3>
                       <p className="text-sm text-center text-muted-foreground">
                         Training scenarios and simulations for loadmasters
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/training-modules" className="block">
+                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden">
+                    <div className="absolute top-1 right-1">
+                      <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>
+                    </div>
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <div className="rounded-full bg-primary/10 p-3 mb-4">
+                        <Plane className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Aircraft Training</h3>
+                      <p className="text-sm text-center text-muted-foreground">
+                        Progressive aircraft-specific training modules
                       </p>
                     </CardContent>
                   </Card>
