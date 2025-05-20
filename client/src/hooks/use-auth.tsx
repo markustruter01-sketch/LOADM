@@ -19,7 +19,17 @@ type AuthContextType = {
 
 type LoginData = Pick<InsertUser, "username" | "password">;
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+// Create a default auth context with null values
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  isLoading: false,
+  error: null,
+  loginMutation: {} as UseMutationResult<SelectUser, Error, LoginData>,
+  logoutMutation: {} as UseMutationResult<void, Error, void>,
+  registerMutation: {} as UseMutationResult<SelectUser, Error, InsertUser>
+};
+
+export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const {
@@ -29,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    select: (data) => data || null, // Ensure we always return null and not undefined
   });
 
   const loginMutation = useMutation({
@@ -98,10 +109,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Make sure user is always a SelectUser or null, never undefined
+  const safeUser = user === undefined ? null : user;
+  
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: safeUser,
         isLoading,
         error,
         loginMutation,
