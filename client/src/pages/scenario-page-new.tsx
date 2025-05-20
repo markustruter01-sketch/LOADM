@@ -231,9 +231,16 @@ export default function ScenarioPage() {
           {/* Scenario Context Banner */}
           <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48">
             <img
-              src="/20210408raaf8198167_190-1.jpg"
+              src="/loadmaster-banner.jpg"
               alt="Aircraft loadmaster operations"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.style.display = 'none';
+                // Add a fallback background color
+                target.parentElement!.style.backgroundColor = '#0f172a';
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 to-slate-800/50"></div>
             <div className="absolute inset-0 flex items-end">

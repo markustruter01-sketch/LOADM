@@ -13,9 +13,16 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
       {/* Banner Image */}
       <div className="relative h-32 overflow-hidden">
         <img
-          src="/20210408raaf8198167_190-1.jpg"
+          src="/loadmaster-banner.jpg"
           alt="Aircraft loadmaster operations"
           className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.onerror = null;
+            target.style.display = 'none';
+            // Add a fallback background color
+            target.parentElement!.style.backgroundColor = '#0f172a';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/20"></div>
         <div className="absolute top-0 right-0 p-3">
