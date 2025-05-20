@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import InstructorLayout from "../../components/InstructorLayout";
-import { DocumentSubmission } from "@shared/schema";
+import { Document, DocumentSubmission } from "@shared/schema";
+
+// Define extended document submission to handle the expected fields
+interface EnhancedDocumentSubmission extends DocumentSubmission {
+  userName?: string;
+  squadron?: string;
+  status?: string;
+  answers?: Record<string, any>;
+}
 
 export default function DocumentSubmissionsPage() {
   const [, setLocation] = useLocation();
@@ -22,18 +30,21 @@ export default function DocumentSubmissionsPage() {
   const [sortBy, setSortBy] = useState<string>("date-desc");
 
   // Fetch all document submissions
-  const { data: submissions, isLoading } = useQuery<DocumentSubmission[]>({
+  const { data: rawSubmissions = [], isLoading } = useQuery<DocumentSubmission[]>({
     queryKey: ["/api/document-submissions"],
   });
 
+  // Cast submissions to enhanced type with expected fields
+  const submissions = rawSubmissions as EnhancedDocumentSubmission[];
+
   // Fetch all documents for reference
-  const { data: documents } = useQuery({
+  const { data: documents = [] } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
 
   // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     return new Intl.DateTimeFormat('en-AU', {
       day: 'numeric',
       month: 'short',
@@ -45,45 +56,43 @@ export default function DocumentSubmissionsPage() {
 
   // Apply filters and sorting
   const filteredSubmissions = submissions
-    ? submissions
-        .filter(submission => {
-          // Filter by squadron
-          if (selectedSquadron !== "AMG") {
-            return submission.squadron === selectedSquadron;
-          }
-          return true;
-        })
-        .filter(submission => {
-          // Apply search query to document title or student name
-          if (searchQuery.trim()) {
-            const document = documents?.find(d => d.id === submission.documentId);
-            const lowerQuery = searchQuery.toLowerCase();
-            return (
-              document?.title.toLowerCase().includes(lowerQuery) ||
-              submission.userName?.toLowerCase().includes(lowerQuery)
-            );
-          }
-          return true;
-        })
-        .sort((a, b) => {
-          // Sort by selected option
-          switch (sortBy) {
-            case "date-asc":
-              return new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime();
-            case "date-desc":
-              return new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime();
-            case "name-asc":
-              return (a.userName || "").localeCompare(b.userName || "");
-            case "name-desc":
-              return (b.userName || "").localeCompare(a.userName || "");
-            default:
-              return 0;
-          }
-        })
-    : [];
+    .filter(submission => {
+      // Filter by squadron
+      if (selectedSquadron !== "AMG") {
+        return submission.squadron === selectedSquadron;
+      }
+      return true;
+    })
+    .filter(submission => {
+      // Apply search query to document title or user name
+      if (searchQuery.trim()) {
+        const document = documents.find(d => d.id === submission.documentId);
+        const lowerQuery = searchQuery.toLowerCase();
+        return (
+          document?.title.toLowerCase().includes(lowerQuery) ||
+          submission.userName?.toLowerCase().includes(lowerQuery)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort by selected option
+      switch (sortBy) {
+        case "date-asc":
+          return new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime();
+        case "date-desc":
+          return new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime();
+        case "name-asc":
+          return (a.userName || "").localeCompare(b.userName || "");
+        case "name-desc":
+          return (b.userName || "").localeCompare(a.userName || "");
+        default:
+          return 0;
+      }
+    });
 
   const getDocumentTitle = (documentId: number) => {
-    const document = documents?.find(d => d.id === documentId);
+    const document = documents.find(d => d.id === documentId);
     return document?.title || `Document #${documentId}`;
   };
 

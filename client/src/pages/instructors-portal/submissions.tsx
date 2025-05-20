@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { 
-  CheckCircle2, XCircle, ArrowUpDown, Search, FileText, Eye
+  CheckCircle2, XCircle, Search, FileText, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import InstructorLayout from "../../components/InstructorLayout";
-import { ScenarioSubmission } from "@shared/schema";
+import { Scenario, ScenarioSubmission } from "@shared/schema";
 
 export default function ScenarioSubmissionsPage() {
   const [, setLocation] = useLocation();
@@ -22,18 +22,18 @@ export default function ScenarioSubmissionsPage() {
   const [sortBy, setSortBy] = useState<string>("date-desc");
 
   // Fetch all scenario submissions
-  const { data: submissions, isLoading } = useQuery<ScenarioSubmission[]>({
+  const { data: submissions = [], isLoading } = useQuery<ScenarioSubmission[]>({
     queryKey: ["/api/scenario-submissions"],
   });
 
   // Fetch all scenarios for reference
-  const { data: scenarios } = useQuery({
+  const { data: scenarios = [] } = useQuery<Scenario[]>({
     queryKey: ["/api/scenarios"],
   });
 
   // Format date for display
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     return new Intl.DateTimeFormat('en-AU', {
       day: 'numeric',
       month: 'short',
@@ -45,45 +45,43 @@ export default function ScenarioSubmissionsPage() {
 
   // Apply filters and sorting
   const filteredSubmissions = submissions
-    ? submissions
-        .filter(submission => {
-          // Filter by squadron
-          if (selectedSquadron !== "AMG") {
-            return submission.squadron === selectedSquadron;
-          }
-          return true;
-        })
-        .filter(submission => {
-          // Apply search query to scenario title or student name
-          if (searchQuery.trim()) {
-            const scenario = scenarios?.find(s => s.id === submission.scenarioId);
-            const lowerQuery = searchQuery.toLowerCase();
-            return (
-              scenario?.title.toLowerCase().includes(lowerQuery) ||
-              submission.userName?.toLowerCase().includes(lowerQuery)
-            );
-          }
-          return true;
-        })
-        .sort((a, b) => {
-          // Sort by selected option
-          switch (sortBy) {
-            case "date-asc":
-              return new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime();
-            case "date-desc":
-              return new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime();
-            case "name-asc":
-              return (a.userName || "").localeCompare(b.userName || "");
-            case "name-desc":
-              return (b.userName || "").localeCompare(a.userName || "");
-            default:
-              return 0;
-          }
-        })
-    : [];
+    .filter(submission => {
+      // Filter by squadron
+      if (selectedSquadron !== "AMG") {
+        return submission.squadron === selectedSquadron;
+      }
+      return true;
+    })
+    .filter(submission => {
+      // Apply search query to scenario title or student name
+      if (searchQuery.trim()) {
+        const scenario = scenarios.find(s => s.id === submission.scenarioId);
+        const lowerQuery = searchQuery.toLowerCase();
+        return (
+          scenario?.title.toLowerCase().includes(lowerQuery) ||
+          submission.studentName?.toLowerCase().includes(lowerQuery)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort by selected option
+      switch (sortBy) {
+        case "date-asc":
+          return new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime();
+        case "date-desc":
+          return new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime();
+        case "name-asc":
+          return (a.studentName || "").localeCompare(b.studentName || "");
+        case "name-desc":
+          return (b.studentName || "").localeCompare(a.studentName || "");
+        default:
+          return 0;
+      }
+    });
 
   const getScenarioTitle = (scenarioId: number) => {
-    const scenario = scenarios?.find(s => s.id === scenarioId);
+    const scenario = scenarios.find(s => s.id === scenarioId);
     return scenario?.title || `Scenario #${scenarioId}`;
   };
 
@@ -185,7 +183,7 @@ export default function ScenarioSubmissionsPage() {
                       </div>
                       
                       <div className="flex flex-col md:flex-row justify-between text-sm text-muted-foreground mb-3">
-                        <div>Submitted by: {submission.userName || 'Unknown'}</div>
+                        <div>Submitted by: {submission.studentName || 'Unknown'}</div>
                         <div>{formatDate(submission.submissionDate)}</div>
                       </div>
                       
