@@ -166,7 +166,7 @@ router.post('/:id/submit', async (req, res) => {
     
     // Calculate score and prepare feedback
     let correctCount = 0;
-    const feedback = {};
+    const feedback: Record<string, { correct: boolean; correctAnswer: string }> = {};
     
     answers.forEach(answer => {
       const question = filteredQuestions.find(q => q.id === answer.questionId);
@@ -176,10 +176,19 @@ router.post('/:id/submit', async (req, res) => {
           correctCount++;
         }
         
-        // Add feedback for each question
+        // Add feedback for each question with properly formatted correct answer
+        // Find the correct answer text from the question options
+        let correctAnswerText = 'Not available';
+        
+        if (typeof question.correctAnswer === 'number' && 
+            Array.isArray(question.options) && 
+            question.options.length > question.correctAnswer) {
+          correctAnswerText = question.options[question.correctAnswer];
+        }
+          
         feedback[answer.questionId] = {
           correct: isCorrect,
-          correctAnswer: question.options ? question.options[question.correctAnswer] : question.correctAnswer
+          correctAnswer: correctAnswerText
         };
       }
     });
