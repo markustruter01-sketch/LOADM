@@ -159,66 +159,49 @@ router.post('/:id/submit', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    // Get questions to grade the answers
-    const filteredQuestions = loadmasterQuestions.filter(question => 
-      quiz.categories.includes(question.category)
-    );
+    // Use the full question bank to find original questions with correct answers
+    const allQuestions = loadmasterQuestions;
     
     // Calculate score and prepare feedback
     let correctCount = 0;
     const feedback: Record<string, { correct: boolean; correctAnswer: string }> = {};
     
-    // Debug the filteredQuestions structure
-    console.log(`Found ${filteredQuestions.length} filtered questions`);
-    if (filteredQuestions.length > 0) {
-      console.log(`Sample question: ${JSON.stringify(filteredQuestions[0])}`);
-    }
-    
-    // Debug the submitted answers
-    console.log(`Processing ${answers.length} answers: ${JSON.stringify(answers)}`);
-    
+    // Process each submitted answer
     answers.forEach(answer => {
-      console.log(`Processing answer for question ID: ${answer.questionId}, answer: ${answer.answeredOption}`);
+      // Find the full question from all questions with correct answer data
+      const question = allQuestions.find(q => q.id === answer.questionId);
       
-      const question = filteredQuestions.find(q => q.id === answer.questionId);
       if (question) {
-        console.log(`Found question: ${JSON.stringify(question)}`);
-        console.log(`Question correctAnswer: ${question.correctAnswer}, type: ${typeof question.correctAnswer}`);
-        console.log(`User answeredOption: ${answer.answeredOption}, type: ${typeof answer.answeredOption}`);
+        // For comparison, convert both to same type (number)
+        const correctAnswerIndex = Number(question.correctAnswer);
+        const userAnswerIndex = Number(answer.answeredOption);
         
-        // Convert both values to same type for comparison
-        const normalizedCorrectAnswer = Number(question.correctAnswer);
-        const normalizedUserAnswer = Number(answer.answeredOption);
+        // Check if the answer is correct
+        const isCorrect = 
+          !isNaN(correctAnswerIndex) && 
+          !isNaN(userAnswerIndex) && 
+          correctAnswerIndex === userAnswerIndex;
         
-        const isCorrect = !isNaN(normalizedCorrectAnswer) && 
-                         !isNaN(normalizedUserAnswer) && 
-                         normalizedCorrectAnswer === normalizedUserAnswer;
-                         
-        console.log(`Is answer correct: ${isCorrect}`);
-        
+        // Increment correct count if the answer is correct
         if (isCorrect) {
           correctCount++;
         }
         
-        // Add feedback for each question with properly formatted correct answer
-        let correctAnswerText = 'Not available';
+        // Get the text of the correct answer option
+        let correctAnswerText = "Not found";
         
+        // Ensure we have options array and valid index
         if (Array.isArray(question.options) && 
-            typeof question.correctAnswer === 'number' &&
-            question.correctAnswer >= 0 && 
-            question.correctAnswer < question.options.length) {
-          correctAnswerText = question.options[question.correctAnswer];
-          console.log(`Found correct answer text: ${correctAnswerText}`);
-        } else {
-          console.log(`Could not find correct answer text. Options: ${JSON.stringify(question.options)}`);
+            question.options.length > correctAnswerIndex && 
+            correctAnswerIndex >= 0) {
+          correctAnswerText = question.options[correctAnswerIndex];
         }
-          
+        
+        // Add feedback for this question
         feedback[answer.questionId] = {
           correct: isCorrect,
           correctAnswer: correctAnswerText
         };
-      } else {
-        console.log(`Question not found for ID: ${answer.questionId}`);
       }
     });
     
