@@ -229,24 +229,24 @@ export default function ScenarioPage() {
           </div>
 
           {/* Scenario Context Banner */}
-          <div 
-            className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48"
-            style={{
-              backgroundImage: 'url("/banner-image.jpg")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 to-slate-800/50"></div>
-            <div className="absolute inset-0 flex items-end">
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-2">
+          <div className="relative rounded-xl overflow-hidden shadow-xl mb-8">
+            <div className="bg-gradient-to-r from-blue-950 to-indigo-900 p-6">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="bg-primary/20 p-3 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                    <rect width="16" height="16" x="4" y="4" rx="2"/>
+                    <rect width="6" height="6" x="9" y="9" rx="1"/>
+                    <path d="M15 4v16"/>
+                    <path d="M4 15h16"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-foreground">
                   Scenario: {scenario.title}
                 </h3>
-                <p className="text-muted-foreground max-w-xl">
-                  {scenario.description}
-                </p>
               </div>
+              <p className="text-muted-foreground max-w-xl ml-11">
+                {scenario.description}
+              </p>
             </div>
           </div>
 
