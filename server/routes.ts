@@ -378,6 +378,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sanitizedAnswers = '[]';
       }
       
+      // Log and validate the scenarioId
+      const scenarioId = req.body.scenarioId ? parseInt(req.body.scenarioId) : null;
+      console.log("Scenario ID from request:", req.body.scenarioId, "Parsed:", scenarioId);
+      
+      // Ensure we have a valid scenario ID
+      if (!scenarioId || isNaN(scenarioId)) {
+        console.error("Invalid scenario ID:", req.body.scenarioId);
+        return res.status(400).json({ 
+          message: "Invalid scenario ID", 
+          error: "Scenario ID must be a number" 
+        });
+      }
+      
       const result = await pool.query(
         `INSERT INTO scenario_submissions 
          (scenario_id, user_id, submission_date, answers, status, student_name, student_id) 
@@ -385,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
          ($1, $2, CURRENT_TIMESTAMP, $3, $4, $5, $6) 
          RETURNING *`,
         [
-          Number(req.body.scenarioId),
+          scenarioId,
           req.user.id,
           sanitizedAnswers, // Properly validated JSON string
           'pending',
