@@ -1,6 +1,5 @@
-import { QueryClient, QueryFunction, QueryKey } from "@tanstack/react-query";
-import { getOfflineData, storeOfflineData, isOnline } from "@/utils/offline-storage";
-import { OfflineStorageKey } from "@/utils/offline-storage";
+import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getOfflineData, storeOfflineData, isOnline, OfflineStorageKey } from "@/utils/offline-storage";
 
 // Modified query function that supports offline functionality
 export const offlineQueryFn = <T,>(options: {
@@ -9,7 +8,8 @@ export const offlineQueryFn = <T,>(options: {
 }): QueryFunction<T> => {
   const { cacheable = false, storageKey } = options;
   
-  return async ({ queryKey, signal, meta }) => {
+  return async (context) => {
+    const { queryKey } = context;
     // Check if we're online
     const online = isOnline();
     const endpoint = queryKey[0] as string;
@@ -146,5 +146,5 @@ export const createOfflineQueryClient = () => {
       },
     },
   });
-};
+}
 };

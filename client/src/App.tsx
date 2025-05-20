@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { OfflineProvider } from "@/hooks/use-offline";
-import { createOfflineQueryClient } from "./lib/offlineQueryClient";
+import { createOfflineQueryClient } from "@/lib/offlineClient";
 
 // Create query client with offline support
 const queryClient = createOfflineQueryClient();
