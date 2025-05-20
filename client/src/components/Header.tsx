@@ -47,7 +47,10 @@ export default function Header() {
 
                 <DropdownMenuItem>
                   <Link href="/instructors-portal">
-                    <div className="w-full cursor-pointer">Instructors Portal</div>
+                    <div className="w-full cursor-pointer" onClick={(e) => {
+                      // Set a flag in localStorage to indicate we're navigating to the instructors portal
+                      localStorage.setItem('navigatingToInstructorsPortal', 'true');
+                    }}>Instructors Portal</div>
                   </Link>
                 </DropdownMenuItem>
                 {user.isAdmin && (
