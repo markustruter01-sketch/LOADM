@@ -229,13 +229,9 @@ export default function ScenarioPage() {
           </div>
 
           {/* Scenario Context Banner */}
-          <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48">
-            <img
-              src="/loadmaster-banner.jpg"
-              alt="Aircraft cargo loadmaster operations"
-              className="w-full h-full object-cover"
-            />
-            <div className="gradient-overlay flex items-end">
+          <div className="relative rounded-xl overflow-hidden shadow-xl mb-8 h-48 bg-slate-800">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-900/20"></div>
+            <div className="absolute inset-0 flex items-end">
               <div className="p-6">
                 <h3 className="text-xl font-bold text-foreground mb-2">
                   Scenario: {scenario.title}
