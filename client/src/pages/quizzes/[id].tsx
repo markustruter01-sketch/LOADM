@@ -218,9 +218,11 @@ export default function QuizPage() {
                         {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium mb-2">Question {index + 1}: {question.text}</p>
+                        <p className="font-medium mb-2">Question {index + 1}: {question.question}</p>
                         <div className="mb-2">
-                          <p className="text-sm font-medium">Your answer: {answers[question.id]}</p>
+                          <p className="text-sm font-medium">
+                            Your answer: {question.options && question.options[Number(answers[question.id])]}
+                          </p>
                           {!isCorrect && (
                             <p className="text-sm font-medium text-green-500">
                               Correct answer: {questionFeedback.correctAnswer || "Not available"}

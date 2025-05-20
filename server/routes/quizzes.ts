@@ -150,6 +150,13 @@ router.post('/:id/submit', async (req, res) => {
     const quizId = parseInt(req.params.id);
     const { userId, answers, squadron } = req.body;
     
+    console.log("Quiz submission received:", {
+      quizId,
+      userId,
+      answersCount: answers?.length,
+      answers
+    });
+    
     if (!userId || !answers || !Array.isArray(answers)) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -159,51 +166,63 @@ router.post('/:id/submit', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    // Use the full question bank to find original questions with correct answers
-    const allQuestions = loadmasterQuestions;
-    
     // Calculate score and prepare feedback
     let correctCount = 0;
     const feedback: Record<string, { correct: boolean; correctAnswer: string }> = {};
     
-    // Process each submitted answer
-    answers.forEach(answer => {
-      // Find the full question from all questions with correct answer data
-      const question = allQuestions.find(q => q.id === answer.questionId);
+    // Log the questions being processed
+    console.log(`Processing quiz with categories:`, quiz.categories);
+    
+    // Check each submitted answer against the master question bank
+    for (const answer of answers) {
+      const { questionId, answeredOption } = answer;
+      console.log(`Processing answer for question ID: ${questionId}`);
       
-      if (question) {
-        // For comparison, convert both to same type (number)
-        const correctAnswerIndex = Number(question.correctAnswer);
-        const userAnswerIndex = Number(answer.answeredOption);
-        
-        // Check if the answer is correct
-        const isCorrect = 
-          !isNaN(correctAnswerIndex) && 
-          !isNaN(userAnswerIndex) && 
-          correctAnswerIndex === userAnswerIndex;
-        
-        // Increment correct count if the answer is correct
-        if (isCorrect) {
-          correctCount++;
-        }
-        
-        // Get the text of the correct answer option
-        let correctAnswerText = "Not found";
-        
-        // Ensure we have options array and valid index
-        if (Array.isArray(question.options) && 
-            question.options.length > correctAnswerIndex && 
-            correctAnswerIndex >= 0) {
-          correctAnswerText = question.options[correctAnswerIndex];
-        }
-        
-        // Add feedback for this question
-        feedback[answer.questionId] = {
-          correct: isCorrect,
-          correctAnswer: correctAnswerText
-        };
+      // Find the matching question from the full question bank
+      const question = loadmasterQuestions.find(q => q.id === questionId);
+      
+      if (!question) {
+        console.log(`Question not found: ${questionId}`);
+        continue;
       }
-    });
+      
+      console.log(`Found question: ${question.question}`);
+      console.log(`Options:`, question.options);
+      console.log(`Correct answer index: ${question.correctAnswer}`);
+      
+      // Normalize the answer values for comparison
+      const correctIndex = Number(question.correctAnswer);
+      const userIndex = Number(answeredOption);
+      
+      // Check if answer is correct
+      const isCorrect = correctIndex === userIndex;
+      
+      if (isCorrect) {
+        correctCount++;
+        console.log(`Correct answer! +1 to score`);
+      } else {
+        console.log(`Incorrect answer. User answered: ${userIndex}, correct is: ${correctIndex}`);
+      }
+      
+      // Get the correct answer text
+      let correctAnswerText = "Not available";
+      
+      if (question.options && 
+          Array.isArray(question.options) && 
+          correctIndex >= 0 && 
+          correctIndex < question.options.length) {
+        correctAnswerText = question.options[correctIndex];
+        console.log(`Correct answer text: "${correctAnswerText}"`);
+      } else {
+        console.log(`Could not find correct answer text in options array`);
+      }
+      
+      // Store feedback for this question
+      feedback[questionId] = {
+        correct: isCorrect,
+        correctAnswer: correctAnswerText
+      };
+    }
     
     const score = Math.round((correctCount / answers.length) * 100);
     
