@@ -1782,7 +1782,7 @@ export default function LoadPlanningPage() {
               snapX = col * cellSpacing + (cellWidth - dimensions.width) / 2;
               snapY = 50 + (cellHeight - dimensions.height) / 2;
               
-              console.log(`Snapping to position P${col + 1} at (${snapX}, ${snapY})`);
+              // Apply snapping coordinates to position pallet
             }
           }
         }
