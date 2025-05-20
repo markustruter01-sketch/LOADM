@@ -201,8 +201,8 @@ export default function QuizPage() {
               <h3 className="text-lg font-semibold mb-2">Question Feedback</h3>
               
               {questions.map((question: any, index: number) => {
-                const questionFeedback = feedback[question.id];
-                const isCorrect = questionFeedback?.correct;
+                const questionFeedback = feedback?.[question.id] || {};
+                const isCorrect = !!questionFeedback.correct;
                 
                 return (
                   <div 
@@ -221,9 +221,9 @@ export default function QuizPage() {
                         <p className="font-medium mb-2">Question {index + 1}: {question.text}</p>
                         <div className="mb-2">
                           <p className="text-sm font-medium">Your answer: {answers[question.id]}</p>
-                          {!isCorrect && questionFeedback?.correctAnswer && (
+                          {!isCorrect && (
                             <p className="text-sm font-medium text-green-500">
-                              Correct answer: {questionFeedback.correctAnswer}
+                              Correct answer: {questionFeedback.correctAnswer || "Not available"}
                             </p>
                           )}
                         </div>
