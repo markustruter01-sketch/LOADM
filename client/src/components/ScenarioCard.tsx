@@ -9,9 +9,9 @@ interface ScenarioCardProps {
 
 export default function ScenarioCard({ scenario }: ScenarioCardProps) {
   return (
-    <div className="bg-card rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+    <div className="bg-card rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-700/50">
       {/* Banner */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-4">
+      <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 p-4 border-b border-gray-700/30">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             <div className="bg-orange-500/20 p-2 rounded-full">
@@ -22,7 +22,7 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
                 <path d="M4 15h16"/>
               </svg>
             </div>
-            <span className="text-xs font-medium">{scenario.numberOfQuestions} questions</span>
+            <span className="text-xs font-medium text-gray-200">{scenario.numberOfQuestions} questions</span>
           </div>
           <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/20">
             Scenario
