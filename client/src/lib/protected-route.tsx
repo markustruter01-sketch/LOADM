@@ -1,8 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import { Redirect, Route, useLocation } from "wouter";
+import { Redirect, Route } from "wouter";
 import { useEffect, useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
 
 // Route that requires admin privileges
 export function ProtectedRoute({
@@ -13,40 +12,8 @@ export function ProtectedRoute({
   component: () => React.JSX.Element;
 }) {
   const { user, isLoading } = useAuth();
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [, navigate] = useLocation();
-
-  useEffect(() => {
-    async function verifyAdminAccess() {
-      try {
-        const response = await fetch("/api/user", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Accept": "application/json"
-          }
-        });
-        
-        if (response.ok) {
-          const userData = await response.json();
-          if (userData && userData.isAdmin) {
-            setIsAuthorized(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error verifying admin access:", error);
-      } finally {
-        setIsVerifying(false);
-      }
-    }
-
-    if (!isLoading) {
-      verifyAdminAccess();
-    }
-  }, [isLoading]);
-
-  if (isLoading || isVerifying) {
+  
+  if (isLoading) {
     return (
       <Route path={path}>
         <div className="flex items-center justify-center min-h-screen">
@@ -56,10 +23,14 @@ export function ProtectedRoute({
     );
   }
 
-  if (!isAuthorized) {
+  // If user is not logged in or not an admin, redirect to auth page
+  if (!user || !user.isAdmin) {
+    // Check if we have a session cookie even if the user state is empty
     return (
       <Route path={path}>
-        <Redirect to="/auth" />
+        <AdminCheckWrapper>
+          <Component />
+        </AdminCheckWrapper>
       </Route>
     );
   }
@@ -76,37 +47,8 @@ export function AuthenticatedRoute({
   component: () => React.JSX.Element;
 }) {
   const { user, isLoading } = useAuth();
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [, navigate] = useLocation();
-
-  useEffect(() => {
-    async function verifyAuthentication() {
-      try {
-        const response = await fetch("/api/user", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Accept": "application/json"
-          }
-        });
-        
-        if (response.ok) {
-          setIsAuthorized(true);
-        }
-      } catch (error) {
-        console.error("Error verifying authentication:", error);
-      } finally {
-        setIsVerifying(false);
-      }
-    }
-
-    if (!isLoading) {
-      verifyAuthentication();
-    }
-  }, [isLoading]);
-
-  if (isLoading || isVerifying) {
+  
+  if (isLoading) {
     return (
       <Route path={path}>
         <div className="flex items-center justify-center min-h-screen">
@@ -116,13 +58,96 @@ export function AuthenticatedRoute({
     );
   }
 
-  if (!isAuthorized) {
+  // If user is not logged in, redirect to auth page
+  if (!user) {
+    // Check if we have a session cookie even if the user state is empty
     return (
       <Route path={path}>
-        <Redirect to="/auth" />
+        <AuthCheckWrapper>
+          <Component />
+        </AuthCheckWrapper>
       </Route>
     );
   }
 
   return <Route path={path} component={Component} />;
+}
+
+// Component that checks for admin auth and either renders children or redirects
+function AdminCheckWrapper({ children }: { children: React.ReactNode }) {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setIsAdmin(data?.isAdmin === true);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+    
+    checkAdmin();
+  }, []);
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      </div>
+    );
+  }
+
+  return isAdmin ? <>{children}</> : <Redirect to="/auth" />;
+}
+
+// Component that checks for auth and either renders children or redirects
+function AuthCheckWrapper({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Error checking authentication status:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <>{children}</> : <Redirect to="/auth" />;
 }
