@@ -77,7 +77,7 @@ export default function QuizPage() {
       const response = await apiRequest({
         url: `/api/quizzes/${quizId}/submit`,
         method: 'POST',
-        body: {
+        data: {
           answers,
           squadron
         }
