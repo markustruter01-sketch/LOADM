@@ -40,6 +40,18 @@ export interface IStorage {
   createScenarioSubmission(submission: InsertScenarioSubmission): Promise<ScenarioSubmission>;
   updateScenarioSubmission(id: number, submission: Partial<InsertScenarioSubmission>): Promise<ScenarioSubmission | undefined>;
   
+  // Quiz management
+  getQuizzes(activeOnly?: boolean): Promise<Quiz[]>;
+  getQuiz(id: number): Promise<Quiz | undefined>;
+  createQuiz(quiz: InsertQuiz): Promise<Quiz>;
+  updateQuiz(id: number, quiz: Partial<InsertQuiz>): Promise<Quiz | undefined>;
+  deleteQuiz(id: number): Promise<boolean>;
+  
+  // Quiz submission management
+  getQuizSubmissions(quizId?: number, userId?: number): Promise<QuizSubmission[]>;
+  getQuizSubmission(id: number): Promise<QuizSubmission | undefined>;
+  createQuizSubmission(submission: InsertQuizSubmission): Promise<QuizSubmission>;
+  
   // Session store
   sessionStore: session.Store;
 }
