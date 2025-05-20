@@ -154,7 +154,7 @@ router.post('/:id/submit', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
-    const quiz = await storage.getQuiz(quizId);
+    const quiz = await quizStorage.getQuiz(quizId);
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
@@ -177,7 +177,7 @@ router.post('/:id/submit', async (req, res) => {
     const score = Math.round((correctCount / answers.length) * 100);
     
     // Save submission
-    const submission = await storage.createQuizSubmission({
+    const submission = await quizStorage.createQuizSubmission({
       quizId,
       userId,
       answers,
@@ -203,7 +203,7 @@ router.get('/submissions', async (req, res) => {
     const quizId = req.query.quizId ? parseInt(req.query.quizId as string) : undefined;
     const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
     
-    const submissions = await storage.getQuizSubmissions(quizId, userId);
+    const submissions = await quizStorage.getQuizSubmissions(quizId, userId);
     res.json(submissions);
   } catch (error) {
     console.error('Error fetching quiz submissions:', error);

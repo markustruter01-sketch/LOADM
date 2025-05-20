@@ -28,11 +28,7 @@ export async function getQuizzes(activeOnly: boolean = false): Promise<Quiz[]> {
       categories: row.categories,
       isActive: row.is_active,
       createdAt: row.created_at,
-      expiresAt: row.expires_at,
-      createdBy: {
-        id: row.created_by_id,
-        username: row.created_by_username
-      }
+      expiresAt: row.expires_at
     }));
   } catch (error) {
     console.error("Error fetching quizzes:", error);
@@ -66,11 +62,7 @@ export async function getQuiz(id: number): Promise<Quiz | undefined> {
       categories: row.categories,
       isActive: row.is_active,
       createdAt: row.created_at,
-      expiresAt: row.expires_at,
-      createdBy: {
-        id: row.created_by_id,
-        username: row.created_by_username
-      }
+      expiresAt: row.expires_at
     };
   } catch (error) {
     console.error(`Error fetching quiz ${id}:`, error);
@@ -252,15 +244,7 @@ export async function getQuizSubmissions(quizId?: number, userId?: number): Prom
       submissionDate: row.submission_date,
       answers: row.answers,
       score: row.score,
-      squadron: row.squadron,
-      quiz: {
-        id: row.quiz_id,
-        title: row.quiz_title
-      },
-      user: {
-        id: row.user_id,
-        username: row.username
-      }
+      squadron: row.squadron
     }));
   } catch (error) {
     console.error("Error fetching quiz submissions:", error);
@@ -293,15 +277,7 @@ export async function getQuizSubmission(id: number): Promise<QuizSubmission | un
       submissionDate: row.submission_date,
       answers: row.answers,
       score: row.score,
-      squadron: row.squadron,
-      quiz: {
-        id: row.quiz_id,
-        title: row.quiz_title
-      },
-      user: {
-        id: row.user_id,
-        username: row.username
-      }
+      squadron: row.squadron
     };
   } catch (error) {
     console.error(`Error fetching quiz submission ${id}:`, error);
