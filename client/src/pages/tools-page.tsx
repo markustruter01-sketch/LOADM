@@ -72,25 +72,25 @@ export default function ToolsPage() {
                   className="hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => navigateToTool('wam-calculator')}
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="bg-gray-800/80">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">WAM Calculator</CardTitle>
-                      <Calculator className="h-5 w-5 text-primary" />
+                      <Calculator className="h-5 w-5 text-orange-500" />
                     </div>
                     <CardDescription>Weight-Arm-Moment calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Formulas:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
+                      <div className="font-medium text-orange-500">Formulas:</div>
+                      <div className="p-3 bg-gray-900 rounded-md">
                         <p className="mb-2">Arm × Weight = Moment</p>
                         <p className="mb-2">Moment ÷ Arm = Weight</p>
                         <p>Moment ÷ Weight = Arm</p>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                  <CardFooter className="bg-gray-800/50 pt-2">
+                    <Button className="w-full bg-orange-500/10 text-orange-500 hover:bg-orange-500/20">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -101,17 +101,17 @@ export default function ToolsPage() {
                   className="hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => navigateToTool('vehicle-cgfa')}
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="bg-gray-800/80">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">Vehicle CGFA Calculator</CardTitle>
-                      <Truck className="h-5 w-5 text-primary" />
+                      <Truck className="h-5 w-5 text-orange-500" />
                     </div>
                     <CardDescription>Center of Gravity Forward of Aft Axle</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Formula:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
+                      <div className="font-medium text-orange-500">Formula:</div>
+                      <div className="p-3 bg-gray-900 rounded-md">
                         <p>RAW × WB ÷ GW = CGFA in Inches</p>
                         <p className="mt-2 text-xs text-muted-foreground">
                           RAW: Rear Axle Weight<br />
@@ -121,8 +121,8 @@ export default function ToolsPage() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                  <CardFooter className="bg-gray-800/50 pt-2">
+                    <Button className="w-full bg-orange-500/10 text-orange-500 hover:bg-orange-500/20">
                       Open Calculator
                     </Button>
                   </CardFooter>
