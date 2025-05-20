@@ -75,13 +75,24 @@ export default function ScenarioPage() {
       
       // Simplify to a basic string-based answers array for reliability
       // Include squadron information in the answers metadata
-      const answersString = JSON.stringify(
-        Object.entries(answers).map(([questionId, answer]) => ({
+      // Sanitize input to prevent HTML/invalid JSON characters
+      const sanitizedAnswers = Object.entries(answers).map(([questionId, answer]) => {
+        // Basic sanitization to remove HTML and control characters that could break JSON
+        const sanitizeText = (text: string) => {
+          if (!text) return "";
+          // Remove HTML tags and escape special characters
+          return text.replace(/<[^>]*>?/gm, '')
+                    .replace(/[\\"\u0000-\u001F\u007F-\u009F]/g, '');
+        };
+        
+        return {
           questionId,
-          answer,
-          notes: notes[questionId] || ""
-        }))
-      );
+          answer: sanitizeText(String(answer)),
+          notes: sanitizeText(notes[questionId] || "")
+        };
+      });
+      
+      const answersString = JSON.stringify(sanitizedAnswers);
       
       // Use a more basic payload with string-based answers
       // Make sure we have a valid scenario ID before submission
