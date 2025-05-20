@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileCheck, ClipboardList, Package2, UserCircle } from "lucide-react";
+import { FileCheck, ClipboardList, Package2, UserCircle, Wrench, GraduationCap } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
 
 export default function HomePage() {
@@ -49,7 +49,7 @@ export default function HomePage() {
             {/* Sections Navigation */}
             <div className="mb-10">
               <h3 className="text-xl font-bold mb-4 text-left">Sections</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <Link href="/scenarios" className="block">
                   <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
                     <CardContent className="flex flex-col items-center justify-center p-6">
@@ -92,15 +92,29 @@ export default function HomePage() {
                   </Card>
                 </Link>
                 
-                <Link href="/profile" className="block">
+                <Link href="/tools" className="block">
                   <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
                     <CardContent className="flex flex-col items-center justify-center p-6">
                       <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <UserCircle className="h-8 w-8 text-primary" />
+                        <Wrench className="h-8 w-8 text-primary" />
                       </div>
-                      <h3 className="text-lg font-medium mb-2">Profile</h3>
+                      <h3 className="text-lg font-medium mb-2">Tools</h3>
                       <p className="text-sm text-center text-muted-foreground">
-                        Manage your account and preferences
+                        Loadmaster calculators and specialized tools
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/instructors-portal" className="block">
+                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center p-6">
+                      <div className="rounded-full bg-primary/10 p-3 mb-4">
+                        <GraduationCap className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium mb-2">Instructor Portal</h3>
+                      <p className="text-sm text-center text-muted-foreground">
+                        Manage scenarios and review student submissions
                       </p>
                     </CardContent>
                   </Card>
