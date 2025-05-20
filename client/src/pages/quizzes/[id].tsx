@@ -221,7 +221,7 @@ export default function QuizPage() {
                         <p className="font-medium mb-2">Question {index + 1}: {question.text}</p>
                         <div className="mb-2">
                           <p className="text-sm font-medium">Your answer: {answers[question.id]}</p>
-                          {!isCorrect && (
+                          {!isCorrect && questionFeedback?.correctAnswer && (
                             <p className="text-sm font-medium text-green-500">
                               Correct answer: {questionFeedback.correctAnswer}
                             </p>

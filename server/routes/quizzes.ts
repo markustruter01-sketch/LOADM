@@ -164,13 +164,23 @@ router.post('/:id/submit', async (req, res) => {
       quiz.categories.includes(question.category)
     );
     
-    // Calculate score
+    // Calculate score and prepare feedback
     let correctCount = 0;
+    const feedback = {};
     
     answers.forEach(answer => {
       const question = filteredQuestions.find(q => q.id === answer.questionId);
-      if (question && question.correctAnswer === answer.answeredOption) {
-        correctCount++;
+      if (question) {
+        const isCorrect = question.correctAnswer === answer.answeredOption;
+        if (isCorrect) {
+          correctCount++;
+        }
+        
+        // Add feedback for each question
+        feedback[answer.questionId] = {
+          correct: isCorrect,
+          correctAnswer: question.options ? question.options[question.correctAnswer] : question.correctAnswer
+        };
       }
     });
     
@@ -189,7 +199,8 @@ router.post('/:id/submit', async (req, res) => {
       id: submission.id,
       score,
       correctCount,
-      totalQuestions: answers.length
+      totalQuestions: answers.length,
+      feedback
     });
   } catch (error) {
     console.error(`Error submitting quiz ${req.params.id}:`, error);
