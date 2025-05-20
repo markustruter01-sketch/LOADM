@@ -191,7 +191,7 @@ export default function QuizDetails() {
             </Button>
             <Button 
               className="bg-orange-500 hover:bg-orange-600 text-white"
-              onClick={() => setLocation(`/instructors-portal/quizzes/${quizId}/preview`)}
+              onClick={() => setLocation(`/quizzes/${quizId}`)}
             >
               Preview Quiz
             </Button>

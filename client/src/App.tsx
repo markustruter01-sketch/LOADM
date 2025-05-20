@@ -36,6 +36,8 @@ import StudentProgress from "@/pages/instructors-portal/student-progress";
 import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
 import QuizList from "@/pages/instructors-portal/quizzes";
 import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
+import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
+import QuizPage from "@/pages/quizzes/[id]";
 import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -81,6 +83,8 @@ function Router() {
           <AuthenticatedRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
           <AuthenticatedRoute path="/instructors-portal/quizzes" component={QuizList} />
           <AuthenticatedRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
+          <AuthenticatedRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
+          <Route path="/quizzes/:id" component={QuizPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
