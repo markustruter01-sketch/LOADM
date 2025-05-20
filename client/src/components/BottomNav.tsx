@@ -1,9 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { Home, ClipboardList, Package2, FileCheck, Wrench } from "lucide-react";
+import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
 export default function BottomNav() {
   const [location] = useLocation();
+  const { user } = useAuth();
 
   const navItems = [
     {
@@ -56,6 +58,23 @@ export default function BottomNav() {
             </div>
           </Link>
         ))}
+        
+        {/* Add Instructor Portal button if user is authenticated and authorized */}
+        {user && (user.isAdmin || user.isSuperAdmin) && (
+          <Link href="/instructors-portal">
+            <div className="flex flex-col items-center justify-center w-full p-2 cursor-pointer">
+              <div 
+                className={cn(
+                  "flex flex-col items-center justify-center",
+                  location.startsWith("/instructors-portal") ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <GraduationCap className="h-5 w-5 mb-1" />
+                <span className="text-xs">Instructor</span>
+              </div>
+            </div>
+          </Link>
+        )}
       </div>
     </div>
   );
