@@ -39,6 +39,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
   setupAuth(app);
   
+  // Import quiz routes
+  const quizzesRouter = await import('./routes/quizzes');
+  app.use('/api/quizzes', quizzesRouter.default);
+  
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {

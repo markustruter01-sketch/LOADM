@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { storage } from '../storage';
 import { loadmasterQuestions } from '@shared/quiz-questions';
+import * as quizStorage from '../storage-quiz';
 
 const router = Router();
 
@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const activeOnly = req.query.activeOnly === 'true';
-    const quizzes = await storage.getQuizzes(activeOnly);
+    const quizzes = await quizStorage.getQuizzes(activeOnly);
     res.json(quizzes);
   } catch (error) {
     console.error('Error fetching quizzes:', error);
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const quiz = await storage.getQuiz(id);
+    const quiz = await quizStorage.getQuiz(id);
     
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
-    const quiz = await storage.createQuiz({
+    const quiz = await quizStorage.createQuiz({
       title,
       description: description || '',
       createdById,
@@ -74,7 +74,7 @@ router.patch('/:id', async (req, res) => {
     if (isActive !== undefined) updateData.isActive = isActive;
     if (expiresAt !== undefined) updateData.expiresAt = expiresAt ? new Date(expiresAt) : null;
     
-    const quiz = await storage.updateQuiz(id, updateData);
+    const quiz = await quizStorage.updateQuiz(id, updateData);
     
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
@@ -91,7 +91,7 @@ router.patch('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const result = await storage.deleteQuiz(id);
+    const result = await quizStorage.deleteQuiz(id);
     
     if (!result) {
       return res.status(404).json({ error: 'Quiz not found' });
@@ -108,7 +108,7 @@ router.delete('/:id', async (req, res) => {
 router.get('/:id/questions', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const quiz = await storage.getQuiz(id);
+    const quiz = await quizStorage.getQuiz(id);
     
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
