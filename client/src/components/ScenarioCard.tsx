@@ -13,7 +13,7 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
       {/* Banner Image */}
       <div className="relative h-32 overflow-hidden">
         <img
-          src="/scenario-banner.jpg"
+          src="/20210408raaf8198167_190-1.jpg"
           alt="Aircraft loadmaster operations"
           className="w-full h-full object-cover"
         />
