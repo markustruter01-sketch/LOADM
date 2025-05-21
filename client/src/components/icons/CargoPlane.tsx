@@ -17,14 +17,18 @@ export const CargoPlane = forwardRef<SVGSVGElement, LucideProps>(
         strokeLinejoin="round"
         {...props}
       >
-        {/* Nose and fuselage */}
-        <path d="M12,4 L14,7 L14,16 L12,19 L10,16 L10,7 L12,4" />
+        {/* C-17 Globemaster style fuselage */}
+        <path d="M9,8 L12,6 L15,8 L15,14 L12,16 L9,14 Z" />
         
         {/* Main wings */}
-        <path d="M4,11 L10,8 L14,8 L20,11" />
+        <path d="M3,12 L9,10 L15,10 L21,12" />
         
-        {/* Tail wings */}
-        <path d="M8,16 L10,15 L14,15 L16,16" />
+        {/* Engine pods */}
+        <circle cx="7" cy="11" r="1" />
+        <circle cx="17" cy="11" r="1" />
+        
+        {/* Tail fin */}
+        <line x1="12" y1="16" x2="12" y2="18" />
       </svg>
     );
   }
