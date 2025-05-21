@@ -1,30 +1,33 @@
-import { SVGProps } from "react";
+import { forwardRef } from "react";
+import { LucideProps } from "lucide-react";
 
-export function CargoPlane(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      {/* Main body of the cargo plane */}
-      <path d="M3,12 L21,12 L19,16 L5,16 L3,12 Z" />
-      
-      {/* Tail section */}
-      <path d="M16,16 L16,18 L19,18 L19,16" />
-      
-      {/* Cockpit/nose */}
-      <path d="M3,12 L6,8 L9,8 L9,12" />
-      
-      {/* Wings */}
-      <path d="M7,12 L9,7 L15,7 L17,12" />
-    </svg>
-  );
-}
+export const CargoPlane = forwardRef<SVGSVGElement, LucideProps>(
+  ({ color = "currentColor", size = 24, strokeWidth = 2, ...props }, ref) => {
+    return (
+      <svg
+        ref={ref}
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+      >
+        {/* Nose and fuselage */}
+        <path d="M12,4 L14,7 L14,16 L12,19 L10,16 L10,7 L12,4" />
+        
+        {/* Main wings */}
+        <path d="M4,11 L10,8 L14,8 L20,11" />
+        
+        {/* Tail wings */}
+        <path d="M8,16 L10,15 L14,15 L16,16" />
+      </svg>
+    );
+  }
+);
+
+CargoPlane.displayName = 'CargoPlane';
