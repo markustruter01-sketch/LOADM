@@ -84,6 +84,32 @@ export default function ScenarioAnalytics() {
     };
     
     filteredSubmissions.forEach(sub => {
+      // For reviewed submissions, use calculated score based on marked answers
+      if (sub.markedAnswers && typeof sub.markedAnswers === 'string') {
+        try {
+          const markedAnswers = JSON.parse(sub.markedAnswers);
+          const correctCount = Object.values(markedAnswers).filter(Boolean).length;
+          
+          // Estimate total questions based on marked answers object keys
+          const totalQuestions = Object.keys(markedAnswers).length;
+          
+          if (totalQuestions > 0) {
+            const calculatedScore = Math.round((correctCount / totalQuestions) * 100);
+            
+            // Assign to appropriate score group
+            if (calculatedScore < 50) scoreGroups["0-49%"]++;
+            else if (calculatedScore < 70) scoreGroups["50-69%"]++;
+            else if (calculatedScore < 90) scoreGroups["70-89%"]++;
+            else scoreGroups["90-100%"]++;
+            
+            return; // Skip the fallback calculation below
+          }
+        } catch (e) {
+          console.error("Error parsing marked answers:", e);
+        }
+      }
+      
+      // Fallback to using score if available
       const score = sub.score || 0;
       if (score < 50) scoreGroups["0-49%"]++;
       else if (score < 70) scoreGroups["50-69%"]++;
@@ -170,13 +196,44 @@ export default function ScenarioAnalytics() {
   // Analytics summary based on filtered submissions
   const totalSubmissions = filteredSubmissions.length || 0;
   
-  // Calculate average score only from submissions that have scores
-  const submissionsWithScores = filteredSubmissions.filter(sub => 
-    sub.score !== undefined && sub.score !== null && !isNaN(Number(sub.score))
-  );
+  // Calculate average score from submissions with marked answers or scores
+  const submissionsWithScores = filteredSubmissions.filter(sub => {
+    // First check if we have marked answers we can calculate from
+    if (sub.markedAnswers && typeof sub.markedAnswers === 'string') {
+      try {
+        const markedAnswers = JSON.parse(sub.markedAnswers);
+        const totalQuestions = Object.keys(markedAnswers).length;
+        return totalQuestions > 0;
+      } catch (e) {
+        // If parsing fails, fall back to score check
+      }
+    }
+    
+    // Fall back to direct score check
+    return sub.score !== undefined && sub.score !== null && !isNaN(Number(sub.score));
+  });
   
+  // Calculate average score considering both marked answers and direct scores
   const averageScore = submissionsWithScores.length > 0
-    ? submissionsWithScores.reduce((sum, sub) => sum + Number(sub.score || 0), 0) / submissionsWithScores.length
+    ? submissionsWithScores.reduce((sum, sub) => {
+        // First try to calculate from marked answers
+        if (sub.markedAnswers && typeof sub.markedAnswers === 'string') {
+          try {
+            const markedAnswers = JSON.parse(sub.markedAnswers);
+            const correctCount = Object.values(markedAnswers).filter(Boolean).length;
+            const totalQuestions = Object.keys(markedAnswers).length;
+            
+            if (totalQuestions > 0) {
+              return sum + Math.round((correctCount / totalQuestions) * 100);
+            }
+          } catch (e) {
+            // If parsing fails, fall back to direct score
+          }
+        }
+        
+        // Fall back to direct score
+        return sum + Number(sub.score || 0);
+      }, 0) / submissionsWithScores.length
     : 0;
     
   // Find the scenarios for the submissions to get their passing thresholds
@@ -221,7 +278,11 @@ export default function ScenarioAnalytics() {
       };
 
       try {
-        const response = await apiRequest("POST", "/api/analytics/insights", analyticsData);
+        const response = await apiRequest({
+          method: "POST", 
+          url: "/api/analytics/insights", 
+          data: analyticsData
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Failed to generate analytics insights");
