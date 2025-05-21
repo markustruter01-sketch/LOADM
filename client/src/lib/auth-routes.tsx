@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Route, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -82,6 +82,15 @@ function UserCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const [, navigate] = useLocation();
 
+  // Only redirect if explicitly not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      // Store the current path to return after login
+      const returnPath = window.location.pathname;
+      navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`);
+    }
+  }, [user, isLoading, navigate]);
+
   // Show loading while checking authentication
   if (isLoading) {
     return (
@@ -91,12 +100,6 @@ function UserCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Redirect if not authenticated
-  if (!user) {
-    navigate("/auth");
-    return null;
-  }
-
-  // User is authenticated, render children
-  return <>{children}</>;
+  // If we have a user or we're still loading, render children
+  return user ? <>{children}</> : null;
 }

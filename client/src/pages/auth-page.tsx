@@ -37,14 +37,20 @@ const registerSchema = insertUserSchema.pick({
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
-  const { user, loginMutation, registerMutation, isLoading } = useAuth();
+  const { user, loginMutation, registerMutation, logoutMutation, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("login");
   const [showLoginAnimation, setShowLoginAnimation] = useState(false);
   const [showRegisterAnimation, setShowRegisterAnimation] = useState(false);
 
+  // Handle redirects for logged-in users
   useEffect(() => {
+    // Check URL for parameters
+    const params = new URLSearchParams(window.location.search);
+    
+    // Redirect logged-in users to home page or previous page if available
     if (user) {
-      setLocation("/");
+      const returnPath = params.get('returnTo') || '/';
+      setLocation(returnPath);
     }
   }, [user, setLocation]);
 
