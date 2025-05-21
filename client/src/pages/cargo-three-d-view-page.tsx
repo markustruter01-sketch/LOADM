@@ -419,7 +419,8 @@ const CargoThreeDViewPage: React.FC = () => {
         sprite.position.set(x, y + 0.35, z);
         sprite.scale.set(1, 0.25, 1);
         
-        pallets.push(sprite);
+        // Add the label to the scene directly instead of the pallets array
+        parent.add(sprite);
       }
     }
     

@@ -2256,15 +2256,7 @@ export default function LoadPlanningPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {viewMode === '3d' ? (
-                    // 3D View
-                    <ThreeDCargoView 
-                      pallets={pallets.filter(p => p.location === "cargo")}
-                      aircraftType={currentAircraftId}
-                    />
-                  ) : (
-                    // 2D View - Original Grid
-                    <div 
+                  <div 
                       ref={cargoRef}
                       className={`relative ${
                         currentAircraftId === 'c17' 
