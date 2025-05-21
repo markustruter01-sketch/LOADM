@@ -728,6 +728,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     return analysis;
   }
+  
+  // Advanced analytics AI insights endpoint
+  app.post('/api/advanced-analytics/insights', async (req, res) => {
+    try {
+      // Check for API key before processing
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ error: "OpenAI API key is required for this feature" });
+      }
+      
+      const { 
+        analysisType,
+        overallStats,
+        squadronData,
+        assessmentTypeData,
+        scoreDistribution,
+        trendData,
+        selectedFilters
+      } = req.body;
+      
+      // Validate required data
+      if (!overallStats || !selectedFilters) {
+        return res.status(400).json({ error: "Missing required analytics data" });
+      }
+      
+      // Ensure we have sufficient data to analyze
+      if (overallStats.totalSubmissions < 1) {
+        return res.status(400).json({ error: "Insufficient data for analysis" });
+      }
+      
+      // Call OpenAI service
+      const insight = await generateAdvancedAnalytics({
+        analysisType,
+        overallStats,
+        squadronData,
+        assessmentTypeData,
+        scoreDistribution,
+        trendData,
+        selectedFilters
+      });
+      
+      res.json({ insight });
+    } catch (error) {
+      console.error("Error generating analytics insights:", error);
+      res.status(500).json({ error: "Failed to generate analytics insights" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
