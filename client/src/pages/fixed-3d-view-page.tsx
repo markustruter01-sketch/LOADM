@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useLocation, useRoute } from "wouter";
 import { Helmet } from "react-helmet";
-import { ArrowLeft, Cube } from "lucide-react";
+import { ArrowLeft, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import * as THREE from 'three';
@@ -219,7 +219,7 @@ const Fixed3DViewPage: React.FC = () => {
         <Card className="w-full">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center">
-              <Cube className="h-5 w-5 mr-2 text-primary" />
+              <Box className="h-5 w-5 mr-2 text-primary" />
               {aircraftNames[aircraftId] || 'Aircraft'} 3D Visualization
             </CardTitle>
           </CardHeader>

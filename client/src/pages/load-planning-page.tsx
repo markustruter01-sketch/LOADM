@@ -2237,8 +2237,7 @@ export default function LoadPlanningPage() {
                             
                             // When changing cargo type for KC30A, clear pallets from cargo area
                             setPallets(prev => prev.filter(p => 
-                              p.location !== "cargo" || // Keep configuration pallets 
-                              currentAircraftId !== 'kc30a' // Keep cargo pallets for other aircraft
+                              p.location !== "cargo" || currentAircraftId !== 'kc30a'
                             ));
                           }}
                         >
