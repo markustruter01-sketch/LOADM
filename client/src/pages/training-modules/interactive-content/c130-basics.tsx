@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle, AlertCircle, PlaneTakeoff } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation } from "wouter";
 
 export default function C130BasicsInteractive() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -15,6 +16,7 @@ export default function C130BasicsInteractive() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [progress, setProgress] = useState(0);
   const [activeContent, setActiveContent] = useState("securement");
+  const [, navigate] = useLocation();
   
   const totalSteps = 4;
   
@@ -49,6 +51,9 @@ export default function C130BasicsInteractive() {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       setShowFeedback(false);
+    } else {
+      // If on the last step and clicked "Complete", navigate back to modules
+      navigate("/training-modules");
     }
   };
   

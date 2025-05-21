@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle, AlertCircle, MinusCircle, PlusCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation } from "wouter";
 
 export default function C27JBasicsInteractive() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,6 +15,7 @@ export default function C27JBasicsInteractive() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [, navigate] = useLocation();
   
   const totalSteps = 5;
   

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useLocation } from "wouter";
 
 export default function C17BasicsInteractive() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -13,6 +14,7 @@ export default function C17BasicsInteractive() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [, navigate] = useLocation();
   
   const totalSteps = 4;
   
@@ -47,6 +49,9 @@ export default function C17BasicsInteractive() {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       setShowFeedback(false);
+    } else {
+      // If on the last step and clicked "Complete", navigate back to modules
+      navigate("/training-modules");
     }
   };
   
