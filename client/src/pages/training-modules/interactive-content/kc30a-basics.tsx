@@ -417,7 +417,7 @@ export default function KC30ABasicsInteractive() {
           {showFeedback && (
             <Button 
               onClick={handleNext}
-              disabled={currentStep === totalSteps}
+              disabled={currentStep !== totalSteps && !isCorrect}
               variant={isCorrect ? "default" : "outline"}
             >
               {currentStep === totalSteps ? "Complete" : "Next"}
