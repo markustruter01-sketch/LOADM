@@ -1182,29 +1182,124 @@ export default function ModuleDetailPage() {
                             <CardDescription>{lesson.description}</CardDescription>
                           </CardHeader>
                           <CardContent>
-                            <div className="bg-gray-800/20 border border-gray-800/30 rounded-lg p-6 text-center">
-                              <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                              <p className="text-muted-foreground mb-4">
-                                Interactive exercise content would be displayed here
-                              </p>
-                              <Button 
-                                onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                disabled={completedLessons.includes(lesson.id)}
-                                className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                              >
-                                {completedLessons.includes(lesson.id) ? (
-                                  <>
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Completed
-                                  </>
-                                ) : (
-                                  <>
-                                    <ListChecks className="h-4 w-4 mr-2" />
-                                    Start Exercise
-                                  </>
-                                )}
-                              </Button>
-                            </div>
+                            {/* Show custom interactive content for the specific aircraft modules */}
+                            {(module.id === "c17-basics" && lesson.id === "c17-basics-3") ? (
+                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
+                                <C17BasicsInteractive />
+                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
+                                  <Button 
+                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                                    disabled={completedLessons.includes(lesson.id)}
+                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                  >
+                                    {completedLessons.includes(lesson.id) ? (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Completed
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Mark Complete
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (module.id === "kc30a-basics" && lesson.id === "kc30a-basics-3") ? (
+                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
+                                <KC30ABasicsInteractive />
+                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
+                                  <Button 
+                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                                    disabled={completedLessons.includes(lesson.id)}
+                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                  >
+                                    {completedLessons.includes(lesson.id) ? (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Completed
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Mark Complete
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (module.id === "c130-basics" && lesson.id === "c130-basics-3") ? (
+                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
+                                <C130BasicsInteractive />
+                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
+                                  <Button 
+                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                                    disabled={completedLessons.includes(lesson.id)}
+                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                  >
+                                    {completedLessons.includes(lesson.id) ? (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Completed
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Mark Complete
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (module.id === "c27j-basics" && lesson.id === "c27j-basics-3") ? (
+                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
+                                <C27JBasicsInteractive />
+                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
+                                  <Button 
+                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                                    disabled={completedLessons.includes(lesson.id)}
+                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                  >
+                                    {completedLessons.includes(lesson.id) ? (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Completed
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                                        Mark Complete
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-gray-800/20 border border-gray-800/30 rounded-lg p-6 text-center">
+                                <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                                <p className="text-muted-foreground mb-4">
+                                  Interactive exercise content would be displayed here
+                                </p>
+                                <Button 
+                                  onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                                  disabled={completedLessons.includes(lesson.id)}
+                                  className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                >
+                                  {completedLessons.includes(lesson.id) ? (
+                                    <>
+                                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                                      Completed
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ListChecks className="h-4 w-4 mr-2" />
+                                      Start Exercise
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
