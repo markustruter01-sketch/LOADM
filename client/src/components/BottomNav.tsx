@@ -1,9 +1,10 @@
 import { Link, useLocation } from "wouter";
-import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
+import { Home, ClipboardList, FileCheck, Wrench, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import { LucideProps } from "lucide-react";
+import { CargoPlane } from "@/components/icons/CargoPlane";
 
 interface NavItem {
   href: string;
@@ -33,7 +34,7 @@ export default function BottomNav() {
     {
       href: "/airframe",
       label: "Airframe",
-      icon: Package2,
+      icon: CargoPlane,
       active: location.startsWith("/airframe") || location.startsWith("/load-planning") || location.startsWith("/training-modules")
     },
     {
