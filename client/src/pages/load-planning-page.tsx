@@ -2211,8 +2211,15 @@ export default function LoadPlanningPage() {
                       </span>
                     </CardTitle>
                     
-                    {/* Cargo Type Selection Dropdown - Only for KC30-A */}
-                    {currentAircraftId === 'kc30a' && (
+                    <div className="flex items-center space-x-4">
+                      {/* 2D/3D View Toggle */}
+                      <ViewModeToggle 
+                        view={viewMode} 
+                        onChange={setViewMode} 
+                      />
+                    
+                      {/* Cargo Type Selection Dropdown - Only for KC30-A */}
+                      {currentAircraftId === 'kc30a' && (
                       <div className="flex items-center">
                         <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
                           Cargo Type:
@@ -2243,26 +2250,34 @@ export default function LoadPlanningPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div 
-                    ref={cargoRef}
-                    className={`relative ${
-                      currentAircraftId === 'c17' 
-                        ? 'h-[320px]' 
-                        : currentAircraftId === 'c130' 
-                          ? 'h-[220px]' 
-                          : currentAircraftId === 'kc30a'
-                            ? 'h-[200px]'
-                            : 'h-[150px]'
-                    } overflow-visible bg-transparent`}
-                    style={{
-                      // Set exact width to match balance scale width for perfect alignment
-                      width: `${balanceScaleWidth}px`,
-                      maxWidth: '100%', // Ensure it doesn't overflow on small screens
-                      margin: '0 auto' // Center the cargo area if smaller than container
-                    }}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, "cargo")}
-                  >
+                  {viewMode === '3d' ? (
+                    // 3D View
+                    <ThreeDCargoView 
+                      pallets={pallets.filter(p => p.location === "cargo")}
+                      aircraftType={currentAircraftId}
+                    />
+                  ) : (
+                    // 2D View - Original Grid
+                    <div 
+                      ref={cargoRef}
+                      className={`relative ${
+                        currentAircraftId === 'c17' 
+                          ? 'h-[320px]' 
+                          : currentAircraftId === 'c130' 
+                            ? 'h-[220px]' 
+                            : currentAircraftId === 'kc30a'
+                              ? 'h-[200px]'
+                              : 'h-[150px]'
+                      } overflow-visible bg-transparent`}
+                      style={{
+                        // Set exact width to match balance scale width for perfect alignment
+                        width: `${balanceScaleWidth}px`,
+                        maxWidth: '100%', // Ensure it doesn't overflow on small screens
+                        margin: '0 auto' // Center the cargo area if smaller than container
+                      }}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, "cargo")}
+                    >
                     {/* Grid lines */}
                     {currentAircraftId === 'c17' ? (
                       <div className="absolute inset-0">
