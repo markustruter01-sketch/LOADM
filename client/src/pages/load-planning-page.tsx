@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare, Box } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -48,11 +48,6 @@ export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
   const [match, params] = useRoute("/load-planning/:aircraftId");
   const { toast } = useToast();
-  
-  // This will be used for the 3D view link
-  const show3DView = () => {
-    navigate(`/cargo-3d-view/${currentAircraftId}`);
-  };
   
   // State for cargo type selection (Pallets or LD3's)
   const [cargoType, setCargoType] = useState<"pallets" | "ld3s">("pallets");
@@ -2211,70 +2206,58 @@ export default function LoadPlanningPage() {
                       </span>
                     </CardTitle>
                     
-                    <div className="flex items-center space-x-4">
-                      {/* 3D View Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={show3DView}
-                        className="flex items-center gap-1"
-                      >
-                        <Box className="h-4 w-4" />
-                        <span>View in 3D</span>
-                      </Button>
-                    
-                      {/* Cargo Type Selection Dropdown - Only for KC30-A */}
-                      {currentAircraftId === 'kc30a' && (
-                        <div className="flex items-center">
-                          <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
-                            Cargo Type:
-                          </label>
-                          <Select
-                            value={cargoType}
-                            onValueChange={(value) => {
-                              // Update cargo type
-                              setCargoType(value as "pallets" | "ld3s");
-                              
-                              // When changing cargo type for KC30A, clear pallets from cargo area
-                              setPallets(prev => prev.filter(p => 
-                                p.location !== "cargo" || currentAircraftId !== 'kc30a'
-                              ));
-                            }}
-                          >
-                            <SelectTrigger className="h-8 w-[120px] bg-gray-800 text-white border-orange-500">
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pallets">Pallets (8)</SelectItem>
-                              <SelectItem value="ld3s">LD3's (26)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                    </div>
+                    {/* Cargo Type Selection Dropdown - Only for KC30-A */}
+                    {currentAircraftId === 'kc30a' && (
+                      <div className="flex items-center">
+                        <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
+                          Cargo Type:
+                        </label>
+                        <Select
+                          value={cargoType}
+                          onValueChange={(value) => {
+                            // Update cargo type
+                            setCargoType(value as "pallets" | "ld3s");
+                            
+                            // When changing cargo type for KC30A, clear pallets from cargo area
+                            setPallets(prev => prev.filter(p => 
+                              p.location !== "cargo" || // Keep configuration pallets 
+                              currentAircraftId !== 'kc30a' // Keep cargo pallets for other aircraft
+                            ));
+                          }}
+                        >
+                          <SelectTrigger className="h-8 w-[120px] bg-gray-800 text-white border-orange-500">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pallets">Pallets (8)</SelectItem>
+                            <SelectItem value="ld3s">LD3's (26)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div 
-                      ref={cargoRef}
-                      className={`relative ${
-                        currentAircraftId === 'c17' 
-                          ? 'h-[320px]' 
-                          : currentAircraftId === 'c130' 
-                            ? 'h-[220px]' 
-                            : currentAircraftId === 'kc30a'
-                              ? 'h-[200px]'
-                              : 'h-[150px]'
-                      } overflow-visible bg-transparent`}
-                      style={{
-                        // Set exact width to match balance scale width for perfect alignment
-                        width: `${balanceScaleWidth}px`,
-                        maxWidth: '100%', // Ensure it doesn't overflow on small screens
-                        margin: '0 auto' // Center the cargo area if smaller than container
-                      }}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, "cargo")}
-                    >
+                    ref={cargoRef}
+                    className={`relative ${
+                      currentAircraftId === 'c17' 
+                        ? 'h-[320px]' 
+                        : currentAircraftId === 'c130' 
+                          ? 'h-[220px]' 
+                          : currentAircraftId === 'kc30a'
+                            ? 'h-[200px]'
+                            : 'h-[150px]'
+                    } overflow-visible bg-transparent`}
+                    style={{
+                      // Set exact width to match balance scale width for perfect alignment
+                      width: `${balanceScaleWidth}px`,
+                      maxWidth: '100%', // Ensure it doesn't overflow on small screens
+                      margin: '0 auto' // Center the cargo area if smaller than container
+                    }}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, "cargo")}
+                  >
                     {/* Grid lines */}
                     {currentAircraftId === 'c17' ? (
                       <div className="absolute inset-0">
