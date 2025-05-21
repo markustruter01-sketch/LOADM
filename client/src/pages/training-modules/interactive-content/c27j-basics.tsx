@@ -51,6 +51,9 @@ export default function C27JBasicsInteractive() {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       setShowFeedback(false);
+    } else {
+      // If on the last step and clicked "Complete", navigate back to modules
+      navigate("/training-modules");
     }
   };
   
