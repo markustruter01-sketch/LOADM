@@ -40,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     select: (data) => data || null, // Ensure we always return null and not undefined
+    staleTime: 5000, // Reduce refetching frequency
+    refetchOnWindowFocus: false, // Prevent constant refetching on focus
   });
 
   const loginMutation = useMutation({

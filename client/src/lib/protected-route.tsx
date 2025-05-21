@@ -46,29 +46,42 @@ export function AuthenticatedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
+  return (
+    <Route path={path}>
+      <AuthenticationCheck>
+        <Component />
+      </AuthenticationCheck>
+    </Route>
+  );
+}
+
+// Simple authentication check component
+function AuthenticationCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
+  const [, navigate] = useLocation();
+  
+  useEffect(() => {
+    // Only redirect if we're sure user is not authenticated
+    if (!isLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, isLoading, navigate]);
   
   if (isLoading) {
     return (
-      <Route path={path}>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-border" />
-        </div>
-      </Route>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      </div>
     );
   }
-
-  // If user is not logged in, redirect to auth page
-  if (!user) {
-    return (
-      <Route path={path}>
-        <Redirect to="/auth" />
-      </Route>
-    );
+  
+  // If user is authenticated, render children
+  if (user) {
+    return <>{children}</>;
   }
-
-  // User is logged in, render the component directly
-  return <Route path={path} component={Component} />;
+  
+  // This will rarely be seen due to the redirect
+  return null;
 }
 
 // Component that checks for admin auth and either renders children or redirects
