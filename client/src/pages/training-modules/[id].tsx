@@ -35,6 +35,12 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { aircraftConfigs } from "@/utils/aircraft-config";
 
+// Import interactive content components
+import C17BasicsInteractive from "./interactive-content/c17-basics";
+import KC30ABasicsInteractive from "./interactive-content/kc30a-basics";
+import C130BasicsInteractive from "./interactive-content/c130-basics";
+import C27JBasicsInteractive from "./interactive-content/c27j-basics";
+
 // Types from the main modules page
 type DifficultyLevel = "beginner" | "intermediate" | "advanced" | "expert";
 
