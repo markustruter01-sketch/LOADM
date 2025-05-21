@@ -17,7 +17,7 @@ import { AlertTriangleIcon } from "lucide-react";
 import LoadBalanceChat from "@/components/LoadBalanceChat";
 import { lbsToKg, kgToLbs } from "@/utils/aircraft-config";
 import ViewModeToggle from "@/components/ViewModeToggle";
-import ThreeDCargoView from "@/components/ThreeDCargoView";
+import CargoThreeDView from "@/components/CargoThreeDView";
 
 interface Pallet {
   id: number;
