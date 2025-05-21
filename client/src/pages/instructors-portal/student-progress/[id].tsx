@@ -180,7 +180,9 @@ export default function SubmissionReview() {
       // Calculate score based on marked answers
       const totalQuestions = questions.length;
       const correctAnswers = Object.values(markedAnswers).filter(Boolean).length;
-      const score = Math.round((correctAnswers / totalQuestions) * 100);
+      const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+      
+      console.log(`Calculated score: ${score}% (${correctAnswers}/${totalQuestions} correct)`);
       
       // Use manual pass/fail if provided, otherwise calculate based on threshold
       const passingThreshold = scenario?.passingThreshold || 70; // Default to 70% if not set

@@ -339,12 +339,35 @@ export class DatabaseStorage implements IStorage {
         markedAnswersJson = '{}';
       }
       
+      // Calculate the score based on marked answers for greater accuracy
+      let calculatedScore = 0;
+      try {
+        // Parse the marked answers to count correct answers
+        const markedAnswersObj = typeof updateData.markedAnswers === 'string' 
+          ? JSON.parse(updateData.markedAnswers) 
+          : updateData.markedAnswers || {};
+          
+        // Count how many answers are marked as correct (true)
+        const correctCount = Object.values(markedAnswersObj).filter(val => val === true).length;
+        const totalQuestions = Object.keys(markedAnswersObj).length;
+        
+        // Calculate score as percentage if there are questions
+        if (totalQuestions > 0) {
+          calculatedScore = Math.round((correctCount / totalQuestions) * 100);
+          console.log(`Calculated score: ${calculatedScore}% (${correctCount}/${totalQuestions} correct)`);
+        }
+      } catch (e) {
+        console.error("Error calculating score from marked answers:", e);
+        // Fall back to provided score if calculation fails
+        calculatedScore = updateData.score || 0;
+      }
+      
       // Prepare params with default values in case some are undefined
       const params = [
         updateData.instructorFeedback || null,
         markedAnswersJson,
         updateData.status || 'reviewed',
-        updateData.score || 0,
+        calculatedScore, // Use the calculated score instead of the raw input
         updateData.passed === undefined ? false : updateData.passed,
         id
       ];
