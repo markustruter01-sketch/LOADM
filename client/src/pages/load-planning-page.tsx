@@ -2225,32 +2225,33 @@ export default function LoadPlanningPage() {
                     
                       {/* Cargo Type Selection Dropdown - Only for KC30-A */}
                       {currentAircraftId === 'kc30a' && (
-                      <div className="flex items-center">
-                        <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
-                          Cargo Type:
-                        </label>
-                        <Select
-                          value={cargoType}
-                          onValueChange={(value) => {
-                            // Update cargo type
-                            setCargoType(value as "pallets" | "ld3s");
-                            
-                            // When changing cargo type for KC30A, clear pallets from cargo area
-                            setPallets(prev => prev.filter(p => 
-                              p.location !== "cargo" || currentAircraftId !== 'kc30a'
-                            ));
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-[120px] bg-gray-800 text-white border-orange-500">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pallets">Pallets (8)</SelectItem>
-                            <SelectItem value="ld3s">LD3's (26)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                        <div className="flex items-center">
+                          <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
+                            Cargo Type:
+                          </label>
+                          <Select
+                            value={cargoType}
+                            onValueChange={(value) => {
+                              // Update cargo type
+                              setCargoType(value as "pallets" | "ld3s");
+                              
+                              // When changing cargo type for KC30A, clear pallets from cargo area
+                              setPallets(prev => prev.filter(p => 
+                                p.location !== "cargo" || currentAircraftId !== 'kc30a'
+                              ));
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-[120px] bg-gray-800 text-white border-orange-500">
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pallets">Pallets (8)</SelectItem>
+                              <SelectItem value="ld3s">LD3's (26)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
