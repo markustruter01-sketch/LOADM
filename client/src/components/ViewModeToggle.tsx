@@ -3,7 +3,7 @@ import {
   ToggleGroup, 
   ToggleGroupItem 
 } from "@/components/ui/toggle-group";
-import { Cube, Grid2X2 } from 'lucide-react';
+import { Box, Grid2X2 } from 'lucide-react';
 
 interface ViewModeToggleProps {
   view: '2d' | '3d';
@@ -20,7 +20,7 @@ const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ view, onChange }) => {
           <span>2D</span>
         </ToggleGroupItem>
         <ToggleGroupItem value="3d" aria-label="3D View">
-          <Cube className="h-4 w-4 mr-1" />
+          <Box className="h-4 w-4 mr-1" />
           <span>3D</span>
         </ToggleGroupItem>
       </ToggleGroup>

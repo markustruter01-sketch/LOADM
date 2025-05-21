@@ -1,6 +1,98 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+// Simple Controls class to handle camera rotation and zoom
+class SimpleOrbitControls {
+  private camera: THREE.PerspectiveCamera;
+  private domElement: HTMLElement;
+  private isMouseDown = false;
+  private mousePosition = { x: 0, y: 0 };
+  private distance = 15;
+  private rotationSpeed = 0.01;
+  private zoomSpeed = 0.1;
+  private dampingFactor = 0.05;
+  private minDistance = 5;
+  private maxDistance = 50;
+  private phi = 0; // vertical rotation
+  private theta = 0; // horizontal rotation
+  private target = new THREE.Vector3(0, 0, 0);
+  private enabled = true;
+
+  constructor(camera: THREE.PerspectiveCamera, domElement: HTMLElement) {
+    this.camera = camera;
+    this.domElement = domElement;
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners() {
+    // Mouse controls
+    this.domElement.addEventListener('mousedown', this.onMouseDown);
+    this.domElement.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('mouseup', this.onMouseUp);
+    
+    // Wheel for zoom
+    this.domElement.addEventListener('wheel', this.onMouseWheel);
+  }
+
+  private onMouseDown = (event: MouseEvent) => {
+    if (!this.enabled) return;
+    this.isMouseDown = true;
+    this.mousePosition.x = event.clientX;
+    this.mousePosition.y = event.clientY;
+  };
+
+  private onMouseMove = (event: MouseEvent) => {
+    if (!this.enabled || !this.isMouseDown) return;
+
+    const deltaX = event.clientX - this.mousePosition.x;
+    const deltaY = event.clientY - this.mousePosition.y;
+
+    this.mousePosition.x = event.clientX;
+    this.mousePosition.y = event.clientY;
+
+    this.theta -= deltaX * this.rotationSpeed;
+    this.phi -= deltaY * this.rotationSpeed;
+
+    // Limit vertical rotation
+    this.phi = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.phi));
+
+    this.updateCamera();
+  };
+
+  private onMouseUp = () => {
+    this.isMouseDown = false;
+  };
+
+  private onMouseWheel = (event: WheelEvent) => {
+    if (!this.enabled) return;
+    event.preventDefault();
+
+    this.distance += event.deltaY * this.zoomSpeed * 0.01;
+    this.distance = Math.max(this.minDistance, Math.min(this.maxDistance, this.distance));
+    
+    this.updateCamera();
+  };
+
+  private updateCamera() {
+    const x = this.distance * Math.sin(this.theta) * Math.cos(this.phi);
+    const y = this.distance * Math.sin(this.phi);
+    const z = this.distance * Math.cos(this.theta) * Math.cos(this.phi);
+
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(this.target);
+  }
+
+  public update() {
+    // Apply damping if needed in future versions
+  }
+
+  public dispose() {
+    this.domElement.removeEventListener('mousedown', this.onMouseDown);
+    this.domElement.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('mouseup', this.onMouseUp);
+    this.domElement.removeEventListener('wheel', this.onMouseWheel);
+  }
+}
 
 interface ThreeDCargoModelProps {
   palletPositions: { 
@@ -11,7 +103,7 @@ interface ThreeDCargoModelProps {
     weight: number;
     cargo: string;
   }[];
-  aircraftType: 'C-17' | 'C-130' | 'C-27J' | 'KC30A';
+  aircraftType: string;
 }
 
 const ThreeDCargoModel: React.FC<ThreeDCargoModelProps> = ({ palletPositions, aircraftType }) => {
@@ -19,77 +111,99 @@ const ThreeDCargoModel: React.FC<ThreeDCargoModelProps> = ({ palletPositions, ai
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const controlsRef = useRef<OrbitControls | null>(null);
+  const controlsRef = useRef<SimpleOrbitControls | null>(null);
   const palletMeshesRef = useRef<{ [key: string]: THREE.Mesh }>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   // Setup the scene once component mounts
   useEffect(() => {
     if (!mountRef.current) return;
+    
+    setIsLoading(true);
 
-    // Initialize scene
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
-    sceneRef.current = scene;
+    try {
+      // Initialize scene
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0);
+      sceneRef.current = scene;
 
-    // Initialize camera
-    const camera = new THREE.PerspectiveCamera(
-      75, 
-      mountRef.current.clientWidth / mountRef.current.clientHeight, 
-      0.1, 
-      1000
-    );
-    camera.position.set(15, 15, 15);
-    camera.lookAt(0, 0, 0);
-    cameraRef.current = camera;
+      // Initialize camera
+      const camera = new THREE.PerspectiveCamera(
+        75, 
+        mountRef.current.clientWidth / mountRef.current.clientHeight, 
+        0.1, 
+        1000
+      );
+      camera.position.set(15, 15, 15);
+      camera.lookAt(0, 0, 0);
+      cameraRef.current = camera;
 
-    // Initialize renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    mountRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+      // Initialize renderer
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      mountRef.current.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
 
-    // Add orbit controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minDistance = 5;
-    controls.maxDistance = 50;
-    controlsRef.current = controls;
+      // Add custom orbit controls
+      const controls = new SimpleOrbitControls(camera, renderer.domElement);
+      controlsRef.current = controls;
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+      // Add lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(10, 10, 10);
-    scene.add(directionalLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(10, 10, 10);
+      scene.add(directionalLight);
 
-    // Create aircraft body based on type
-    createAircraftModel(aircraftType, scene);
-
-    // Add coordinate grid
-    const gridHelper = new THREE.GridHelper(30, 30);
-    scene.add(gridHelper);
-
-    // Animation loop
-    const animate = () => {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    // Handle window resize
-    const handleResize = () => {
-      if (!mountRef.current || !cameraRef.current || !rendererRef.current) return;
+      // Helper function to convert aircraft ID to the format used in our component
+      const convertedType = aircraftType === 'c17' ? 'C-17' :
+                           aircraftType === 'c130' ? 'C-130' :
+                           aircraftType === 'c27j' ? 'C-27J' :
+                           aircraftType === 'kc30a' ? 'KC30A' : 'C-17';
       
-      cameraRef.current.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
-      cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-    };
+      // Create aircraft body based on type
+      createAircraftModel(convertedType, scene);
 
-    window.addEventListener('resize', handleResize);
+      // Add coordinate grid
+      const gridHelper = new THREE.GridHelper(30, 30);
+      scene.add(gridHelper);
+
+      // Animation loop
+      const animate = () => {
+        requestAnimationFrame(animate);
+        if (controlsRef.current) controlsRef.current.update();
+        if (rendererRef.current && cameraRef.current && sceneRef.current) {
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        }
+      };
+      animate();
+
+      // Handle window resize
+      const handleResize = () => {
+        if (!mountRef.current || !cameraRef.current || !rendererRef.current) return;
+        
+        cameraRef.current.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+        cameraRef.current.updateProjectionMatrix();
+        rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      };
+
+      const handleResize = () => {
+        if (!mountRef.current || !cameraRef.current || !rendererRef.current) return;
+        
+        cameraRef.current.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+        cameraRef.current.updateProjectionMatrix();
+        rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error setting up 3D scene:", error);
+      setIsLoading(false);
+    }
 
     // Cleanup
     return () => {
@@ -97,6 +211,7 @@ const ThreeDCargoModel: React.FC<ThreeDCargoModelProps> = ({ palletPositions, ai
       if (mountRef.current && rendererRef.current) {
         mountRef.current.removeChild(rendererRef.current.domElement);
       }
+      controlsRef.current?.dispose();
       rendererRef.current?.dispose();
     };
   }, [aircraftType]);
@@ -105,50 +220,64 @@ const ThreeDCargoModel: React.FC<ThreeDCargoModelProps> = ({ palletPositions, ai
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    // Clear existing pallets
-    Object.values(palletMeshesRef.current).forEach(mesh => {
-      sceneRef.current?.remove(mesh);
-    });
-    palletMeshesRef.current = {};
+    try {
+      // Clear existing pallets
+      Object.values(palletMeshesRef.current).forEach(mesh => {
+        if (sceneRef.current) {
+          sceneRef.current.remove(mesh);
+        }
+      });
+      palletMeshesRef.current = {};
 
-    // Add new pallets
-    palletPositions.forEach(pallet => {
-      // Adjust position based on aircraft type to match 2D grid
-      const adjustedPosition = adjustPalletPosition(pallet, aircraftType);
-      
-      // Create pallet mesh
-      const geometry = new THREE.BoxGeometry(1, 0.3, 1);
-      
-      // Color based on weight (heavier = darker)
-      const weightFactor = Math.min(pallet.weight / 10000, 1); // Normalize weight
-      const color = new THREE.Color(
-        1 - weightFactor * 0.5,
-        1 - weightFactor * 0.7,
-        1 - weightFactor * 0.9
-      );
-      
-      const material = new THREE.MeshPhongMaterial({ color });
-      const mesh = new THREE.Mesh(geometry, material);
-      
-      // Position the pallet
-      mesh.position.set(
-        adjustedPosition.x,
-        adjustedPosition.y,
-        adjustedPosition.z
-      );
-      
-      // Add pallet to scene
-      sceneRef.current.add(mesh);
-      palletMeshesRef.current[pallet.id] = mesh;
-      
-      // Add weight text above pallet
-      addPalletLabel(
-        pallet.id,
-        `${pallet.weight} ${aircraftType === 'KC30A' ? 'kg' : 'lbs'}`,
-        adjustedPosition,
-        sceneRef.current
-      );
-    });
+      // Helper function to convert aircraft ID to the format used in our component
+      const convertedType = aircraftType === 'c17' ? 'C-17' :
+                           aircraftType === 'c130' ? 'C-130' :
+                           aircraftType === 'c27j' ? 'C-27J' :
+                           aircraftType === 'kc30a' ? 'KC30A' : 'C-17';
+
+      // Add new pallets
+      palletPositions.forEach(pallet => {
+        // Adjust position based on aircraft type to match 2D grid
+        const adjustedPosition = adjustPalletPosition(pallet, convertedType);
+        
+        // Create pallet mesh
+        const geometry = new THREE.BoxGeometry(1, 0.3, 1);
+        
+        // Color based on weight (heavier = darker)
+        const weightFactor = Math.min(pallet.weight / 10000, 1); // Normalize weight
+        const color = new THREE.Color(
+          1 - weightFactor * 0.5,
+          1 - weightFactor * 0.7,
+          1 - weightFactor * 0.9
+        );
+        
+        const material = new THREE.MeshPhongMaterial({ color });
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Position the pallet
+        mesh.position.set(
+          adjustedPosition.x,
+          adjustedPosition.y,
+          adjustedPosition.z
+        );
+        
+        // Add pallet to scene
+        if (sceneRef.current) {
+          sceneRef.current.add(mesh);
+          palletMeshesRef.current[pallet.id] = mesh;
+          
+          // Add weight text above pallet
+          addPalletLabel(
+            pallet.id,
+            `${pallet.weight} ${aircraftType === 'kc30a' ? 'kg' : 'lbs'}`,
+            adjustedPosition,
+            sceneRef.current
+          );
+        }
+      });
+    } catch (error) {
+      console.error("Error updating pallets:", error);
+    }
   }, [palletPositions, aircraftType]);
 
   // Create aircraft model based on type
