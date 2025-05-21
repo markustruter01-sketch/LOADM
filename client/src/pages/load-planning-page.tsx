@@ -16,7 +16,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangleIcon } from "lucide-react";
 import LoadBalanceChat from "@/components/LoadBalanceChat";
 import { lbsToKg, kgToLbs } from "@/utils/aircraft-config";
-import { Box } from "lucide-react";
 
 interface Pallet {
   id: number;
@@ -2225,7 +2224,7 @@ export default function LoadPlanningPage() {
                       </Button>
                     
                       {/* Cargo Type Selection Dropdown - Only for KC30-A */}
-                      {currentAircraftId === 'kc30a' && 
+                      {currentAircraftId === 'kc30a' && (
                       <div className="flex items-center">
                         <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
                           Cargo Type:

@@ -31,7 +31,7 @@ import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
 import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
 import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
-import CargoThreeDViewPage from "@/pages/cargo-three-d-view-page";
+import Fixed3DViewPage from "@/pages/fixed-3d-view-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
