@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Header() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logoutMutation } = useAuth();
 
   const handleLogout = () => {
@@ -45,14 +45,14 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem>
-                  <div className="w-full cursor-pointer" onClick={() => {
-                    window.location.href = "/instructors-portal";
-                  }}>Instructors Portal</div>
+                <DropdownMenuItem asChild>
+                  <Link href="/instructors-portal">
+                    <div className="w-full cursor-pointer">Instructors Portal</div>
+                  </Link>
                 </DropdownMenuItem>
                 {user.isAdmin && (
                   <>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link href="/admin">
                         <div className="w-full cursor-pointer">Admin Dashboard</div>
                       </Link>
