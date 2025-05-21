@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema } from "@shared/schema";
-import { generateAnalytics, analyzeCargoBalance } from "./openai";
+import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 
 // Rate limiting for security
 const ONE_MINUTE = 60 * 1000;

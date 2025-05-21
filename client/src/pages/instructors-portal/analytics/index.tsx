@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import { 
   BarChart, 
   Bar, 
@@ -1022,7 +1023,196 @@ export default function AdvancedAnalytics() {
               </Card>
             </div>
           )}
+          
+          {/* AI Analytics Assistant - Added at the bottom of all views */}
+          <Card className="mt-8 border-primary/30">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    AI Analytics Assistant
+                  </CardTitle>
+                  <CardDescription>
+                    Get AI-powered insights on different aspects of your analytics data
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <AIAnalyticsInsights 
+                overallStats={overviewStats} 
+                performanceData={performanceData}
+                filters={{
+                  squadron: selectedSquadron,
+                  assessmentType: selectedAssessmentType,
+                  dateRange: selectedDateRange
+                }}
+                isLoading={isLoadingScenarioSubmissions || isLoadingQuizSubmissions || isLoadingDocumentSubmissions}
+              />
+            </CardContent>
+          </Card>
         </>
+      )}
+    </div>
+  );
+}
+
+// AI Analytics Insights Component
+interface AIAnalyticsInsightsProps {
+  overallStats: {
+    totalStudents: number;
+    totalSubmissions: number;
+    avgScore: number;
+    passRate: number;
+    completionRate: number;
+    squadronBreakdown: { name: string; count: number }[];
+  };
+  performanceData: {
+    scoreDistribution: { range: string; count: number }[];
+    squadronPerformance: { squadron: string; avgScore: number; passRate: number; submissions: number }[];
+    assessmentTypePerformance: { type: string; avgScore: number; passRate: number; submissions: number }[];
+    trendOverTime: { date: string; avgScore: number; submissions: number }[];
+  };
+  filters: {
+    squadron: string;
+    assessmentType: string;
+    dateRange: string;
+  };
+  isLoading: boolean;
+}
+
+function AIAnalyticsInsights({ overallStats, performanceData, filters, isLoading }: AIAnalyticsInsightsProps) {
+  const { toast } = useToast();
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState<string>("overall");
+  const [aiInsight, setAiInsight] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  
+  const analysisTypeOptions = [
+    { value: "overall", label: "Overall Performance Analysis" },
+    { value: "squadron", label: "Squadron Comparison Analysis" },
+    { value: "assessment", label: "Assessment Type Analysis" },
+    { value: "scores", label: "Score Distribution Analysis" },
+    { value: "trends", label: "Performance Trends Analysis" }
+  ];
+  
+  const generateInsights = async () => {
+    setIsGenerating(true);
+    setAiInsight("");
+    
+    try {
+      // Prepare data based on selected analysis type
+      const requestData = {
+        analysisType: selectedAnalysisType,
+        overallStats: {
+          totalStudents: overallStats.totalStudents,
+          totalSubmissions: overallStats.totalSubmissions,
+          avgScore: overallStats.avgScore,
+          passRate: overallStats.passRate
+        },
+        squadronData: performanceData.squadronPerformance,
+        assessmentTypeData: performanceData.assessmentTypePerformance,
+        scoreDistribution: performanceData.scoreDistribution,
+        trendData: performanceData.trendOverTime,
+        selectedFilters: filters
+      };
+      
+      // Make the API call
+      const response = await fetch('/api/advanced-analytics/insights', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate analytics insights");
+      }
+      
+      const data = await response.json();
+      setAiInsight(data.insight);
+      
+      toast({
+        title: "Analysis Generated",
+        description: "AI insights are now available.",
+      });
+    } catch (error) {
+      console.error("Error generating insights:", error);
+      toast({
+        title: "Failed to Generate Analysis",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-6 space-y-4">
+        <div className="animate-spin w-8 h-8 rounded-full border-4 border-primary border-t-transparent"></div>
+        <p className="text-muted-foreground">Loading analytics data...</p>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <Label htmlFor="analysisType" className="mb-2 block">Select Analysis Focus</Label>
+          <Select 
+            value={selectedAnalysisType} 
+            onValueChange={setSelectedAnalysisType}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select analysis type" />
+            </SelectTrigger>
+            <SelectContent>
+              {analysisTypeOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-end">
+          <Button 
+            onClick={generateInsights} 
+            disabled={isGenerating || overallStats.totalSubmissions < 1}
+            className="w-full sm:w-auto"
+          >
+            {isGenerating ? (
+              <>
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-background border-t-transparent rounded-full"></div>
+                Analyzing...
+              </>
+            ) : (
+              <>Generate Insights</>
+            )}
+          </Button>
+        </div>
+      </div>
+      
+      {overallStats.totalSubmissions < 1 ? (
+        <div className="bg-card/50 p-4 rounded-md border border-border text-muted-foreground text-center">
+          <p>Not enough data to generate AI insights. Add more submissions to use this feature.</p>
+        </div>
+      ) : (
+        <div className={`mt-4 p-5 rounded-lg border ${aiInsight ? 'border-primary/30 bg-card/50' : 'border-border bg-card/30'}`}>
+          {aiInsight ? (
+            <div className="prose prose-invert max-w-none">
+              <p className="whitespace-pre-line">{aiInsight}</p>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Select an analysis type and click "Generate Insights" to get AI-powered analytics</p>
+              <p className="text-xs mt-2">Insights are generated based on filtered data and current selections</p>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
