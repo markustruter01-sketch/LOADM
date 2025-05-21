@@ -67,7 +67,7 @@ export function AuthenticatedRoute({
     );
   }
 
-  // User is logged in, render the component
+  // User is logged in, render the component directly
   return <Route path={path} component={Component} />;
 }
 

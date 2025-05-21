@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import DownloadApp from "./DownloadApp";
+import LogoutButton from "./LogoutButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,11 +15,7 @@ import {
 
 export default function Header() {
   const [location, setLocation] = useLocation();
-  const { user, logoutMutation } = useAuth();
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
+  const { user } = useAuth();
 
   return (
     <header className="bg-muted shadow-md">
@@ -60,8 +57,10 @@ export default function Header() {
                     <DropdownMenuSeparator />
                   </>
                 )}
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  Logout
+                <DropdownMenuItem asChild>
+                  <div className="w-full cursor-pointer">
+                    <LogoutButton variant="ghost" showIcon={false} className="w-full justify-start p-0 h-auto font-normal" />
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
