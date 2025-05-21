@@ -16,8 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangleIcon } from "lucide-react";
 import LoadBalanceChat from "@/components/LoadBalanceChat";
 import { lbsToKg, kgToLbs } from "@/utils/aircraft-config";
-import ViewModeToggle from "@/components/ViewModeToggle";
-import CargoThreeDView from "@/components/CargoThreeDView";
+import { Box } from "lucide-react";
 
 interface Pallet {
   id: number;
@@ -51,8 +50,10 @@ export default function LoadPlanningPage() {
   const [match, params] = useRoute("/load-planning/:aircraftId");
   const { toast } = useToast();
   
-  // View mode toggle between 2D and 3D
-  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+  // This will be used for the 3D view link
+  const show3DView = () => {
+    navigate(`/cargo-3d-view/${currentAircraftId}`);
+  };
   
   // State for cargo type selection (Pallets or LD3's)
   const [cargoType, setCargoType] = useState<"pallets" | "ld3s">("pallets");
@@ -2212,14 +2213,19 @@ export default function LoadPlanningPage() {
                     </CardTitle>
                     
                     <div className="flex items-center space-x-4">
-                      {/* 2D/3D View Toggle */}
-                      <ViewModeToggle 
-                        view={viewMode} 
-                        onChange={setViewMode} 
-                      />
+                      {/* 3D View Button */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={show3DView}
+                        className="flex items-center gap-1"
+                      >
+                        <Box className="h-4 w-4" />
+                        <span>View in 3D</span>
+                      </Button>
                     
                       {/* Cargo Type Selection Dropdown - Only for KC30-A */}
-                      {currentAircraftId === 'kc30a' && (
+                      {currentAircraftId === 'kc30a' && 
                       <div className="flex items-center">
                         <label htmlFor="cargo-type" className="text-sm font-medium mr-2 text-muted-foreground">
                           Cargo Type:

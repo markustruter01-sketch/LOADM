@@ -31,6 +31,7 @@ import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
 import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
 import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
+import CargoThreeDViewPage from "@/pages/cargo-three-d-view-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
@@ -80,6 +81,7 @@ function Router() {
           <Route path="/load-planning/c17" component={LoadPlanningPage} />
           <Route path="/load-planning/c130" component={LoadPlanningPage} />
           <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
+          <Route path="/cargo-3d-view/:aircraftId" component={CargoThreeDViewPage} />
           <Route path="/documents" component={DocumentsPage} /> {/* Renamed from cargo-manifest */}
           <Route path="/cargo-manifest" component={DocumentsPage} /> {/* Keep old path working */}
           <Route path="/profile" component={ProfilePage} />
