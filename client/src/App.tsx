@@ -51,7 +51,7 @@ import TeachingMaterials from "@/pages/instructors-portal/resources";
 import BestPractices from "@/pages/instructors-portal/best-practices";
 import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
-import { ProtectedRoute, AuthenticatedRoute } from "./lib/protected-route";
+import { ProtectedRoute, AuthenticatedRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";

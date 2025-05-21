@@ -59,7 +59,12 @@ export default function Header() {
                 )}
                 <DropdownMenuItem asChild>
                   <div className="w-full cursor-pointer">
-                    <LogoutButton variant="ghost" showIcon={false} className="w-full justify-start p-0 h-auto font-normal" />
+                    <button 
+                      onClick={() => window.location.href = "/auth?logout=true"} 
+                      className="w-full text-left px-2 py-1.5 text-sm"
+                    >
+                      Logout
+                    </button>
                   </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
