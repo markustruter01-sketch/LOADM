@@ -199,7 +199,11 @@ export default function SubmissionReview() {
         passed,
       };
       
-      const response = await apiRequest("PATCH", `/api/scenario-submissions/${submissionId}`, payload);
+      const response = await apiRequest({
+        method: "PATCH", 
+        url: `/api/scenario-submissions/${submissionId}`, 
+        data: payload
+      });
       return await response.json();
     },
     onSuccess: () => {
