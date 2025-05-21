@@ -6,9 +6,10 @@ import { PlaneIcon, ArrowLeft } from "lucide-react";
 
 interface LoadPlanningSelectionPageProps {
   hideHeader?: boolean;
+  params?: any;
 }
 
-export default function LoadPlanningSelectionPage({ hideHeader = false }: LoadPlanningSelectionPageProps) {
+export default function LoadPlanningSelectionPage({ hideHeader = false, params }: LoadPlanningSelectionPageProps) {
   const [, navigate] = useLocation();
   
   const aircraftOptions = [

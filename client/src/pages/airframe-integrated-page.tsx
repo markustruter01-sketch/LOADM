@@ -13,6 +13,10 @@ export default function AirframeIntegratedPage() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("load-planning");
 
+  // These components are rendered differently for wouter routing
+  const LoadPlanningContent = () => <LoadPlanningSelectionPage hideHeader={true} />;
+  const TrainingModulesContent = () => <TrainingModulesPage hideHeader={true} />;
+
   return (
     <>
       <Helmet>
@@ -57,14 +61,14 @@ export default function AirframeIntegratedPage() {
             <TabsContent value="load-planning" className="mt-6">
               {/* Reuse the content from the existing load planning page */}
               <div className="pt-2">
-                <LoadPlanningSelectionPage hideHeader={true} />
+                <LoadPlanningContent />
               </div>
             </TabsContent>
 
             <TabsContent value="training-modules" className="mt-6">
               {/* Reuse the content from the existing training modules page */}
               <div className="pt-2">
-                <TrainingModulesPage hideHeader={true} />
+                <TrainingModulesContent />
               </div>
             </TabsContent>
           </Tabs>

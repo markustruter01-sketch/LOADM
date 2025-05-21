@@ -31,10 +31,10 @@ export default function BottomNav() {
       active: location.startsWith("/scenarios")
     },
     {
-      href: "/load-planning",
+      href: "/airframe",
       label: "Airframe",
       icon: Package2,
-      active: location.startsWith("/load-planning")
+      active: location.startsWith("/airframe") || location.startsWith("/load-planning") || location.startsWith("/training-modules")
     },
     {
       href: "/documents",

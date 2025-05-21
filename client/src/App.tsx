@@ -30,6 +30,7 @@ import ProfilePage from "@/pages/profile-page";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
 import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
+import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
@@ -69,8 +70,12 @@ function Router() {
           <Route path="/documents/:id" component={DocumentFormPage} />
           <Route path="/scenarios" component={ScenariosPage} />
           <Route path="/scenarios/:id" component={ScenarioPage} />
-          <Route path="/airframe" component={AirframeIntegratedPage} />
-          <Route path="/load-planning" component={LoadPlanningSelectionPage} /> {/* Keep for backward compatibility */}
+          <Route path="/airframe">
+            {(params) => <AirframeIntegratedPage {...params} />}
+          </Route>
+          <Route path="/load-planning">
+            {(params) => <LoadPlanningSelectionPage {...params} />}
+          </Route> {/* Keep for backward compatibility */}
           <Route path="/load-planning/c27j" component={LoadPlanningPage} />
           <Route path="/load-planning/c17" component={LoadPlanningPage} />
           <Route path="/load-planning/c130" component={LoadPlanningPage} />
@@ -85,7 +90,9 @@ function Router() {
           <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
           <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
           <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
-          <Route path="/training-modules" component={TrainingModulesPage} />
+          <Route path="/training-modules">
+            {(params) => <TrainingModulesPage {...params} />}
+          </Route>
           <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
           <ProtectedRoute path="/admin" component={AdminDashboard} />
           <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />

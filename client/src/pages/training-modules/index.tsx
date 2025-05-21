@@ -295,9 +295,10 @@ const difficultyStars: Record<DifficultyLevel, number> = {
 
 interface TrainingModulesPageProps {
   hideHeader?: boolean;
+  params?: any; 
 }
 
-export default function TrainingModulesPage({ hideHeader = false }: TrainingModulesPageProps) {
+export default function TrainingModulesPage({ hideHeader = false, params }: TrainingModulesPageProps) {
   const [_, navigate] = useLocation();
   const [activeAircraft, setActiveAircraft] = useState<string>("all");
 
