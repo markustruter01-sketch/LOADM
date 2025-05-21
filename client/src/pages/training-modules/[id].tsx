@@ -41,6 +41,12 @@ import KC30ABasicsInteractive from "./interactive-content/kc30a-basics";
 import C130BasicsInteractive from "./interactive-content/c130-basics";
 import C27JBasicsInteractive from "./interactive-content/c27j-basics";
 
+// Import quiz content components
+import C17BasicsQuiz from "./quiz-content/c17-basics-quiz";
+import KC30ABasicsQuiz from "./quiz-content/kc30a-basics-quiz";
+import C130BasicsQuiz from "./quiz-content/c130-basics-quiz";
+import C27JBasicsQuiz from "./quiz-content/c27j-basics-quiz";
+
 // Types from the main modules page
 type DifficultyLevel = "beginner" | "intermediate" | "advanced" | "expert";
 
