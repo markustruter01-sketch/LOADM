@@ -1,9 +1,9 @@
-import logoPath from "@assets/VirtualDynamicsLogo_2.png";
+import logoPath from "@assets/digital-dynamics-logo.png";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center ${className}`}>
-      <img src={logoPath} alt="Virtual Dynamics Logo" className="h-12 mr-4" />
+      <img src={logoPath} alt="Digital Dynamics Logo" className="h-16 mr-4" />
       <h1 className="text-2xl font-bold">
         <span className="text-white">LOADM</span><span className="text-primary">workflow</span>
       </h1>
