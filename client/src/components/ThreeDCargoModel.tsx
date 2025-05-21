@@ -188,14 +188,6 @@ const ThreeDCargoModel: React.FC<ThreeDCargoModelProps> = ({ palletPositions, ai
         cameraRef.current.updateProjectionMatrix();
         rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
       };
-
-      const handleResize = () => {
-        if (!mountRef.current || !cameraRef.current || !rendererRef.current) return;
-        
-        cameraRef.current.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
-        cameraRef.current.updateProjectionMatrix();
-        rendererRef.current.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-      };
       
       window.addEventListener('resize', handleResize);
       

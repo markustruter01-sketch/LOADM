@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare } from "lucide-react";
+import { ArrowLeft, Scale, Package2, RefreshCw, AlertCircle, AlertTriangle, X, Plane, MessagesSquare, Box } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +16,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangleIcon } from "lucide-react";
 import LoadBalanceChat from "@/components/LoadBalanceChat";
 import { lbsToKg, kgToLbs } from "@/utils/aircraft-config";
+import ViewModeToggle from "@/components/ViewModeToggle";
+import ThreeDCargoView from "@/components/ThreeDCargoView";
 
 interface Pallet {
   id: number;
@@ -48,6 +50,9 @@ export default function LoadPlanningPage() {
   const [_, navigate] = useLocation();
   const [match, params] = useRoute("/load-planning/:aircraftId");
   const { toast } = useToast();
+  
+  // View mode toggle between 2D and 3D
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   
   // State for cargo type selection (Pallets or LD3's)
   const [cargoType, setCargoType] = useState<"pallets" | "ld3s">("pallets");
