@@ -47,21 +47,17 @@ export default function BottomNav() {
       label: "Tools",
       icon: Wrench,
       active: location.startsWith("/tools")
+    },
+    {
+      href: "/instructors-portal",
+      label: "Instructor",
+      icon: GraduationCap,
+      active: location.startsWith("/instructors-portal")
     }
   ];
 
   // Create a combined array of all navigation items for consistent spacing
   const allNavItems = [...navItems];
-  
-  // Add the Instructor Portal item to the navigation array if user is logged in
-  if (user) {
-    allNavItems.push({
-      href: "/instructors-portal",
-      label: "Instructor",
-      icon: GraduationCap,
-      active: location.startsWith("/instructors-portal")
-    });
-  }
 
   const handleNavClick = (href: string) => {
     // Use the wouter setLocation for a faster navigation with no page refresh
