@@ -60,16 +60,14 @@ export function AuthenticatedRoute({
 
   // If user is not logged in, redirect to auth page
   if (!user) {
-    // Check if we have a session cookie even if the user state is empty
     return (
       <Route path={path}>
-        <AuthCheckWrapper>
-          <Component />
-        </AuthCheckWrapper>
+        <Redirect to="/auth" />
       </Route>
     );
   }
 
+  // User is logged in, render the component
   return <Route path={path} component={Component} />;
 }
 
