@@ -41,6 +41,7 @@ import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
 import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
 import StudentProgress from "@/pages/instructors-portal/student-progress";
 import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
+import AdvancedAnalytics from "@/pages/instructors-portal/analytics";
 import QuizList from "@/pages/instructors-portal/quizzes";
 import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
 import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
@@ -105,6 +106,7 @@ function Router() {
           <AuthenticatedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
           <AuthenticatedRoute path="/instructors-portal/student-progress" component={StudentProgress} />
           <AuthenticatedRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
+          <AuthenticatedRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
           <AuthenticatedRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
           <AuthenticatedRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
           <AuthenticatedRoute path="/instructors-portal/resources" component={TeachingMaterials} />
