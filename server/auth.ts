@@ -138,19 +138,30 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    // Destroy the session completely
-    req.session.destroy((err) => {
-      if (err) return next(err);
-      
-      // Logout from Passport
+    // First logout from Passport if authenticated
+    if (req.isAuthenticated()) {
       req.logout((logoutErr) => {
         if (logoutErr) return next(logoutErr);
         
-        // Clear the cookie from client
-        res.clearCookie('connect.sid');
-        res.status(200).json({ success: true, message: "Logged out successfully" });
+        // Then destroy the session
+        if (req.session) {
+          req.session.destroy((err) => {
+            if (err) return next(err);
+            
+            // Clear the cookie from client
+            res.clearCookie('connect.sid');
+            res.status(200).json({ success: true, message: "Logged out successfully" });
+          });
+        } else {
+          res.clearCookie('connect.sid');
+          res.status(200).json({ success: true, message: "Logged out successfully" });
+        }
       });
-    });
+    } else {
+      // If not authenticated, just send success
+      res.clearCookie('connect.sid');
+      res.status(200).json({ success: true, message: "Already logged out" });
+    }
   });
 
   app.get("/api/user", (req, res) => {
