@@ -233,24 +233,24 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
 
-          {/* Workforce Analytics Card */}
+          {/* Advanced Analytics Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Workforce Analytics</CardTitle>
+                <CardTitle className="text-lg">Advanced Analytics</CardTitle>
                 <BarChart2 className="h-5 w-5 text-primary" />
               </div>
-              <CardDescription>Track student performance</CardDescription>
+              <CardDescription>Comprehensive Performance Metrics</CardDescription>
             </CardHeader>
             <CardContent className="h-28 flex items-center justify-center">
               <div className="text-center text-muted-foreground text-sm">
-                Performance Analytics - Track student performance across scenarios. View comprehensive statistics and progress data.
+                Analyze performance across all assessment types, track squadron-specific progress, and view detailed training metrics.
               </div>
             </CardContent>
             <CardFooter>
-              <Link href="/instructors-portal/student-progress?tab=analytics">
+              <Link href="/instructors-portal/analytics">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  View Analytics
+                  View Advanced Analytics
                 </Button>
               </Link>
             </CardFooter>
