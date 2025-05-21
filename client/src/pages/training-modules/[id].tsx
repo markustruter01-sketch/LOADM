@@ -47,6 +47,12 @@ import KC30ABasicsQuiz from "./quiz-content/kc30a-basics-quiz";
 import C130BasicsQuiz from "./quiz-content/c130-basics-quiz";
 import C27JBasicsQuiz from "./quiz-content/c27j-basics-quiz";
 
+// Import reading content components
+import C17CargoBayLayout from "./reading-content/c17-cargo-bay-layout";
+import KC30ACargoBaySystems from "./reading-content/kc30a-cargo-systems";
+import C130CargoConfigurations from "./reading-content/c130-cargo-configurations";
+import C27JOperations from "./reading-content/c27j-operations";
+
 // Types from the main modules page
 type DifficultyLevel = "beginner" | "intermediate" | "advanced" | "expert";
 
@@ -346,7 +352,7 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: true
     },
     {
-      id: "c17-basics-2",
+      id: "c17-cargo-bay-layout",
       title: "C-17 Cargo Bay Layout",
       type: "reading",
       duration: "10 min",
@@ -440,11 +446,11 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: true
     },
     {
-      id: "c130-basics-2",
-      title: "C-130 Cargo Bay Configurations",
+      id: "c130-cargo-configurations",
+      title: "C-130 Cargo Configurations and Procedures",
       type: "reading",
       duration: "10 min",
-      description: "Standard configurations for the C-130 cargo bay",
+      description: "Standard configurations and procedures for the C-130 cargo systems",
       content: "Reading content would be displayed here",
       completed: true
     },
@@ -487,11 +493,11 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: true
     },
     {
-      id: "kc30a-basics-2",
-      title: "KC30-A Cargo Systems",
+      id: "kc30a-cargo-systems",
+      title: "KC30-A Multi-Role Tanker Transport Cargo Systems",
       type: "reading",
       duration: "12 min",
-      description: "Understanding cargo systems specific to the KC30-A",
+      description: "Understanding cargo systems specific to the KC30-A MRTT",
       content: "Reading content would be displayed here",
       completed: true
     },
@@ -1126,9 +1132,18 @@ export default function ModuleDetailPage() {
                             <CardDescription>{lesson.description}</CardDescription>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-sm text-muted-foreground">
-                              {lesson.content}
-                            </p>
+                            {/* Display different reading content components based on the lesson ID */}
+                            {lesson.id === 'c17-cargo-bay-layout' && <C17CargoBayLayout />}
+                            {lesson.id === 'kc30a-cargo-systems' && <KC30ACargoBaySystems />}
+                            {lesson.id === 'c130-cargo-configurations' && <C130CargoConfigurations />}
+                            {lesson.id === 'c27j-operations' && <C27JOperations />}
+                            
+                            {/* Fallback if none of the specific components match */}
+                            {!['c17-cargo-bay-layout', 'kc30a-cargo-systems', 'c130-cargo-configurations', 'c27j-operations'].includes(lesson.id) && (
+                              <p className="text-sm text-muted-foreground">
+                                {lesson.content}
+                              </p>
+                            )}
                           </CardContent>
                           <CardFooter className="flex justify-end">
                             <Button 
