@@ -1345,18 +1345,73 @@ export default function ModuleDetailPage() {
                             <CardDescription>{lesson.description}</CardDescription>
                           </CardHeader>
                           <CardContent>
-                            <div className="bg-gray-800/20 border border-gray-800/30 rounded-lg p-6 text-center">
-                              <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                              <p className="text-muted-foreground">
-                                Complete all readings and videos before taking this quiz
-                              </p>
-                              {completedLessons.includes(lesson.id) && (
-                                <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-md text-left">
-                                  <p className="text-green-500 font-medium">Quiz passed successfully!</p>
-                                  <p className="text-sm text-green-500/80">Score: 85%</p>
-                                </div>
-                              )}
-                            </div>
+                            {/* Show specific quiz component based on module ID */}
+                            {(module.id === "c17-basics" && lesson.id === "c17-basics-5") ? (
+                              <div className="border border-gray-800/30 rounded-lg">
+                                {completedLessons.includes(lesson.id) ? (
+                                  <div className="bg-gray-800/20 p-6 text-center">
+                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
+                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
+                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <C17BasicsQuiz />
+                                )}
+                              </div>
+                            ) : (module.id === "kc30a-basics" && lesson.id === "kc30a-basics-5") ? (
+                              <div className="border border-gray-800/30 rounded-lg">
+                                {completedLessons.includes(lesson.id) ? (
+                                  <div className="bg-gray-800/20 p-6 text-center">
+                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
+                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
+                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <KC30ABasicsQuiz />
+                                )}
+                              </div>
+                            ) : (module.id === "c130-basics" && lesson.id === "c130-basics-5") ? (
+                              <div className="border border-gray-800/30 rounded-lg">
+                                {completedLessons.includes(lesson.id) ? (
+                                  <div className="bg-gray-800/20 p-6 text-center">
+                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
+                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
+                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <C130BasicsQuiz />
+                                )}
+                              </div>
+                            ) : (module.id === "c27j-basics" && lesson.id === "c27j-basics-5") ? (
+                              <div className="border border-gray-800/30 rounded-lg">
+                                {completedLessons.includes(lesson.id) ? (
+                                  <div className="bg-gray-800/20 p-6 text-center">
+                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
+                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
+                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <C27JBasicsQuiz />
+                                )}
+                              </div>
+                            ) : (
+                              <div className="bg-gray-800/20 border border-gray-800/30 rounded-lg p-6 text-center">
+                                <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                                <p className="text-muted-foreground">
+                                  Complete all readings and videos before taking this quiz
+                                </p>
+                                {completedLessons.includes(lesson.id) && (
+                                  <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-md text-left">
+                                    <p className="text-green-500 font-medium">Quiz passed successfully!</p>
+                                    <p className="text-sm text-green-500/80">Score: 85%</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </CardContent>
                           <CardFooter className="flex justify-end">
                             <Button 
