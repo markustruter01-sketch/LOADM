@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function InstructorsPortal() {
   const { user } = useAuth();
@@ -59,7 +60,7 @@ export default function InstructorsPortal() {
       }).length || 0;
 
   return (
-    <>
+    <ProtectedRoute>
       <Helmet>
         <title>Instructors Portal - LOADMworkflow</title>
         <meta name="description" content="Instructors portal for LOADMworkflow - create, edit and manage training scenarios" />
@@ -304,6 +305,6 @@ export default function InstructorsPortal() {
           </Card>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }
