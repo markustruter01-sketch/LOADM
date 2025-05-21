@@ -540,11 +540,11 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: false
     },
     {
-      id: "c27j-basics-2",
-      title: "C-27J Cargo Configuration",
+      id: "c27j-operations",
+      title: "C-27J Spartan Tactical Operations",
       type: "reading",
       duration: "8 min",
-      description: "Understanding the C-27J cargo area configuration",
+      description: "Understanding C-27J tactical operations and cargo configurations",
       content: "Reading content would be displayed here",
       completed: false
     },
