@@ -1126,28 +1126,122 @@ function AIAnalyticsInsights({ overallStats, performanceData, filters, isLoading
         body: JSON.stringify(requestData),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate analytics insights");
+        throw new Error(data.error || "Failed to generate analytics insights");
       }
       
-      const data = await response.json();
-      setAiInsight(data.insight);
-      
-      toast({
-        title: "Analysis Generated",
-        description: "AI insights are now available.",
-      });
+      if (data.insight.includes("Unable to generate") || data.insight.includes("API key")) {
+        // Handle API key issues gracefully
+        setAiInsight(generateOfflineInsights(selectedAnalysisType, requestData));
+        toast({
+          title: "Using Offline Analysis",
+          description: "AI service is currently unavailable. Using pre-generated insights.",
+        });
+      } else {
+        setAiInsight(data.insight);
+        toast({
+          title: "Analysis Generated",
+          description: "AI insights are now available.",
+        });
+      }
     } catch (error) {
       console.error("Error generating insights:", error);
+      // Generate offline insights as fallback
+      setAiInsight(generateOfflineInsights(selectedAnalysisType, {
+        overallStats,
+        performanceData,
+        filters
+      }));
       toast({
-        title: "Failed to Generate Analysis",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
+        title: "Using Offline Analysis",
+        description: "Could not connect to AI service. Using pre-generated insights.",
       });
     } finally {
       setIsGenerating(false);
     }
+  };
+  
+  // Fallback function that generates insights without using the API
+  const generateOfflineInsights = (type: string, data: any) => {
+    const insights = {
+      overall: `## Performance Overview
+
+Based on the available data across ${data.overallStats.totalSubmissions} submissions from ${data.overallStats.totalStudents} students, the average score is ${data.overallStats.avgScore.toFixed(1)}% with a pass rate of ${data.overallStats.passRate.toFixed(1)}%.
+
+### Key Observations:
+- The current pass rate suggests that most students are meeting the minimum competency requirements
+- The distribution of scores indicates areas where targeted improvements in training could be beneficial
+- Consider reviewing assessment difficulty levels to ensure they appropriately challenge students
+
+### Recommendations:
+- Identify specific topics with lower performance metrics and develop targeted review sessions
+- Share best practices between squadrons to improve overall training effectiveness
+- Consider introducing more practice scenarios in areas where students show lower performance`,
+
+      squadron: `## Squadron Performance Analysis
+
+The data shows performance variations across different squadrons:
+
+### Key Observations:
+${data.performanceData.squadronPerformance.map(squad => 
+  `- ${squad.squadron}: ${squad.avgScore.toFixed(1)}% average score with ${squad.passRate.toFixed(1)}% pass rate (${squad.submissions} submissions)`
+).join('\n')}
+
+### Recommendations:
+- Share training methodologies between high-performing squadrons and those with lower metrics
+- Consider squadron-specific training modules to address unique performance patterns
+- Review resource allocation to ensure all squadrons have adequate training opportunities`,
+
+      assessment: `## Assessment Type Analysis
+
+Different assessment formats show varying performance patterns:
+
+### Key Observations:
+${data.performanceData.assessmentTypePerformance.map(type => 
+  `- ${type.type}: ${type.avgScore.toFixed(1)}% average score with ${type.passRate.toFixed(1)}% pass rate (${type.submissions} submissions)`
+).join('\n')}
+
+### Recommendations:
+- Evaluate if certain assessment types are more effective for evaluating specific skills
+- Consider adjusting the distribution of assessment types based on learning objectives
+- Provide additional preparation materials for assessment types with lower performance metrics`,
+
+      scores: `## Score Distribution Analysis
+
+The distribution of scores shows patterns that can inform training improvements:
+
+### Key Observations:
+${data.performanceData.scoreDistribution.map(item => 
+  `- ${item.range}: ${item.count} students`
+).join('\n')}
+
+### Recommendations:
+- For students scoring below 70%, consider implementing mandatory review sessions
+- For high-performing students (90%+), consider advanced training opportunities
+- Review assessment design to ensure proper difficulty progression`,
+
+      trends: `## Performance Trends Analysis
+
+Analyzing performance over time reveals important patterns:
+
+### Key Observations:
+- ${data.performanceData.trendOverTime.length > 0 ? 
+    `Recent data shows ${data.performanceData.trendOverTime[data.performanceData.trendOverTime.length-1].avgScore > 
+    data.performanceData.trendOverTime[0].avgScore ? 'an improving' : 'a declining'} trend in overall performance` : 
+    'Insufficient trend data to make temporal observations'}
+- Submission volumes have ${data.performanceData.trendOverTime.length > 1 ? 
+    (data.performanceData.trendOverTime[data.performanceData.trendOverTime.length-1].submissions > 
+    data.performanceData.trendOverTime[0].submissions ? 'increased' : 'decreased') : 'remained consistent'} over time
+
+### Recommendations:
+- Continue monitoring trends to identify seasonal patterns or impacts of training changes
+- Use historical data to set realistic improvement targets for future training cycles
+- Consider how external factors may influence performance patterns over time`
+    };
+    
+    return insights[type as keyof typeof insights] || insights.overall;
   };
   
   if (isLoading) {
