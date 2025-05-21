@@ -1847,7 +1847,7 @@ export default function LoadPlanningPage() {
   return (
     <>
       <Helmet>
-        <title>Load Planning - {currentAircraft.name} | LOADMdocs</title>
+        <title>Airframe - {currentAircraft.name} | LOADMworkflow</title>
       </Helmet>
       
       {/* Alert Dialog */}

@@ -32,7 +32,7 @@ export default function BottomNav() {
     },
     {
       href: "/load-planning",
-      label: "Load Plan",
+      label: "Airframe",
       icon: Package2,
       active: location.startsWith("/load-planning")
     },

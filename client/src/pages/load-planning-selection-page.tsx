@@ -37,7 +37,7 @@ export default function LoadPlanningSelectionPage() {
   return (
     <>
       <Helmet>
-        <title>Load Planning - LOADMworkflow</title>
+        <title>Airframe - LOADMworkflow</title>
         <meta 
           name="description" 
           content="Select an aircraft for load planning simulation." 
@@ -58,7 +58,7 @@ export default function LoadPlanningSelectionPage() {
             </Button>
           </div>
           
-          <h1 className="text-3xl font-bold mb-2">Load Planning</h1>
+          <h1 className="text-3xl font-bold mb-2">Airframe</h1>
           <p className="text-muted-foreground mb-8">
             Select an aircraft type to begin load planning simulation
           </p>
