@@ -4,7 +4,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { PlaneIcon, ArrowLeft } from "lucide-react";
 
-export default function LoadPlanningSelectionPage() {
+interface LoadPlanningSelectionPageProps {
+  hideHeader?: boolean;
+}
+
+export default function LoadPlanningSelectionPage({ hideHeader = false }: LoadPlanningSelectionPageProps) {
   const [, navigate] = useLocation();
   
   const aircraftOptions = [
@@ -36,32 +40,37 @@ export default function LoadPlanningSelectionPage() {
   
   return (
     <>
-      <Helmet>
-        <title>Airframe - LOADMworkflow</title>
-        <meta 
-          name="description" 
-          content="Select an aircraft for load planning simulation." 
-        />
-      </Helmet>
+      {!hideHeader && (
+        <Helmet>
+          <title>Airframe - LOADMworkflow</title>
+          <meta 
+            name="description" 
+            content="Select an aircraft for load planning simulation." 
+          />
+        </Helmet>
+      )}
 
-      <div className="container mx-auto px-4 py-6 mb-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Header with Back Button */}
-          <div className="mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              className="p-2 -ml-2"
-            >
-              <ArrowLeft className="h-5 w-5 mr-1" />
-              Back to Home
-            </Button>
-          </div>
-          
-          <h1 className="text-3xl font-bold mb-2">Airframe</h1>
-          <p className="text-muted-foreground mb-8">
-            Select an aircraft type to begin load planning simulation
-          </p>
+      <div className={hideHeader ? "" : "container mx-auto px-4 py-6 mb-16"}>
+        <div className={hideHeader ? "" : "max-w-4xl mx-auto"}>
+          {!hideHeader && (
+            <>
+              <div className="mb-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/')}
+                  className="p-2 -ml-2"
+                >
+                  <ArrowLeft className="h-5 w-5 mr-1" />
+                  Back to Home
+                </Button>
+              </div>
+              
+              <h1 className="text-3xl font-bold mb-2">Airframe</h1>
+              <p className="text-muted-foreground mb-8">
+                Select an aircraft type to begin load planning simulation
+              </p>
+            </>
+          )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {aircraftOptions.map((aircraft) => (

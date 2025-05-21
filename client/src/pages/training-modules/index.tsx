@@ -293,7 +293,11 @@ const difficultyStars: Record<DifficultyLevel, number> = {
   expert: 4
 };
 
-export default function TrainingModulesPage() {
+interface TrainingModulesPageProps {
+  hideHeader?: boolean;
+}
+
+export default function TrainingModulesPage({ hideHeader = false }: TrainingModulesPageProps) {
   const [_, navigate] = useLocation();
   const [activeAircraft, setActiveAircraft] = useState<string>("all");
 
@@ -304,40 +308,46 @@ export default function TrainingModulesPage() {
 
   return (
     <>
-      <Helmet>
-        <title>Aircraft-Specific Training Modules | LOADMworkflow</title>
-        <meta 
-          name="description" 
-          content="Progressive aircraft-specific training modules for military loadmasters" 
-        />
-      </Helmet>
+      {!hideHeader && (
+        <Helmet>
+          <title>Aircraft-Specific Training Modules | LOADMworkflow</title>
+          <meta 
+            name="description" 
+            content="Progressive aircraft-specific training modules for military loadmasters" 
+          />
+        </Helmet>
+      )}
 
-      <div className="container mx-auto px-4 py-8 mb-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Back Button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mb-6"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
+      <div className={hideHeader ? "" : "container mx-auto px-4 py-8 mb-16"}>
+        <div className={hideHeader ? "" : "max-w-6xl mx-auto"}>
+          {/* Back Button - only show if not embedded */}
+          {!hideHeader && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="mb-6"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+          )}
           
-          {/* Header Section */}
-          <section className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <GraduationCap className="h-7 w-7 text-orange-500" />
-              <h1 className="text-3xl font-bold text-foreground">
-                Aircraft-Specific Training Modules
-              </h1>
-            </div>
-            <p className="text-muted-foreground max-w-3xl">
-              Progressive training modules designed specifically for each aircraft type. 
-              Complete modules sequentially to build your loadmaster skills from beginner to expert level.
-            </p>
-          </section>
+          {/* Header Section - only show if not embedded */}
+          {!hideHeader && (
+            <section className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <GraduationCap className="h-7 w-7 text-orange-500" />
+                <h1 className="text-3xl font-bold text-foreground">
+                  Aircraft-Specific Training Modules
+                </h1>
+              </div>
+              <p className="text-muted-foreground max-w-3xl">
+                Progressive training modules designed specifically for each aircraft type. 
+                Complete modules sequentially to build your loadmaster skills from beginner to expert level.
+              </p>
+            </section>
+          )}
 
           {/* Aircraft Selection Tabs */}
           <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveAircraft}>

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 
-// Import the existing pages to reuse their content
+// Import the existing pages with their hideHeader prop support
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import TrainingModulesPage from "@/pages/training-modules";
 

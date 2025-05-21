@@ -69,7 +69,8 @@ function Router() {
           <Route path="/documents/:id" component={DocumentFormPage} />
           <Route path="/scenarios" component={ScenariosPage} />
           <Route path="/scenarios/:id" component={ScenarioPage} />
-          <Route path="/load-planning" component={LoadPlanningSelectionPage} />
+          <Route path="/airframe" component={AirframeIntegratedPage} />
+          <Route path="/load-planning" component={LoadPlanningSelectionPage} /> {/* Keep for backward compatibility */}
           <Route path="/load-planning/c27j" component={LoadPlanningPage} />
           <Route path="/load-planning/c17" component={LoadPlanningPage} />
           <Route path="/load-planning/c130" component={LoadPlanningPage} />
