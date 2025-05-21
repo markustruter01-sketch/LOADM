@@ -161,7 +161,9 @@ export default function AdvancedAnalytics() {
         squadronFromId: extractSquadronFromId(sub.studentId),
         // Use calculated score if available
         calculatedScore: calculateScoreFromMarkedAnswers(sub.markedAnswers),
-        date: new Date(sub.submissionDate)
+        date: new Date(sub.submissionDate),
+        // Ensure consistent squadron field
+        squadron: undefined 
       })),
       ...(quizSubmissions || []).map(sub => ({
         ...sub,
@@ -170,7 +172,8 @@ export default function AdvancedAnalytics() {
         squadronFromId: sub.squadron || "AMG",
         calculatedScore: sub.score,
         date: new Date(sub.submissionDate),
-        passed: sub.score >= 70 // Default pass threshold for quizzes
+        passed: sub.score >= 70, // Default pass threshold for quizzes
+        squadron: undefined // Remove to avoid type conflicts
       })),
       // Add document submissions if they have score data
       ...(documentSubmissions || []).map(sub => ({
@@ -179,7 +182,8 @@ export default function AdvancedAnalytics() {
         squadronFromId: "AMG", // Default squadron if not specified
         calculatedScore: 0, // Documents typically don't have scores
         date: new Date(sub.submissionDate),
-        passed: true // Documents are typically pass/fail based on completion
+        passed: true, // Documents are typically pass/fail based on completion
+        squadron: undefined // Remove to avoid type conflicts
       }))
     ];
     
@@ -187,7 +191,8 @@ export default function AdvancedAnalytics() {
     const filteredSubmissions = allSubmissions.filter(sub => {
       // Squadron filter
       if (selectedSquadron !== "all") {
-        const subSquadron = sub.squadron || sub.squadronFromId;
+        // Use squadronFromId that we've already extracted for all submission types
+        const subSquadron = sub.squadronFromId;
         if (subSquadron !== selectedSquadron) return false;
       }
       
@@ -237,8 +242,10 @@ export default function AdvancedAnalytics() {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
   
-  function extractSquadronFromId(studentId: string) {
+  function extractSquadronFromId(studentId: string | null | undefined) {
     // Extract squadron from format "ID - Squadron"
+    if (!studentId) return "AMG"; // Default squadron if not provided
+    
     const parts = studentId.split(' - ');
     if (parts.length > 1) {
       return parts[1];
