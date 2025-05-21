@@ -53,6 +53,9 @@ import KC30ACargoBaySystems from "./reading-content/kc30a-cargo-systems";
 import C130CargoConfigurations from "./reading-content/c130-cargo-configurations";
 import C27JOperations from "./reading-content/c27j-operations";
 
+// Import video player component
+import TrainingVideoPlayer from "@/components/TrainingVideoPlayer";
+
 // Types from the main modules page
 type DifficultyLevel = "beginner" | "intermediate" | "advanced" | "expert";
 
@@ -1060,45 +1063,39 @@ export default function ModuleDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {content
                       .filter(lesson => lesson.type === 'video')
                       .map(lesson => (
-                        <div key={lesson.id} className="border border-gray-800 rounded-lg overflow-hidden">
-                          <div className="bg-gray-900 aspect-video flex items-center justify-center relative">
-                            <PlayCircle className="h-16 w-16 text-white/80" />
-                            <div className="absolute bottom-4 right-4">
-                              {completedLessons.includes(lesson.id) && (
-                                <Badge className="bg-green-600">Completed</Badge>
+                        <div key={lesson.id} className="space-y-4">
+                          {/* Training Video Player Component with the provided video template */}
+                          <TrainingVideoPlayer
+                            title={lesson.title}
+                            description={lesson.description}
+                          />
+                          
+                          <div className="flex justify-between items-center">
+                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                              {lesson.duration}
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                              disabled={completedLessons.includes(lesson.id)}
+                              className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                            >
+                              {completedLessons.includes(lesson.id) ? (
+                                <>
+                                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                                  Completed
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                                  Mark as Completed
+                                </>
                               )}
-                            </div>
-                          </div>
-                          <div className="p-4">
-                            <h3 className="text-lg font-medium mb-1">{lesson.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-3">{lesson.description}</p>
-                            <div className="flex justify-between items-center">
-                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                {lesson.duration}
-                              </Badge>
-                              <Button 
-                                size="sm"
-                                onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                disabled={completedLessons.includes(lesson.id)}
-                                className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                              >
-                                {completedLessons.includes(lesson.id) ? (
-                                  <>
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Completed
-                                  </>
-                                ) : (
-                                  <>
-                                    <PlayCircle className="h-4 w-4 mr-2" />
-                                    Watch Video
-                                  </>
-                                )}
-                              </Button>
-                            </div>
+                            </Button>
                           </div>
                         </div>
                       ))}
