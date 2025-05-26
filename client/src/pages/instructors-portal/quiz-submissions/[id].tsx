@@ -48,15 +48,10 @@ export default function QuizSubmissionDetail() {
 
   const submission = submissions.find(s => s.id === parseInt(id || ''));
 
-  // Fetch quiz questions with correct answers for instructor review
-  const { data: questions = [], isLoading: questionsLoading } = useQuery<Question[]>({
-    queryKey: ['/api/quizzes', submission?.quizId, 'questions-with-answers'],
-    enabled: !!submission?.quizId,
-    select: (data) => {
-      console.log('Raw questions data with answers:', data);
-      return data || [];
-    }
-  });
+  // Get quiz questions directly from the loadmaster questions library
+  const questions = submission ? submission.answers.map(answer => {
+    return loadmasterQuestions.find(q => q.id === answer.questionId);
+  }).filter(Boolean) : [];
 
   // Mark submission mutation
   const markSubmission = useMutation({
@@ -130,13 +125,13 @@ export default function QuizSubmissionDetail() {
   };
 
   const getAnswerText = (questionId: string, answeredOption: number | null) => {
-    const question = questions.find(q => q.id === questionId);
+    const question = loadmasterQuestions.find(q => q.id === questionId);
     if (!question || answeredOption === null) return 'No answer provided';
     return question.options[answeredOption] || 'Invalid answer';
   };
 
   const isCorrectAnswer = (questionId: string, answeredOption: number | null) => {
-    const question = questions.find(q => q.id === questionId);
+    const question = loadmasterQuestions.find(q => q.id === questionId);
     return question && answeredOption === question.correctAnswer;
   };
 
@@ -268,7 +263,7 @@ export default function QuizSubmissionDetail() {
         <CardContent className="space-y-6">
           
           {submission.answers.map((answer, index) => {
-            const question = questions.find(q => q.id === answer.questionId);
+            const question = loadmasterQuestions.find(q => q.id === answer.questionId);
             const isCorrect = isCorrectAnswer(answer.questionId, answer.answeredOption);
             
             console.log('Processing answer:', answer.questionId, 'Found question:', !!question);
