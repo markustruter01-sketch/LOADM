@@ -476,6 +476,46 @@ export default function QuizSubmissionDetail() {
           })}
         </CardContent>
       </Card>
+
+      {/* Review Submission Section */}
+      <Card className="border-gray-800">
+        <CardHeader>
+          <CardTitle>Submit Review</CardTitle>
+          <CardDescription>Finalize your assessment of this quiz submission</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Overall Assessment</p>
+              <div className="flex space-x-4">
+                <Button
+                  variant={reviewStatus === 'pass' ? 'default' : 'outline'}
+                  onClick={() => handleMarkSubmission('pass')}
+                  className={reviewStatus === 'pass' ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Pass
+                </Button>
+                <Button
+                  variant={reviewStatus === 'fail' ? 'default' : 'outline'}
+                  onClick={() => handleMarkSubmission('fail')}
+                  className={reviewStatus === 'fail' ? 'bg-red-600 hover:bg-red-700' : ''}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Fail
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Quick Stats</p>
+              <div className="text-sm text-muted-foreground">
+                <p>Score: {percentage.toFixed(1)}% ({correctAnswers}/{totalQuestions})</p>
+                <p>Questions marked: {Object.keys(questionMarks).length}/{totalQuestions}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
