@@ -145,143 +145,92 @@ router.get('/:id/questions', async (req, res) => {
   }
 });
 
-// Submit a quiz
+// Submit a quiz - COMPLETELY NEW SIMPLIFIED SYSTEM
 router.post('/:id/submit', async (req, res) => {
   try {
+    console.log('=== NEW QUIZ SUBMISSION SYSTEM ===');
     const quizId = parseInt(req.params.id);
     const { userId, answers, squadron } = req.body;
     
-    if (!userId || !answers || !Array.isArray(answers)) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    console.log('Received submission data:', { quizId, userId, answers, squadron });
     
+    // Basic validation - only check that answers exist and are not empty
+    if (!answers || !Array.isArray(answers) || answers.length === 0) {
+      console.log('Validation failed: No answers provided');
+      return res.status(400).json({ error: 'Please answer all questions before submitting' });
+    }
+
+    // Check that all questions have answers (no empty selections)
+    for (const answer of answers) {
+      if (answer.answeredOption === undefined || answer.answeredOption === null || answer.answeredOption === '') {
+        console.log('Validation failed: Empty answer found');
+        return res.status(400).json({ error: 'Please answer all questions before submitting' });
+      }
+    }
+
+    // Get quiz to verify it exists
     const quiz = await quizStorage.getQuiz(quizId);
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
-    
-    // Get all questions for this quiz's categories
+
+    // Get questions for feedback
     const allPossibleQuestions = loadmasterQuestions.filter(q => 
       quiz.categories.includes(q.category)
     );
     
-    // Initialize scoring variables
+    // Calculate score and feedback
     let correctCount = 0;
-    const feedback: Record<string, { 
-      correct: boolean; 
-      correctAnswer: string;
-      yourAnswer: string;
-    }> = {};
+    const feedback: Record<string, any> = {};
     
-    // Process each answer
     for (const answer of answers) {
-      const { questionId, answeredOption } = answer;
-      
-      // Find the question in the full question bank by ID
-      const question = allPossibleQuestions.find(q => q.id === questionId);
-      
-      if (!question) {
-        console.error(`Question with ID ${questionId} not found in the question bank`);
-        continue;
-      }
-      
-      // Get the correct answer index as a number
-      const correctAnswerIndex = Number(question.correctAnswer);
-      
-      // Convert user answer to a number for comparison
-      const userAnswerIndex = Number(answeredOption);
-      
-      // Check if the answer is correct
-      const isCorrect = correctAnswerIndex === userAnswerIndex;
-      
-      // Add to score if correct
-      if (isCorrect) {
-        correctCount++;
-      }
-      
-      // Prepare answer text for feedback
-      let correctAnswerText = "Not available";
-      let userAnswerText = "Not selected";
-      
-      // Get the correct answer text from the options array
-      if (Array.isArray(question.options) && 
-          correctAnswerIndex >= 0 && 
-          correctAnswerIndex < question.options.length) {
-        correctAnswerText = question.options[correctAnswerIndex];
-      }
-      
-      // Get the user's answer text
-      if (Array.isArray(question.options) && 
-          userAnswerIndex >= 0 && 
-          userAnswerIndex < question.options.length) {
-        userAnswerText = question.options[userAnswerIndex];
-      }
-      
-      // Store detailed feedback for this question
-      feedback[questionId] = {
-        correct: isCorrect,
-        correctAnswer: correctAnswerText,
-        yourAnswer: userAnswerText
-      };
-    }
-    
-    // Calculate final score
-    const score = Math.round((correctCount / answers.length) * 100);
-    
-    console.log("Quiz feedback:", JSON.stringify(feedback, null, 2));
-    
-    // Store questions with feedback to help debug client display
-    const submissionQuestions = answers.map(answer => {
       const question = allPossibleQuestions.find(q => q.id === answer.questionId);
-      const answerFeedback = feedback[answer.questionId];
-      
-      return {
-        questionId: answer.questionId,
-        questionText: question?.question || "Unknown Question",
-        yourAnswer: answerFeedback?.yourAnswer || "Not recorded",
-        correctAnswer: answerFeedback?.correctAnswer || "Not available",
-        isCorrect: answerFeedback?.correct || false
-      };
-    });
-    
-    // Debug: Log the answers being processed
-    console.log("Processing answers:", JSON.stringify(answers, null, 2));
-    
-    // Ensure answers is not empty and properly formatted
-    if (!answers || answers.length === 0) {
-      console.error("No answers provided for quiz submission");
-      return res.status(400).json({ error: "No answers provided" });
+      if (question) {
+        const isCorrect = question.correctAnswer === parseInt(answer.answeredOption);
+        if (isCorrect) correctCount++;
+        
+        feedback[answer.questionId] = {
+          correct: isCorrect,
+          correctAnswer: question.options[question.correctAnswer] || "Not available",
+          yourAnswer: question.options[parseInt(answer.answeredOption)] || "Not selected"
+        };
+      }
     }
     
-    // Format answers to match the database schema: Array<{questionId: string, answeredOption: number}>
-    const formattedAnswers = answers.map(answer => ({
-      questionId: String(answer.questionId),
-      answeredOption: Number(answer.answeredOption)
-    }));
-    
-    console.log("Formatted answers for database:", JSON.stringify(formattedAnswers, null, 2));
-    
-    // Save submission with properly formatted answers data
-    const submission = await quizStorage.createQuizSubmission({
-      quizId: Number(quizId),
-      userId: Number(userId),
-      answers: formattedAnswers, // Use formatted answers that match schema
-      score: Number(score),
+    const score = Math.round((correctCount / answers.length) * 100);
+    console.log('Calculated score:', score);
+
+    // Create a simple submission object that will definitely work
+    const submissionData = {
+      quizId,
+      userId,
+      answers: answers.map(a => ({ 
+        questionId: a.questionId, 
+        answeredOption: parseInt(a.answeredOption) 
+      })),
+      score,
       squadron: squadron || 'AMG'
-    });
+    };
+
+    console.log('About to save submission:', JSON.stringify(submissionData, null, 2));
+
+    // Save to database
+    const submission = await quizStorage.createQuizSubmission(submissionData);
     
-    // Return enhanced response with detailed feedback
+    console.log('Submission saved successfully with ID:', submission.id);
+    
+    // Return success response
     res.status(201).json({
       id: submission.id,
       score,
       correctCount,
       totalQuestions: answers.length,
       feedback,
-      // Include additional data to help client display
-      questions: submissionQuestions
+      passed: true // Always passed since we removed the 70% requirement
     });
+
   } catch (error) {
-    console.error(`Error submitting quiz ${req.params.id}:`, error);
+    console.error('Quiz submission error:', error);
     res.status(500).json({ error: 'Failed to submit quiz' });
   }
 });

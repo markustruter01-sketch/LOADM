@@ -287,12 +287,24 @@ export async function getQuizSubmission(id: number): Promise<QuizSubmission | un
 
 export async function createQuizSubmission(insertSubmission: InsertQuizSubmission): Promise<QuizSubmission> {
   try {
-    // Debug logging
-    console.log("Creating quiz submission with data:", JSON.stringify(insertSubmission, null, 2));
+    console.log("=== STORAGE: Creating quiz submission ===");
+    console.log("Input data:", JSON.stringify(insertSubmission, null, 2));
     
-    // Validate that answers exists and is not null
-    if (!insertSubmission.answers) {
-      throw new Error("Answers field is required and cannot be null");
+    // Validate required fields
+    if (!insertSubmission.answers || !Array.isArray(insertSubmission.answers)) {
+      throw new Error("Answers must be a non-empty array");
+    }
+    
+    if (insertSubmission.answers.length === 0) {
+      throw new Error("Cannot submit quiz with no answers");
+    }
+    
+    // Ensure answers is properly formatted JSON string
+    const answersJson = JSON.stringify(insertSubmission.answers);
+    console.log("Answers JSON for database:", answersJson);
+    
+    if (answersJson === "null" || answersJson === "undefined") {
+      throw new Error("Cannot convert answers to valid JSON");
     }
     
     const query = `
@@ -303,21 +315,19 @@ export async function createQuizSubmission(insertSubmission: InsertQuizSubmissio
         score,
         squadron
       )
-      VALUES($1, $2, $3, $4, $5)
+      VALUES($1, $2, $3::jsonb, $4, $5)
       RETURNING *
     `;
-    
-    const answersJson = JSON.stringify(insertSubmission.answers);
-    console.log("Answers JSON being inserted:", answersJson);
     
     const values = [
       insertSubmission.quizId,
       insertSubmission.userId,
       answersJson,
       insertSubmission.score,
-      insertSubmission.squadron
+      insertSubmission.squadron || 'AMG'
     ];
     
+    console.log("SQL query:", query);
     console.log("SQL values:", values);
     
     const result = await pool.query(query, values);
