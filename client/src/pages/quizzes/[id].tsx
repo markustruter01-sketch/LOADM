@@ -380,11 +380,11 @@ export default function QuizPage() {
                         onValueChange={(value) => handleAnswerChange(question.id, value)}
                       >
                         <div className="space-y-3">
-                          {question.options.map((option: string) => (
+                          {question.options.map((option: string, optionIndex: number) => (
                             <div key={option} className="flex items-center space-x-2">
-                              <RadioGroupItem value={option} id={`${question.id}-${option}`} />
+                              <RadioGroupItem value={optionIndex.toString()} id={`${question.id}-${optionIndex}`} />
                               <Label 
-                                htmlFor={`${question.id}-${option}`}
+                                htmlFor={`${question.id}-${optionIndex}`}
                                 className="text-base cursor-pointer"
                               >
                                 {option}
