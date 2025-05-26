@@ -800,6 +800,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY qs.submission_date DESC
       `;
       
+      console.log('Quiz submissions API response:', submissions.length, 'submissions found');
+      console.log('Sample submission:', submissions[0]);
+      
       res.json(submissions);
     } catch (error) {
       console.error('Error fetching quiz submissions:', error);
