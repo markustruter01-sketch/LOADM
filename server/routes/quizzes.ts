@@ -244,13 +244,18 @@ router.post('/:id/submit', async (req, res) => {
       };
     });
     
-    // Save submission with answers data
+    // Format answers to match the database schema: Array<{questionId: string, answeredOption: number}>
+    const formattedAnswers = answers.map(answer => ({
+      questionId: answer.questionId,
+      answeredOption: answer.answeredOption
+    }));
+    
+    // Save submission with properly formatted answers data
     const submission = await quizStorage.createQuizSubmission({
       quizId,
       userId,
-      answers: answers, // Include the answers array
+      answers: formattedAnswers, // Use formatted answers that match schema
       score,
-      totalQuestions: answers.length,
       squadron: squadron || 'AMG'
     });
     
