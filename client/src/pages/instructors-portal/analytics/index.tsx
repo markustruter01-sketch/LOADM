@@ -115,7 +115,7 @@ export default function AdvancedAnalytics() {
   });
   
   const { data: quizSubmissions, isLoading: isLoadingQuizSubmissions } = useQuery<QuizSubmission[]>({
-    queryKey: ["/api/quiz-submissions"],
+    queryKey: ["/api/instructor/quiz-submissions"],
   });
   
   const { data: documents, isLoading: isLoadingDocuments } = useQuery<Document[]>({
