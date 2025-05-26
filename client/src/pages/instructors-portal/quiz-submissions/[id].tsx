@@ -90,7 +90,7 @@ export default function QuizSubmissionDetail() {
     }));
   };
 
-  if (submissionsLoading || questionsLoading) {
+  if (submissionsLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4">
