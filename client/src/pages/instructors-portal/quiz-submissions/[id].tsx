@@ -261,11 +261,27 @@ export default function QuizSubmissionDetail() {
           <CardDescription>Review the student's responses to each question - use the toggle buttons to mark your assessment</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Debug info */}
+          <div className="p-4 bg-yellow-900/20 border border-yellow-500/30 rounded">
+            <p>Debug: Found {questions.length} questions, {submission.answers.length} answers</p>
+            <p>Questions: {questions.map(q => q.id).join(', ')}</p>
+            <p>Answer IDs: {submission.answers.map(a => a.questionId).join(', ')}</p>
+          </div>
+          
           {submission.answers.map((answer, index) => {
             const question = questions.find(q => q.id === answer.questionId);
             const isCorrect = isCorrectAnswer(answer.questionId, answer.answeredOption);
             
-            if (!question) return null;
+            console.log('Processing answer:', answer.questionId, 'Found question:', !!question);
+            
+            if (!question) {
+              return (
+                <div key={answer.questionId} className="p-4 bg-red-900/20 border border-red-500/30 rounded">
+                  <p>Question {answer.questionId} not found in questions list</p>
+                  <p>Student answered: {answer.answeredOption !== null ? `Option ${answer.answeredOption}` : 'No answer'}</p>
+                </div>
+              );
+            }
             
             return (
               <div key={answer.questionId} className="space-y-3">
