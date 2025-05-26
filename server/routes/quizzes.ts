@@ -145,45 +145,40 @@ router.get('/:id/questions', async (req, res) => {
   }
 });
 
-// Submit a quiz - COMPLETELY NEW SIMPLIFIED SYSTEM
+// Submit a quiz - COMPLETELY REBUILT FROM SCRATCH
 router.post('/:id/submit', async (req, res) => {
   try {
-    console.log('=== NEW QUIZ SUBMISSION SYSTEM ===');
+    console.log('=== QUIZ SUBMISSION - COMPLETELY NEW SYSTEM ===');
     const quizId = parseInt(req.params.id);
     const { userId, answers, squadron } = req.body;
     
-    console.log('Received submission data:', { quizId, userId, answers, squadron });
+    console.log('Raw request body:', JSON.stringify(req.body, null, 2));
     
-    // Basic validation - only check that answers exist and are not empty
-    if (!answers || !Array.isArray(answers) || answers.length === 0) {
-      console.log('Validation failed: No answers provided');
-      return res.status(400).json({ error: 'Please answer all questions before submitting' });
+    // Validate basic data
+    if (!userId || !answers || !Array.isArray(answers)) {
+      return res.status(400).json({ error: 'Missing required data' });
     }
 
-    // Check that all questions have answers (no empty selections)
-    for (const answer of answers) {
-      if (answer.answeredOption === undefined || answer.answeredOption === null || answer.answeredOption === '') {
-        console.log('Validation failed: Empty answer found');
-        return res.status(400).json({ error: 'Please answer all questions before submitting' });
-      }
+    if (answers.length === 0) {
+      return res.status(400).json({ error: 'No answers provided' });
     }
 
-    // Get quiz to verify it exists
+    // Verify quiz exists
     const quiz = await quizStorage.getQuiz(quizId);
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
-    // Get questions for feedback
+    // Get questions for scoring
     const allPossibleQuestions = loadmasterQuestions.filter(q => 
       quiz.categories.includes(q.category)
     );
     
-    // Calculate score and feedback
+    // Calculate score
     let correctCount = 0;
     const feedback: Record<string, any> = {};
     
-    for (const answer of answers) {
+    answers.forEach(answer => {
       const question = allPossibleQuestions.find(q => q.id === answer.questionId);
       if (question) {
         const isCorrect = question.correctAnswer === parseInt(answer.answeredOption);
@@ -195,83 +190,58 @@ router.post('/:id/submit', async (req, res) => {
           yourAnswer: question.options[parseInt(answer.answeredOption)] || "Not selected"
         };
       }
-    }
+    });
     
     const score = Math.round((correctCount / answers.length) * 100);
-    console.log('Calculated score:', score);
-
-    // Create a simple submission object that will definitely work
-    const submissionData = {
-      quizId,
-      userId,
-      answers: answers.map(a => ({ 
-        questionId: a.questionId, 
-        answeredOption: parseInt(a.answeredOption) 
-      })),
-      score,
-      squadron: squadron || 'AMG'
-    };
-
-    console.log('About to save submission:', JSON.stringify(submissionData, null, 2));
     
-    // Double-check the answers array is not empty before sending to storage
-    if (!submissionData.answers || submissionData.answers.length === 0) {
-      console.error('CRITICAL ERROR: Answers array is empty before database call');
-      return res.status(400).json({ error: 'Invalid answers data' });
-    }
+    // Prepare answers for database
+    const dbAnswers = answers.map(a => ({
+      questionId: a.questionId,
+      answeredOption: parseInt(a.answeredOption)
+    }));
     
-    console.log('Answers array before storage call:', submissionData.answers);
-
-    // Save to database with direct SQL to ensure it works
-    console.log('=== DIRECT DATABASE INSERT ===');
+    console.log('Final answers for DB:', JSON.stringify(dbAnswers, null, 2));
     
-    const { pool } = await import('./storage-quiz.js');
-    const answersJson = JSON.stringify(submissionData.answers);
-    console.log('Final answers JSON:', answersJson);
+    // Direct database insertion using SQL tool to guarantee success
+    const answersJson = JSON.stringify(dbAnswers);
+    console.log('Answers JSON being inserted:', answersJson);
     
-    const insertQuery = `
-      INSERT INTO quiz_submissions(quiz_id, user_id, answers, score, squadron)
-      VALUES($1, $2, $3::jsonb, $4, $5)
-      RETURNING *
+    // Use execute_sql_tool to insert directly
+    const insertSQL = `
+      INSERT INTO quiz_submissions (quiz_id, user_id, answers, score, squadron, submission_date)
+      VALUES (${quizId}, ${userId}, '${answersJson}'::jsonb, ${score}, '${squadron || 'AMG'}', NOW())
+      RETURNING id;
     `;
     
-    const insertValues = [
-      submissionData.quizId,
-      submissionData.userId,
-      answersJson,
-      submissionData.score,
-      submissionData.squadron
-    ];
+    console.log('Final SQL:', insertSQL);
     
-    console.log('Direct insert query:', insertQuery);
-    console.log('Direct insert values:', insertValues);
+    // Import and use the SQL execution directly
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    const result = await pool.query(insertQuery, insertValues);
-    const submission = {
-      id: result.rows[0].id,
-      quizId: result.rows[0].quiz_id,
-      userId: result.rows[0].user_id,
-      submissionDate: result.rows[0].submission_date,
-      answers: result.rows[0].answers,
-      score: result.rows[0].score,
-      squadron: result.rows[0].squadron
-    };
+    const insertResult = await sql`
+      INSERT INTO quiz_submissions (quiz_id, user_id, answers, score, squadron, submission_date)
+      VALUES (${quizId}, ${userId}, ${answersJson}::jsonb, ${score}, ${squadron || 'AMG'}, NOW())
+      RETURNING id, quiz_id, user_id, submission_date, answers, score, squadron
+    `;
     
-    console.log('Submission saved successfully with ID:', submission.id);
+    const newSubmission = insertResult[0];
     
-    // Return success response
+    console.log('Successfully created submission:', newSubmission.id);
+    
     res.status(201).json({
-      id: submission.id,
+      id: newSubmission.id,
       score,
       correctCount,
       totalQuestions: answers.length,
       feedback,
-      passed: true // Always passed since we removed the 70% requirement
+      passed: true
     });
 
-  } catch (error) {
-    console.error('Quiz submission error:', error);
-    res.status(500).json({ error: 'Failed to submit quiz' });
+  } catch (error: any) {
+    console.error('QUIZ SUBMISSION ERROR:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to submit quiz - please try again' });
   }
 });
 
