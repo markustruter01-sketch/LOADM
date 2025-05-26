@@ -14,6 +14,7 @@ export default function InstructorLayout({ children, title }: InstructorLayoutPr
     { name: 'Dashboard', path: '/instructors-portal' },
     { name: 'Scenario Submissions', path: '/instructors-portal/submissions' },
     { name: 'Document Submissions', path: '/instructors-portal/document-submissions' },
+    { name: 'Quiz Submissions', path: '/instructors-portal/quiz-submissions' },
     { name: 'Advanced Analytics', path: '/instructors-portal/analytics' },
     { name: 'Pop Quizzes', path: '/instructors-portal/quizzes' }
   ];

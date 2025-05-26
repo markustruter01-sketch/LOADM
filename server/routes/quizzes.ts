@@ -245,8 +245,19 @@ router.post('/:id/submit', async (req, res) => {
   }
 });
 
-// Get quiz submissions
+// Get all quiz submissions
 router.get('/submissions', async (req, res) => {
+  try {
+    const submissions = await quizStorage.getQuizSubmissions();
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching quiz submissions:', error);
+    res.status(500).json({ error: 'Failed to fetch quiz submissions' });
+  }
+});
+
+// Get quiz submissions - duplicate endpoint for different path
+app.get('/api/quiz-submissions', async (req, res) => {
   try {
     const quizId = req.query.quizId ? parseInt(req.query.quizId as string) : undefined;
     const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
