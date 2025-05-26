@@ -33,7 +33,7 @@ export default function QuizSubmissions() {
   const [squadronFilter, setSquadronFilter] = useState('all');
 
   const { data: submissions = [], isLoading } = useQuery<any[]>({
-    queryKey: ['/api/quiz-submissions'],
+    queryKey: ['/api/instructor/quiz-submissions'],
     select: (data) => {
       console.log('Raw quiz submissions data:', data);
       return data || [];

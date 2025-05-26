@@ -39,9 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
   setupAuth(app);
 
-  // Quiz submissions endpoint - completely rebuilt
-  app.get("/api/quiz-submissions", async (req, res) => {
-    console.log('=== QUIZ SUBMISSIONS ENDPOINT HIT ===');
+  // NEW QUIZ SUBMISSIONS ENDPOINT - using different path to avoid all conflicts
+  app.get("/api/instructor/quiz-submissions", async (req, res) => {
+    console.log('=== NEW QUIZ SUBMISSIONS ENDPOINT HIT ===');
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
