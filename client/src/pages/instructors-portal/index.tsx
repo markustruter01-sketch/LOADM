@@ -233,6 +233,29 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
 
+          {/* Quiz Submissions Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Quiz Submissions</CardTitle>
+                <FileCheck className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Review and grade quiz submissions</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                View all student quiz submissions, review answers, and track quiz performance across squadrons
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/quiz-submissions">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  View Quiz Submissions
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+
           {/* Advanced Analytics Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
