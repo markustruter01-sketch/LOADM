@@ -775,6 +775,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quiz submissions endpoint
+  app.get("/api/quiz-submissions", async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const submissions = await sql`
+        SELECT 
+          qs.id,
+          qs.quiz_id as "quizId",
+          qs.user_id as "userId", 
+          qs.submission_date as "submissionDate",
+          qs.answers,
+          qs.score,
+          qs.squadron,
+          u.username,
+          u.email,
+          q.title as "quizTitle",
+          q.description as "quizDescription"
+        FROM quiz_submissions qs
+        LEFT JOIN users u ON qs.user_id = u.id
+        LEFT JOIN quizzes q ON qs.quiz_id = q.id
+        ORDER BY qs.submission_date DESC
+      `;
+      
+      res.json(submissions);
+    } catch (error) {
+      console.error('Error fetching quiz submissions:', error);
+      res.status(500).json({ error: 'Failed to fetch quiz submissions' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
