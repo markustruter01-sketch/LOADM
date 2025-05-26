@@ -39,38 +39,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
   setupAuth(app);
 
-  // Quiz submissions endpoint - needs to be registered before other quiz routes
+  // Quiz submissions endpoint - completely rebuilt
   app.get("/api/quiz-submissions", async (req, res) => {
+    console.log('=== QUIZ SUBMISSIONS ENDPOINT HIT ===');
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      const submissions = await sql`
-        SELECT 
-          qs.id,
-          qs.quiz_id as "quizId",
-          qs.user_id as "userId", 
-          qs.submission_date as "submissionDate",
-          qs.answers,
-          qs.score,
-          qs.squadron,
-          u.username,
-          u.email,
-          q.title as "quizTitle",
-          q.description as "quizDescription"
-        FROM quiz_submissions qs
-        LEFT JOIN users u ON qs.user_id = u.id
-        LEFT JOIN quizzes q ON qs.quiz_id = q.id
-        ORDER BY qs.submission_date DESC
-      `;
+      // First, let's get raw quiz submissions
+      const rawSubmissions = await sql`SELECT * FROM quiz_submissions ORDER BY submission_date DESC`;
+      console.log('Raw submissions from DB:', rawSubmissions.length);
       
-      console.log('Quiz submissions API response:', submissions.length, 'submissions found');
-      console.log('Sample submission:', submissions[0]);
+      if (rawSubmissions.length === 0) {
+        console.log('No quiz submissions found in database');
+        return res.json([]);
+      }
+      
+      // Get users and quizzes separately
+      const users = await sql`SELECT id, username, email FROM users`;
+      const quizzes = await sql`SELECT id, title, description FROM quizzes`;
+      
+      console.log('Found users:', users.length);
+      console.log('Found quizzes:', quizzes.length);
+      
+      // Manually join the data
+      const submissions = rawSubmissions.map(submission => {
+        const user = users.find(u => u.id === submission.user_id);
+        const quiz = quizzes.find(q => q.id === submission.quiz_id);
+        
+        return {
+          id: submission.id,
+          quizId: submission.quiz_id,
+          userId: submission.user_id,
+          submissionDate: submission.submission_date,
+          answers: submission.answers,
+          score: submission.score,
+          squadron: submission.squadron,
+          username: user?.username || 'Unknown User',
+          email: user?.email || '',
+          quizTitle: quiz?.title || 'Unknown Quiz',
+          quizDescription: quiz?.description || ''
+        };
+      });
+      
+      console.log('Final processed submissions:', submissions.length);
+      console.log('Sample submission:', JSON.stringify(submissions[0], null, 2));
       
       res.json(submissions);
     } catch (error) {
-      console.error('Error fetching quiz submissions:', error);
-      res.status(500).json({ error: 'Failed to fetch quiz submissions' });
+      console.error('Quiz submissions API error:', error);
+      res.status(500).json({ error: 'Failed to fetch quiz submissions', details: error.message });
     }
   });
   
