@@ -9,6 +9,7 @@ import { ArrowLeft, Check, X, Clock, User, Calendar, Award, Building, CheckCircl
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { loadmasterQuestions } from '@shared/quiz-questions';
 
 interface QuizSubmissionDetail {
   id: number;
