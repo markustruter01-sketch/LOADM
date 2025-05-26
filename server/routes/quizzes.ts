@@ -213,9 +213,49 @@ router.post('/:id/submit', async (req, res) => {
     };
 
     console.log('About to save submission:', JSON.stringify(submissionData, null, 2));
+    
+    // Double-check the answers array is not empty before sending to storage
+    if (!submissionData.answers || submissionData.answers.length === 0) {
+      console.error('CRITICAL ERROR: Answers array is empty before database call');
+      return res.status(400).json({ error: 'Invalid answers data' });
+    }
+    
+    console.log('Answers array before storage call:', submissionData.answers);
 
-    // Save to database
-    const submission = await quizStorage.createQuizSubmission(submissionData);
+    // Save to database with direct SQL to ensure it works
+    console.log('=== DIRECT DATABASE INSERT ===');
+    
+    const { pool } = await import('./storage-quiz.js');
+    const answersJson = JSON.stringify(submissionData.answers);
+    console.log('Final answers JSON:', answersJson);
+    
+    const insertQuery = `
+      INSERT INTO quiz_submissions(quiz_id, user_id, answers, score, squadron)
+      VALUES($1, $2, $3::jsonb, $4, $5)
+      RETURNING *
+    `;
+    
+    const insertValues = [
+      submissionData.quizId,
+      submissionData.userId,
+      answersJson,
+      submissionData.score,
+      submissionData.squadron
+    ];
+    
+    console.log('Direct insert query:', insertQuery);
+    console.log('Direct insert values:', insertValues);
+    
+    const result = await pool.query(insertQuery, insertValues);
+    const submission = {
+      id: result.rows[0].id,
+      quizId: result.rows[0].quiz_id,
+      userId: result.rows[0].user_id,
+      submissionDate: result.rows[0].submission_date,
+      answers: result.rows[0].answers,
+      score: result.rows[0].score,
+      squadron: result.rows[0].squadron
+    };
     
     console.log('Submission saved successfully with ID:', submission.id);
     
