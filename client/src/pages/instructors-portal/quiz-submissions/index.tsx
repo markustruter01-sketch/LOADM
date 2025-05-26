@@ -32,25 +32,43 @@ export default function QuizSubmissions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [squadronFilter, setSquadronFilter] = useState('all');
 
-  const { data: submissions = [], isLoading } = useQuery<QuizSubmission[]>({
+  const { data: submissions = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/quiz-submissions'],
-    select: (data) => data || []
+    select: (data) => {
+      console.log('Raw quiz submissions data:', data);
+      return data || [];
+    }
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['/api/users']
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ['/api/users'],
+    select: (data) => {
+      console.log('Raw users data:', data);
+      return data || [];
+    }
   });
 
-  const { data: quizzes = [] } = useQuery({
-    queryKey: ['/api/quizzes']
+  const { data: quizzes = [] } = useQuery<any[]>({
+    queryKey: ['/api/quizzes'],
+    select: (data) => {
+      console.log('Raw quizzes data:', data);
+      return data || [];
+    }
   });
 
   // Enhance submissions with user and quiz data
-  const enhancedSubmissions = submissions.map(submission => ({
-    ...submission,
-    user: users.find((u: any) => u.id === submission.userId),
-    quiz: quizzes.find((q: any) => q.id === submission.quizId)
-  }));
+  const enhancedSubmissions = submissions.map(submission => {
+    const user = users.find((u: any) => u.id === submission.userId);
+    const quiz = quizzes.find((q: any) => q.id === submission.quizId);
+    
+    return {
+      ...submission,
+      user: user || { username: submission.username, email: submission.email },
+      quiz: quiz || { title: submission.quizTitle, description: submission.quizDescription }
+    };
+  });
+
+  console.log('Enhanced submissions:', enhancedSubmissions);
 
   // Filter submissions
   const filteredSubmissions = enhancedSubmissions.filter(submission => {
