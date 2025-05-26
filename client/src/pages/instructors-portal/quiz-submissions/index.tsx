@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'wouter';
 import { Helmet } from 'react-helmet';
 import InstructorLayout from '@/components/InstructorLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Search, Calendar, User, FileText, CheckCircle, XCircle } from 'lucide-react';
-import { Link } from 'wouter';
 
 interface QuizSubmission {
   id: number;

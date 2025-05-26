@@ -53,6 +53,7 @@ import BestPractices from "@/pages/instructors-portal/best-practices";
 import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
 import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
+import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
 import { ProtectedRoute, AuthenticatedRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -111,6 +112,7 @@ function Router() {
           <AuthenticatedRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
           <AuthenticatedRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
           <AuthenticatedRoute path="/instructors-portal/quiz-submissions" component={QuizSubmissions} />
+          <AuthenticatedRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
           <AuthenticatedRoute path="/instructors-portal/resources" component={TeachingMaterials} />
           <AuthenticatedRoute path="/instructors-portal/best-practices" component={BestPractices} />
           <AuthenticatedRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />

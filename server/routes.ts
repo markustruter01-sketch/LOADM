@@ -91,6 +91,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch quiz submissions', details: error.message });
     }
   });
+
+  // Mark quiz submission endpoint
+  app.post("/api/quiz-submissions/:id/mark", async (req, res) => {
+    console.log('=== MARK QUIZ SUBMISSION ENDPOINT HIT ===');
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      await sql`
+        UPDATE quiz_submissions 
+        SET status = ${status}
+        WHERE id = ${parseInt(id)}
+      `;
+      
+      console.log(`Marked submission ${id} as ${status}`);
+      res.json({ success: true, status });
+    } catch (error) {
+      console.error('Error marking quiz submission:', error);
+      res.status(500).json({ error: 'Failed to mark submission' });
+    }
+  });
   
   // Import quiz routes
   const quizzesRouter = await import('./routes/quizzes');
