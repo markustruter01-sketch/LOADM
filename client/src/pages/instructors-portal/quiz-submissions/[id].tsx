@@ -318,9 +318,12 @@ export default function QuizSubmissionDetail() {
                     <p className="text-xs text-yellow-400 mt-1">
                       Original question data is no longer available, but you can still mark this answer as correct or incorrect based on your assessment.
                     </p>
-                    <p className="text-xs text-blue-400 mt-2">
-                      💡 Instructor Note: Refer to your course materials or quiz answer key to determine the correct answer for question {answer.questionId}
-                    </p>
+                    <div className="mt-3 p-2 bg-blue-900/30 border border-blue-500/40 rounded">
+                      <p className="text-sm font-medium text-blue-200 mb-1">📋 Correct Answer Reference:</p>
+                      <p className="text-xs text-blue-300">
+                        Question ID: {answer.questionId} - Check your instructor materials for the correct answer to this specific question.
+                      </p>
+                    </div>
                   </div>
                   
                   {index < submission.answers.length - 1 && <Separator />}
@@ -413,10 +416,35 @@ export default function QuizSubmissionDetail() {
                   })}
                   
                   {answer.answeredOption === null && (
-                    <div className="p-2 rounded border bg-gray-50 border-gray-200">
+                    <div className="p-2 rounded border bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-600">
                       <span className="text-muted-foreground italic">No answer provided</span>
                     </div>
                   )}
+
+                  {/* Enhanced Correct Answer Display for Instructors */}
+                  <div className="mt-3 p-3 bg-green-900/20 border border-green-500/30 rounded">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm font-medium text-green-300">Correct Answer</span>
+                    </div>
+                    <p className="text-sm text-green-200">
+                      <strong>Option {question.correctAnswer + 1}:</strong> {question.options[question.correctAnswer]}
+                    </p>
+                    <div className="mt-2 pt-2 border-t border-green-500/20">
+                      <p className="text-xs text-green-300">
+                        <strong>Student Response:</strong> {answer.answeredOption !== null ? 
+                          `Option ${answer.answeredOption + 1}: ${question.options[answer.answeredOption]}` : 
+                          'No answer provided'
+                        }
+                      </p>
+                      <p className="text-xs text-green-300 mt-1">
+                        <strong>Assessment:</strong> {isCorrect ? 
+                          '✅ Student answer is correct' : 
+                          '❌ Student answer is incorrect'
+                        }
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
                 {index < submission.answers.length - 1 && <Separator />}
