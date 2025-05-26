@@ -244,10 +244,11 @@ router.post('/:id/submit', async (req, res) => {
       };
     });
     
-    // Save submission with basic data
+    // Save submission with answers data
     const submission = await quizStorage.createQuizSubmission({
       quizId,
       userId,
+      answers: answers, // Include the answers array
       score,
       totalQuestions: answers.length,
       squadron: squadron || 'AMG'
