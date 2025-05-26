@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Check, X, Clock, User, Calendar, Award, Building } from 'lucide-react';
+import { ArrowLeft, Check, X, Clock, User, Calendar, Award, Building, CheckCircle, XCircle } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -38,6 +38,7 @@ export default function QuizSubmissionDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [reviewStatus, setReviewStatus] = useState<'pass' | 'fail' | null>(null);
+  const [questionMarks, setQuestionMarks] = useState<Record<string, 'correct' | 'incorrect' | null>>({});
 
   // Fetch submission details
   const { data: submissions = [], isLoading: submissionsLoading } = useQuery<QuizSubmissionDetail[]>({
@@ -80,6 +81,13 @@ export default function QuizSubmissionDetail() {
   const handleMarkSubmission = (status: 'pass' | 'fail') => {
     setReviewStatus(status);
     markSubmission.mutate(status);
+  };
+
+  const toggleQuestionMark = (questionId: string, mark: 'correct' | 'incorrect') => {
+    setQuestionMarks(prev => ({
+      ...prev,
+      [questionId]: prev[questionId] === mark ? null : mark
+    }));
   };
 
   if (submissionsLoading || questionsLoading) {
@@ -132,6 +140,11 @@ export default function QuizSubmissionDetail() {
     isCorrectAnswer(answer.questionId, answer.answeredOption)
   ).length;
   const percentage = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+
+  // Calculate instructor marks
+  const instructorMarkedCorrect = Object.values(questionMarks).filter(mark => mark === 'correct').length;
+  const instructorMarkedIncorrect = Object.values(questionMarks).filter(mark => mark === 'incorrect').length;
+  const totalMarkedByInstructor = instructorMarkedCorrect + instructorMarkedIncorrect;
 
   return (
     <div className="p-6 space-y-6">
@@ -215,11 +228,37 @@ export default function QuizSubmissionDetail() {
         </CardContent>
       </Card>
 
+      {/* Instructor Review Progress */}
+      {totalMarkedByInstructor > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Review Progress</CardTitle>
+            <CardDescription>Track your manual marking of this submission</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-green-500">{instructorMarkedCorrect}</div>
+                <div className="text-sm text-muted-foreground">Marked Correct</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-500">{instructorMarkedIncorrect}</div>
+                <div className="text-sm text-muted-foreground">Marked Incorrect</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{totalQuestions - totalMarkedByInstructor}</div>
+                <div className="text-sm text-muted-foreground">Not Reviewed</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Questions and Answers */}
       <Card>
         <CardHeader>
           <CardTitle>Questions and Answers</CardTitle>
-          <CardDescription>Review the student's responses to each question</CardDescription>
+          <CardDescription>Review the student's responses to each question - use the toggle buttons to mark your assessment</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {submission.answers.map((answer, index) => {
@@ -234,9 +273,31 @@ export default function QuizSubmissionDetail() {
                   <h4 className="font-medium">
                     {index + 1}. {question.question}
                   </h4>
-                  <Badge variant={isCorrect ? "default" : "destructive"}>
-                    {isCorrect ? "Correct" : "Incorrect"}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={isCorrect ? "default" : "destructive"}>
+                      {isCorrect ? "Correct" : "Incorrect"}
+                    </Badge>
+                    
+                    {/* Instructor marking buttons */}
+                    <div className="flex space-x-1">
+                      <Button
+                        size="sm"
+                        variant={questionMarks[answer.questionId] === 'correct' ? "default" : "outline"}
+                        onClick={() => toggleQuestionMark(answer.questionId, 'correct')}
+                        className="h-8 w-8 p-0"
+                      >
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={questionMarks[answer.questionId] === 'incorrect' ? "destructive" : "outline"}
+                        onClick={() => toggleQuestionMark(answer.questionId, 'incorrect')}
+                        className="h-8 w-8 p-0"
+                      >
+                        <XCircle className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="space-y-2 ml-4">
