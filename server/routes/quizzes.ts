@@ -145,6 +145,35 @@ router.get('/:id/questions', async (req, res) => {
   }
 });
 
+// Get quiz questions with answers (for instructors reviewing submissions)
+router.get('/:id/questions-with-answers', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const quiz = await quizStorage.getQuiz(id);
+    
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    
+    // Filter questions based on the quiz categories - return ALL questions for this quiz
+    const filteredQuestions = loadmasterQuestions.filter(question => 
+      quiz.categories.includes(question.category)
+    );
+    
+    if (filteredQuestions.length === 0) {
+      return res.status(400).json({ 
+        error: 'No questions available for the selected categories' 
+      });
+    }
+    
+    // Return all questions with correct answers for instructor review
+    res.json(filteredQuestions);
+  } catch (error) {
+    console.error(`Error fetching quiz questions with answers for ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to fetch quiz questions with answers' });
+  }
+});
+
 // Submit a quiz - COMPLETELY REBUILT FROM SCRATCH
 router.post('/:id/submit', async (req, res) => {
   try {

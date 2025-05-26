@@ -47,12 +47,12 @@ export default function QuizSubmissionDetail() {
 
   const submission = submissions.find(s => s.id === parseInt(id || ''));
 
-  // Fetch quiz questions if we have a submission
+  // Fetch quiz questions with correct answers for instructor review
   const { data: questions = [], isLoading: questionsLoading } = useQuery<Question[]>({
-    queryKey: ['/api/quizzes', submission?.quizId, 'questions'],
+    queryKey: ['/api/quizzes', submission?.quizId, 'questions-with-answers'],
     enabled: !!submission?.quizId,
     select: (data) => {
-      console.log('Raw questions data:', data);
+      console.log('Raw questions data with answers:', data);
       return data || [];
     }
   });
@@ -265,13 +265,6 @@ export default function QuizSubmissionDetail() {
           <CardDescription>Review the student's responses to each question - use the toggle buttons to mark your assessment</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Debug info */}
-          <div className="p-4 bg-yellow-900/20 border border-yellow-500/30 rounded">
-            <p>Debug: Found {questions.length} questions, {submission.answers.length} answers</p>
-            <p>Questions: {questions.map(q => q.id).join(', ')}</p>
-            <p>Answer IDs: {submission.answers.map(a => a.questionId).join(', ')}</p>
-            <p>Quiz ID: {submission.quizId}</p>
-          </div>
           
           {submission.answers.map((answer, index) => {
             const question = questions.find(q => q.id === answer.questionId);
@@ -318,10 +311,17 @@ export default function QuizSubmissionDetail() {
                     <p className="text-xs text-yellow-400 mt-1">
                       Original question data is no longer available, but you can still mark this answer as correct or incorrect based on your assessment.
                     </p>
-                    <div className="mt-3 p-2 bg-blue-900/30 border border-blue-500/40 rounded">
-                      <p className="text-sm font-medium text-blue-200 mb-1">📋 Correct Answer Reference:</p>
-                      <p className="text-xs text-blue-300">
-                        Question ID: {answer.questionId} - Check your instructor materials for the correct answer to this specific question.
+                    <div className="mt-3 p-3 bg-green-900/20 border border-green-500/30 rounded">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <CheckCircle className="h-4 w-4 text-green-400" />
+                        <span className="text-sm font-medium text-green-300">Answer Key for {answer.questionId}</span>
+                      </div>
+                      <p className="text-sm text-red-300 mb-2">
+                        Question data is not available in the system. Contact your course coordinator for the correct answer reference.
+                      </p>
+                      <p className="text-xs text-green-300">
+                        Student selected: {answer.answeredOption !== null ? `Option ${answer.answeredOption + 1}` : 'No answer provided'} | 
+                        Use the toggle buttons above to mark this answer as correct or incorrect.
                       </p>
                     </div>
                   </div>
