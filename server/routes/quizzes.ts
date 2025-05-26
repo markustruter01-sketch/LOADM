@@ -256,19 +256,7 @@ router.get('/submissions', async (req, res) => {
   }
 });
 
-// Get quiz submissions - duplicate endpoint for different path
-app.get('/api/quiz-submissions', async (req, res) => {
-  try {
-    const quizId = req.query.quizId ? parseInt(req.query.quizId as string) : undefined;
-    const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
-    
-    const submissions = await quizStorage.getQuizSubmissions(quizId, userId);
-    res.json(submissions);
-  } catch (error) {
-    console.error('Error fetching quiz submissions:', error);
-    res.status(500).json({ error: 'Failed to fetch quiz submissions' });
-  }
-});
+// Quiz submissions endpoint removed - now handled in main routes.ts
 
 // Helper function to get random questions
 function getRandomQuestions(questions: any[], count: number) {
