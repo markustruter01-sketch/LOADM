@@ -50,7 +50,11 @@ export default function QuizSubmissionDetail() {
   // Fetch quiz questions if we have a submission
   const { data: questions = [], isLoading: questionsLoading } = useQuery<Question[]>({
     queryKey: ['/api/quizzes', submission?.quizId, 'questions'],
-    enabled: !!submission?.quizId
+    enabled: !!submission?.quizId,
+    select: (data) => {
+      console.log('Raw questions data:', data);
+      return data || [];
+    }
   });
 
   // Mark submission mutation
@@ -266,6 +270,7 @@ export default function QuizSubmissionDetail() {
             <p>Debug: Found {questions.length} questions, {submission.answers.length} answers</p>
             <p>Questions: {questions.map(q => q.id).join(', ')}</p>
             <p>Answer IDs: {submission.answers.map(a => a.questionId).join(', ')}</p>
+            <p>Quiz ID: {submission.quizId}</p>
           </div>
           
           {submission.answers.map((answer, index) => {
@@ -276,9 +281,46 @@ export default function QuizSubmissionDetail() {
             
             if (!question) {
               return (
-                <div key={answer.questionId} className="p-4 bg-red-900/20 border border-red-500/30 rounded">
-                  <p>Question {answer.questionId} not found in questions list</p>
-                  <p>Student answered: {answer.answeredOption !== null ? `Option ${answer.answeredOption}` : 'No answer'}</p>
+                <div key={answer.questionId} className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <h4 className="font-medium">
+                      {index + 1}. Question {answer.questionId} (Original question text unavailable)
+                    </h4>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="secondary">Question Missing</Badge>
+                      
+                      {/* Instructor marking buttons - even for missing questions */}
+                      <div className="flex space-x-1">
+                        <Button
+                          size="sm"
+                          variant={questionMarks[answer.questionId] === 'correct' ? "default" : "outline"}
+                          onClick={() => toggleQuestionMark(answer.questionId, 'correct')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={questionMarks[answer.questionId] === 'incorrect' ? "destructive" : "outline"}
+                          onClick={() => toggleQuestionMark(answer.questionId, 'incorrect')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <XCircle className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="ml-4 p-3 bg-gray-800 rounded">
+                    <p className="text-sm text-muted-foreground">
+                      Student's answer: {answer.answeredOption !== null ? `Selected option ${answer.answeredOption + 1}` : 'No answer provided'}
+                    </p>
+                    <p className="text-xs text-yellow-400 mt-1">
+                      Original question data is no longer available, but you can still mark this answer as correct or incorrect based on your assessment.
+                    </p>
+                  </div>
+                  
+                  {index < submission.answers.length - 1 && <Separator />}
                 </div>
               );
             }
