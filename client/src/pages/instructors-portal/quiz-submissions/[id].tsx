@@ -124,15 +124,45 @@ export default function QuizSubmissionDetail() {
     return new Date(dateString).toLocaleString();
   };
 
-  const getAnswerText = (questionId: string, answeredOption: number | null) => {
+  const getAnswerText = (questionId: string, answeredOption: any) => {
     const question = loadmasterQuestions.find(q => q.id === questionId);
-    if (!question || answeredOption === null) return 'No answer provided';
-    return question.options[answeredOption] || 'Invalid answer';
+    
+    if (!question || answeredOption === null || answeredOption === undefined) {
+      return 'No answer provided';
+    }
+    
+    // Handle numeric answer (option index)
+    if (typeof answeredOption === 'number') {
+      return question.options[answeredOption] || 'Invalid answer';
+    }
+    
+    // Handle string answer (direct answer text)
+    if (typeof answeredOption === 'string') {
+      return answeredOption;
+    }
+    
+    return 'Invalid answer format';
   };
 
-  const isCorrectAnswer = (questionId: string, answeredOption: number | null) => {
+  const isCorrectAnswer = (questionId: string, answeredOption: any) => {
     const question = loadmasterQuestions.find(q => q.id === questionId);
-    return question && answeredOption === question.correctAnswer;
+    
+    if (!question || answeredOption === null || answeredOption === undefined) {
+      return false;
+    }
+    
+    // Handle numeric answer (option index)
+    if (typeof answeredOption === 'number') {
+      return answeredOption === question.correctAnswer;
+    }
+    
+    // Handle string answer (check if it matches the correct option text)
+    if (typeof answeredOption === 'string') {
+      const correctOptionText = question.options[question.correctAnswer];
+      return answeredOption === correctOptionText;
+    }
+    
+    return false;
   };
 
   const totalQuestions = submission.answers.length;
@@ -316,7 +346,7 @@ export default function QuizSubmissionDetail() {
                         Question data is not available in the system. Contact your course coordinator for the correct answer reference.
                       </p>
                       <p className="text-xs text-green-300">
-                        Student selected: {answer.answeredOption !== null ? `Option ${answer.answeredOption + 1}` : 'No answer provided'} | 
+                        Student selected: {getAnswerText(answer.questionId, answer.answeredOption)} | 
                         Use the toggle buttons above to mark this answer as correct or incorrect.
                       </p>
                     </div>
@@ -428,10 +458,7 @@ export default function QuizSubmissionDetail() {
                     </p>
                     <div className="mt-2 pt-2 border-t border-green-500/20">
                       <p className="text-xs text-green-300">
-                        <strong>Student Response:</strong> {answer.answeredOption !== null ? 
-                          `Option ${answer.answeredOption + 1}: ${question.options[answer.answeredOption]}` : 
-                          'No answer provided'
-                        }
+                        <strong>Student Response:</strong> {getAnswerText(answer.questionId, answer.answeredOption)}
                       </p>
                       <p className="text-xs text-green-300 mt-1">
                         <strong>Assessment:</strong> {isCorrect ? 
