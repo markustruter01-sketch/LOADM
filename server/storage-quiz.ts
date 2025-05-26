@@ -287,6 +287,14 @@ export async function getQuizSubmission(id: number): Promise<QuizSubmission | un
 
 export async function createQuizSubmission(insertSubmission: InsertQuizSubmission): Promise<QuizSubmission> {
   try {
+    // Debug logging
+    console.log("Creating quiz submission with data:", JSON.stringify(insertSubmission, null, 2));
+    
+    // Validate that answers exists and is not null
+    if (!insertSubmission.answers) {
+      throw new Error("Answers field is required and cannot be null");
+    }
+    
     const query = `
       INSERT INTO quiz_submissions(
         quiz_id,
@@ -299,13 +307,18 @@ export async function createQuizSubmission(insertSubmission: InsertQuizSubmissio
       RETURNING *
     `;
     
+    const answersJson = JSON.stringify(insertSubmission.answers);
+    console.log("Answers JSON being inserted:", answersJson);
+    
     const values = [
       insertSubmission.quizId,
       insertSubmission.userId,
-      JSON.stringify(insertSubmission.answers),
+      answersJson,
       insertSubmission.score,
       insertSubmission.squadron
     ];
+    
+    console.log("SQL values:", values);
     
     const result = await pool.query(query, values);
     const submission = result.rows[0];

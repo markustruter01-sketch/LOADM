@@ -78,7 +78,7 @@ export default function QuizPage() {
       // Convert answers from record to array format expected by the server
       const answersArray = Object.entries(answers).map(([questionId, answeredOption]) => ({
         questionId,
-        answeredOption: parseInt(answeredOption) || answeredOption // Try to convert to number if possible
+        answeredOption: parseInt(answeredOption) // Ensure it's always a number
       }));
       
       const response = await apiRequest({

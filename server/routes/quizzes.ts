@@ -244,18 +244,29 @@ router.post('/:id/submit', async (req, res) => {
       };
     });
     
+    // Debug: Log the answers being processed
+    console.log("Processing answers:", JSON.stringify(answers, null, 2));
+    
+    // Ensure answers is not empty and properly formatted
+    if (!answers || answers.length === 0) {
+      console.error("No answers provided for quiz submission");
+      return res.status(400).json({ error: "No answers provided" });
+    }
+    
     // Format answers to match the database schema: Array<{questionId: string, answeredOption: number}>
     const formattedAnswers = answers.map(answer => ({
-      questionId: answer.questionId,
-      answeredOption: answer.answeredOption
+      questionId: String(answer.questionId),
+      answeredOption: Number(answer.answeredOption)
     }));
+    
+    console.log("Formatted answers for database:", JSON.stringify(formattedAnswers, null, 2));
     
     // Save submission with properly formatted answers data
     const submission = await quizStorage.createQuizSubmission({
-      quizId,
-      userId,
+      quizId: Number(quizId),
+      userId: Number(userId),
       answers: formattedAnswers, // Use formatted answers that match schema
-      score,
+      score: Number(score),
       squadron: squadron || 'AMG'
     });
     
