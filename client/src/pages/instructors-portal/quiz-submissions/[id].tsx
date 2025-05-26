@@ -318,6 +318,9 @@ export default function QuizSubmissionDetail() {
                     <p className="text-xs text-yellow-400 mt-1">
                       Original question data is no longer available, but you can still mark this answer as correct or incorrect based on your assessment.
                     </p>
+                    <p className="text-xs text-blue-400 mt-2">
+                      💡 Instructor Note: Refer to your course materials or quiz answer key to determine the correct answer for question {answer.questionId}
+                    </p>
                   </div>
                   
                   {index < submission.answers.length - 1 && <Separator />}
@@ -359,6 +362,20 @@ export default function QuizSubmissionDetail() {
                 </div>
                 
                 <div className="space-y-2 ml-4">
+                  {/* Instructor Answer Key */}
+                  <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded mb-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Award className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-blue-300">Instructor Answer Key</span>
+                    </div>
+                    <p className="text-sm text-blue-200">
+                      <strong>Correct Answer:</strong> Option {question.correctAnswer + 1} - {question.options[question.correctAnswer]}
+                    </p>
+                    <p className="text-xs text-blue-300 mt-1">
+                      Student selected: {answer.answeredOption !== null ? `Option ${answer.answeredOption + 1} - ${question.options[answer.answeredOption]}` : 'No answer'}
+                    </p>
+                  </div>
+
                   {question.options.map((option, optionIndex) => {
                     const isStudentAnswer = answer.answeredOption === optionIndex;
                     const isCorrectOption = question.correctAnswer === optionIndex;
@@ -368,25 +385,25 @@ export default function QuizSubmissionDetail() {
                         key={optionIndex}
                         className={`p-2 rounded border ${
                           isStudentAnswer && isCorrectOption 
-                            ? 'bg-green-50 border-green-200' 
+                            ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-500/30' 
                             : isStudentAnswer && !isCorrectOption
-                            ? 'bg-red-50 border-red-200'
+                            ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-500/30'
                             : isCorrectOption
-                            ? 'bg-blue-50 border-blue-200'
-                            : 'bg-gray-50 border-gray-200'
+                            ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-500/30'
+                            : 'bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-600'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span>{option}</span>
+                          <span className="text-sm">{optionIndex + 1}. {option}</span>
                           <div className="flex space-x-1">
                             {isStudentAnswer && (
                               <Badge variant="outline" className="text-xs">
-                                Student's Answer
+                                Student's Choice
                               </Badge>
                             )}
                             {isCorrectOption && (
-                              <Badge variant="default" className="text-xs">
-                                Correct Answer
+                              <Badge variant="default" className="text-xs bg-blue-600">
+                                ✓ Correct Answer
                               </Badge>
                             )}
                           </div>
