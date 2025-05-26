@@ -84,27 +84,21 @@ export default function QuizPage() {
       const response = await apiRequest({
         url: `/api/quizzes/${quizId}/submit`,
         method: 'POST',
-        data: {
+        body: {
           userId: user.id,
           answers: answersArray,
           squadron
         }
       });
 
-      setScore(response.score);
-      setFeedback(response.feedback || {});
-      
-      // Store the submission questions for detailed feedback display
-      if (response.questions) {
-        setSubmissionQuestions(response.questions);
-      }
-      
-      setQuizSubmitted(true);
-      
+      // Instead of showing results, just redirect to scenarios with success message
       toast({
-        title: "Quiz submitted",
-        description: `Your score: ${response.score}%`,
+        title: "Quiz Submitted Successfully! 🎉",
+        description: "Your quiz has been submitted for instructor review.",
       });
+
+      // Redirect back to scenarios immediately
+      setLocation('/scenarios');
 
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}`] });
