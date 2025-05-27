@@ -324,7 +324,9 @@ export default function QuizSubmissionDetail() {
                           size="sm"
                           variant={questionMarks[answer.questionId] === 'incorrect' ? "destructive" : "outline"}
                           onClick={() => toggleQuestionMark(answer.questionId, 'incorrect')}
-                          className="h-8 w-8 p-0"
+                          className={`h-8 w-8 p-0 transition-all duration-200 hover-lift scale-on-tap ${
+                            questionMarks[answer.questionId] === 'incorrect' ? 'error-shake' : ''
+                          }`}
                         >
                           <XCircle className="h-4 w-4 text-red-500" />
                         </Button>
@@ -493,7 +495,7 @@ export default function QuizSubmissionDetail() {
                 <Button
                   variant={reviewStatus === 'pass' ? 'default' : 'outline'}
                   onClick={() => handleMarkSubmission('pass')}
-                  className={reviewStatus === 'pass' ? 'bg-green-600 hover:bg-green-700' : ''}
+                  className={`${reviewStatus === 'pass' ? 'bg-green-600 hover:bg-green-700 success-bounce' : ''} transition-all duration-200 hover-lift scale-on-tap`}
                 >
                   <Check className="h-4 w-4 mr-2" />
                   Pass
@@ -501,7 +503,7 @@ export default function QuizSubmissionDetail() {
                 <Button
                   variant={reviewStatus === 'fail' ? 'default' : 'outline'}
                   onClick={() => handleMarkSubmission('fail')}
-                  className={reviewStatus === 'fail' ? 'bg-red-600 hover:bg-red-700' : ''}
+                  className={`${reviewStatus === 'fail' ? 'bg-red-600 hover:bg-red-700 error-shake' : ''} transition-all duration-200 hover-lift scale-on-tap`}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Fail

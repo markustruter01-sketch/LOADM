@@ -381,11 +381,11 @@ export default function QuizPage() {
                       >
                         <div className="space-y-3">
                           {question.options.map((option: string, optionIndex: number) => (
-                            <div key={option} className="flex items-center space-x-2">
-                              <RadioGroupItem value={optionIndex.toString()} id={`${question.id}-${optionIndex}`} />
+                            <div key={option} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 hover-lift cursor-pointer">
+                              <RadioGroupItem value={optionIndex.toString()} id={`${question.id}-${optionIndex}`} className="scale-on-tap" />
                               <Label 
                                 htmlFor={`${question.id}-${optionIndex}`}
-                                className="text-base cursor-pointer"
+                                className="text-base cursor-pointer flex-1 color-transition"
                               >
                                 {option}
                               </Label>
@@ -405,11 +405,18 @@ export default function QuizPage() {
             {Object.keys(answers).length} of {questions?.length || 0} questions answered
           </div>
           <Button 
-            className="bg-orange-500 hover:bg-orange-600 text-white"
+            className={`bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200 hover-lift scale-on-tap ${
+              isSubmitting ? 'pulse-loading' : ''
+            } ${Object.keys(answers).length === (questions?.length || 0) ? 'glow-effect' : ''}`}
             disabled={isSubmitting || !user || Object.keys(answers).length < (questions?.length || 0)}
             onClick={handleSubmit}
           >
-            {isSubmitting ? "Submitting..." : "Submit Quiz"}
+            {isSubmitting ? (
+              <div className="flex items-center">
+                <div className="loading-spinner w-4 h-4 mr-2"></div>
+                Submitting...
+              </div>
+            ) : "Submit Quiz"}
           </Button>
         </CardFooter>
       </Card>
