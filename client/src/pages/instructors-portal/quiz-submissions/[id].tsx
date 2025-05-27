@@ -314,7 +314,9 @@ export default function QuizSubmissionDetail() {
                           size="sm"
                           variant={questionMarks[answer.questionId] === 'correct' ? "default" : "outline"}
                           onClick={() => toggleQuestionMark(answer.questionId, 'correct')}
-                          className="h-8 w-8 p-0"
+                          className={`h-8 w-8 p-0 transition-all duration-200 hover-lift scale-on-tap ${
+                            questionMarks[answer.questionId] === 'correct' ? 'success-bounce bg-green-600' : ''
+                          }`}
                         >
                           <CheckCircle className="h-4 w-4 text-green-500" />
                         </Button>
