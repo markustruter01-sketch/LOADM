@@ -39,28 +39,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
   setupAuth(app);
 
-  // NEW QUIZ SUBMISSIONS ENDPOINT - using different path to avoid all conflicts
+  // Quiz submissions endpoint for instructors
   app.get("/api/instructor/quiz-submissions", async (req, res) => {
-    console.log('=== NEW QUIZ SUBMISSIONS ENDPOINT HIT ===');
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // First, let's get raw quiz submissions
+      // Get quiz submissions with proper ordering
       const rawSubmissions = await sql`SELECT * FROM quiz_submissions ORDER BY submission_date DESC`;
-      console.log('Raw submissions from DB:', rawSubmissions.length);
       
       if (rawSubmissions.length === 0) {
-        console.log('No quiz submissions found in database');
         return res.json([]);
       }
       
       // Get users and quizzes separately
       const users = await sql`SELECT id, username, email FROM users`;
       const quizzes = await sql`SELECT id, title, description FROM quizzes`;
-      
-      console.log('Found users:', users.length);
-      console.log('Found quizzes:', quizzes.length);
       
       // Manually join the data
       const submissions = rawSubmissions.map(submission => {
@@ -82,19 +76,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      console.log('Final processed submissions:', submissions.length);
-      console.log('Sample submission:', JSON.stringify(submissions[0], null, 2));
-      
       res.json(submissions);
     } catch (error) {
       console.error('Quiz submissions API error:', error);
-      res.status(500).json({ error: 'Failed to fetch quiz submissions', details: error.message });
+      res.status(500).json({ error: 'Failed to fetch quiz submissions', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
   // Mark quiz submission endpoint
   app.post("/api/quiz-submissions/:id/mark", async (req, res) => {
-    console.log('=== MARK QUIZ SUBMISSION ENDPOINT HIT ===');
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -108,7 +98,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE id = ${parseInt(id)}
       `;
       
-      console.log(`Marked submission ${id} as ${status}`);
       res.json({ success: true, status });
     } catch (error) {
       console.error('Error marking quiz submission:', error);

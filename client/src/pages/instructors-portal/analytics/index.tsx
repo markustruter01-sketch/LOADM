@@ -1185,7 +1185,7 @@ Based on the available data across ${data.overallStats.totalSubmissions} submiss
 The data shows performance variations across different squadrons:
 
 ### Key Observations:
-${data.performanceData.squadronPerformance.map(squad => 
+${data.performanceData.squadronPerformance.map((squad: any) => 
   `- ${squad.squadron}: ${squad.avgScore.toFixed(1)}% average score with ${squad.passRate.toFixed(1)}% pass rate (${squad.submissions} submissions)`
 ).join('\n')}
 
@@ -1199,7 +1199,7 @@ ${data.performanceData.squadronPerformance.map(squad =>
 Different assessment formats show varying performance patterns:
 
 ### Key Observations:
-${data.performanceData.assessmentTypePerformance.map(type => 
+${data.performanceData.assessmentTypePerformance.map((type: any) => 
   `- ${type.type}: ${type.avgScore.toFixed(1)}% average score with ${type.passRate.toFixed(1)}% pass rate (${type.submissions} submissions)`
 ).join('\n')}
 
@@ -1213,7 +1213,7 @@ ${data.performanceData.assessmentTypePerformance.map(type =>
 The distribution of scores shows patterns that can inform training improvements:
 
 ### Key Observations:
-${data.performanceData.scoreDistribution.map(item => 
+${data.performanceData.scoreDistribution.map((item: any) => 
   `- ${item.range}: ${item.count} students`
 ).join('\n')}
 
