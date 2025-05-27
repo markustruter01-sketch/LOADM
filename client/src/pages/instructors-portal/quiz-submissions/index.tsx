@@ -198,24 +198,6 @@ export default function QuizSubmissions() {
 
         {/* Submissions List */}
         <div className="space-y-4">
-          {/* Debug information */}
-        <Card className="mb-4 bg-yellow-900/20 border-yellow-500/30">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold mb-2">Debug Info:</h3>
-            <p>Raw submissions count: {submissions.length}</p>
-            <p>Enhanced submissions count: {enhancedSubmissions.length}</p>
-            <p>Filtered submissions count: {filteredSubmissions.length}</p>
-            <p>Is loading: {isLoading.toString()}</p>
-            {submissions.length > 0 && (
-              <details className="mt-2">
-                <summary>Raw data sample</summary>
-                <pre className="text-xs mt-2 overflow-auto max-h-32">
-                  {JSON.stringify(submissions[0], null, 2)}
-                </pre>
-              </details>
-            )}
-          </CardContent>
-        </Card>
 
         {filteredSubmissions.length === 0 ? (
             <Card>
