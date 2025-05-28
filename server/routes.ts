@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth-fixed";
+import { setupSimpleAuth } from "./auth-simple";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, licenses, users } from "@shared/schema";
 import { eq, and, gt } from "drizzle-orm";
@@ -38,7 +38,7 @@ function rateLimiter(req: Request, res: Response, next: NextFunction) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
-  setupAuth(app);
+  setupSimpleAuth(app);
 
   // Import and use the rebuilt licensing routes
   const licensingRoutes = await import('./routes/licensing-fixed');
