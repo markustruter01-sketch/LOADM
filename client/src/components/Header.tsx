@@ -47,10 +47,10 @@ export default function Header() {
                     <div className="w-full cursor-pointer">Instructors Portal</div>
                   </Link>
                 </DropdownMenuItem>
-                {user.isAdmin && (
+                {user.isSuperAdmin && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/admin">
+                      <Link href="/superadmin-dashboard">
                         <div className="w-full cursor-pointer">Admin Dashboard</div>
                       </Link>
                     </DropdownMenuItem>
