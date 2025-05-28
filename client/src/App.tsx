@@ -60,7 +60,7 @@ import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
-import OfflineStatus from "@/components/OfflineStatus";
+// import OfflineStatus from "@/components/OfflineStatus";
 
 const queryClient = createOfflineQueryClient();
 
@@ -70,7 +70,6 @@ function AuthenticatedApp() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="App">
-        <OfflineStatus />
         <Header />
         <main className="main-content">
           <Switch>
