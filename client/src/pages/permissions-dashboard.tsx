@@ -100,12 +100,12 @@ export default function PermissionsDashboard() {
 
   const getRoleInfo = (user: User) => {
     if (user.isSuperAdmin) {
-      return { role: 'Super Admin', icon: Crown, color: 'bg-purple-100 text-purple-800 border-purple-200' };
+      return { role: 'Super Admin', icon: Crown, color: 'bg-purple-600 text-purple-100 border-purple-500' };
     }
     if (user.isAdmin) {
-      return { role: 'Instructor', icon: ShieldCheck, color: 'bg-blue-100 text-blue-800 border-blue-200' };
+      return { role: 'Instructor', icon: ShieldCheck, color: 'bg-blue-600 text-blue-100 border-blue-500' };
     }
-    return { role: 'Loadmaster', icon: Shield, color: 'bg-green-100 text-green-800 border-green-200' };
+    return { role: 'Loadmaster', icon: Shield, color: 'bg-green-600 text-green-100 border-green-500' };
   };
 
   const handlePermissionChange = (userId: number, newPermissions: { isAdmin: boolean; isSuperAdmin: boolean }) => {
@@ -114,22 +114,22 @@ export default function PermissionsDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+      <div className="min-h-screen bg-gray-900 p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading permissions dashboard...</div>
+          <div className="text-lg text-white">Loading permissions dashboard...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Permission Management</h1>
-            <p className="text-gray-600 mt-2">Manage user roles and access permissions</p>
+            <h1 className="text-3xl font-bold text-white">Permission Management</h1>
+            <p className="text-gray-400 mt-2">Manage user roles and access permissions</p>
           </div>
           <Button className="bg-blue-600 hover:bg-blue-700">
             <UserPlus className="w-4 h-4 mr-2" />
@@ -139,62 +139,62 @@ export default function PermissionsDashboard() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-200">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <div className="text-2xl font-bold text-white">{stats.totalUsers}</div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
-              <Crown className="h-4 w-4 text-purple-600" />
+              <CardTitle className="text-sm font-medium text-gray-200">Super Admins</CardTitle>
+              <Crown className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{stats.superAdmins}</div>
+              <div className="text-2xl font-bold text-purple-400">{stats.superAdmins}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Instructors</CardTitle>
-              <ShieldCheck className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-sm font-medium text-gray-200">Instructors</CardTitle>
+              <ShieldCheck className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.instructors}</div>
+              <div className="text-2xl font-bold text-blue-400">{stats.instructors}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Loadmasters</CardTitle>
-              <Shield className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-gray-200">Loadmasters</CardTitle>
+              <Shield className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.loadmasters}</div>
+              <div className="text-2xl font-bold text-green-400">{stats.loadmasters}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-gray-200">Active Users</CardTitle>
+              <Eye className="h-4 w-4 text-gray-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeUsers}</div>
+              <div className="text-2xl font-bold text-white">{stats.activeUsers}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters and Search */}
-        <Card>
+        <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>Search and filter users by role and permissions</CardDescription>
+            <CardTitle className="text-white">User Management</CardTitle>
+            <CardDescription className="text-gray-400">Search and filter users by role and permissions</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -226,16 +226,16 @@ export default function PermissionsDashboard() {
               {filteredUsers.map((user) => {
                 const { role, icon: RoleIcon, color } = getRoleInfo(user);
                 return (
-                  <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                  <div key={user.id} className="flex items-center justify-between p-4 border border-gray-600 rounded-lg bg-gray-700">
                     <div className="flex items-center space-x-4">
                       <Avatar>
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gray-600 text-white">
                           {user.username.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{user.username}</div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
+                        <div className="font-medium text-white">{user.username}</div>
+                        <div className="text-sm text-gray-400">{user.email}</div>
                       </div>
                       <Badge className={color}>
                         <RoleIcon className="w-3 h-3 mr-1" />
