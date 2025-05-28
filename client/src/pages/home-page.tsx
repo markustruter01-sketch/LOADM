@@ -13,9 +13,15 @@ import {
   Plane 
 } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
+import { useAuth } from "@/hooks/use-auth";
+import LoginPromptModal from "@/components/LoginPromptModal";
+import { useState } from "react";
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
   const handleServiceBranchChange = (value: string) => {
     if (value === "army") {
@@ -24,6 +30,25 @@ export default function HomePage() {
       setLocation("/navy");
     }
     // Air Force stays on current page
+  };
+
+  const handleCardClick = (href: string) => {
+    return (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!user) {
+        setPendingNavigation(href);
+        setShowLoginModal(true);
+      } else {
+        setLocation(href);
+      }
+    };
+  };
+
+  const handleLoginSuccess = () => {
+    if (pendingNavigation) {
+      setLocation(pendingNavigation);
+      setPendingNavigation(null);
+    }
   };
 
   return (
@@ -89,92 +114,80 @@ export default function HomePage() {
             <div className="mb-10">
               <h3 className="text-xl font-bold mb-4 text-left">Sections</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Link href="/scenarios" className="block">
-                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <ClipboardList className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Scenarios</h3>
-                      <p className="text-sm text-center text-muted-foreground">
-                        Training scenarios and simulations for loadmasters
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-                
-                <Link href="/training-modules" className="block">
-                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden">
-                    <div className="absolute top-1 right-1">
-                      <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/scenarios")}>
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <div className="rounded-full bg-primary/10 p-3 mb-4">
+                      <ClipboardList className="h-8 w-8 text-primary" />
                     </div>
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <Plane className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Aircraft Training</h3>
-                      <p className="text-sm text-center text-muted-foreground">
-                        Progressive aircraft-specific training modules
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                    <h3 className="text-lg font-medium mb-2">Scenarios</h3>
+                    <p className="text-sm text-center text-muted-foreground">
+                      Training scenarios and simulations for loadmasters
+                    </p>
+                  </CardContent>
+                </Card>
                 
-                <Link href="/load-planning" className="block">
-                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <Package2 className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Load Planning</h3>
-                      <p className="text-sm text-center text-muted-foreground">
-                        Visual load planning tools for aircraft cargo
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/training-modules")}>
+                  <div className="absolute top-1 right-1">
+                    <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>
+                  </div>
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <div className="rounded-full bg-primary/10 p-3 mb-4">
+                      <Plane className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Aircraft Training</h3>
+                    <p className="text-sm text-center text-muted-foreground">
+                      Progressive aircraft-specific training modules
+                    </p>
+                  </CardContent>
+                </Card>
                 
-                <Link href="/documents" className="block">
-                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <FileCheck className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Documents</h3>
-                      <p className="text-sm text-center text-muted-foreground">
-                        Access and complete required documentation
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/load-planning")}>
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <div className="rounded-full bg-primary/10 p-3 mb-4">
+                      <Package2 className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Load Planning</h3>
+                    <p className="text-sm text-center text-muted-foreground">
+                      Visual load planning tools for aircraft cargo
+                    </p>
+                  </CardContent>
+                </Card>
                 
-                <Link href="/tools" className="block">
-                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <Wrench className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Tools</h3>
-                      <p className="text-sm text-center text-muted-foreground">
-                        Loadmaster calculators and specialized tools
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/documents")}>
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <div className="rounded-full bg-primary/10 p-3 mb-4">
+                      <FileCheck className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Documents</h3>
+                    <p className="text-sm text-center text-muted-foreground">
+                      Access and complete required documentation
+                    </p>
+                  </CardContent>
+                </Card>
                 
-                <Link href="/instructors-portal" className="block">
-                  <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors">
-                    <CardContent className="flex flex-col items-center justify-center p-6">
-                      <div className="rounded-full bg-primary/10 p-3 mb-4">
-                        <GraduationCap className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Instructor Portal</h3>
-                      <p className="text-sm text-center text-muted-foreground">
-                        Manage scenarios and review student submissions
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/tools")}>
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <div className="rounded-full bg-primary/10 p-3 mb-4">
+                      <Wrench className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Tools</h3>
+                    <p className="text-sm text-center text-muted-foreground">
+                      Loadmaster calculators and specialized tools
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/instructors-portal")}>
+                  <CardContent className="flex flex-col items-center justify-center p-6">
+                    <div className="rounded-full bg-primary/10 p-3 mb-4">
+                      <GraduationCap className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">Instructor Portal</h3>
+                    <p className="text-sm text-center text-muted-foreground">
+                      Manage scenarios and review student submissions
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </section>
@@ -182,6 +195,13 @@ export default function HomePage() {
           {/* Additional content could be added here if needed */}
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginPromptModal 
+        open={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </>
   );
 }
