@@ -71,17 +71,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new license and user account
   app.post("/api/licensing/licenses", async (req, res) => {
     try {
+      console.log('📋 LICENSE CREATION: Request received:', req.body);
       const { email, firstName, lastName, licenseType, expiryDate } = req.body;
 
+      console.log('📋 LICENSE CREATION: Extracted fields:', { email, firstName, lastName, licenseType, expiryDate });
+
       if (!email || !firstName || !licenseType || !expiryDate) {
+        console.log('📋 LICENSE CREATION: Missing required fields');
         return res.status(400).json({ message: "Email, first name, license type, and expiry date are required" });
       }
 
       // Check if email already exists
+      console.log('📋 LICENSE CREATION: Checking for existing user with email:', email);
       const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
       if (existingUser.length > 0) {
+        console.log('📋 LICENSE CREATION: Email already exists');
         return res.status(400).json({ message: "User with this email already exists" });
       }
+      console.log('📋 LICENSE CREATION: Email is unique, proceeding...');
 
       // Generate unique license key
       const licenseKey = `LIC-${firstName.toUpperCase()}-${Date.now()}`;
@@ -126,8 +133,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error('Error creating license:', error);
-      res.status(500).json({ message: "Failed to create license" });
+      console.error('📋 LICENSE CREATION: Error occurred:', error);
+      res.status(500).json({ message: "Failed to create license", error: error.message });
     }
   });
 
