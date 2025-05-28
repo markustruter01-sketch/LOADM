@@ -9,6 +9,7 @@ export const licenses = pgTable("licenses", {
   email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   licenseKey: text("license_key").notNull().unique(),
+  licenseType: text("license_type").notNull().default("loadmaster"), // loadmaster, instructor, superadmin
   issuedDate: timestamp("issued_date").defaultNow().notNull(),
   expiryDate: timestamp("expiry_date").notNull(),
   status: text("status").notNull().default("active"), // active, suspended, expired

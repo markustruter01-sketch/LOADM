@@ -214,6 +214,7 @@ export default function LicensingManagementFixed() {
     const [formData, setFormData] = useState({
       email: '',
       username: '',
+      licenseType: 'loadmaster',
       durationType: 'days',
       duration: 30,
       maxConcurrentSessions: 1,
@@ -240,6 +241,7 @@ export default function LicensingManagementFixed() {
       const submitData = {
         email: formData.email,
         username: formData.username,
+        licenseType: formData.licenseType,
         expiryDate: expiryDate.toISOString(),
         maxConcurrentSessions: formData.maxConcurrentSessions,
         maxDevices: formData.maxDevices,
@@ -273,6 +275,25 @@ export default function LicensingManagementFixed() {
               placeholder="Enter username"
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="licenseType">License Type *</Label>
+          <Select value={formData.licenseType} onValueChange={(value) => setFormData({ ...formData, licenseType: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="loadmaster">Loadmaster License</SelectItem>
+              <SelectItem value="instructor">Instructor License</SelectItem>
+              <SelectItem value="superadmin">Superadmin License</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-gray-600 mt-1">
+            {formData.licenseType === 'loadmaster' && 'Access to load planning and training modules only'}
+            {formData.licenseType === 'instructor' && 'Access to instructor portal, student management, and all training features'}
+            {formData.licenseType === 'superadmin' && 'Full system access including user management and licensing administration'}
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
