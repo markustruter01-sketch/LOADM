@@ -64,7 +64,7 @@ export default function Header() {
                 {/* Show different menu options based on user role */}
                 {(user.isAdmin || user.isSuperAdmin) && (
                   <DropdownMenuItem asChild>
-                    <div className="w-full cursor-pointer" onClick={() => requireLogin("/instructors-portal")}>
+                    <div className="w-full cursor-pointer" onClick={() => setLocation("/instructors-portal")}>
                       Instructors Portal
                     </div>
                   </DropdownMenuItem>
@@ -73,7 +73,7 @@ export default function Header() {
                 {user.isSuperAdmin && (
                   <>
                     <DropdownMenuItem asChild>
-                      <div className="w-full cursor-pointer" onClick={() => requireLogin("/superadmin-dashboard")}>
+                      <div className="w-full cursor-pointer" onClick={() => setLocation("/superadmin-dashboard")}>
                         Admin Dashboard
                       </div>
                     </DropdownMenuItem>
