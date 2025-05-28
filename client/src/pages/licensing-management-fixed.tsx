@@ -16,24 +16,23 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 
 interface License {
-  id?: number;
+  id: number;
   email: string;
   username: string;
   licenseKey: string;
   licenseType: 'loadmaster' | 'instructor' | 'superadmin';
-  issuedDate?: string;
-  expiryDate?: string;
-  expiresAt?: string;
-  status?: 'active' | 'suspended' | 'expired';
+  issuedDate: string;
+  expiryDate: string;
+  status: 'active' | 'suspended' | 'expired';
+  maxConcurrentSessions: number;
   maxDevices: number;
   notes: string;
   createdAt: string;
   updatedAt: string;
-  activeSessionCount?: number;
-  totalSessionCount?: number;
-  isExpired?: boolean;
-  daysUntilExpiry?: number;
-  isActive?: boolean;
+  activeSessionCount: number;
+  totalSessionCount: number;
+  isExpired: boolean;
+  daysUntilExpiry: number;
 }
 
 interface DashboardStats {
@@ -54,49 +53,14 @@ export default function LicensingManagementFixed() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Fetch licenses from localStorage and API
+  // Fetch licenses
   const { data: licenses = [], isLoading: licensesLoading } = useQuery<License[]>({
-    queryKey: ['/api/licensing/licenses'],
-    queryFn: async () => {
-      // Get licenses from localStorage
-      const localLicenses = JSON.parse(localStorage.getItem('licenses') || '[]');
-      
-      // Return local licenses (since API has routing issues)
-      return localLicenses;
-    }
+    queryKey: ['/api/licensing/licenses']
   });
 
   // Fetch dashboard stats
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
-    queryKey: ['/api/licensing/dashboard-stats'],
-    queryFn: async () => {
-      const localLicenses = JSON.parse(localStorage.getItem('licenses') || '[]');
-      const now = new Date();
-      
-      const activeLicenses = localLicenses.filter((license: any) => 
-        license.isActive && new Date(license.expiresAt) > now
-      ).length;
-      
-      const expiredLicenses = localLicenses.filter((license: any) => 
-        new Date(license.expiresAt) <= now
-      ).length;
-      
-      const expiringLicenses = localLicenses.filter((license: any) => {
-        const expiryDate = new Date(license.expiresAt);
-        const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
-      }).length;
-      
-      return {
-        totalLicenses: localLicenses.length,
-        activeLicenses,
-        expiredLicenses,
-        suspendedLicenses: 0,
-        activeSessions: activeLicenses,
-        expiringLicenses,
-        utilizationRate: localLicenses.length > 0 ? (activeLicenses / localLicenses.length) * 100 : 0
-      };
-    }
+    queryKey: ['/api/licensing/dashboard-stats']
   });
 
   // Create license mutation
@@ -104,7 +68,7 @@ export default function LicensingManagementFixed() {
     mutationFn: async (licenseData: any) => {
       console.log('Submitting license data:', licenseData);
       try {
-        const response = await fetch('/license', {
+        const response = await fetch('/api/licensing/licenses', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -460,13 +424,23 @@ export default function LicensingManagementFixed() {
           </h1>
           <p className="text-gray-600 mt-1">Manage user licenses and access control</p>
         </div>
-        <Button 
-          className="gap-2"
-          onClick={() => setLocation('/license-creator')}
-        >
-          <Plus className="w-4 h-4" />
-          Create License
-        </Button>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              Create License
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New License</DialogTitle>
+              <DialogDescription>
+                Generate a new license for a user with specific permissions and duration.
+              </DialogDescription>
+            </DialogHeader>
+            <CreateLicenseForm />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Dashboard Stats */}
@@ -580,18 +554,13 @@ export default function LicensingManagementFixed() {
                     <TableCell>{getStatusBadge(license)}</TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {license.expiresAt ? format(new Date(license.expiresAt), 'MMM dd, yyyy') : 'No expiry date'}
+                        {format(new Date(license.expiryDate), 'MMM dd, yyyy')}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {license.expiresAt ? (() => {
-                          const expiryDate = new Date(license.expiresAt);
-                          const now = new Date();
-                          const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                          return daysLeft > 0 ? `${daysLeft} days left` : 'Expired';
-                        })() : ''}
+                        {license.daysUntilExpiry > 0 ? `${license.daysUntilExpiry} days left` : 'Expired'}
                       </div>
                     </TableCell>
-                    <TableCell>{license.maxDevices}</TableCell>
+                    <TableCell>{license.maxConcurrentSessions}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {license.status === 'active' ? (
