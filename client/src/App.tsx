@@ -50,6 +50,7 @@ import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
 import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
 import SuperAdminDashboard from "@/pages/superadmin-dashboard";
 import LicensingManagement from "@/pages/licensing-management-fixed";
+import LicenseCreator from "@/pages/license-creator";
 import LicenseRegistration from "@/pages/license-registration";
 import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
 import DocumentSubmissions from "@/pages/instructors-portal/document-submissions";
@@ -134,6 +135,7 @@ function Router() {
           <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
           <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
           <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
+          <SuperAdminRoute path="/license-creator" component={LicenseCreator} />
           <Route path="/license-registration" component={LicenseRegistration} />
           
           {/* Logout Route */}

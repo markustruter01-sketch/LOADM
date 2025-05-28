@@ -424,23 +424,13 @@ export default function LicensingManagementFixed() {
           </h1>
           <p className="text-gray-600 mt-1">Manage user licenses and access control</p>
         </div>
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Create License
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New License</DialogTitle>
-              <DialogDescription>
-                Generate a new license for a user with specific permissions and duration.
-              </DialogDescription>
-            </DialogHeader>
-            <CreateLicenseForm />
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="gap-2"
+          onClick={() => setLocation('/license-creator')}
+        >
+          <Plus className="w-4 h-4" />
+          Create License
+        </Button>
       </div>
 
       {/* Dashboard Stats */}
