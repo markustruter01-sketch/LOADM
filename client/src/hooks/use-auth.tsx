@@ -97,17 +97,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest({
+      const response = await apiRequest({
         method: "POST",
         url: "/api/logout"
       });
+      return response.json();
     },
     onSuccess: () => {
-      // Clear all user data from cache
+      // Force clear all cached data
+      queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
       
-      // Invalidate and reset the query cache
-      queryClient.resetQueries();
+      // Invalidate user query specifically to trigger re-fetch
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
       toast({
         title: "Logout Successful",
@@ -116,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onError: (error: Error) => {
       toast({
-        title: "Logout Failed",
+        title: "Logout Failed", 
         description: error.message,
         variant: "destructive",
       });

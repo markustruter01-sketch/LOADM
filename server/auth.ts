@@ -18,27 +18,22 @@ declare global {
   }
 }
 
-// Session-based authentication middleware
+// Import auth state from index.ts
+declare global {
+  var authState: any;
+}
+
+// Simplified authentication middleware that uses global auth state
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Add isAuthenticated function that checks for session user
+  // Add isAuthenticated function
   req.isAuthenticated = () => {
-    return req.user != null;
+    return global.authState?.isLoggedIn === true;
   };
   
-  // Check if user is logged in via session or default to superadmin for testing
-  if (req.session?.user) {
-    req.user = req.session.user;
-  } else if (!req.session?.loggedOut) {
-    // Default to superadmin only if not explicitly logged out
-    req.user = {
-      id: 9,
-      email: 'markustruter01@gmail.com',
-      isAdmin: true,
-      isSuperAdmin: true,
-      licenseId: null
-    };
+  // Set user based on auth state
+  if (global.authState?.isLoggedIn) {
+    req.user = global.authState.currentUser;
   } else {
-    // User is logged out - no user object
     req.user = null as any;
   }
   
