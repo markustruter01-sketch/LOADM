@@ -69,9 +69,10 @@ export function setupAuth(app: Express) {
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET,
-    resave: true, // Change to true to force session save
-    saveUninitialized: true, // Change to true to save uninitialized sessions
-    store: storage.sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    // Use in-memory store for now to fix authentication issue
+    // store: storage.sessionStore,
     cookie: {
       httpOnly: true,
       secure: false, // Set to false for development to ensure cookies work
