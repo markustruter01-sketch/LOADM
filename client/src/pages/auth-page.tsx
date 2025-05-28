@@ -42,10 +42,13 @@ export default function AuthPage() {
   const [showLoginAnimation, setShowLoginAnimation] = useState(false);
   const [showRegisterAnimation, setShowRegisterAnimation] = useState(false);
 
-  // Handle logout parameter
+  // Handle logout parameter (only run once)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('logout') === 'true') {
+      // Clear the URL parameter immediately to prevent loops
+      window.history.replaceState({}, '', '/auth');
+      
       // Perform logout and redirect to home
       logoutMutation.mutate(undefined, {
         onSettled: () => {
@@ -53,7 +56,7 @@ export default function AuthPage() {
         }
       });
     }
-  }, [logoutMutation]);
+  }, []); // Empty dependency array to run only once
 
   // Only redirect authenticated users if they're not here for logout
   useEffect(() => {
