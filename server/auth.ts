@@ -137,9 +137,14 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", rateLimiter, passport.authenticate("local"), (req, res) => {
-    // Don't return the password hash in the response
+    // Don't return the password hash in the response and transform to camelCase
     if (req.user) {
-      const { password, ...safeUser } = req.user as any;
+      const { password, is_admin, is_super_admin, ...rest } = req.user as any;
+      const safeUser = {
+        ...rest,
+        isAdmin: is_admin,
+        isSuperAdmin: is_super_admin
+      };
       res.status(200).json(safeUser);
     } else {
       res.status(401).json({ message: "Authentication failed" });
@@ -176,9 +181,14 @@ export function setupAuth(app: Express) {
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    // Don't return the password hash in the response
+    // Don't return the password hash in the response and transform to camelCase
     if (req.user) {
-      const { password, ...safeUser } = req.user as any;
+      const { password, is_admin, is_super_admin, ...rest } = req.user as any;
+      const safeUser = {
+        ...rest,
+        isAdmin: is_admin,
+        isSuperAdmin: is_super_admin
+      };
       res.json(safeUser);
     } else {
       res.sendStatus(401);
