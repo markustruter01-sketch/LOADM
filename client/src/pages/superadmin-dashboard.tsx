@@ -55,7 +55,13 @@ export default function SuperAdminDashboard() {
             </div>
             <Button 
               variant="outline" 
-              onClick={() => setLocation('/logout')}
+              onClick={() => {
+                // Proper logout that clears session and redirects
+                fetch('/api/logout', { method: 'POST' })
+                  .then(() => {
+                    window.location.href = '/auth';
+                  });
+              }}
               className="border-slate-600 text-slate-300 hover:bg-slate-800"
             >
               Logout
