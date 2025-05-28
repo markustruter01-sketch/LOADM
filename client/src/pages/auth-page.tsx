@@ -44,16 +44,12 @@ export default function AuthPage() {
 
   // Handle redirects for logged-in users
   useEffect(() => {
-    // Check URL for parameters
-    const params = new URLSearchParams(window.location.search);
-    
-    // Redirect logged-in users based on their role
+    // If user is already logged in, redirect them away from auth page
     if (user) {
+      const params = new URLSearchParams(window.location.search);
       if (user.isSuperAdmin) {
-        // Redirect superadmin to their dedicated dashboard
         setLocation('/superadmin-dashboard');
       } else {
-        // Redirect regular users to home page or previous page
         const returnPath = params.get('returnTo') || '/';
         setLocation(returnPath);
       }

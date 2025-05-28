@@ -58,7 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      // Login success will be handled with animation in auth-page
+      
+      // Immediate redirect based on user role
+      setTimeout(() => {
+        if (user.isSuperAdmin) {
+          window.location.href = '/superadmin-dashboard';
+        } else {
+          window.location.href = '/';
+        }
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
