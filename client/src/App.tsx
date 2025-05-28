@@ -59,7 +59,7 @@ import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
 import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
 import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
-import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute } from "./lib/auth-routes";
+import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
@@ -109,24 +109,24 @@ function Router() {
           <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
           <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
           <ProtectedRoute path="/admin/users" component={UserManagement} />
-          <AuthenticatedRoute path="/instructors-portal" component={InstructorsPortal} />
-          <AuthenticatedRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
-          <AuthenticatedRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
-          <AuthenticatedRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
-          <AuthenticatedRoute path="/instructors-portal/student-progress" component={StudentProgress} />
-          <AuthenticatedRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
-          <AuthenticatedRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
-          <AuthenticatedRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
-          <AuthenticatedRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
-          <AuthenticatedRoute path="/instructors-portal/quiz-submissions" component={QuizSubmissions} />
-          <AuthenticatedRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
-          <AuthenticatedRoute path="/instructors-portal/resources" component={TeachingMaterials} />
-          <AuthenticatedRoute path="/instructors-portal/best-practices" component={BestPractices} />
-          <AuthenticatedRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />
-          <AuthenticatedRoute path="/instructors-portal/quizzes" component={QuizList} />
-          <AuthenticatedRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
-          <AuthenticatedRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
-          <AuthenticatedRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
+          <InstructorRoute path="/instructors-portal" component={InstructorsPortal} />
+          <InstructorRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
+          <InstructorRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
+          <InstructorRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
+          <InstructorRoute path="/instructors-portal/student-progress" component={StudentProgress} />
+          <InstructorRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
+          <InstructorRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
+          <InstructorRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
+          <InstructorRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
+          <InstructorRoute path="/instructors-portal/quiz-submissions" component={QuizSubmissions} />
+          <InstructorRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
+          <InstructorRoute path="/instructors-portal/resources" component={TeachingMaterials} />
+          <InstructorRoute path="/instructors-portal/best-practices" component={BestPractices} />
+          <InstructorRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />
+          <InstructorRoute path="/instructors-portal/quizzes" component={QuizList} />
+          <InstructorRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
+          <InstructorRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
+          <InstructorRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
           <Route path="/quizzes/:id" component={QuizPage} />
           
           {/* SuperAdmin Only Routes */}
