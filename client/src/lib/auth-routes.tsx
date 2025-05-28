@@ -153,17 +153,6 @@ function UserCheck({ children }: { children: React.ReactNode }) {
  */
 function SuperAdminCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
-  const [, navigate] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        navigate("/");
-      } else if (!user.isSuperAdmin) {
-        navigate("/"); // Redirect non-superadmins to home
-      }
-    }
-  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -174,7 +163,14 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
   }
 
   if (!user || !user.isSuperAdmin) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">You need superadmin privileges to access this page.</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
@@ -186,17 +182,6 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
  */
 function InstructorCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
-  const [, navigate] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        navigate("/");
-      } else if (!user.isAdmin && !user.isSuperAdmin) {
-        navigate("/"); // Redirect unauthorized users to home
-      }
-    }
-  }, [user, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -207,7 +192,14 @@ function InstructorCheck({ children }: { children: React.ReactNode }) {
   }
 
   if (!user || (!user.isAdmin && !user.isSuperAdmin)) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">You need instructor privileges to access this page.</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
