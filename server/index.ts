@@ -14,7 +14,7 @@ authCore.clearAllIsolatedSessions();
 app.use(cookieParser());
 app.use(express.json());
 
-// Mount isolated auth routes
+// Mount isolated auth routes FIRST (before any other routing)
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 
 // Register other routes (they'll handle their own auth)

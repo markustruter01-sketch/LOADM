@@ -71,15 +71,26 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password })
       });
 
+      console.log('✅ ISOLATED CLIENT: Response status:', response.status);
+      console.log('✅ ISOLATED CLIENT: Response headers:', response.headers.get('content-type'));
+      
       if (response.ok) {
-        const userData = await response.json();
-        console.log('✅ ISOLATED CLIENT: Login SUCCESS');
-        setUser(userData);
-        return true;
+        const responseText = await response.text();
+        console.log('✅ ISOLATED CLIENT: Raw response:', responseText);
+        
+        try {
+          const userData = JSON.parse(responseText);
+          console.log('✅ ISOLATED CLIENT: Login SUCCESS');
+          setUser(userData);
+          return true;
+        } catch (parseError) {
+          console.error('✅ ISOLATED CLIENT: JSON parse error:', parseError);
+          console.error('✅ ISOLATED CLIENT: Response was:', responseText);
+          return false;
+        }
       } else {
-        console.log('✅ ISOLATED CLIENT: Login FAILED');
-        const errorData = await response.json().catch(() => ({ error: 'Login failed' }));
-        console.error('Login error:', errorData);
+        const errorText = await response.text();
+        console.log('✅ ISOLATED CLIENT: Login FAILED - Response:', errorText);
         return false;
       }
     } catch (error) {
