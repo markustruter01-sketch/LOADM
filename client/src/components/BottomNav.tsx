@@ -1,7 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
-import { useAuth } from "@/hooks/use-simple-auth";
-import SimpleLoginModal from "./SimpleLoginModal";
+import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import { LucideProps } from "lucide-react";
@@ -15,26 +14,8 @@ interface NavItem {
 
 export default function BottomNav() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   const [, setLocation] = useLocation();
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
-
-  const requireLogin = (targetPath: string) => {
-    if (!user) {
-      setPendingNavigation(targetPath);
-      setShowLoginModal(true);
-      return;
-    }
-    setLocation(targetPath);
-  };
-
-  const handleLoginSuccess = () => {
-    if (pendingNavigation) {
-      setLocation(pendingNavigation);
-      setPendingNavigation(null);
-    }
-  };
 
   const navItems: NavItem[] = [
     {
@@ -79,12 +60,8 @@ export default function BottomNav() {
   const allNavItems = [...navItems];
 
   const handleNavClick = (href: string) => {
-    // Only allow home page access without login, everything else requires authentication
-    if (href === "/") {
-      setLocation(href);
-    } else {
-      requireLogin(href);
-    }
+    // User is authenticated through our new system, allow direct navigation
+    setLocation(href);
   };
 
   return (
@@ -110,12 +87,6 @@ export default function BottomNav() {
         ))}
       </div>
 
-      {/* Login Modal */}
-      <SimpleLoginModal 
-        open={showLoginModal} 
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={handleLoginSuccess}
-      />
     </div>
   );
 }

@@ -10,12 +10,12 @@ import {
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
   HelpCircle
 } from "lucide-react";
-import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 export default function InstructorsPortal() {
-  const { user } = useSimpleAuth();
+  const { user } = useIsolatedAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
