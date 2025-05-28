@@ -898,7 +898,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quiz submissions endpoint moved to top of file to avoid conflicts
+  // User management endpoints for permissions dashboard
+  app.get("/api/users/all", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied. Super admin required." });
+      }
+
+      const allUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        isAdmin: users.isAdmin,
+        isSuperAdmin: users.isSuperAdmin,
+        createdAt: users.createdAt,
+        licenseId: users.licenseId
+      }).from(users);
+
+      res.json(allUsers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/users/:id/permissions", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Access denied. Super admin required." });
+      }
+
+      const userId = parseInt(req.params.id);
+      const { isAdmin, isSuperAdmin } = req.body;
+
+      await db.update(users)
+        .set({ isAdmin, isSuperAdmin })
+        .where(eq(users.id, userId));
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user permissions" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

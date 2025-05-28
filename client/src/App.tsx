@@ -59,6 +59,7 @@ import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
 import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
 import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
+import PermissionsDashboard from "@/pages/permissions-dashboard";
 import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -131,6 +132,7 @@ function Router() {
           
           {/* SuperAdmin Only Routes */}
           <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
+          <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
           <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
           <Route path="/license-registration" component={LicenseRegistration} />
           

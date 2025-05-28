@@ -186,6 +186,29 @@ export default function SuperAdminDashboard() {
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-blue-400" />
+                    Permission Management
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Manage user roles and access permissions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button 
+                    onClick={() => setLocation('/permissions-dashboard')}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    Open Permissions Dashboard
+                  </Button>
+                  <div className="text-sm text-slate-400">
+                    View and modify user roles, permissions, and access levels across the platform
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
                     <Users className="w-5 h-5 text-green-400" />
                     User Registration
                   </CardTitle>
