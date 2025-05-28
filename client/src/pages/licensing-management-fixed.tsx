@@ -214,7 +214,8 @@ export default function LicensingManagementFixed() {
   const CreateLicenseForm = () => {
     const [formData, setFormData] = useState({
       email: '',
-      username: '',
+      firstName: '',
+      lastName: '',
       licenseType: 'loadmaster',
       durationType: 'days',
       duration: 30,
@@ -244,7 +245,8 @@ export default function LicensingManagementFixed() {
       // Send data to backend
       const submitData = {
         email: formData.email,
-        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         licenseType: formData.licenseType,
         expiryDate: expiryDate.toISOString(),
         maxConcurrentSessions: formData.maxConcurrentSessions,
@@ -270,14 +272,29 @@ export default function LicensingManagementFixed() {
             />
           </div>
           <div>
-            <Label htmlFor="username">Username *</Label>
+            <Label htmlFor="firstName">First Name *</Label>
             <Input
-              id="username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              id="firstName"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               required
-              placeholder="Enter username"
+              placeholder="Enter first name"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              placeholder="Enter last name"
+            />
+          </div>
+          <div>
+            {/* Empty div for grid alignment */}
           </div>
         </div>
 
