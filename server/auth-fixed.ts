@@ -64,6 +64,11 @@ export function setupAuth(app: Express) {
       const isValid = await verifyPassword(password, user.password);
       if (!isValid) return done(null, false);
       
+      // Check if user has the default temporary password (first-time user)
+      if (user.password === '$2b$10$defaulthashfortemporaryaccess') {
+        return done(null, false, { message: 'first-time-user-needs-password-setup' });
+      }
+
       // Check if user has a valid license
       if (!user.licenseId) {
         return done(null, false, { message: 'No license assigned to this account' });
@@ -141,6 +146,58 @@ export function setupAuth(app: Express) {
         return res.json(user);
       });
     })(req, res, next);
+  });
+
+  // Password setup endpoint for first-time users
+  app.post("/api/setup-password", async (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+
+      if (!email || !newPassword) {
+        return res.status(400).json({ message: "Email and new password are required" });
+      }
+
+      // Find user by email
+      const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (!userResult.length) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const user = userResult[0];
+
+      // Verify user has the temporary password (security check)
+      if (user.password !== '$2b$10$defaulthashfortemporaryaccess') {
+        return res.status(400).json({ message: "User already has a password set" });
+      }
+
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update user's password
+      await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, user.id));
+
+      // Log the user in after password creation
+      const updatedUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin
+      };
+
+      req.logIn(updatedUser, (err: any) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to log in after password setup" });
+        }
+        return res.json({ message: "Password created successfully", user: updatedUser });
+      });
+
+    } catch (error) {
+      console.error('Error setting up password:', error);
+      res.status(500).json({ message: "Failed to set up password" });
+    }
   });
 
   app.get("/api/user", (req, res) => {
