@@ -16,23 +16,24 @@ import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 
 interface License {
-  id: number;
+  id?: number;
   email: string;
   username: string;
   licenseKey: string;
   licenseType: 'loadmaster' | 'instructor' | 'superadmin';
-  issuedDate: string;
-  expiryDate: string;
-  status: 'active' | 'suspended' | 'expired';
-  maxConcurrentSessions: number;
+  issuedDate?: string;
+  expiryDate?: string;
+  expiresAt?: string;
+  status?: 'active' | 'suspended' | 'expired';
   maxDevices: number;
   notes: string;
   createdAt: string;
   updatedAt: string;
-  activeSessionCount: number;
-  totalSessionCount: number;
-  isExpired: boolean;
-  daysUntilExpiry: number;
+  activeSessionCount?: number;
+  totalSessionCount?: number;
+  isExpired?: boolean;
+  daysUntilExpiry?: number;
+  isActive?: boolean;
 }
 
 interface DashboardStats {
@@ -579,13 +580,18 @@ export default function LicensingManagementFixed() {
                     <TableCell>{getStatusBadge(license)}</TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {format(new Date(license.expiryDate), 'MMM dd, yyyy')}
+                        {license.expiresAt ? format(new Date(license.expiresAt), 'MMM dd, yyyy') : 'No expiry date'}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {license.daysUntilExpiry > 0 ? `${license.daysUntilExpiry} days left` : 'Expired'}
+                        {license.expiresAt ? (() => {
+                          const expiryDate = new Date(license.expiresAt);
+                          const now = new Date();
+                          const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                          return daysLeft > 0 ? `${daysLeft} days left` : 'Expired';
+                        })() : ''}
                       </div>
                     </TableCell>
-                    <TableCell>{license.maxConcurrentSessions}</TableCell>
+                    <TableCell>{license.maxDevices}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {license.status === 'active' ? (
