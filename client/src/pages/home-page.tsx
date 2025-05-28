@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -13,34 +13,36 @@ import {
   Plane 
 } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
-import { useAuth } from "@/hooks/use-auth";
-import LoginPromptModal from "@/components/LoginPromptModal";
+import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import SimpleLoginModal from "@/components/SimpleLoginModal";
 import { useState } from "react";
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
+  const requireLogin = (targetPath: string) => {
+    if (!user) {
+      setPendingNavigation(targetPath);
+      setShowLoginModal(true);
+      return;
+    }
+    setLocation(targetPath);
+  };
+
   const handleServiceBranchChange = (value: string) => {
     if (value === "army") {
-      setLocation("/army");
+      requireLogin("/army");
     } else if (value === "navy") {
-      setLocation("/navy");
+      requireLogin("/navy");
     }
-    // Air Force stays on current page
   };
 
   const handleCardClick = (href: string) => {
-    return (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (!user) {
-        setPendingNavigation(href);
-        setShowLoginModal(true);
-      } else {
-        setLocation(href);
-      }
+    return () => {
+      requireLogin(href);
     };
   };
 
@@ -197,7 +199,7 @@ export default function HomePage() {
       </div>
 
       {/* Login Modal */}
-      <LoginPromptModal 
+      <SimpleLoginModal 
         open={showLoginModal} 
         onClose={() => setShowLoginModal(false)}
         onSuccess={handleLoginSuccess}
