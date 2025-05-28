@@ -278,7 +278,112 @@ export default function InstructorsPortal() {
               </Link>
             </CardFooter>
           </Card>
+
+          {/* License Management Card - Only visible to superadmin */}
+          {user?.isSuperAdmin && (
+            <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white hover:from-blue-700 hover:to-indigo-800 transition-all duration-300">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg text-white">License Management</CardTitle>
+                  <div className="h-5 w-5 text-yellow-300">🛡️</div>
+                </div>
+                <CardDescription className="text-blue-100">Control user access and licensing</CardDescription>
+              </CardHeader>
+              <CardContent className="h-28 flex items-center justify-center">
+                <div className="text-center text-blue-100 text-sm">
+                  Create, manage, and monitor user licenses with expiration dates, session limits, and security features.
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Link href="/licensing-management">
+                  <Button className="w-full bg-white text-blue-700 hover:bg-blue-50">
+                    Manage Licenses
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          )}
         </div>
+
+        {/* Superadmin Only - License Management */}
+        {user?.isSuperAdmin && (
+          <>
+            <h3 className="text-xl font-semibold mb-4 text-foreground">System Administration</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <Card className="bg-card hover:bg-card/90 transition-colors border-2 border-blue-500/50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-blue-500" />
+                      License Management
+                    </CardTitle>
+                  </div>
+                  <CardDescription>Control user access and licensing</CardDescription>
+                </CardHeader>
+                <CardContent className="h-28 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground text-sm">
+                    Create, manage, and monitor user licenses with expiration dates and session limits
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link href="/licensing-management">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      Manage Licenses
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+              
+              <Card className="bg-card hover:bg-card/90 transition-colors border-2 border-green-500/50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Users className="h-5 w-5 text-green-500" />
+                      User Management
+                    </CardTitle>
+                  </div>
+                  <CardDescription>Manage user accounts and permissions</CardDescription>
+                </CardHeader>
+                <CardContent className="h-28 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground text-sm">
+                    View all users, manage account status, and track login activity
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link href="/instructors-portal/users">
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      Manage Users
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+              
+              <Card className="bg-card hover:bg-card/90 transition-colors border-2 border-purple-500/50">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart2 className="h-5 w-5 text-purple-500" />
+                      System Analytics
+                    </CardTitle>
+                  </div>
+                  <CardDescription>Monitor system usage and performance</CardDescription>
+                </CardHeader>
+                <CardContent className="h-28 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground text-sm">
+                    Track license utilization, user activity, and system performance metrics
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Link href="/instructors-portal/system-analytics">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                      View Analytics
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            </div>
+          </>
+        )}
 
         {/* Additional Resources */}
         <h3 className="text-xl font-semibold mb-4 text-foreground">Instructor Resources</h3>
