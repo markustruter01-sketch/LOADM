@@ -13,8 +13,8 @@ export default function ProfilePage() {
         // Redirect to Instructors Portal if logged in
         setLocation("/instructors-portal");
       } else {
-        // Redirect to Auth page if not logged in
-        setLocation("/auth");
+        // Redirect to home page if not logged in
+        setLocation("/");
       }
     }
   }, [user, isLoading, setLocation]);

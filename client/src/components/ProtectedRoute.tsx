@@ -15,7 +15,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     // Add a small delay to prevent immediate redirects during auth state transitions
     const timer = setTimeout(() => {
       if (!isLoading && !user) {
-        setLocation("/auth");
+        setLocation("/");
       }
     }, 100);
 

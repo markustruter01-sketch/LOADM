@@ -129,9 +129,8 @@ function UserCheck({ children }: { children: React.ReactNode }) {
   // Only redirect if explicitly not authenticated
   useEffect(() => {
     if (!isLoading && !user) {
-      // Store the current path to return after login
-      const returnPath = window.location.pathname;
-      navigate(`/auth?returnTo=${encodeURIComponent(returnPath)}`);
+      // Redirect to home page instead of auth page
+      navigate("/");
     }
   }, [user, isLoading, navigate]);
 
@@ -159,7 +158,7 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        navigate("/auth");
+        navigate("/");
       } else if (!user.isSuperAdmin) {
         navigate("/"); // Redirect non-superadmins to home
       }
@@ -192,7 +191,7 @@ function InstructorCheck({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        navigate("/auth");
+        navigate("/");
       } else if (!user.isAdmin && !user.isSuperAdmin) {
         navigate("/"); // Redirect unauthorized users to home
       }
