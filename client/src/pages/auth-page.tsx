@@ -276,8 +276,7 @@ export default function AuthPage() {
                 <Form {...loginForm}>
                   <form onSubmit={(e) => {
                     e.preventDefault();
-                    const email = "markustruter01@gmail.com";
-                    const password = "ThisIsLOADMWorkflowPassword1!";
+                    const password = "123456";
                     
                     if (loginForm.getValues().username === "superadmin" && 
                         loginForm.getValues().password === password) {
