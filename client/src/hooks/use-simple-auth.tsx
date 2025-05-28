@@ -61,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Clear user immediately
     setUser(null);
     
+    // Clear the session cookie manually (nuclear option)
+    document.cookie = 'sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    
     // Call logout API in background
     fetch('/api/logout', { 
       method: 'POST',

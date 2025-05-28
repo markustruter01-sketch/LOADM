@@ -191,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get users and quizzes separately
-      const users = await sql`SELECT id, username, email FROM users`;
+      const users = await sql`SELECT id, email, first_name, last_name FROM users`;
       const quizzes = await sql`SELECT id, title, description FROM quizzes`;
       
       // Manually join the data
@@ -207,8 +207,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           answers: submission.answers,
           score: submission.score,
           squadron: submission.squadron,
-          username: user?.username || 'Unknown User',
-          email: user?.email || '',
+          email: user?.email || 'Unknown User',
+          firstName: user?.first_name || '',
+          lastName: user?.last_name || '',
           quizTitle: quiz?.title || 'Unknown Quiz',
           quizDescription: quiz?.description || ''
         };

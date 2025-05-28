@@ -6,7 +6,7 @@ import { pool } from './db';
 export async function getQuizzes(activeOnly: boolean = false): Promise<Quiz[]> {
   try {
     let query = `
-      SELECT q.*, u.username as created_by_username
+      SELECT q.*, u.email as created_by_email
       FROM quizzes q
       LEFT JOIN users u ON q.created_by_id = u.id
     `;
@@ -211,7 +211,7 @@ export async function deleteQuiz(id: number): Promise<boolean> {
 export async function getQuizSubmissions(quizId?: number, userId?: number): Promise<QuizSubmission[]> {
   try {
     let query = `
-      SELECT qs.*, q.title as quiz_title, u.username
+      SELECT qs.*, q.title as quiz_title, u.email
       FROM quiz_submissions qs
       LEFT JOIN quizzes q ON qs.quiz_id = q.id
       LEFT JOIN users u ON qs.user_id = u.id
@@ -255,7 +255,7 @@ export async function getQuizSubmissions(quizId?: number, userId?: number): Prom
 export async function getQuizSubmission(id: number): Promise<QuizSubmission | undefined> {
   try {
     const query = `
-      SELECT qs.*, q.title as quiz_title, u.username
+      SELECT qs.*, q.title as quiz_title, u.email
       FROM quiz_submissions qs
       LEFT JOIN quizzes q ON qs.quiz_id = q.id
       LEFT JOIN users u ON qs.user_id = u.id
