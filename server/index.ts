@@ -33,6 +33,26 @@ app.use('/api/user', (req, res) => {
   });
 });
 
+// Add working users endpoint
+app.get('/api/users/all', async (req, res) => {
+  try {
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const users = await sql`
+      SELECT id, username, email, is_admin as "isAdmin", is_super_admin as "isSuperAdmin", 
+             created_at as "createdAt", license_id as "licenseId", user_role
+      FROM users 
+      ORDER BY created_at ASC
+    `;
+    
+    res.json(users);
+  } catch (error) {
+    console.error('Users fetch error:', error);
+    res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
