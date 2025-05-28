@@ -136,20 +136,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    console.log('=== CLIENT LOGOUT DEBUG START ===');
+    
     try {
+      // Check auth state before logout
+      const authCheck = await fetch('/api/debug-auth', { credentials: 'include' });
+      const authState = await authCheck.json();
+      console.log('Auth state before logout:', authState);
+      
       // Call logout endpoint
-      await fetch('/api/logout', { 
+      const logoutResponse = await fetch('/api/logout', { 
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
       
+      const logoutData = await logoutResponse.json();
+      console.log('Logout response:', logoutData);
+      
+      // Check auth state after logout
+      const authCheckAfter = await fetch('/api/debug-auth', { credentials: 'include' });
+      const authStateAfter = await authCheckAfter.json();
+      console.log('Auth state after logout:', authStateAfter);
+      
       // Clear all client-side data
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
       
+      console.log('=== CLIENT LOGOUT DEBUG: REDIRECTING ===');
+      
       // Force complete page reload to ensure clean state
-      window.location.replace('/');
+      setTimeout(() => {
+        window.location.replace('/');
+      }, 100);
+      
     } catch (error) {
       console.error('Logout error:', error);
       // Even if logout fails, clear client state and redirect

@@ -47,13 +47,33 @@ app.get('/api/user', (req, res) => {
 app.post('/api/logout', express.json(), (req, res) => {
   const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
   
+  console.log('=== LOGOUT DEBUG ===');
+  console.log('Session ID from cookies:', req.cookies?.sessionId);
+  console.log('Session ID from headers:', req.headers['x-session-id']);
+  console.log('Current sessions before delete:', Array.from(sessions.keys()));
+  
   if (sessionId) {
-    sessions.delete(sessionId);
-    console.log(`LOGOUT: Deleted session ${sessionId}, remaining sessions:`, sessions.size);
+    const deleted = sessions.delete(sessionId);
+    console.log(`Session ${sessionId} deleted:`, deleted);
   }
   
+  console.log('Sessions after delete:', Array.from(sessions.keys()));
+  console.log('=== END LOGOUT DEBUG ===');
+  
   res.clearCookie('sessionId');
-  res.json({ success: true, message: "Logged out successfully" });
+  res.json({ success: true, message: "Logged out successfully", deletedSession: sessionId });
+});
+
+// Debug endpoint to check auth state
+app.get('/api/debug-auth', (req, res) => {
+  const sessionId = req.cookies?.sessionId;
+  res.json({
+    hasSessionCookie: !!sessionId,
+    sessionId: sessionId,
+    sessionExists: sessionId ? sessions.has(sessionId) : false,
+    totalSessions: sessions.size,
+    allSessions: Array.from(sessions.keys())
+  });
 });
 
 
