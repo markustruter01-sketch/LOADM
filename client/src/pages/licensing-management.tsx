@@ -188,21 +188,26 @@ export default function LicensingManagement() {
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       
-      const submitData: any = {
+      // Calculate expiry date based on duration type and value
+      const now = new Date();
+      let expiryDate = new Date(now);
+      
+      if (formData.durationType === 'days') {
+        expiryDate.setDate(now.getDate() + formData.duration);
+      } else if (formData.durationType === 'weeks') {
+        expiryDate.setDate(now.getDate() + (formData.duration * 7));
+      } else if (formData.durationType === 'months') {
+        expiryDate.setMonth(now.getMonth() + formData.duration);
+      }
+      
+      const submitData = {
         email: formData.email,
         username: formData.username,
+        expiryDate: expiryDate.toISOString(),
         maxConcurrentSessions: formData.maxConcurrentSessions,
         maxDevices: formData.maxDevices,
         notes: formData.notes
       };
-
-      if (formData.durationType === 'days') {
-        submitData.durationDays = formData.duration;
-      } else if (formData.durationType === 'weeks') {
-        submitData.durationWeeks = formData.duration;
-      } else if (formData.durationType === 'months') {
-        submitData.durationMonths = formData.duration;
-      }
 
       createLicenseMutation.mutate(submitData);
     };
