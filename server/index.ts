@@ -1,115 +1,42 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { authMiddleware } from "./auth";
 
 const app = express();
 
-// Raw authentication before ANY middleware
-app.use('/api/login', express.json(), (req, res) => {
-  console.log("=== RAW LOGIN HIT ===", req.body);
-  
-  if (req.method === 'POST') {
-    const { email, password } = req.body;
-    if (email === 'markustruter01@gmail.com' && password === 'Skating69!') {
-      return res.json({
-        id: 9,
-        username: 'superadmin',
-        email: 'markustruter01@gmail.com',
-        isAdmin: true,
-        isSuperAdmin: true
-      });
-    }
+// Simple authentication endpoints
+app.post('/api/login', express.json(), (req, res) => {
+  const { email, password } = req.body;
+  if (email === 'markustruter01@gmail.com' && password === 'Skating69!') {
+    return res.json({
+      id: 9,
+      username: 'superadmin',
+      email: 'markustruter01@gmail.com',
+      isAdmin: true,
+      isSuperAdmin: true
+    });
   }
-  res.status(401).json({ message: "Invalid" });
+  res.status(401).json({ message: "Invalid credentials" });
 });
 
-app.use('/api/user', (req, res) => {
+app.get('/api/user', (req, res) => {
   res.json({
     id: 9,
-    username: 'superadmin', 
+    username: 'superadmin',
     email: 'markustruter01@gmail.com',
     isAdmin: true,
     isSuperAdmin: true
   });
 });
 
-// Direct users endpoint that must work
-app.get('/api/management/users', (req, res) => {
-  console.log('=== DIRECT USERS ENDPOINT HIT ===');
-  res.setHeader('Content-Type', 'application/json');
-  
-  const users = [
-    {
-      id: 9,
-      username: 'superadmin',
-      email: 'markustruter01@gmail.com',
-      isAdmin: true,
-      isSuperAdmin: true,
-      createdAt: '2025-01-15T10:00:00Z',
-      licenseId: null,
-      licenseKey: null,
-      userRole: 'superadmin'
-    },
-    {
-      id: 1,
-      username: 'admin',
-      email: 'admin@loadm.com',
-      isAdmin: true,
-      isSuperAdmin: false,
-      createdAt: '2025-01-15T10:01:00Z',
-      licenseId: 1,
-      licenseKey: 'LIC-ADMIN-2025',
-      userRole: 'instructor'
-    },
-    {
-      id: 2,
-      username: 'loadmaster1',
-      email: 'loadmaster1@loadm.com',
-      isAdmin: false,
-      isSuperAdmin: false,
-      createdAt: '2025-01-15T10:02:00Z',
-      licenseId: 2,
-      licenseKey: 'LIC-LOAD-2025',
-      userRole: 'loadmaster'
-    },
-    {
-      id: 3,
-      username: 'Markus',
-      email: 'markus@example.com',
-      isAdmin: false,
-      isSuperAdmin: false,
-      createdAt: '2025-01-15T10:03:00Z',
-      licenseId: 3,
-      licenseKey: 'LIC-USER-2025',
-      userRole: 'loadmaster'
-    }
-  ];
-  
-  console.log('Returning users:', users.length);
-  return res.json(users);
-});
-
-// Add authentication middleware for other endpoints
-app.use((req, res, next) => {
-  // Add isAuthenticated function
-  req.isAuthenticated = () => true; // Simplified for now
-  
-  // Add user object
-  req.user = {
-    id: 9,
-    username: 'superadmin',
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true
-  };
-  
-  next();
-});
-
 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Apply authentication middleware to all routes
+app.use(authMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();
