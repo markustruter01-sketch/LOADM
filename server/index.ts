@@ -1,65 +1,83 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { authMiddleware } from "./auth";
 
 const app = express();
 
-// Complete authentication state management
-const authState = {
-  isLoggedIn: true,
-  currentUser: {
-    id: 9,
-    username: 'superadmin',
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true
-  }
-};
+// NEW AUTHENTICATION SYSTEM - Session-based with proper logout
+const sessions = new Map<string, any>();
 
-// Make auth state globally available
-global.authState = authState;
+function generateSessionId() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
 
 // Authentication endpoints
 app.post('/api/login', express.json(), (req, res) => {
   const { email, password } = req.body;
   
   if (email === 'markustruter01@gmail.com' && password === 'Skating69!') {
-    authState.isLoggedIn = true;
-    authState.currentUser = {
+    const sessionId = generateSessionId();
+    const user = {
       id: 9,
-      username: 'superadmin',
       email: 'markustruter01@gmail.com',
       isAdmin: true,
       isSuperAdmin: true
     };
-    return res.json(authState.currentUser);
+    
+    sessions.set(sessionId, user);
+    
+    res.cookie('sessionId', sessionId, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+    return res.json(user);
   }
   res.status(401).json({ message: "Invalid credentials" });
 });
 
 app.get('/api/user', (req, res) => {
-  if (!authState.isLoggedIn) {
+  const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+  
+  if (!sessionId || !sessions.has(sessionId)) {
     return res.status(401).json({ message: "Not authenticated" });
   }
-  res.json(authState.currentUser);
+  
+  const user = sessions.get(sessionId);
+  res.json(user);
 });
 
 app.post('/api/logout', express.json(), (req, res) => {
-  console.log('LOGOUT: Setting authState.isLoggedIn to false');
-  authState.isLoggedIn = false;
-  authState.currentUser = null as any;
-  global.authState = authState; // Update global state
+  const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
+  
+  if (sessionId) {
+    sessions.delete(sessionId);
+    console.log(`LOGOUT: Deleted session ${sessionId}, remaining sessions:`, sessions.size);
+  }
+  
+  res.clearCookie('sessionId');
   res.json({ success: true, message: "Logged out successfully" });
 });
 
 
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Apply authentication middleware to all routes
-app.use(authMiddleware);
+// NEW AUTHENTICATION MIDDLEWARE - Session-based
+app.use((req: any, res, next) => {
+  const sessionId = req.cookies?.sessionId;
+  
+  req.isAuthenticated = () => {
+    return sessionId && sessions.has(sessionId);
+  };
+  
+  if (sessionId && sessions.has(sessionId)) {
+    req.user = sessions.get(sessionId);
+  } else {
+    req.user = null;
+  }
+  
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

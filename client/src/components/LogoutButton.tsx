@@ -14,14 +14,14 @@ export default function LogoutButton({
   showIcon = true,
   className = ""
 }: LogoutButtonProps) {
-  const { logoutMutation } = useAuth();
+  const { logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await logoutMutation.mutateAsync();
-      // Redirect happens in the mutation
+      await logout();
+      // Redirect happens in logout function
     } catch (error) {
       console.error("Logout failed:", error);
       setIsLoggingOut(false);

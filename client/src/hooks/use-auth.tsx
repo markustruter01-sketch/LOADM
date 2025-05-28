@@ -136,20 +136,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    return new Promise<void>((resolve, reject) => {
-      logoutMutation.mutate(undefined, {
-        onSuccess: () => {
-          // Clear all user data from cache
-          queryClient.setQueryData(["/api/user"], null);
-          queryClient.clear(); // Clear all cache data
-          
-          // Force a complete page reload to the home page
-          window.location.href = window.location.origin + '/';
-          resolve();
-        },
-        onError: (error) => reject(error)
+    try {
+      // Call logout endpoint
+      await fetch('/api/logout', { 
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
       });
-    });
+      
+      // Clear all client-side data
+      queryClient.clear();
+      queryClient.setQueryData(["/api/user"], null);
+      
+      // Force complete page reload to ensure clean state
+      window.location.replace('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if logout fails, clear client state and redirect
+      queryClient.clear();
+      window.location.replace('/');
+    }
   };
 
   // Make sure user is always a SelectUser or null, never undefined
