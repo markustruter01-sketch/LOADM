@@ -70,42 +70,8 @@ export class DatabaseStorage implements IStorage {
   }
   
   private async initAdminUser() {
-    try {
-      // Check if admin user already exists
-      const existingAdmin = await this.getUserByUsername("admin");
-      if (!existingAdmin) {
-        console.log("Creating admin user...");
-        // Create admin user with pre-hashed password equivalent to "adminpassword"
-        await db.insert(users).values({
-          username: "admin",
-          email: "admin@loadmworkflow.com",
-          password: "c9a296801d0dbb46fda407f3e66b0dc4bd2a1710ae25679a5a3aee380c2d720b8b5eb26d69b962a8df0887544ed530edd5cf104ef175845b64ee3f9a158d16ad.e4be0aba9c1c64eb9ba018c11f3ad0e2",
-          isAdmin: true,
-          isSuperAdmin: false
-        });
-      }
-      
-      // Check if super admin user already exists
-      const existingSuperAdmin = await this.getUserByUsername("superadmin");
-      if (!existingSuperAdmin) {
-        console.log("Creating super admin user...");
-        // Create SuperAdmin user with hashed password for "ThisIsLOADMWorkflowPassword1!"
-        // Import hashPassword function to create the hash
-        const { hashPassword } = await import('./auth');
-        const hashedPassword = await hashPassword("ThisIsLOADMWorkflowPassword1!");
-        
-        await db.insert(users).values({
-          username: "superadmin",
-          email: "markustruter01@gmail.com",
-          password: hashedPassword,
-          isAdmin: true,
-          isSuperAdmin: true
-        });
-        console.log("Super admin user created successfully");
-      }
-    } catch (error) {
-      console.error("Error initializing admin users:", error);
-    }
+    // DISABLED: Using isolated authentication system instead
+    console.log("Database admin initialization disabled - using isolated auth system");
   }
 
   // User Management
@@ -115,7 +81,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(eq(users.email, username));
     return user;
   }
 
