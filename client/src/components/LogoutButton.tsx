@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
@@ -14,18 +14,12 @@ export default function LogoutButton({
   showIcon = true,
   className = ""
 }: LogoutButtonProps) {
-  const { logout } = useAuth();
+  const { logout } = useIsolatedAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsLoggingOut(true);
-    try {
-      await logout();
-      // Redirect happens in logout function
-    } catch (error) {
-      console.error("Logout failed:", error);
-      setIsLoggingOut(false);
-    }
+    logout(); // The isolated logout handles everything
   };
   
   return (

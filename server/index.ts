@@ -17,8 +17,8 @@ app.use(express.json());
 // Mount isolated auth routes
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 
-// Register other routes with isolated auth middleware
-registerRoutes(app, authCore.requireIsolatedAuth);
+// Register other routes (they'll handle their own auth)
+registerRoutes(app);
 
 app.use((req, res, next) => {
   if (req.path.endsWith(".html")) {

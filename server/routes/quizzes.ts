@@ -34,7 +34,10 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new quiz
-router.post('/', async (req, res) => {
+router.post('/', (req, res, next) => {
+  const authCore = require('../auth-isolated/auth-core');
+  authCore.requireIsolatedAuth(req, res, next);
+}, async (req, res) => {
   try {
     const { title, description, questionCount, categories, isActive, expiresAt, createdById } = req.body;
     
