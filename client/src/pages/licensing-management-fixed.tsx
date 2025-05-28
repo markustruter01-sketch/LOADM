@@ -232,7 +232,10 @@ export default function LicensingManagementFixed() {
       const now = new Date();
       let expiryDate = new Date(now);
       
-      if (formData.durationType === 'days') {
+      if (formData.durationType === 'perpetual') {
+        // Set to a far future date for perpetual licenses (100 years from now)
+        expiryDate.setFullYear(now.getFullYear() + 100);
+      } else if (formData.durationType === 'days') {
         expiryDate.setDate(now.getDate() + formData.duration);
       } else if (formData.durationType === 'weeks') {
         expiryDate.setDate(now.getDate() + (formData.duration * 7));
@@ -310,6 +313,7 @@ export default function LicensingManagementFixed() {
                 <SelectItem value="days">Days</SelectItem>
                 <SelectItem value="weeks">Weeks</SelectItem>
                 <SelectItem value="months">Months</SelectItem>
+                <SelectItem value="perpetual">Perpetual (Never Expires)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -321,12 +325,16 @@ export default function LicensingManagementFixed() {
               min="1"
               value={formData.duration}
               onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 1 })}
-              required
+              disabled={formData.durationType === 'perpetual'}
+              required={formData.durationType !== 'perpetual'}
             />
           </div>
           <div className="flex items-end">
             <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
               Expires: {(() => {
+                if (formData.durationType === 'perpetual') {
+                  return 'Never Expires';
+                }
                 const now = new Date();
                 const expiry = new Date(now);
                 const duration = isNaN(formData.duration) ? 1 : formData.duration;
