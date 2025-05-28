@@ -63,10 +63,30 @@ export default function LicensingManagementFixed() {
   // Create license mutation
   const createLicenseMutation = useMutation({
     mutationFn: async (licenseData: any) => {
-      return apiRequest('/api/licensing/licenses', {
-        method: 'POST',
-        body: licenseData,
-      });
+      console.log('Submitting license data:', licenseData);
+      try {
+        const response = await fetch('/api/licensing/licenses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(licenseData),
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('License creation result:', result);
+        return result;
+      } catch (error) {
+        console.error('Error creating license:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
