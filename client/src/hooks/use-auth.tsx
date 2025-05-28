@@ -136,46 +136,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    console.log('=== CLIENT LOGOUT DEBUG START ===');
-    
+    // Simplified logout that works around client-side JavaScript errors
     try {
-      // Check auth state before logout
-      const authCheck = await fetch('/api/debug-auth', { credentials: 'include' });
-      const authState = await authCheck.json();
-      console.log('Auth state before logout:', authState);
-      
-      // Call logout endpoint
-      const logoutResponse = await fetch('/api/logout', { 
+      // Call logout endpoint - this is working according to console
+      await fetch('/api/logout', { 
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
-      
-      const logoutData = await logoutResponse.json();
-      console.log('Logout response:', logoutData);
-      
-      // Check auth state after logout
-      const authCheckAfter = await fetch('/api/debug-auth', { credentials: 'include' });
-      const authStateAfter = await authCheckAfter.json();
-      console.log('Auth state after logout:', authStateAfter);
-      
-      // Clear all client-side data
-      queryClient.clear();
-      queryClient.setQueryData(["/api/user"], null);
-      
-      console.log('=== CLIENT LOGOUT DEBUG: REDIRECTING ===');
-      
-      // Force complete page reload to ensure clean state
-      setTimeout(() => {
-        window.location.replace('/');
-      }, 100);
-      
     } catch (error) {
-      console.error('Logout error:', error);
-      // Even if logout fails, clear client state and redirect
-      queryClient.clear();
-      window.location.replace('/');
+      // Continue with logout even if API call fails
+      console.error('Logout API error:', error);
     }
+    
+    // Force immediate redirect without any delays or additional async operations
+    window.location.href = '/';
   };
 
   // Make sure user is always a SelectUser or null, never undefined

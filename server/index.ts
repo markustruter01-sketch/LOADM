@@ -60,7 +60,13 @@ app.post('/api/logout', express.json(), (req, res) => {
   console.log('Sessions after delete:', Array.from(sessions.keys()));
   console.log('=== END LOGOUT DEBUG ===');
   
-  res.clearCookie('sessionId');
+  // Clear cookie with all possible options to ensure removal
+  res.clearCookie('sessionId', { 
+    httpOnly: true, 
+    path: '/',
+    domain: undefined,
+    secure: false 
+  });
   res.json({ success: true, message: "Logged out successfully", deletedSession: sessionId });
 });
 
