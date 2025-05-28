@@ -3,14 +3,58 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema
+// License schema - Define first to avoid circular dependency
+export const licenses = pgTable("licenses", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
+  licenseKey: text("license_key").notNull().unique(),
+  issuedDate: timestamp("issued_date").defaultNow().notNull(),
+  expiryDate: timestamp("expiry_date").notNull(),
+  status: text("status").notNull().default("active"), // active, suspended, expired
+  maxConcurrentSessions: integer("max_concurrent_sessions").default(1).notNull(),
+  maxDevices: integer("max_devices").default(2).notNull(),
+  createdByAdmin: integer("created_by_admin").notNull(),
+  notes: text("notes").default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User schema - Updated for licensing system
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  email: text("email").default('').notNull(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
+  licenseId: integer("license_id").references(() => licenses.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
+// License sessions tracking
+export const licenseSessions = pgTable("license_sessions", {
+  id: serial("id").primaryKey(),
+  licenseId: integer("license_id").notNull().references(() => licenses.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  deviceFingerprint: text("device_fingerprint").notNull(),
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent").notNull(),
+  loginTime: timestamp("login_time").defaultNow().notNull(),
+  lastActivity: timestamp("last_activity").defaultNow().notNull(),
+  logoutTime: timestamp("logout_time"),
+  status: text("status").notNull().default("active"), // active, inactive, expired
+});
+
+// License audit log
+export const licenseAuditLog = pgTable("license_audit_log", {
+  id: serial("id").primaryKey(),
+  licenseId: integer("license_id").references(() => licenses.id, { onDelete: "cascade" }),
+  adminId: integer("admin_id").notNull().references(() => users.id),
+  action: text("action").notNull(), // created, modified, suspended, activated, deleted
+  details: json("details"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -19,6 +63,24 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   isAdmin: true,
   isSuperAdmin: true,
+  licenseId: true,
+});
+
+export const insertLicenseSchema = createInsertSchema(licenses).pick({
+  email: true,
+  username: true,
+  expiryDate: true,
+  maxConcurrentSessions: true,
+  maxDevices: true,
+  notes: true,
+});
+
+export const insertLicenseSessionSchema = createInsertSchema(licenseSessions).pick({
+  licenseId: true,
+  userId: true,
+  deviceFingerprint: true,
+  ipAddress: true,
+  userAgent: true,
 });
 
 // Document schema
@@ -157,11 +219,49 @@ export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).pi
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   documentSubmissions: many(documentSubmissions),
   scenarioSubmissions: many(scenarioSubmissions),
   quizzes: many(quizzes),
   quizSubmissions: many(quizSubmissions),
+  license: one(licenses, {
+    fields: [users.licenseId],
+    references: [licenses.id],
+  }),
+  licenseSessions: many(licenseSessions),
+  auditLogs: many(licenseAuditLog),
+}));
+
+export const licensesRelations = relations(licenses, ({ many, one }) => ({
+  users: many(users),
+  sessions: many(licenseSessions),
+  auditLogs: many(licenseAuditLog),
+  createdBy: one(users, {
+    fields: [licenses.createdByAdmin],
+    references: [users.id],
+  }),
+}));
+
+export const licenseSessionsRelations = relations(licenseSessions, ({ one }) => ({
+  license: one(licenses, {
+    fields: [licenseSessions.licenseId],
+    references: [licenses.id],
+  }),
+  user: one(users, {
+    fields: [licenseSessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const licenseAuditLogRelations = relations(licenseAuditLog, ({ one }) => ({
+  license: one(licenses, {
+    fields: [licenseAuditLog.licenseId],
+    references: [licenses.id],
+  }),
+  admin: one(users, {
+    fields: [licenseAuditLog.adminId],
+    references: [users.id],
+  }),
 }));
 
 export const documentsRelations = relations(documents, ({ many }) => ({
@@ -216,6 +316,14 @@ export const quizSubmissionsRelations = relations(quizSubmissions, ({ one }) => 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertLicense = z.infer<typeof insertLicenseSchema>;
+export type License = typeof licenses.$inferSelect;
+
+export type InsertLicenseSession = z.infer<typeof insertLicenseSessionSchema>;
+export type LicenseSession = typeof licenseSessions.$inferSelect;
+
+export type LicenseAuditLog = typeof licenseAuditLog.$inferSelect;
 
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
