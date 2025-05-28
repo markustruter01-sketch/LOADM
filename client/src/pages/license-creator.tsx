@@ -20,7 +20,6 @@ export default function LicenseCreator() {
     username: '',
     licenseType: '',
     duration: '30',
-    maxSessions: '1',
     maxDevices: '1',
     notes: ''
   });
@@ -50,7 +49,6 @@ export default function LicenseCreator() {
       username: formData.username,
       licenseType: formData.licenseType,
       expiresAt: expiresAt.toISOString(),
-      maxConcurrentSessions: parseInt(formData.maxSessions),
       maxDevices: parseInt(formData.maxDevices),
       isActive: true,
       notes: formData.notes,
@@ -121,7 +119,6 @@ export default function LicenseCreator() {
       username: '',
       licenseType: '',
       duration: '30',
-      maxSessions: '1',
       maxDevices: '1',
       notes: ''
     });
@@ -196,7 +193,7 @@ export default function LicenseCreator() {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duration (days)</Label>
                   <Input
@@ -206,18 +203,6 @@ export default function LicenseCreator() {
                     onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
                     min="1"
                     max="365"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="maxSessions">Max Sessions</Label>
-                  <Input
-                    id="maxSessions"
-                    type="number"
-                    value={formData.maxSessions}
-                    onChange={(e) => setFormData(prev => ({ ...prev, maxSessions: e.target.value }))}
-                    min="1"
-                    max="10"
                   />
                 </div>
                 
@@ -277,7 +262,7 @@ export default function LicenseCreator() {
                   Copy
                 </Button>
               </div>
-              <div className="font-mono text-lg bg-white p-3 rounded border">
+              <div className="font-mono text-lg bg-gray-800 text-white p-3 rounded border">
                 {createdLicense.licenseKey}
               </div>
             </div>
@@ -299,10 +284,7 @@ export default function LicenseCreator() {
                 <Label className="font-semibold">Expires:</Label>
                 <p>{new Date(createdLicense.expiresAt).toLocaleDateString()}</p>
               </div>
-              <div>
-                <Label className="font-semibold">Max Sessions:</Label>
-                <p>{createdLicense.maxConcurrentSessions}</p>
-              </div>
+
               <div>
                 <Label className="font-semibold">Max Devices:</Label>
                 <p>{createdLicense.maxDevices}</p>
