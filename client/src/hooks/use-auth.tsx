@@ -135,22 +135,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const logout = async () => {
-    // Simplified logout that works around client-side JavaScript errors
-    try {
-      // Call logout endpoint - this is working according to console
-      await fetch('/api/logout', { 
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } catch (error) {
-      // Continue with logout even if API call fails
-      console.error('Logout API error:', error);
-    }
+  const logout = () => {
+    // Nuclear option: Don't wait for API, just redirect immediately
+    // This prevents any race conditions with authentication queries
     
-    // Force immediate redirect without any delays or additional async operations
-    window.location.href = '/';
+    // Call logout API in background (don't await)
+    fetch('/api/logout', { 
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    }).catch(console.error);
+    
+    // Immediately force redirect before any other queries can run
+    window.location.replace('/');
   };
 
   // Make sure user is always a SelectUser or null, never undefined

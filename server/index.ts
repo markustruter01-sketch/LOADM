@@ -36,11 +36,17 @@ app.post('/api/login', express.json(), (req, res) => {
 app.get('/api/user', (req, res) => {
   const sessionId = req.cookies?.sessionId || req.headers['x-session-id'];
   
+  console.log('AUTH CHECK - Session ID:', sessionId);
+  console.log('AUTH CHECK - Session exists:', sessionId ? sessions.has(sessionId) : false);
+  console.log('AUTH CHECK - Active sessions:', Array.from(sessions.keys()));
+  
   if (!sessionId || !sessions.has(sessionId)) {
+    console.log('AUTH CHECK - Returning 401 (not authenticated)');
     return res.status(401).json({ message: "Not authenticated" });
   }
   
   const user = sessions.get(sessionId);
+  console.log('AUTH CHECK - Returning user:', user?.email);
   res.json(user);
 });
 
