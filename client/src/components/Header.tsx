@@ -57,13 +57,13 @@ export default function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem disabled className="font-medium">
-                  {user.username}
+                  {user.email}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
                 {/* Show different menu options based on user role */}
                 {(() => { console.log('Header user data:', user); return null; })()}
-                {(user.isAdmin || user.isSuperAdmin) && (
+                {(user.role === 'instructor' || user.role === 'superadmin') && (
                   <DropdownMenuItem asChild>
                     <div className="w-full cursor-pointer" onClick={() => setLocation("/instructors-portal")}>
                       Instructors Portal
@@ -71,7 +71,7 @@ export default function Header() {
                   </DropdownMenuItem>
                 )}
                 
-                {user.isSuperAdmin && (
+                {user.role === 'superadmin' && (
                   <>
                     <DropdownMenuItem asChild>
                       <div className="w-full cursor-pointer" onClick={() => setLocation("/superadmin-dashboard")}>

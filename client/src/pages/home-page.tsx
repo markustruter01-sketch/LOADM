@@ -13,13 +13,13 @@ import {
   Plane 
 } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
-import { useAuth } from "@/hooks/use-simple-auth";
+import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import SimpleLoginModal from "@/components/SimpleLoginModal";
 import { useState } from "react";
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
