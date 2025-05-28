@@ -23,26 +23,17 @@ export default function HomePage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
-  const requireLogin = (targetPath: string) => {
-    if (!user) {
-      setPendingNavigation(targetPath);
-      setShowLoginModal(true);
-      return;
-    }
-    setLocation(targetPath);
-  };
-
   const handleServiceBranchChange = (value: string) => {
     if (value === "army") {
-      requireLogin("/army");
+      setLocation("/army");
     } else if (value === "navy") {
-      requireLogin("/navy");
+      setLocation("/navy");
     }
   };
 
   const handleCardClick = (href: string) => {
     return () => {
-      requireLogin(href);
+      setLocation(href);
     };
   };
 

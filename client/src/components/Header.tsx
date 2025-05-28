@@ -20,12 +20,7 @@ export default function Header() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
-  const requireLogin = (targetPath: string) => {
-    if (!user) {
-      setPendingNavigation(targetPath);
-      setShowLoginModal(true);
-      return;
-    }
+  const navigateTo = (targetPath: string) => {
     setLocation(targetPath);
   };
 
@@ -99,7 +94,7 @@ export default function Header() {
                 variant="ghost" 
                 size="icon" 
                 className="text-muted-foreground hover:text-foreground p-0"
-                onClick={() => requireLogin("/profile")}
+                onClick={() => navigateTo("/profile")}
               >
                 <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
                 <span className="sr-only">Login</span>

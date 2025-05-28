@@ -120,19 +120,10 @@ function AdminCheck({ children }: { children: React.ReactNode }) {
 
 /**
  * UserCheck - Component that checks if user is authenticated
- * Redirects to login if not
+ * Since users are now authenticated through our system, allow access
  */
 function UserCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useIsolatedAuth();
-  const [, navigate] = useLocation();
-
-  // Only redirect if explicitly not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      // Redirect to home page instead of auth page
-      navigate("/");
-    }
-  }, [user, isLoading, navigate]);
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -143,8 +134,20 @@ function UserCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If we have a user or we're still loading, render children
-  return user ? <>{children}</> : null;
+  // If authenticated, allow access (they've already passed login)
+  if (user) {
+    return <>{children}</>;
+  }
+
+  // Not authenticated - this shouldn't happen since users must login to reach app
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+        <p className="text-muted-foreground">Please log in to access this page.</p>
+      </div>
+    </div>
+  );
 }
 
 /**
