@@ -147,12 +147,18 @@ export function setupAuth(app: Express) {
     if (req.user) {
       console.log('Login successful for user:', req.user.username);
       console.log('Raw user from database:', req.user);
-      const { password, is_admin, is_super_admin, ...rest } = req.user as any;
+      
+      const rawUser = req.user as any;
       const safeUser = {
-        ...rest,
-        isAdmin: Boolean(is_admin),
-        isSuperAdmin: Boolean(is_super_admin)
+        id: rawUser.id,
+        username: rawUser.username,
+        email: rawUser.email,
+        isAdmin: rawUser.is_admin === true || rawUser.is_admin === 't' || rawUser.is_admin === 1,
+        isSuperAdmin: rawUser.is_super_admin === true || rawUser.is_super_admin === 't' || rawUser.is_super_admin === 1,
+        licenseId: rawUser.licenseId,
+        createdAt: rawUser.createdAt
       };
+      
       console.log('Transformed user being sent to frontend:', safeUser);
       res.status(200).json(safeUser);
     } else {
@@ -199,12 +205,18 @@ export function setupAuth(app: Express) {
     // Don't return the password hash in the response and transform to camelCase
     if (req.user) {
       console.log('Raw user data from database:', req.user);
-      const { password, is_admin, is_super_admin, ...rest } = req.user as any;
+      
+      const rawUser = req.user as any;
       const safeUser = {
-        ...rest,
-        isAdmin: is_admin,
-        isSuperAdmin: is_super_admin
+        id: rawUser.id,
+        username: rawUser.username,
+        email: rawUser.email,
+        isAdmin: rawUser.is_admin === true || rawUser.is_admin === 't' || rawUser.is_admin === 1,
+        isSuperAdmin: rawUser.is_super_admin === true || rawUser.is_super_admin === 't' || rawUser.is_super_admin === 1,
+        licenseId: rawUser.licenseId,
+        createdAt: rawUser.createdAt
       };
+      
       console.log('Transformed user data being sent:', safeUser);
       res.json(safeUser);
     } else {
