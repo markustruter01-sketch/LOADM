@@ -109,9 +109,29 @@ export default function LicensingManagementFixed() {
   // Suspend license mutation
   const suspendLicenseMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/licensing/licenses/${id}/suspend`, {
-        method: 'POST',
-      });
+      console.log('Suspending license with ID:', id);
+      try {
+        const response = await fetch(`/api/licensing/licenses/${id}/suspend`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        console.log('Suspend response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Suspend result:', result);
+        return result;
+      } catch (error) {
+        console.error('Error suspending license:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
@@ -143,9 +163,29 @@ export default function LicensingManagementFixed() {
   // Delete license mutation
   const deleteLicenseMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/licensing/licenses/${id}`, {
-        method: 'DELETE',
-      });
+      console.log('Deleting license with ID:', id);
+      try {
+        const response = await fetch(`/api/licensing/licenses/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        console.log('Delete response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Delete result:', result);
+        return result;
+      } catch (error) {
+        console.error('Error deleting license:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
