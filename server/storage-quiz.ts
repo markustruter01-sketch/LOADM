@@ -1,25 +1,30 @@
-import { Pool } from 'pg';
 import { Quiz, InsertQuiz, QuizSubmission, InsertQuizSubmission } from '@shared/schema';
-import { pool } from './db';
 
 // Quiz Management Methods
 export async function getQuizzes(activeOnly: boolean = false): Promise<Quiz[]> {
   try {
-    let query = `
-      SELECT q.*, u.email as created_by_email
-      FROM quizzes q
-      LEFT JOIN users u ON q.created_by_id = u.id
-    `;
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
+    let quizzes;
     if (activeOnly) {
-      query += ` WHERE q.is_active = true`;
+      quizzes = await sql`
+        SELECT q.*, u.email as created_by_email
+        FROM quizzes q
+        LEFT JOIN users u ON q.created_by_id = u.id
+        WHERE q.is_active = true
+        ORDER BY q.created_at DESC
+      `;
+    } else {
+      quizzes = await sql`
+        SELECT q.*, u.email as created_by_email
+        FROM quizzes q
+        LEFT JOIN users u ON q.created_by_id = u.id
+        ORDER BY q.created_at DESC
+      `;
     }
     
-    query += ` ORDER BY q.created_at DESC`;
-    
-    const result = await pool.query(query);
-    
-    return result.rows.map(row => ({
+    return quizzes.map(row => ({
       id: row.id,
       title: row.title,
       description: row.description,
