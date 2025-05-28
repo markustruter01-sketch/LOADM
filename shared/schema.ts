@@ -3,16 +3,17 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// License schema - Define first to avoid circular dependency
+// License schema - Updated for email-only authentication
 export const licenses = pgTable("licenses", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
-  username: text("username").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").default(""),
   licenseKey: text("license_key").notNull().unique(),
   licenseType: text("license_type").notNull().default("loadmaster"), // loadmaster, instructor, superadmin
+  isActive: boolean("is_active").default(true).notNull(),
   issuedDate: timestamp("issued_date").defaultNow().notNull(),
   expiryDate: timestamp("expiry_date").notNull(),
-  status: text("status").notNull().default("active"), // active, suspended, expired
   maxConcurrentSessions: integer("max_concurrent_sessions").default(1).notNull(),
   maxDevices: integer("max_devices").default(2).notNull(),
   createdByAdmin: integer("created_by_admin").notNull(),
@@ -21,15 +22,17 @@ export const licenses = pgTable("licenses", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// User schema - Updated for licensing system
+// User schema - Email-only authentication with password tracking
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(),
+  hashedPassword: text("hashed_password").notNull(),
+  isFirstLogin: boolean("is_first_login").default(true).notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
   licenseId: integer("license_id").references(() => licenses.id, { onDelete: "cascade" }),
+  userRole: text("user_role").default("loadmaster").notNull(),
+  createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastLogin: timestamp("last_login"),
 });

@@ -20,52 +20,38 @@ interface User {
   userRole?: string;
 }
 
-// Hardcoded users data - bypassing API issues
-const hardcodedUsers: User[] = [
+// Fetch users from licensing system - no more hardcoded data
+const { data: users = [], isLoading } = useQuery<User[]>({
+  queryKey: ['/api/licensing/licenses'],
+  select: (data: any[]) => data.map(license => ({
+    id: license.userId || license.id,
+    email: license.email,
+    isAdmin: license.licenseType === 'instructor',
+    isSuperAdmin: false,
+    createdAt: license.createdAt,
+    licenseId: license.id,
+    licenseKey: license.licenseKey,
+    userRole: license.licenseType,
+    hasPassword: !!license.hasPassword,
+    isFirstLogin: license.isFirstLogin
+  }))
+});
+
+// Add superadmin to the list
+const allUsers = [
   {
     id: 9,
-    username: 'superadmin',
     email: 'markustruter01@gmail.com',
     isAdmin: true,
     isSuperAdmin: true,
     createdAt: '2025-01-15T10:00:00Z',
     licenseId: null,
-    licenseKey: null,
-    userRole: 'superadmin'
+    licenseKey: 'SUPERADMIN',
+    userRole: 'superadmin',
+    hasPassword: true,
+    isFirstLogin: false
   },
-  {
-    id: 1,
-    username: 'admin',
-    email: 'admin@loadm.com',
-    isAdmin: true,
-    isSuperAdmin: false,
-    createdAt: '2025-01-15T10:01:00Z',
-    licenseId: 1,
-    licenseKey: 'LIC-ADMIN-2025',
-    userRole: 'instructor'
-  },
-  {
-    id: 2,
-    username: 'loadmaster1',
-    email: 'loadmaster1@loadm.com',
-    isAdmin: false,
-    isSuperAdmin: false,
-    createdAt: '2025-01-15T10:02:00Z',
-    licenseId: 2,
-    licenseKey: 'LIC-LOAD-2025',
-    userRole: 'loadmaster'
-  },
-  {
-    id: 3,
-    username: 'Markus',
-    email: 'markus@example.com',
-    isAdmin: false,
-    isSuperAdmin: false,
-    createdAt: '2025-01-15T10:03:00Z',
-    licenseId: 3,
-    licenseKey: 'LIC-USER-2025',
-    userRole: 'loadmaster'
-  }
+  ...users
 ];
 
 export default function UsersList() {

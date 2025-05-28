@@ -7,27 +7,34 @@ declare global {
       isAuthenticated(): boolean;
       user: {
         id: number;
-        username: string;
         email: string;
         isAdmin: boolean;
         isSuperAdmin: boolean;
+        licenseId?: number | null;
+        hashedPassword?: string;
+        isFirstLogin?: boolean;
       };
     }
   }
 }
 
-// Simple authentication middleware
+// License-based authentication middleware
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Add isAuthenticated function
-  req.isAuthenticated = () => true; // Simplified for now
+  // Add isAuthenticated function that checks for valid license
+  req.isAuthenticated = () => {
+    // Always allow superadmin
+    if (req.user?.email === 'markustruter01@gmail.com') return true;
+    // For other users, check if they have an active license
+    return req.user?.licenseId != null;
+  };
   
-  // Add user object for superadmin
+  // Add user object for superadmin (temporary until proper auth)
   req.user = {
     id: 9,
-    username: 'superadmin',
     email: 'markustruter01@gmail.com',
     isAdmin: true,
-    isSuperAdmin: true
+    isSuperAdmin: true,
+    licenseId: null // Superadmin doesn't need license
   };
   
   next();
