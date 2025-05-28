@@ -93,6 +93,29 @@ router.post('/licenses', requireSuperAdmin, async (req, res) => {
       notes: notes || '',
     }).returning();
 
+    // Automatically create user account if it doesn't exist
+    const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    
+    if (existingUser.length === 0) {
+      // Create user account with permissions based on license type
+      const isAdmin = licenseType === 'instructor' || licenseType === 'superadmin';
+      const isSuperAdmin = licenseType === 'superadmin';
+      
+      await db.insert(users).values({
+        username,
+        email,
+        password: '$2b$10$defaulthashfortemporaryaccess', // User will need to set their password on first login
+        isAdmin,
+        isSuperAdmin,
+        licenseId: newLicense[0].id,
+      });
+    } else {
+      // Update existing user with the new license ID
+      await db.update(users)
+        .set({ licenseId: newLicense[0].id })
+        .where(eq(users.email, email));
+    }
+
     res.status(201).json(newLicense[0]);
   } catch (error) {
     console.error('Error creating license:', error);
