@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   FileCheck, 
   ClipboardList, 
@@ -14,6 +15,16 @@ import {
 import cargoBayImage from "../assets/cargo-bay.png";
 
 export default function HomePage() {
+  const [, setLocation] = useLocation();
+
+  const handleServiceBranchChange = (value: string) => {
+    if (value === "army") {
+      setLocation("/army");
+    } else if (value === "navy") {
+      setLocation("/navy");
+    }
+    // Air Force stays on current page
+  };
 
   return (
     <>
@@ -27,6 +38,25 @@ export default function HomePage() {
 
       <div className="container mx-auto px-4 py-8 mb-16">
         <div className="max-w-4xl mx-auto">
+          {/* Service Branch Selection */}
+          <div className="mb-8 text-center">
+            <div className="max-w-xs mx-auto">
+              <label className="block text-sm font-medium mb-2 text-muted-foreground">
+                Select Service Branch
+              </label>
+              <Select defaultValue="airforce" onValueChange={handleServiceBranchChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose your service branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="airforce">Air Force</SelectItem>
+                  <SelectItem value="army">Army</SelectItem>
+                  <SelectItem value="navy">Navy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Welcome Section */}
           <section className="mb-10 text-center">
             <h2 className="text-3xl font-bold mb-4 text-foreground">

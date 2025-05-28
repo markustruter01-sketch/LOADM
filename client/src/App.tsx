@@ -17,6 +17,8 @@ import SkiddedBoxPsiCalculatorPage from "@/pages/tools/skidded-box-psi";
 import TirePsiCalculatorPage from "@/pages/tools/tire-psi";
 
 import HomePage from "@/pages/home-page";
+import ArmyHomePage from "@/pages/army-home-page";
+import NavyHomePage from "@/pages/navy-home-page";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import DocumentFormPage from "@/pages/document-form-page";
@@ -68,6 +70,8 @@ function Router() {
         <OfflineStatus />
         <Switch>
           <Route path="/" component={HomePage} />
+          <Route path="/army" component={ArmyHomePage} />
+          <Route path="/navy" component={NavyHomePage} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/documents-old" component={DocsListPage} /> {/* Keep as backup */}
           <Route path="/documents/:id" component={DocumentFormPage} />
