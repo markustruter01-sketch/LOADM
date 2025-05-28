@@ -59,7 +59,7 @@ import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
 import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
 import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
-import { ProtectedRoute, AuthenticatedRoute } from "./lib/auth-routes";
+import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
