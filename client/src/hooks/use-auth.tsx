@@ -137,10 +137,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return new Promise<void>((resolve, reject) => {
       logoutMutation.mutate(undefined, {
         onSuccess: () => {
-          // Clear user data and redirect to homepage
+          // Clear all user data from cache
           queryClient.setQueryData(["/api/user"], null);
-          queryClient.removeQueries();
-          window.location.href = '/';
+          queryClient.clear(); // Clear all cache data
+          
+          // Force a hard redirect to clear any remaining state
+          window.location.replace('/');
           resolve();
         },
         onError: (error) => reject(error)
