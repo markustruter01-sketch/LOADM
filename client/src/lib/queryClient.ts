@@ -65,3 +65,20 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+export function createOfflineQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        queryFn: getQueryFn({ on401: "throw" }),
+        refetchInterval: false,
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 5, // 5 minutes for offline support
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  });
+}

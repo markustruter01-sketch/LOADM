@@ -1,66 +1,145 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Switch, Route } from "wouter";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createOfflineQueryClient } from "@/lib/queryClient";
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { IsolatedLoginForm } from './auth-isolated/login-component';
-import { IsolatedUserDisplay } from './auth-isolated/logout-component';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: false,
-    },
-  },
-});
+// Import all your existing pages
+import DocumentFormPage from "@/pages/document-form-page";
+import ScenarioPage from "@/pages/scenario-page-new";
+import DocsListPage from "@/pages/docs-list-page";
+import ScenariosPage from "@/pages/scenarios-page";
+import LoadPlanningPage from "@/pages/load-planning-page";
+import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
+import DocumentsPage from "@/pages/cargo-manifest-page";
+import ProfilePage from "@/pages/profile-page";
+import ToolsPage from "@/pages/tools-page";
+import TrainingModulesPage from "@/pages/training-modules";
+import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
+import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
+import AdminDashboard from "@/pages/admin/admin-dashboard";
+import DocumentManagement from "@/pages/admin/document-management";
+import ScenarioManagement from "@/pages/admin/scenario-management";
+import UserManagement from "@/pages/admin/user-management";
+import InstructorsPortal from "@/pages/instructors-portal";
+import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
+import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
+import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
+import StudentProgress from "@/pages/instructors-portal/student-progress";
+import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
+import AdvancedAnalytics from "@/pages/instructors-portal/analytics";
+import WAMCalculatorPage from "@/pages/tools/wam-calculator";
+import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
+import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
+import DrumPsiCalculatorPage from "@/pages/tools/drum-psi";
+import SkiddedBoxPsiCalculatorPage from "@/pages/tools/skidded-box-psi";
+import TirePsiCalculatorPage from "@/pages/tools/tire-psi";
+import HomePage from "@/pages/home-page";
+import ArmyHomePage from "@/pages/army-home-page";
+import NavyHomePage from "@/pages/navy-home-page";
+import NotFound from "@/pages/not-found";
+import QuizList from "@/pages/instructors-portal/quizzes";
+import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
+import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
+import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
+import SuperAdminDashboard from "@/pages/superadmin-dashboard";
+import LicensingManagement from "@/pages/licensing-management-fixed";
+import LicenseRegistration from "@/pages/license-registration";
+import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
+import DocumentSubmissions from "@/pages/instructors-portal/document-submissions";
+import TeachingMaterials from "@/pages/instructors-portal/resources";
+import BestPractices from "@/pages/instructors-portal/best-practices";
+import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
+import QuizPage from "@/pages/quizzes/[id]";
+import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
+import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
+import PermissionsDashboard from "@/pages/permissions-dashboard";
 
-function AuthenticatedDashboard() {
+// Import route protection components (we'll adapt these)
+import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
+import OfflineStatus from "@/components/OfflineStatus";
+
+const queryClient = createOfflineQueryClient();
+
+function AuthenticatedApp() {
   const { user } = useIsolatedAuth();
   
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">LOADMworkflow</h1>
-            <IsolatedUserDisplay />
-          </div>
-        </div>
-      </header>
-      
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-            <div className="text-center">
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                <strong>✅ Authentication Working!</strong>
-              </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Welcome to LOADMworkflow, {user?.email}!
-              </h2>
-              
-              <div className="space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-800">Available Features</h3>
-                  <div className="text-blue-700 mt-2">
-                    <p>• Quiz Creation (Authentication Fixed!)</p>
-                    <p>• Load Planning</p>
-                    <p>• Instructor Portal</p>
-                    <p>• Licensing Management</p>
-                  </div>
-                </div>
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-yellow-800">Test Quiz Creation</h3>
-                  <p className="text-yellow-700">
-                    Try accessing /api/quizzes endpoint - authentication should now work!
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <div className="App">
+        <OfflineStatus />
+        <Header />
+        <main className="main-content">
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/army" component={ArmyHomePage} />
+            <Route path="/navy" component={NavyHomePage} />
+            <Route path="/documents-old" component={DocsListPage} />
+            <Route path="/documents/:id" component={DocumentFormPage} />
+            <Route path="/scenarios" component={ScenariosPage} />
+            <Route path="/scenarios/:id" component={ScenarioPage} />
+            <Route path="/airframe">
+              {(params) => <AirframeIntegratedPage {...params} />}
+            </Route>
+            <Route path="/load-planning">
+              {(params) => <LoadPlanningSelectionPage {...params} />}
+            </Route>
+            <Route path="/load-planning/c27j" component={LoadPlanningPage} />
+            <Route path="/load-planning/c17" component={LoadPlanningPage} />
+            <Route path="/load-planning/c130" component={LoadPlanningPage} />
+            <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
+            <Route path="/documents" component={DocumentsPage} />
+            <Route path="/cargo-manifest" component={DocumentsPage} />
+            <Route path="/profile" component={ProfilePage} />
+            <Route path="/tools" component={ToolsPage} />
+            <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
+            <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
+            <Route path="/tools/box-psi" component={BoxPsiCalculatorPage} />
+            <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
+            <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
+            <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
+            <Route path="/training-modules">
+              {(params) => <TrainingModulesPage {...params} />}
+            </Route>
+            <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
+            <ProtectedRoute path="/admin" component={AdminDashboard} />
+            <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
+            <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
+            <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
+            <ProtectedRoute path="/admin/users" component={UserManagement} />
+            <InstructorRoute path="/instructors-portal" component={InstructorsPortal} />
+            <InstructorRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
+            <InstructorRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
+            <InstructorRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
+            <InstructorRoute path="/instructors-portal/student-progress" component={StudentProgress} />
+            <InstructorRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
+            <InstructorRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
+            <InstructorRoute path="/instructors-portal/quizzes" component={QuizList} />
+            <InstructorRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
+            <InstructorRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
+            <InstructorRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
+            <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
+            <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
+            <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
+            <Route path="/license-registration" component={LicenseRegistration} />
+            <InstructorRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
+            <InstructorRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
+            <InstructorRoute path="/instructors-portal/resources" component={TeachingMaterials} />
+            <InstructorRoute path="/instructors-portal/best-practices" component={BestPractices} />
+            <InstructorRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />
+            <AuthenticatedRoute path="/quizzes/:id" component={QuizPage} />
+            <InstructorRoute path="/instructors-portal/quiz-submissions" component={QuizSubmissions} />
+            <InstructorRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+        <BottomNav />
+        <Footer />
+      </div>
+    </QueryClientProvider>
   );
 }
 
@@ -79,11 +158,7 @@ function AppContent() {
     return <IsolatedLoginForm />;
   }
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AuthenticatedDashboard />
-    </QueryClientProvider>
-  );
+  return <AuthenticatedApp />;
 }
 
 function App() {

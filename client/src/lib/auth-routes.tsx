@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Route, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-simple-auth";
+import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -96,7 +96,7 @@ export function SuperAdminRoute({
  * Redirects to login if not
  */
 function AdminCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
   const [, navigate] = useLocation();
 
   // Show loading while checking authentication
@@ -108,9 +108,9 @@ function AdminCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Redirect if not authenticated or not admin
-  if (!user || !user.isAdmin) {
-    navigate("/auth");
+  // Redirect if not authenticated or not admin (instructor or superadmin)
+  if (!user || (user.role !== 'instructor' && user.role !== 'superadmin')) {
+    navigate("/");
     return null;
   }
 
@@ -123,7 +123,7 @@ function AdminCheck({ children }: { children: React.ReactNode }) {
  * Redirects to login if not
  */
 function UserCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
   const [, navigate] = useLocation();
 
   // Only redirect if explicitly not authenticated
@@ -152,7 +152,7 @@ function UserCheck({ children }: { children: React.ReactNode }) {
  * Redirects to home if not a superadmin, redirects to login if not authenticated
  */
 function SuperAdminCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
 
   if (isLoading) {
     return (
@@ -162,7 +162,7 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || !user.isSuperAdmin) {
+  if (!user || user.role !== 'superadmin') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -181,7 +181,7 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
  * Redirects to home if not authorized
  */
 function InstructorCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
 
   if (isLoading) {
     return (
@@ -192,7 +192,7 @@ function InstructorCheck({ children }: { children: React.ReactNode }) {
   }
 
   // Superadmins should have access to everything, including instructor portal
-  if (!user || (!user.isAdmin && !user.isSuperAdmin)) {
+  if (!user || (user.role !== 'instructor' && user.role !== 'superadmin')) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
