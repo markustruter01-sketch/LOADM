@@ -38,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (response.ok) {
         const userData = await response.json();
+        console.log('Frontend received user data:', userData);
         setUser(userData);
       } else {
         setUser(null);
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const userData = await response.json();
+        console.log('Login response data:', userData);
         setUser(userData);
         toast({
           title: "Login successful",

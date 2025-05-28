@@ -146,13 +146,14 @@ export function setupAuth(app: Express) {
     // Don't return the password hash in the response and transform to camelCase
     if (req.user) {
       console.log('Login successful for user:', req.user.username);
-      console.log('Session ID after login:', req.sessionID);
+      console.log('Raw user from database:', req.user);
       const { password, is_admin, is_super_admin, ...rest } = req.user as any;
       const safeUser = {
         ...rest,
-        isAdmin: is_admin,
-        isSuperAdmin: is_super_admin
+        isAdmin: Boolean(is_admin),
+        isSuperAdmin: Boolean(is_super_admin)
       };
+      console.log('Transformed user being sent to frontend:', safeUser);
       res.status(200).json(safeUser);
     } else {
       res.status(401).json({ message: "Authentication failed" });
