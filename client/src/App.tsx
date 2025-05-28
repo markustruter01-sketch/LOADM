@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
-import { AuthProvider } from "@/hooks/use-simple-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-simple-auth";
 import { OfflineProvider } from "@/hooks/use-offline";
 import { createOfflineQueryClient } from "@/lib/offlineClient";
 

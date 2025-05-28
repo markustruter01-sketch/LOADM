@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Route, useLocation } from "wouter";
-import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import { useAuth } from "@/hooks/use-simple-auth";
 import { Loader2 } from "lucide-react";
 
 /**

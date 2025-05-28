@@ -13,7 +13,7 @@ import {
   Plane 
 } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
-import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import { useAuth } from "@/hooks/use-simple-auth";
 import SimpleLoginModal from "@/components/SimpleLoginModal";
 import { useState } from "react";
 

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
-import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import { useAuth } from "@/hooks/use-simple-auth";
 import SimpleLoginModal from "./SimpleLoginModal";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";

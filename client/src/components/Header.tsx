@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
-import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import { useAuth } from "@/hooks/use-simple-auth";
 import DownloadApp from "./DownloadApp";
 import SimpleLoginModal from "./SimpleLoginModal";
 import { useState } from "react";
