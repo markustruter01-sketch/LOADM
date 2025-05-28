@@ -141,8 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           queryClient.setQueryData(["/api/user"], null);
           queryClient.clear(); // Clear all cache data
           
-          // Force a hard redirect to clear any remaining state
-          window.location.replace('/');
+          // Force a complete page reload to the home page
+          window.location.href = window.location.origin + '/';
           resolve();
         },
         onError: (error) => reject(error)
