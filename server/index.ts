@@ -89,7 +89,59 @@ app.get('/api/management/users', (req, res) => {
   return res.json(users);
 });
 
-// Add authentication middleware for other endpoints
+// Direct license creation endpoint with different path to bypass routing conflicts
+app.post('/api/direct-license-create', async (req, res) => {
+  console.log('=== DIRECT LICENSE CREATION ENDPOINT HIT ===');
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { email, username, licenseType, duration, maxSessions, maxDevices, notes } = req.body;
+    
+    // Generate license key
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const segments = [];
+    for (let i = 0; i < 4; i++) {
+      let segment = '';
+      for (let j = 0; j < 4; j++) {
+        segment += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      segments.push(segment);
+    }
+    const licenseKey = segments.join('-');
+    
+    // Calculate expiration date
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + parseInt(duration));
+    
+    // Create the license object
+    const newLicense = {
+      id: Math.floor(Math.random() * 10000),
+      licenseKey,
+      email,
+      username,
+      licenseType,
+      expiresAt: expiresAt.toISOString(),
+      maxConcurrentSessions: parseInt(maxSessions),
+      maxDevices: parseInt(maxDevices),
+      isActive: true,
+      notes: notes || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log('Created license:', newLicense);
+    return res.json(newLicense);
+    
+  } catch (error) {
+    console.error('License creation error:', error);
+    return res.status(500).json({ message: 'Failed to create license' });
+  }
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Add authentication middleware AFTER body parsing
 app.use((req, res, next) => {
   // Add isAuthenticated function
   req.isAuthenticated = () => true; // Simplified for now
@@ -105,11 +157,6 @@ app.use((req, res, next) => {
   
   next();
 });
-
-
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
