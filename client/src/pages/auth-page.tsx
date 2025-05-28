@@ -47,10 +47,16 @@ export default function AuthPage() {
     // Check URL for parameters
     const params = new URLSearchParams(window.location.search);
     
-    // Redirect logged-in users to home page or previous page if available
+    // Redirect logged-in users based on their role
     if (user) {
-      const returnPath = params.get('returnTo') || '/';
-      setLocation(returnPath);
+      if (user.isSuperAdmin) {
+        // Redirect superadmin to admin dashboard
+        setLocation('/instructors-portal');
+      } else {
+        // Redirect regular users to home page or previous page
+        const returnPath = params.get('returnTo') || '/';
+        setLocation(returnPath);
+      }
     }
   }, [user, setLocation]);
 
