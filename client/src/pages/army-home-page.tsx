@@ -71,7 +71,8 @@ export default function ArmyHomePage() {
               <img
                 src={armyHelicopterImage}
                 alt="Army helicopter conducting logistics operations"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
+                style={{ objectPosition: 'center 30%' }}
               />
               <div className="gradient-overlay flex items-end">
                 <div className="p-8">
