@@ -19,6 +19,7 @@ interface License {
   email: string;
   username: string;
   licenseKey: string;
+  licenseType: 'loadmaster' | 'instructor' | 'superadmin';
   issuedDate: string;
   expiryDate: string;
   status: 'active' | 'suspended' | 'expired';
@@ -494,6 +495,7 @@ export default function LicensingManagementFixed() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>License Key</TableHead>
+                <TableHead>License Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Expires</TableHead>
                 <TableHead>Sessions</TableHead>
@@ -507,7 +509,7 @@ export default function LicensingManagementFixed() {
                 </TableRow>
               ) : filteredLicenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">No licenses found</TableCell>
+                  <TableCell colSpan={7} className="text-center">No licenses found</TableCell>
                 </TableRow>
               ) : (
                 filteredLicenses.map((license) => (
@@ -519,6 +521,17 @@ export default function LicensingManagementFixed() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-sm">{license.licenseKey}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={
+                        license.licenseType === 'superadmin' ? 'border-purple-500 text-purple-700' :
+                        license.licenseType === 'instructor' ? 'border-blue-500 text-blue-700' :
+                        'border-green-500 text-green-700'
+                      }>
+                        {license.licenseType === 'superadmin' ? 'Superadmin' :
+                         license.licenseType === 'instructor' ? 'Instructor' :
+                         'Loadmaster'}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{getStatusBadge(license)}</TableCell>
                     <TableCell>
                       <div className="text-sm">

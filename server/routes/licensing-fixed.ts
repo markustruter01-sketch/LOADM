@@ -54,11 +54,16 @@ router.get('/licenses', requireSuperAdmin, async (req, res) => {
 // Create new license - completely rebuilt
 router.post('/licenses', requireSuperAdmin, async (req, res) => {
   try {
-    const { email, username, expiryDate, maxConcurrentSessions = 1, maxDevices = 2, notes = '' } = req.body;
+    const { email, username, licenseType = 'loadmaster', expiryDate, maxConcurrentSessions = 1, maxDevices = 2, notes = '' } = req.body;
     
     // Simple validation
     if (!email || !username || !expiryDate) {
       return res.status(400).json({ error: 'Missing required fields: email, username, expiryDate' });
+    }
+
+    // Validate license type
+    if (!['loadmaster', 'instructor', 'superadmin'].includes(licenseType)) {
+      return res.status(400).json({ error: 'Invalid license type. Must be: loadmaster, instructor, or superadmin' });
     }
 
     // Validate email format
@@ -80,6 +85,7 @@ router.post('/licenses', requireSuperAdmin, async (req, res) => {
       email,
       username,
       licenseKey,
+      licenseType,
       expiryDate: parsedExpiryDate,
       maxConcurrentSessions: parseInt(maxConcurrentSessions.toString()),
       maxDevices: parseInt(maxDevices.toString()),
