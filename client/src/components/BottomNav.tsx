@@ -1,8 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import SimpleLoginModal from "./SimpleLoginModal";
 import { cn } from "@/lib/utils";
-import { ForwardRefExoticComponent, RefAttributes } from "react";
+import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
 import { LucideProps } from "lucide-react";
 
 interface NavItem {
@@ -14,8 +15,26 @@ interface NavItem {
 
 export default function BottomNav() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const [, setLocation] = useLocation();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+
+  const requireLogin = (targetPath: string) => {
+    if (!user) {
+      setPendingNavigation(targetPath);
+      setShowLoginModal(true);
+      return;
+    }
+    setLocation(targetPath);
+  };
+
+  const handleLoginSuccess = () => {
+    if (pendingNavigation) {
+      setLocation(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
 
   const navItems: NavItem[] = [
     {
@@ -60,8 +79,12 @@ export default function BottomNav() {
   const allNavItems = [...navItems];
 
   const handleNavClick = (href: string) => {
-    // Use the wouter setLocation for a faster navigation with no page refresh
-    setLocation(href);
+    // Only allow home page access without login, everything else requires authentication
+    if (href === "/") {
+      setLocation(href);
+    } else {
+      requireLogin(href);
+    }
   };
 
   return (
@@ -86,6 +109,13 @@ export default function BottomNav() {
           </div>
         ))}
       </div>
+
+      {/* Login Modal */}
+      <SimpleLoginModal 
+        open={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </div>
   );
 }
