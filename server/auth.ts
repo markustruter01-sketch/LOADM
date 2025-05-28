@@ -5,7 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       isAuthenticated(): boolean;
-      user?: {
+      user: {
         id: number;
         username: string;
         email: string;

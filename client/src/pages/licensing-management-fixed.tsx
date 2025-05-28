@@ -149,9 +149,7 @@ export default function LicensingManagementFixed() {
   // Reactivate license mutation
   const reactivateLicenseMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/licensing/licenses/${id}/reactivate`, {
-        method: 'POST',
-      });
+      return apiRequest(`/api/licensing/licenses/${id}/reactivate`, { method: 'POST' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
