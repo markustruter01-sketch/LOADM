@@ -4,6 +4,72 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// License creation endpoint - MUST be before all middleware - use /license path to avoid conflicts
+app.use('/license', express.json());
+app.post('/license', (req, res) => {
+  console.log('=== LICENSE CREATION ENDPOINT HIT ===');
+  console.log('Request body:', req.body);
+  
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  try {
+    const { email, username, licenseType, duration, maxSessions, maxDevices, notes } = req.body;
+    
+    if (!email || !username || !licenseType) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
+    // Generate license key
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const segments = [];
+    for (let i = 0; i < 4; i++) {
+      let segment = '';
+      for (let j = 0; j < 4; j++) {
+        segment += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      segments.push(segment);
+    }
+    const licenseKey = segments.join('-');
+    
+    // Calculate expiration date
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + parseInt(duration || 30));
+    
+    // Create the license object
+    const newLicense = {
+      id: Math.floor(Math.random() * 10000),
+      licenseKey,
+      email,
+      username,
+      licenseType,
+      expiresAt: expiresAt.toISOString(),
+      maxConcurrentSessions: parseInt(maxSessions || 1),
+      maxDevices: parseInt(maxDevices || 1),
+      isActive: true,
+      notes: notes || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log('Successfully created license:', newLicense);
+    return res.json(newLicense);
+    
+  } catch (error) {
+    console.error('License creation error:', error);
+    return res.status(500).json({ 
+      message: 'Failed to create license', 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Raw authentication before ANY middleware
 app.use('/api/login', express.json(), (req, res) => {
   console.log("=== RAW LOGIN HIT ===", req.body);
@@ -89,54 +155,7 @@ app.get('/api/management/users', (req, res) => {
   return res.json(users);
 });
 
-// Direct license creation endpoint with different path to bypass routing conflicts
-app.post('/api/direct-license-create', async (req, res) => {
-  console.log('=== DIRECT LICENSE CREATION ENDPOINT HIT ===');
-  res.setHeader('Content-Type', 'application/json');
-  
-  try {
-    const { email, username, licenseType, duration, maxSessions, maxDevices, notes } = req.body;
-    
-    // Generate license key
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const segments = [];
-    for (let i = 0; i < 4; i++) {
-      let segment = '';
-      for (let j = 0; j < 4; j++) {
-        segment += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      segments.push(segment);
-    }
-    const licenseKey = segments.join('-');
-    
-    // Calculate expiration date
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + parseInt(duration));
-    
-    // Create the license object
-    const newLicense = {
-      id: Math.floor(Math.random() * 10000),
-      licenseKey,
-      email,
-      username,
-      licenseType,
-      expiresAt: expiresAt.toISOString(),
-      maxConcurrentSessions: parseInt(maxSessions),
-      maxDevices: parseInt(maxDevices),
-      isActive: true,
-      notes: notes || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    console.log('Created license:', newLicense);
-    return res.json(newLicense);
-    
-  } catch (error) {
-    console.error('License creation error:', error);
-    return res.status(500).json({ message: 'Failed to create license' });
-  }
-});
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
