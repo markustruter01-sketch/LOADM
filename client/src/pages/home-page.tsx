@@ -19,7 +19,7 @@ import { useState } from "react";
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 

@@ -16,7 +16,7 @@ import {
 
 export default function Header() {
   const [location, setLocation] = useLocation();
-  const { user, logout } = useSimpleAuth();
+  const { user, logout } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 

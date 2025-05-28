@@ -15,7 +15,7 @@ interface NavItem {
 
 export default function BottomNav() {
   const [location] = useLocation();
-  const { user } = useSimpleAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
