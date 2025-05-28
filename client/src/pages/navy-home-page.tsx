@@ -12,6 +12,7 @@ import {
   BookOpen,
   Plane 
 } from "lucide-react";
+import navyHelicopterImage from "@assets/image_1748392300738.png";
 
 export default function NavyHomePage() {
   const [, setLocation] = useLocation();
@@ -67,12 +68,12 @@ export default function NavyHomePage() {
 
             {/* Featured Section Banner - Navy Theme */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
-              <div className="w-full h-full bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center">
-                <div className="text-center">
-                  <h3 className="text-4xl font-bold text-white mb-2">U.S. NAVY</h3>
-                  <p className="text-blue-100 text-xl">Maritime Logistics & Operations</p>
-                </div>
-              </div>
+              <img
+                src={navyHelicopterImage}
+                alt="Navy helicopter conducting maritime operations"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: 'center center' }}
+              />
               <div className="gradient-overlay flex items-end">
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-foreground mb-2 text-left">
