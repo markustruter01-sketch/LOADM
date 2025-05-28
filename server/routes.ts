@@ -41,6 +41,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
   setupAuth(app);
 
+  // Import and use the rebuilt licensing routes
+  const licensingRoutes = await import('./routes/licensing-fixed');
+  app.use('/api/licensing', licensingRoutes.default);
+
   // Quiz submissions endpoint for instructors
   app.get("/api/instructor/quiz-submissions", async (req, res) => {
     try {
