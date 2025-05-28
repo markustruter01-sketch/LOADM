@@ -50,8 +50,8 @@ export default function AuthPage() {
     // Redirect logged-in users based on their role
     if (user) {
       if (user.isSuperAdmin) {
-        // Redirect superadmin to admin dashboard
-        setLocation('/instructors-portal');
+        // Redirect superadmin to their dedicated dashboard
+        setLocation('/superadmin-dashboard');
       } else {
         // Redirect regular users to home page or previous page
         const returnPath = params.get('returnTo') || '/';

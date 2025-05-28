@@ -48,6 +48,9 @@ import QuizList from "@/pages/instructors-portal/quizzes";
 import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
 import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
 import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
+import SuperAdminDashboard from "@/pages/superadmin-dashboard";
+import LicensingManagement from "@/pages/licensing-management";
+import LicenseRegistration from "@/pages/license-registration";
 import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
 import DocumentSubmissions from "@/pages/instructors-portal/document-submissions";
 import TeachingMaterials from "@/pages/instructors-portal/resources";
@@ -125,6 +128,12 @@ function Router() {
           <AuthenticatedRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
           <AuthenticatedRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
           <Route path="/quizzes/:id" component={QuizPage} />
+          
+          {/* SuperAdmin Only Routes */}
+          <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
+          <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
+          <Route path="/license-registration" component={LicenseRegistration} />
+          
           <Route component={NotFound} />
         </Switch>
       </main>
