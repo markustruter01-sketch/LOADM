@@ -49,7 +49,7 @@ import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
 import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
 import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
 import SuperAdminDashboard from "@/pages/superadmin-dashboard";
-import LicensingManagement from "@/pages/licensing-management-fixed";
+import LicensingManagement from "@/pages/licensing-management-clean";
 import LicenseCreator from "@/pages/license-creator";
 import LicenseRegistration from "@/pages/license-registration";
 import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
