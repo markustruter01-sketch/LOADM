@@ -12,6 +12,7 @@ import {
   BookOpen,
   Plane 
 } from "lucide-react";
+import armyHelicopterImage from "@assets/image_1748392010087.png";
 
 export default function ArmyHomePage() {
   const [, setLocation] = useLocation();
@@ -67,12 +68,11 @@ export default function ArmyHomePage() {
 
             {/* Featured Section Banner - Army Theme */}
             <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
-              <div className="w-full h-full bg-gradient-to-r from-green-800 via-green-700 to-green-600 flex items-center justify-center">
-                <div className="text-center">
-                  <h3 className="text-4xl font-bold text-white mb-2">U.S. ARMY</h3>
-                  <p className="text-green-100 text-xl">Logistics & Transportation</p>
-                </div>
-              </div>
+              <img
+                src={armyHelicopterImage}
+                alt="Army helicopter conducting logistics operations"
+                className="w-full h-full object-cover"
+              />
               <div className="gradient-overlay flex items-end">
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-foreground mb-2 text-left">
