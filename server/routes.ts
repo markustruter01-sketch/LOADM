@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
+import { setupAuth } from "./auth-fixed";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, licenses, users } from "@shared/schema";
 import { eq, and, gt } from "drizzle-orm";
