@@ -37,7 +37,8 @@ router.post('/login', async (req, res) => {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      role: user.role
+      role: user.role,
+      isFirstLogin: user.isFirstLogin || false
     });
     
   } catch (error) {
@@ -100,6 +101,48 @@ router.get('/user', (req, res) => {
   } catch (error) {
     console.error('✅ ISOLATED: User check error:', error);
     res.status(500).json({ error: 'Authentication check failed' });
+  }
+});
+
+// ISOLATED PASSWORD CHANGE - For first-time login
+router.post('/change-password', async (req, res) => {
+  try {
+    console.log('✅ ISOLATED: Password change request');
+    const sessionId = req.cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+    
+    // Update password in database
+    const bcrypt = await import('bcryptjs');
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await sql`
+      UPDATE users 
+      SET hashed_password = ${hashedPassword}, is_first_login = false 
+      WHERE email = ${session.email}
+    `;
+    
+    console.log(`✅ ISOLATED: Password changed for ${session.email}`);
+    res.json({ success: true, message: 'Password updated successfully' });
+    
+  } catch (error) {
+    console.error('✅ ISOLATED: Password change error:', error);
+    res.status(500).json({ error: 'Password change failed' });
   }
 });
 

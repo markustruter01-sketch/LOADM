@@ -101,8 +101,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         notes: ''
       }).returning();
 
-      // Create user account with default password
-      const defaultPassword = '12345678';
+      // Create user account with template password
+      const defaultPassword = 'Password1!';
       const hashedPassword = await import('bcryptjs').then(bcrypt => bcrypt.hash(defaultPassword, 10));
 
       const newUser = await db.insert(users).values({

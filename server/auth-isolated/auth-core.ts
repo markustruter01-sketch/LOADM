@@ -99,7 +99,8 @@ export async function authenticateUser(email: string, password: string) {
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
-      role: user.role
+      role: user.role,
+      isFirstLogin: user.is_first_login
     };
   } catch (error) {
     console.log(`✅ ISOLATED AUTH: Database error, falling back to superadmin-only mode`);
