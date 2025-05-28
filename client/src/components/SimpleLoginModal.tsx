@@ -14,7 +14,7 @@ interface SimpleLoginModalProps {
 }
 
 export default function SimpleLoginModal({ open, onClose, onSuccess }: SimpleLoginModalProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -22,10 +22,10 @@ export default function SimpleLoginModal({ open, onClose, onSuccess }: SimpleLog
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!email || !password) {
       toast({
         title: "Missing credentials",
-        description: "Please enter both username and password",
+        description: "Please enter both email and password",
         variant: "destructive",
       });
       return;
@@ -33,7 +33,7 @@ export default function SimpleLoginModal({ open, onClose, onSuccess }: SimpleLog
 
     setIsLoading(true);
     try {
-      await login(username, password);
+      await login(email, password);
       onClose();
       if (onSuccess) {
         onSuccess();
@@ -50,7 +50,7 @@ export default function SimpleLoginModal({ open, onClose, onSuccess }: SimpleLog
   };
 
   const handleClose = () => {
-    setUsername("");
+    setEmail("");
     setPassword("");
     onClose();
   };
@@ -67,13 +67,13 @@ export default function SimpleLoginModal({ open, onClose, onSuccess }: SimpleLog
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
               disabled={isLoading}
             />
           </div>

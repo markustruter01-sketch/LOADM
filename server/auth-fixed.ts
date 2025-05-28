@@ -39,15 +39,55 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Passport strategy
-  passport.use(new LocalStrategy(async (username, password, done) => {
+  // Passport strategy - updated to use email instead of username
+  passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  }, async (email, password, done) => {
     try {
-      const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+      // Find user by email and include license information
+      const result = await db.select({
+        id: users.id,
+        username: users.username,
+        email: users.email,
+        password: users.password,
+        isAdmin: users.isAdmin,
+        isSuperAdmin: users.isSuperAdmin,
+        licenseId: users.licenseId
+      }).from(users).where(eq(users.email, email)).limit(1);
+      
       if (!result.length) return done(null, false);
       
       const user = result[0];
+      
+      // Verify password
       const isValid = await verifyPassword(password, user.password);
       if (!isValid) return done(null, false);
+      
+      // Check if user has a valid license
+      if (!user.licenseId) {
+        return done(null, false, { message: 'No license assigned to this account' });
+      }
+      
+      // Verify license is active and not expired
+      const { licenses } = await import("@shared/schema");
+      const licenseResult = await db.select().from(licenses).where(eq(licenses.id, user.licenseId)).limit(1);
+      
+      if (!licenseResult.length) {
+        return done(null, false, { message: 'Invalid license' });
+      }
+      
+      const license = licenseResult[0];
+      
+      // Check if license is active
+      if (license.status !== 'active') {
+        return done(null, false, { message: 'License is not active' });
+      }
+      
+      // Check if license is expired
+      if (new Date() > new Date(license.expiryDate)) {
+        return done(null, false, { message: 'License has expired' });
+      }
 
       return done(null, {
         id: user.id,
@@ -84,8 +124,23 @@ export function setupAuth(app: Express) {
   });
 
   // Routes
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.json(req.user);
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (!user) {
+        return res.status(401).json({ 
+          message: info?.message || "Invalid email address or password, or no active license found" 
+        });
+      }
+      req.logIn(user, (err: any) => {
+        if (err) {
+          return res.status(500).json({ message: "Login failed" });
+        }
+        return res.json(user);
+      });
+    })(req, res, next);
   });
 
   app.get("/api/user", (req, res) => {
