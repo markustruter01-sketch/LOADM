@@ -77,10 +77,10 @@ export default function ArmyHomePage() {
               <div className="gradient-overlay flex items-end">
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-foreground mb-2 text-left">
-                    Army Logistics Operations
+                    Streamline Your Loadmaster Experience
                   </h3>
                   <p className="text-muted-foreground max-w-xl text-left">
-                    Access Load Planning, Documentation, Training Scenarios and Assessments for Army operations.
+                    Access Load Planning, Documentation, Training Scenarios and Assessments.
                   </p>
                 </div>
               </div>
