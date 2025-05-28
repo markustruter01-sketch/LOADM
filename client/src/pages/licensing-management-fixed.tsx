@@ -68,7 +68,7 @@ export default function LicensingManagementFixed() {
     mutationFn: async (licenseData: any) => {
       console.log('Submitting license data:', licenseData);
       try {
-        const response = await fetch('/api/licensing/licenses', {
+        const response = await fetch('/api/direct-license-create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
