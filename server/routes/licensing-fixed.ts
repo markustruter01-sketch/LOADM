@@ -8,6 +8,9 @@ const router = Router();
 
 // Simple middleware for super admin check
 function requireSuperAdmin(req: any, res: any, next: any) {
+  console.log('Auth check - isAuthenticated:', req.isAuthenticated());
+  console.log('Auth check - user:', req.user);
+  
   if (!req.isAuthenticated() || !req.user?.isSuperAdmin) {
     return res.status(403).json({ message: "Access denied. Super admin required." });
   }
