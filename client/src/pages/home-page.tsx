@@ -14,14 +14,10 @@ import {
 } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
-import SimpleLoginModal from "@/components/SimpleLoginModal";
-import { useState } from "react";
 
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const { user } = useIsolatedAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
   const handleServiceBranchChange = (value: string) => {
     if (value === "army") {
@@ -37,12 +33,7 @@ export default function HomePage() {
     };
   };
 
-  const handleLoginSuccess = () => {
-    if (pendingNavigation) {
-      setLocation(pendingNavigation);
-      setPendingNavigation(null);
-    }
-  };
+
 
   return (
     <>
@@ -189,12 +180,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Login Modal */}
-      <SimpleLoginModal 
-        open={showLoginModal} 
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={handleLoginSuccess}
-      />
     </>
   );
 }
