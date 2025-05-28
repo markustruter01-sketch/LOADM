@@ -115,9 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const quizzesRouter = await import('./routes/quizzes');
   app.use('/api/quizzes', quizzesRouter.default);
   
-  // Import licensing routes
-  const licensingRouter = await import('./routes/licensing');
-  app.use('/api/licensing', licensingRouter.default);
+  // Old licensing routes removed - using the new fixed system above
 
   // License verification endpoint
   app.post('/api/verify-license', async (req, res) => {
