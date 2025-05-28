@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLocation } from 'wouter';
 import { 
   Users, 
   Shield, 
@@ -20,7 +21,8 @@ import {
   Edit,
   Trash2,
   Eye,
-  Settings
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
 
 interface User {
@@ -46,6 +48,7 @@ export default function PermissionsDashboard() {
   const [roleFilter, setRoleFilter] = useState('all');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch all users
   const { data: users = [], isLoading } = useQuery<User[]>({
@@ -125,6 +128,14 @@ export default function PermissionsDashboard() {
   return (
     <div className="min-h-screen bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
+        <Button 
+          variant="outline" 
+          className="mb-6 border-gray-600 text-gray-200 hover:bg-gray-800" 
+          onClick={() => setLocation('/superadmin-dashboard')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admin Dashboard
+        </Button>
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

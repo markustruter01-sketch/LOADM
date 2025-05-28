@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw } from "lucide-react";
+import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface License {
   id: number;
@@ -50,6 +51,7 @@ export default function LicensingManagementFixed() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch licenses
   const { data: licenses = [], isLoading: licensesLoading } = useQuery<License[]>({
@@ -398,6 +400,14 @@ export default function LicensingManagementFixed() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Button 
+        variant="outline" 
+        className="mb-6" 
+        onClick={() => setLocation('/superadmin-dashboard')}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admin Dashboard
+      </Button>
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
