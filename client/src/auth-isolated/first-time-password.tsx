@@ -10,6 +10,7 @@ import { Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 
 export function FirstTimePasswordChange() {
   const [, setLocation] = useLocation();
+  const { refreshUser } = useIsolatedAuth();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -54,8 +55,9 @@ export function FirstTimePasswordChange() {
       });
 
       if (response.ok) {
-        // Password changed successfully, redirect to homepage
-        setLocation('/');
+        // Password changed successfully, refresh user data to update isFirstLogin status
+        await refreshUser();
+        // User will now be redirected to main app automatically
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to change password');
