@@ -18,24 +18,29 @@ declare global {
   }
 }
 
-// License-based authentication middleware
+// Session-based authentication middleware
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Add isAuthenticated function that checks for valid license
+  // Add isAuthenticated function that checks for session user
   req.isAuthenticated = () => {
-    // Always allow superadmin
-    if (req.user?.email === 'markustruter01@gmail.com') return true;
-    // For other users, check if they have an active license
-    return req.user?.licenseId != null;
+    return req.user != null;
   };
   
-  // Add user object for superadmin (temporary until proper auth)
-  req.user = {
-    id: 9,
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true,
-    licenseId: null // Superadmin doesn't need license
-  };
+  // Check if user is logged in via session or default to superadmin for testing
+  if (req.session?.user) {
+    req.user = req.session.user;
+  } else if (!req.session?.loggedOut) {
+    // Default to superadmin only if not explicitly logged out
+    req.user = {
+      id: 9,
+      email: 'markustruter01@gmail.com',
+      isAdmin: true,
+      isSuperAdmin: true,
+      licenseId: null
+    };
+  } else {
+    // User is logged out - no user object
+    req.user = null as any;
+  }
   
   next();
 }

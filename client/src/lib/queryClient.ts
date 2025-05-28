@@ -7,6 +7,9 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Generate a unique session ID for this browser session
+const SESSION_ID = Math.random().toString(36).substring(2) + Date.now().toString(36);
+
 export async function apiRequest(
   url: string, 
   options: {
@@ -19,6 +22,7 @@ export async function apiRequest(
     method: options.method,
     headers: {
       ...(options.body ? { "Content-Type": "application/json" } : {}),
+      "X-Session-ID": SESSION_ID,
       ...options.headers
     },
     body: options.body ? JSON.stringify(options.body) : undefined,

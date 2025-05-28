@@ -5,10 +5,17 @@ import { authMiddleware } from "./auth";
 
 const app = express();
 
-// Simple authentication endpoints
+// Session storage for logged out state
+const loggedOutSessions = new Set();
+
+// Session-aware authentication endpoints
 app.post('/api/login', express.json(), (req, res) => {
   const { email, password } = req.body;
+  const sessionId = req.headers['x-session-id'] || req.ip;
+  
   if (email === 'markustruter01@gmail.com' && password === 'Skating69!') {
+    // Remove from logged out sessions
+    loggedOutSessions.delete(sessionId);
     return res.json({
       id: 9,
       username: 'superadmin',
@@ -21,6 +28,13 @@ app.post('/api/login', express.json(), (req, res) => {
 });
 
 app.get('/api/user', (req, res) => {
+  const sessionId = req.headers['x-session-id'] || req.ip;
+  
+  // Check if this session has been logged out
+  if (loggedOutSessions.has(sessionId)) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  
   res.json({
     id: 9,
     username: 'superadmin',
@@ -28,6 +42,15 @@ app.get('/api/user', (req, res) => {
     isAdmin: true,
     isSuperAdmin: true
   });
+});
+
+app.post('/api/logout', express.json(), (req, res) => {
+  const sessionId = req.headers['x-session-id'] || req.ip;
+  
+  // Mark this session as logged out
+  loggedOutSessions.add(sessionId);
+  
+  res.json({ success: true, message: "Logged out successfully" });
 });
 
 

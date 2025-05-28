@@ -175,29 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logout endpoint with proper session clearing
-  app.post("/api/logout", async (req, res) => {
-    try {
-      // Clear session if using express-session
-      if (req.session) {
-        req.session.destroy((err) => {
-          if (err) {
-            console.error('Session destruction error:', err);
-          }
-        });
-      }
-      
-      // Clear any cookies
-      res.clearCookie('connect.sid');
-      res.clearCookie('session');
-      
-      // Send success response
-      res.json({ success: true, message: "Logged out successfully" });
-    } catch (error) {
-      console.error('Logout error:', error);
-      res.status(500).json({ message: "Logout failed" });
-    }
-  });
+  // Logout is now handled in index.ts
 
   // Quiz submissions endpoint for instructors
   app.get("/api/instructor/quiz-submissions", async (req, res) => {
