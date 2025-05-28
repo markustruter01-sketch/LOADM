@@ -62,15 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
-      
-      // Immediate redirect based on user role
-      setTimeout(() => {
-        if (user.isSuperAdmin) {
-          window.location.href = '/superadmin-dashboard';
-        } else {
-          window.location.href = '/';
-        }
-      }, 100);
+      // Don't redirect on login - let the modal handle navigation
     },
     onError: (error: Error) => {
       toast({
@@ -145,7 +137,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return new Promise<void>((resolve, reject) => {
       logoutMutation.mutate(undefined, {
         onSuccess: () => {
-          // Redirect to home after successful logout
+          // Clear user data and redirect to homepage
+          queryClient.setQueryData(["/api/user"], null);
+          queryClient.removeQueries();
           window.location.href = '/';
           resolve();
         },
