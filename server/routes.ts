@@ -109,6 +109,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const quizzesRouter = await import('./routes/quizzes');
   app.use('/api/quizzes', quizzesRouter.default);
   
+  // Import licensing routes
+  const licensingRouter = await import('./routes/licensing');
+  app.use('/api/licensing', licensingRouter.default);
+  
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {
