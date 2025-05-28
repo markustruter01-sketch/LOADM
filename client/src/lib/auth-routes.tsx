@@ -48,6 +48,28 @@ export function AuthenticatedRoute({
 }
 
 /**
+ * InstructorRoute - Route that requires instructor privileges or superadmin
+ * Redirects to home if user is not an instructor or superadmin
+ */
+export function InstructorRoute({
+  path,
+  component: Component,
+}: {
+  path: string;
+  component: React.ComponentType;
+}) {
+  return (
+    <Route path={path}>
+      {(params) => (
+        <InstructorCheck>
+          <Component {...params} />
+        </InstructorCheck>
+      )}
+    </Route>
+  );
+}
+
+/**
  * SuperAdminRoute - Route that requires superadmin privileges
  * Redirects to login if user is not authenticated or not a superadmin
  */
@@ -153,6 +175,39 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
   }
 
   if (!user || !user.isSuperAdmin) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
+/**
+ * InstructorCheck - Component that checks if user is an instructor or superadmin
+ * Redirects to home if not authorized
+ */
+function InstructorCheck({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        navigate("/auth");
+      } else if (!user.isAdmin && !user.isSuperAdmin) {
+        navigate("/"); // Redirect unauthorized users to home
+      }
+    }
+  }, [user, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || (!user.isAdmin && !user.isSuperAdmin)) {
     return null;
   }
 

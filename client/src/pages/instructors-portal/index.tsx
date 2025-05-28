@@ -21,13 +21,7 @@ export default function InstructorsPortal() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  // Redirect superadmins to their dedicated dashboard
-  useEffect(() => {
-    if (user && user.isSuperAdmin) {
-      setLocation('/superadmin-dashboard');
-      return;
-    }
-  }, [user, setLocation]);
+  // Remove the automatic redirect - superadmins should be able to access instructor portal
   const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
 
   // Welcome toast for new instructors (optional)

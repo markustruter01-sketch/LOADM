@@ -42,11 +42,15 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem asChild>
-                  <Link href="/instructors-portal">
-                    <div className="w-full cursor-pointer">Instructors Portal</div>
-                  </Link>
-                </DropdownMenuItem>
+                {/* Show different menu options based on user role */}
+                {(user.userRole === 'instructor' || user.isSuperAdmin) && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/instructors-portal">
+                      <div className="w-full cursor-pointer">Instructors Portal</div>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                
                 {user.isSuperAdmin && (
                   <>
                     <DropdownMenuItem asChild>
