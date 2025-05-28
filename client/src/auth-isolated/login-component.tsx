@@ -174,11 +174,7 @@ export function IsolatedLoginForm() {
               </button>
             </div>
 
-            <div className="text-xs text-muted-foreground text-center bg-muted/50 border border-border p-3 rounded">
-              <p className="font-medium text-foreground">Demo Credentials:</p>
-              <p>Email: markustruter01@gmail.com</p>
-              <p>Password: Skating69!</p>
-            </div>
+
           </form>
         </div>
       </div>
