@@ -87,6 +87,7 @@ router.get('/licenses', requireSuperAdmin, async (req, res) => {
 router.post('/licenses', requireSuperAdmin, async (req, res) => {
   try {
     const createLicenseSchema = insertLicenseSchema.extend({
+      expiryDate: z.string().transform((str) => new Date(str)),
       durationDays: z.number().optional(),
       durationWeeks: z.number().optional(),
       durationMonths: z.number().optional(),
