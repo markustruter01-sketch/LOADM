@@ -325,10 +325,10 @@ export default function QuizPage() {
                 You need to be logged in to take this quiz.
               </p>
               <Button 
-                onClick={() => setLocation('/auth?redirect=' + encodeURIComponent(window.location.pathname))}
+                onClick={() => setLocation('/')}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
-                Log In
+                Go to Home
               </Button>
             </div>
           ) : (
