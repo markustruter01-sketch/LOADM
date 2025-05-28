@@ -128,24 +128,50 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Routes
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) {
-        return res.status(500).json({ message: "Internal server error" });
+  // Routes - Simplified login for debugging
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password required" });
       }
-      if (!user) {
-        return res.status(401).json({ 
-          message: info?.message || "Invalid email address or password, or no active license found" 
-        });
+
+      // Find user by email
+      const userResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (!userResult.length) {
+        return res.status(401).json({ message: "Invalid credentials" });
       }
-      req.logIn(user, (err: any) => {
+
+      const user = userResult[0];
+      
+      // Verify password
+      const isValid = await verifyPassword(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Create session user object
+      const sessionUser = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin
+      };
+
+      // Log user in
+      req.logIn(sessionUser, (err: any) => {
         if (err) {
           return res.status(500).json({ message: "Login failed" });
         }
-        return res.json(user);
+        return res.json(sessionUser);
       });
-    })(req, res, next);
+
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Password setup endpoint for first-time users
