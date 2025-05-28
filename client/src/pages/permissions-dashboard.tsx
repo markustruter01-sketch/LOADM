@@ -65,7 +65,7 @@ export default function PermissionsDashboard() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/users/all'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/management/users'] });
       toast({
         title: "Success",
         description: "User permissions updated successfully",
