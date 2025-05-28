@@ -898,31 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User management endpoints for permissions dashboard
-  app.get("/api/users/all", async (req, res) => {
-    try {
-      console.log('Fetching all users...');
-      const allUsers = await db.select().from(users);
-      console.log('Found users:', allUsers.length);
-      
-      // Format users for frontend
-      const formattedUsers = allUsers.map(user => ({
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        isSuperAdmin: user.isSuperAdmin,
-        createdAt: user.createdAt,
-        licenseId: user.licenseId,
-        licenseKey: null // We'll handle license keys separately for now
-      }));
-
-      res.json(formattedUsers);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
+  // User management endpoints for permissions dashboard - moved to index.ts
 
   app.patch("/api/users/:id/permissions", async (req, res) => {
     try {

@@ -53,7 +53,7 @@ export default function PermissionsDashboard() {
 
   // Fetch all users
   const { data: users = [], isLoading } = useQuery<User[]>({
-    queryKey: ['/api/users/all'],
+    queryKey: ['/api/management/users'],
   });
 
   // Update user permissions mutation
