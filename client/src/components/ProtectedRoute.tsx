@@ -12,10 +12,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      // Redirect to auth page if not logged in
-      setLocation("/auth");
-    }
+    // Add a small delay to prevent immediate redirects during auth state transitions
+    const timer = setTimeout(() => {
+      if (!isLoading && !user) {
+        setLocation("/auth");
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [user, isLoading, setLocation]);
 
   // Show loading indicator while authentication state is being determined
@@ -32,7 +36,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <>{children}</>;
   }
 
-  // This will never be rendered because of the redirect in useEffect,
-  // but it's needed to satisfy TypeScript
-  return null;
+  // Return loading state instead of null to prevent flashing
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 }

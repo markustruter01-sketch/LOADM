@@ -75,7 +75,7 @@ export function setupAuth(app: Express) {
     cookie: {
       httpOnly: true,
       secure: false, // Set to false for development to ensure cookies work
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - much longer session
       sameSite: 'lax' // Add sameSite attribute for better cookie handling
     }
   };

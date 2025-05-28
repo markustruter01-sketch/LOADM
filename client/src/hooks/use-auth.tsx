@@ -40,8 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     select: (data) => data || null, // Ensure we always return null and not undefined
-    staleTime: 1000, // Reduce stale time to check auth more frequently
-    refetchOnWindowFocus: true, // Enable refetching on focus to catch session changes
+    staleTime: 5 * 60 * 1000, // Keep auth data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Disable automatic refetch that causes auth resets
+    refetchOnReconnect: true, // Refetch when connection is restored
     retry: false, // Don't retry failed auth requests
   });
 
