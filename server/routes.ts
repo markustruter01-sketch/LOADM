@@ -112,6 +112,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import licensing routes
   const licensingRouter = await import('./routes/licensing');
   app.use('/api/licensing', licensingRouter.default);
+
+  // License verification endpoint
+  app.post('/api/verify-license', async (req, res) => {
+    try {
+      const { email, username, licenseKey } = req.body;
+      
+      const license = await db
+        .select()
+        .from(licenses)
+        .where(
+          and(
+            eq(licenses.email, email),
+            eq(licenses.username, username),
+            eq(licenses.licenseKey, licenseKey),
+            eq(licenses.status, 'active'),
+            gt(licenses.expiryDate, new Date())
+          )
+        )
+        .limit(1);
+
+      if (!license[0]) {
+        return res.status(404).json({ 
+          message: 'Invalid license credentials or license has expired' 
+        });
+      }
+
+      // Check if user already exists for this license
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.licenseId, license[0].id))
+        .limit(1);
+
+      if (existingUser[0]) {
+        return res.status(409).json({ 
+          message: 'An account already exists for this license' 
+        });
+      }
+
+      res.json({
+        licenseId: license[0].id,
+        username: license[0].username,
+        email: license[0].email,
+        expiryDate: license[0].expiryDate,
+        maxConcurrentSessions: license[0].maxConcurrentSessions
+      });
+    } catch (error) {
+      console.error('License verification error:', error);
+      res.status(500).json({ message: 'License verification failed' });
+    }
+  });
   
   // Documents routes
   app.get("/api/documents", async (req, res) => {
