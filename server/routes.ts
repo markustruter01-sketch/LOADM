@@ -35,7 +35,6 @@ function rateLimiter(req: Request, res: Response, next: NextFunction) {
   
   next();
 }
-import { db } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes (/api/register, /api/login, /api/logout, /api/user)
@@ -914,8 +913,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAdmin: users.isAdmin,
         isSuperAdmin: users.isSuperAdmin,
         createdAt: users.createdAt,
-        licenseId: users.licenseId
-      }).from(users);
+        licenseId: users.licenseId,
+        licenseKey: licenses.licenseKey
+      })
+      .from(users)
+      .leftJoin(licenses, eq(users.licenseId, licenses.id));
 
       res.json(allUsers);
     } catch (error) {

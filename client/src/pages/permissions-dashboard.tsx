@@ -33,6 +33,7 @@ interface User {
   isSuperAdmin: boolean;
   createdAt: string;
   licenseId?: number | null;
+  licenseKey?: string | null;
 }
 
 interface PermissionStats {
@@ -247,6 +248,21 @@ export default function PermissionsDashboard() {
                       <div>
                         <div className="font-medium text-white">{user.username}</div>
                         <div className="text-sm text-gray-400">{user.email}</div>
+                        {user.licenseKey && (
+                          <div className="text-xs text-blue-400 font-mono">
+                            License: {user.licenseKey}
+                          </div>
+                        )}
+                        {!user.licenseKey && user.licenseId && (
+                          <div className="text-xs text-yellow-400">
+                            License ID: {user.licenseId} (No key found)
+                          </div>
+                        )}
+                        {!user.licenseKey && !user.licenseId && (
+                          <div className="text-xs text-gray-500">
+                            No license assigned
+                          </div>
+                        )}
                       </div>
                       <Badge className={color}>
                         <RoleIcon className="w-3 h-3 mr-1" />
