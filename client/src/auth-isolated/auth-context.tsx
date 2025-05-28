@@ -9,6 +9,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   role: string;
+  isFirstLogin?: boolean;
 }
 
 interface IsolatedAuthContextType {
@@ -16,6 +17,7 @@ interface IsolatedAuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -128,6 +130,10 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
     }, 100);
   };
 
+  const refreshUser = async () => {
+    await checkAuthStatus();
+  };
+
   const isAuthenticated = user !== null;
 
   return (
@@ -136,6 +142,7 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
       isLoading, 
       login, 
       logout, 
+      refreshUser,
       isAuthenticated 
     }}>
       {children}

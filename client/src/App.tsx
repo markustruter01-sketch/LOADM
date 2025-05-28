@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { createOfflineQueryClient } from "@/lib/queryClient";
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { IsolatedLoginForm } from './auth-isolated/login-component';
+import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
 
 // Import all your existing pages
 import DocumentFormPage from "@/pages/document-form-page";
@@ -155,6 +156,11 @@ function AppContent() {
 
   if (!user) {
     return <IsolatedLoginForm />;
+  }
+
+  // Check if user needs to change password on first login
+  if (user.isFirstLogin) {
+    return <FirstTimePasswordChange />;
   }
 
   return <AuthenticatedApp />;
