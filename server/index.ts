@@ -8,6 +8,10 @@ const app = express();
 // NEW AUTHENTICATION SYSTEM - Session-based with proper logout
 const sessions = new Map<string, any>();
 
+// Clear all existing sessions on server start to ensure clean state
+sessions.clear();
+console.log('Server started - all sessions cleared for clean authentication state');
+
 function generateSessionId() {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
@@ -86,6 +90,13 @@ app.get('/api/debug-auth', (req, res) => {
     totalSessions: sessions.size,
     allSessions: Array.from(sessions.keys())
   });
+});
+
+// Debug endpoint to clear all sessions (force logout everyone)
+app.post('/api/debug-clear-sessions', (req, res) => {
+  sessions.clear();
+  console.log('All sessions manually cleared via debug endpoint');
+  res.json({ success: true, message: 'All sessions cleared', remainingSessions: sessions.size });
 });
 
 
