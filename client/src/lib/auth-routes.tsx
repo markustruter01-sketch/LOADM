@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Route, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useSimpleAuth } from "@/hooks/use-simple-auth";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -96,7 +96,7 @@ export function SuperAdminRoute({
  * Redirects to login if not
  */
 function AdminCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
   const [, navigate] = useLocation();
 
   // Show loading while checking authentication
@@ -123,7 +123,7 @@ function AdminCheck({ children }: { children: React.ReactNode }) {
  * Redirects to login if not
  */
 function UserCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
   const [, navigate] = useLocation();
 
   // Only redirect if explicitly not authenticated
@@ -152,7 +152,7 @@ function UserCheck({ children }: { children: React.ReactNode }) {
  * Redirects to home if not a superadmin, redirects to login if not authenticated
  */
 function SuperAdminCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
 
   if (isLoading) {
     return (
@@ -181,7 +181,7 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
  * Redirects to home if not authorized
  */
 function InstructorCheck({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useSimpleAuth();
 
   // Debug logging
   console.log('InstructorCheck - User:', user);
