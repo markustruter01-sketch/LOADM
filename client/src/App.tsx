@@ -134,6 +134,14 @@ function Router() {
           <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
           <Route path="/license-registration" component={LicenseRegistration} />
           
+          {/* Logout Route */}
+          <Route path="/logout">
+            {() => {
+              window.location.href = '/api/logout';
+              return null;
+            }}
+          </Route>
+          
           <Route component={NotFound} />
         </Switch>
       </main>

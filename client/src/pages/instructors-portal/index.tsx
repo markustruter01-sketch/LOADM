@@ -13,11 +13,21 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function InstructorsPortal() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  // Redirect superadmins to their dedicated dashboard
+  useEffect(() => {
+    if (user && user.isSuperAdmin) {
+      setLocation('/superadmin-dashboard');
+      return;
+    }
+  }, [user, setLocation]);
   const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
 
   // Welcome toast for new instructors (optional)
