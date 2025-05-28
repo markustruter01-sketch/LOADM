@@ -69,8 +69,8 @@ export function setupAuth(app: Express) {
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
+    resave: true, // Change to true to force session save
+    saveUninitialized: true, // Change to true to save uninitialized sessions
     store: storage.sessionStore,
     cookie: {
       httpOnly: true,
@@ -144,6 +144,8 @@ export function setupAuth(app: Express) {
   app.post("/api/login", rateLimiter, passport.authenticate("local"), (req, res) => {
     // Don't return the password hash in the response and transform to camelCase
     if (req.user) {
+      console.log('Login successful for user:', req.user.username);
+      console.log('Session ID after login:', req.sessionID);
       const { password, is_admin, is_super_admin, ...rest } = req.user as any;
       const safeUser = {
         ...rest,
@@ -184,7 +186,13 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log('GET /api/user - Session ID:', req.sessionID);
+    console.log('GET /api/user - Is authenticated:', req.isAuthenticated());
+    
+    if (!req.isAuthenticated()) {
+      console.log('User not authenticated, returning 401');
+      return res.sendStatus(401);
+    }
     
     // Don't return the password hash in the response and transform to camelCase
     if (req.user) {
@@ -198,6 +206,7 @@ export function setupAuth(app: Express) {
       console.log('Transformed user data being sent:', safeUser);
       res.json(safeUser);
     } else {
+      console.log('No user object found, returning 401');
       res.sendStatus(401);
     }
   });
