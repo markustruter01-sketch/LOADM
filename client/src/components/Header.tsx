@@ -5,6 +5,8 @@ import { UserCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import DownloadApp from "./DownloadApp";
 import LogoutButton from "./LogoutButton";
+import LoginPromptModal from "./LoginPromptModal";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +18,27 @@ import {
 export default function Header() {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+
+  const handleNavClick = (href: string) => {
+    return (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!user) {
+        setPendingNavigation(href);
+        setShowLoginModal(true);
+      } else {
+        setLocation(href);
+      }
+    };
+  };
+
+  const handleLoginSuccess = () => {
+    if (pendingNavigation) {
+      setLocation(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
 
   return (
     <header className="bg-muted shadow-md">
@@ -45,18 +68,18 @@ export default function Header() {
                 {/* Show different menu options based on user role */}
                 {(user.isAdmin || user.isSuperAdmin) && (
                   <DropdownMenuItem asChild>
-                    <Link href="/instructors-portal">
-                      <div className="w-full cursor-pointer">Instructors Portal</div>
-                    </Link>
+                    <div className="w-full cursor-pointer" onClick={handleNavClick("/instructors-portal")}>
+                      Instructors Portal
+                    </div>
                   </DropdownMenuItem>
                 )}
                 
                 {user.isSuperAdmin && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/superadmin-dashboard">
-                        <div className="w-full cursor-pointer">Admin Dashboard</div>
-                      </Link>
+                      <div className="w-full cursor-pointer" onClick={handleNavClick("/superadmin-dashboard")}>
+                        Admin Dashboard
+                      </div>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                   </>
@@ -75,16 +98,26 @@ export default function Header() {
             </DropdownMenu>
           ) : (
             location !== "/auth" && location !== "/profile" && (
-              <Link href="/profile">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
-                  <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
-                  <span className="sr-only">Login</span>
-                </Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-foreground p-0"
+                onClick={handleNavClick("/profile")}
+              >
+                <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
+                <span className="sr-only">Login</span>
+              </Button>
             )
           )}
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginPromptModal 
+        open={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={handleLoginSuccess}
+      />
     </header>
   );
 }
