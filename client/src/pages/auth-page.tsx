@@ -42,17 +42,26 @@ export default function AuthPage() {
   const [showLoginAnimation, setShowLoginAnimation] = useState(false);
   const [showRegisterAnimation, setShowRegisterAnimation] = useState(false);
 
-  // Handle redirects for logged-in users
+  // Handle logout parameter
   useEffect(() => {
-    // If user is already logged in, redirect them away from auth page
-    if (user) {
-      const params = new URLSearchParams(window.location.search);
-      if (user.isSuperAdmin) {
-        setLocation('/superadmin-dashboard');
-      } else {
-        const returnPath = params.get('returnTo') || '/';
-        setLocation(returnPath);
-      }
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('logout') === 'true') {
+      // Perform logout and redirect to home
+      logoutMutation.mutate(undefined, {
+        onSettled: () => {
+          window.location.href = '/';
+        }
+      });
+    }
+  }, [logoutMutation]);
+
+  // Only redirect authenticated users if they're not here for logout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (user && params.get('logout') !== 'true') {
+      // User is already logged in and not trying to logout
+      const returnPath = params.get('returnTo') || '/';
+      setLocation(returnPath);
     }
   }, [user, setLocation]);
 
