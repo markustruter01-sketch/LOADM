@@ -318,7 +318,7 @@ export default function LicensingManagementFixed() {
               type="number"
               min="1"
               value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 1 })}
               required
             />
           </div>
@@ -327,12 +327,13 @@ export default function LicensingManagementFixed() {
               Expires: {(() => {
                 const now = new Date();
                 const expiry = new Date(now);
+                const duration = isNaN(formData.duration) ? 1 : formData.duration;
                 if (formData.durationType === 'days') {
-                  expiry.setDate(now.getDate() + formData.duration);
+                  expiry.setDate(now.getDate() + duration);
                 } else if (formData.durationType === 'weeks') {
-                  expiry.setDate(now.getDate() + (formData.duration * 7));
+                  expiry.setDate(now.getDate() + (duration * 7));
                 } else if (formData.durationType === 'months') {
-                  expiry.setMonth(now.getMonth() + formData.duration);
+                  expiry.setMonth(now.getMonth() + duration);
                 }
                 return format(expiry, 'MMM dd, yyyy');
               })()}
