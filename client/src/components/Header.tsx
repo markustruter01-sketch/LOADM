@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
-import { useAuth } from "@/hooks/use-simple-auth";
+import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import DownloadApp from "./DownloadApp";
 import SimpleLoginModal from "./SimpleLoginModal";
 import { useState } from "react";
@@ -16,7 +16,7 @@ import {
 
 export default function Header() {
   const [location, setLocation] = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout } = useIsolatedAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
