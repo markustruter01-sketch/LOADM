@@ -26,6 +26,8 @@ const defaultAuthContext: AuthContextType = {
   user: null,
   isLoading: false,
   error: null,
+  login: async () => {},
+  logout: async () => {},
   loginMutation: {} as UseMutationResult<SelectUser, Error, LoginData>,
   logoutMutation: {} as UseMutationResult<void, Error, void>,
   registerMutation: {} as UseMutationResult<SelectUser, Error, InsertUser>
@@ -129,6 +131,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Create helper functions for login and logout
+  const login = async (username: string, password: string) => {
+    return new Promise<void>((resolve, reject) => {
+      loginMutation.mutate({ username, password }, {
+        onSuccess: () => resolve(),
+        onError: (error) => reject(error)
+      });
+    });
+  };
+
+  const logout = async () => {
+    return new Promise<void>((resolve, reject) => {
+      logoutMutation.mutate(undefined, {
+        onSuccess: () => {
+          // Redirect to home after successful logout
+          window.location.href = '/';
+          resolve();
+        },
+        onError: (error) => reject(error)
+      });
+    });
+  };
+
   // Make sure user is always a SelectUser or null, never undefined
   const safeUser = user === undefined ? null : user;
   
@@ -138,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: safeUser,
         isLoading,
         error,
+        login,
+        logout,
         loginMutation,
         logoutMutation,
         registerMutation,
