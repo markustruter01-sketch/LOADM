@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupSimpleAuth } from "./auth-simple";
+// Remove auth import - handled directly in index.ts now
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, licenses, users } from "@shared/schema";
 import { eq, and, gt } from "drizzle-orm";

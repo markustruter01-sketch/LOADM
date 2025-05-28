@@ -6,39 +6,51 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Test endpoint to verify server is working
-app.get("/api/test", (req, res) => {
-  console.log("TEST ENDPOINT HIT");
-  res.json({ message: "Server is working" });
-});
+// Session middleware
+const session = require('express-session');
+app.use(session({
+  secret: 'loadmaster-secret-key-2024',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+}));
 
-// Emergency login route - added directly to app
+// Working login route
 app.post("/api/login", (req, res) => {
-  console.log("=== EMERGENCY LOGIN ROUTE HIT ===");
-  console.log("Request body:", req.body);
-  console.log("Content-Type:", req.headers['content-type']);
-  console.log("Body keys:", Object.keys(req.body || {}));
+  console.log("LOGIN ROUTE HIT - Body:", req.body);
   
-  // Always return success for debugging
-  console.log("Returning success response");
-  res.json({
-    id: 9,
-    username: 'superadmin',
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true,
-    debug: true
-  });
+  const { email, password } = req.body;
+  
+  if (email === 'markustruter01@gmail.com' && password === 'Skating69!') {
+    const user = {
+      id: 9,
+      username: 'superadmin',
+      email: 'markustruter01@gmail.com',
+      isAdmin: true,
+      isSuperAdmin: true
+    };
+    
+    req.session.user = user;
+    console.log("Login successful for:", email);
+    res.json(user);
+  } else {
+    console.log("Invalid credentials for:", email);
+    res.status(401).json({ message: "Invalid credentials" });
+  }
 });
 
 app.get("/api/user", (req, res) => {
-  console.log("User endpoint hit");
-  res.json({
-    id: 9,
-    username: 'superadmin',
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true
+  const user = req.session?.user;
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(401).json({ message: "Not authenticated" });
+  }
+});
+
+app.post("/api/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.json({ message: "Logged out" });
   });
 });
 
