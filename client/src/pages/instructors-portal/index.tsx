@@ -10,14 +10,12 @@ import {
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
   HelpCircle
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useSimpleAuth } from "@/hooks/use-simple-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import ProtectedRoute from "@/components/ProtectedRoute";
-
 export default function InstructorsPortal() {
-  const { user } = useAuth();
+  const { user } = useSimpleAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -64,7 +62,7 @@ export default function InstructorsPortal() {
       }).length || 0;
 
   return (
-    <ProtectedRoute>
+    <div>
       <Helmet>
         <title>Instructors Portal - LOADMworkflow</title>
         <meta name="description" content="Instructors portal for LOADMworkflow - create, edit and manage training scenarios" />
@@ -332,6 +330,6 @@ export default function InstructorsPortal() {
           </Card>
         </div>
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }

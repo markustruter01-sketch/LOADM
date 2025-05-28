@@ -183,10 +183,7 @@ function SuperAdminCheck({ children }: { children: React.ReactNode }) {
 function InstructorCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useSimpleAuth();
 
-  console.log('InstructorCheck Debug:', { user, isLoading });
-
   if (isLoading) {
-    console.log('InstructorCheck: Still loading...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -196,7 +193,6 @@ function InstructorCheck({ children }: { children: React.ReactNode }) {
 
   // Superadmins should have access to everything, including instructor portal
   if (!user || (!user.isAdmin && !user.isSuperAdmin)) {
-    console.log('InstructorCheck: Access denied for user:', user);
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -207,6 +203,5 @@ function InstructorCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  console.log('InstructorCheck: Access granted, rendering children');
   return <>{children}</>;
 }
