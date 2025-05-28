@@ -33,26 +33,11 @@ app.use('/api/user', (req, res) => {
   });
 });
 
-// Add authentication middleware for other endpoints
-app.use((req, res, next) => {
-  // Add isAuthenticated function
-  req.isAuthenticated = () => true; // Simplified for now
-  
-  // Add user object
-  req.user = {
-    id: 9,
-    username: 'superadmin',
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true
-  };
-  
-  next();
-});
-
-// Add working users endpoint with different path to avoid conflicts
+// Direct users endpoint that must work
 app.get('/api/management/users', (req, res) => {
-  console.log('Management users endpoint hit!');
+  console.log('=== DIRECT USERS ENDPOINT HIT ===');
+  res.setHeader('Content-Type', 'application/json');
+  
   const users = [
     {
       id: 9,
@@ -100,8 +85,28 @@ app.get('/api/management/users', (req, res) => {
     }
   ];
   
-  res.json(users);
+  console.log('Returning users:', users.length);
+  return res.json(users);
 });
+
+// Add authentication middleware for other endpoints
+app.use((req, res, next) => {
+  // Add isAuthenticated function
+  req.isAuthenticated = () => true; // Simplified for now
+  
+  // Add user object
+  req.user = {
+    id: 9,
+    username: 'superadmin',
+    email: 'markustruter01@gmail.com',
+    isAdmin: true,
+    isSuperAdmin: true
+  };
+  
+  next();
+});
+
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
