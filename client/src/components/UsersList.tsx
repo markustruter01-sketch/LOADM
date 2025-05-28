@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, Shield, User, Crown } from "lucide-react";
+import { Search, UserPlus, Shield, User, Crown, Eye, EyeOff } from "lucide-react";
+import { useQuery } from '@tanstack/react-query';
 
 interface User {
   id: number;
-  username: string;
   email: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -18,51 +18,62 @@ interface User {
   licenseId?: number | null;
   licenseKey?: string | null;
   userRole?: string;
+  hasPassword?: boolean;
+  isFirstLogin?: boolean;
+  password?: string;
 }
-
-// Fetch users from licensing system - no more hardcoded data
-const { data: users = [], isLoading } = useQuery<User[]>({
-  queryKey: ['/api/licensing/licenses'],
-  select: (data: any[]) => data.map(license => ({
-    id: license.userId || license.id,
-    email: license.email,
-    isAdmin: license.licenseType === 'instructor',
-    isSuperAdmin: false,
-    createdAt: license.createdAt,
-    licenseId: license.id,
-    licenseKey: license.licenseKey,
-    userRole: license.licenseType,
-    hasPassword: !!license.hasPassword,
-    isFirstLogin: license.isFirstLogin
-  }))
-});
-
-// Add superadmin to the list
-const allUsers = [
-  {
-    id: 9,
-    email: 'markustruter01@gmail.com',
-    isAdmin: true,
-    isSuperAdmin: true,
-    createdAt: '2025-01-15T10:00:00Z',
-    licenseId: null,
-    licenseKey: 'SUPERADMIN',
-    userRole: 'superadmin',
-    hasPassword: true,
-    isFirstLogin: false
-  },
-  ...users
-];
 
 export default function UsersList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const users = hardcodedUsers;
+  const [showPasswords, setShowPasswords] = useState<{[key: number]: boolean}>({});
+
+  // Fetch users from licensing system
+  const { data: users = [], isLoading } = useQuery<User[]>({
+    queryKey: ['/api/licensing/licenses'],
+    select: (data: any[]) => data.map((license: any) => ({
+      id: license.userId || license.id,
+      email: license.email,
+      isAdmin: license.licenseType === 'instructor',
+      isSuperAdmin: false,
+      createdAt: license.createdAt,
+      licenseId: license.id,
+      licenseKey: license.licenseKey,
+      userRole: license.licenseType,
+      hasPassword: !!license.hasPassword,
+      isFirstLogin: license.isFirstLogin,
+      password: license.isFirstLogin ? '12345678' : '********'
+    }))
+  });
+
+  // Add superadmin to the list
+  const allUsers: User[] = [
+    {
+      id: 9,
+      email: 'markustruter01@gmail.com',
+      isAdmin: true,
+      isSuperAdmin: true,
+      createdAt: '2025-01-15T10:00:00Z',
+      licenseId: null,
+      licenseKey: 'SUPERADMIN',
+      userRole: 'superadmin',
+      hasPassword: true,
+      isFirstLogin: false,
+      password: 'Skating69!'
+    },
+    ...users
+  ];
+
+  const togglePasswordVisibility = (userId: number) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
 
   // Filter users based on search and role
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = allUsers.filter((user: User) => {
     const matchesSearch = 
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesRole = roleFilter === 'all' || 
@@ -190,10 +201,23 @@ export default function UsersList() {
                     {getRoleIcon(user)}
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h3 className="text-white font-medium">{user.username}</h3>
+                        <h3 className="text-white font-medium">{user.email}</h3>
                         {getRoleBadge(user)}
                       </div>
-                      <p className="text-gray-400 text-sm">{user.email}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <p className="text-gray-400 text-sm">Password:</p>
+                        <span className="text-green-400 text-sm font-mono">
+                          {showPasswords[user.id] ? user.password : '••••••••'}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => togglePasswordVisibility(user.id)}
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-white"
+                        >
+                          {showPasswords[user.id] ? <EyeOff size={12} /> : <Eye size={12} />}
+                        </Button>
+                      </div>
                       {user.licenseKey && (
                         <p className="text-gray-500 text-xs">License: {user.licenseKey}</p>
                       )}
