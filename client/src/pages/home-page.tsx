@@ -110,7 +110,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/training-modules")}>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/training-modules")} data-tour="training">
                   <div className="absolute top-1 right-1">
                     <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>
                   </div>
@@ -125,7 +125,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/load-planning")}>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/load-planning")} data-tour="load-planning">
                   <CardContent className="flex flex-col items-center justify-center p-6">
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Package2 className="h-8 w-8 text-primary" />
