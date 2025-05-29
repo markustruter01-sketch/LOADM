@@ -12,7 +12,7 @@ import DocsListPage from "@/pages/docs-list-page";
 import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
-import DocumentsPage from "@/pages/cargo-manifest-page";
+import DocumentsPage from "@/pages/documents-page";
 import UserProfile from "@/pages/user-profile";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";

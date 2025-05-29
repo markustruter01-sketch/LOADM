@@ -160,6 +160,9 @@ export default function DocumentsPage() {
             <p className="text-muted-foreground mt-2">
               Access document templates and airbase contact information
             </p>
+            <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg">
+              <p className="text-green-800 font-medium">🚀 NEW REDESIGNED PAGE LOADED SUCCESSFULLY!</p>
+            </div>
           </div>
 
           {/* Tabs */}
