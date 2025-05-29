@@ -107,22 +107,34 @@ router.get('/user', (req, res) => {
 // ISOLATED PASSWORD CHANGE - For first-time login
 router.post('/change-password', async (req, res) => {
   try {
-    console.log('✅ ISOLATED: Password change request');
+    console.log('✅ ISOLATED: Password change request received');
+    console.log('✅ ISOLATED: Request body:', req.body);
+    
     const sessionId = req.cookies?.sessionId;
+    console.log('✅ ISOLATED: Session ID:', sessionId);
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
+      console.log('✅ ISOLATED: No valid session ID found');
       return res.status(401).json({ error: 'Authentication required' });
     }
     
     const session = authCore.getIsolatedSession(sessionId);
+    console.log('✅ ISOLATED: Session found:', session ? session.email : 'none');
+    
     if (!session) {
+      console.log('✅ ISOLATED: Invalid session');
       return res.status(401).json({ error: 'Invalid session' });
     }
     
     const { newPassword } = req.body;
+    console.log('✅ ISOLATED: New password length:', newPassword ? newPassword.length : 'undefined');
+    
     if (!newPassword || newPassword.length < 8) {
+      console.log('✅ ISOLATED: Password validation failed');
       return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
+    
+    console.log(`✅ ISOLATED: Updating password for ${session.email}`);
     
     // Update password in database
     const bcrypt = await import('bcryptjs');
@@ -130,6 +142,7 @@ router.post('/change-password', async (req, res) => {
     const sql = neon(process.env.DATABASE_URL!);
     
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log('✅ ISOLATED: Password hashed successfully');
     
     // Update password and first login status
     const result = await sql`
@@ -139,7 +152,10 @@ router.post('/change-password', async (req, res) => {
       RETURNING id, email
     `;
     
+    console.log('✅ ISOLATED: Database update result:', result);
+    
     if (result.length === 0) {
+      console.log('✅ ISOLATED: No user found to update');
       return res.status(404).json({ error: 'User not found' });
     }
     
