@@ -160,9 +160,6 @@ export default function DocumentsPage() {
             <p className="text-muted-foreground mt-2">
               Access document templates and airbase contact information
             </p>
-            <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg">
-              <p className="text-green-800 font-medium">🚀 NEW REDESIGNED PAGE LOADED SUCCESSFULLY!</p>
-            </div>
           </div>
 
           {/* Tabs */}
@@ -180,17 +177,55 @@ export default function DocumentsPage() {
             
             {/* Documents Tab */}
             <TabsContent value="documents" className="mt-6">
-              {documentsLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {documents?.map((document) => (
-                    <DocumentCard key={document.id} document={document} />
-                  ))}
-                </div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <DocumentCard
+                  title="Load Planning Form"
+                  description="Complete detailed load planning documentation for cargo aircraft operations."
+                  lastUpdated="2 minutes ago"
+                  status="New"
+                  onOpen={() => window.open("/documents/load-planning", "_blank")}
+                />
+                
+                <DocumentCard
+                  title="Passenger/Crew and Cargo Manifest"
+                  description="Generate and complete detailed cargo manifests for all shipments."
+                  lastUpdated="2 minutes ago"
+                  status="New"
+                  onOpen={() => window.open("/documents/cargo-manifest", "_blank")}
+                />
+                
+                <DocumentCard
+                  title="Dangerous Goods Declaration"
+                  description="Complete DG documentation for hazardous materials transportation."
+                  lastUpdated="2 minutes ago"
+                  status="New"
+                  onOpen={() => window.open("/documents/dangerous-goods", "_blank")}
+                />
+                
+                <DocumentCard
+                  title="Weight & Balance Sheet"
+                  description="Calculate and document aircraft weight distribution and balance."
+                  lastUpdated="2 minutes ago"
+                  status="New"
+                  onOpen={() => window.open("/documents/weight-balance", "_blank")}
+                />
+                
+                <DocumentCard
+                  title="Special Handling Form"
+                  description="Document special handling requirements for unusual cargo types or sensitive items."
+                  lastUpdated="2 minutes ago"
+                  status="New"
+                  onOpen={() => window.open("/documents/special-handling", "_blank")}
+                />
+                
+                <DocumentCard
+                  title="Aircraft Tie-Down Diagram"
+                  description="Detailed cargo restraint planning diagram with tie-down points and calculations."
+                  lastUpdated="2 minutes ago"
+                  status="New"
+                  onOpen={() => window.open("/documents/tie-down", "_blank")}
+                />
+              </div>
             </TabsContent>
             
             {/* Phone Directory Tab */}
