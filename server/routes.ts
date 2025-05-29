@@ -835,62 +835,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user profile data
   app.get("/api/profile", async (req, res) => {
     try {
-      // Get session data from cookie
       const sessionId = req.cookies?.sessionId;
-      console.log('Profile endpoint - SessionId from cookie:', sessionId);
       
       if (!sessionId) {
         return res.status(401).json({ message: "No session found" });
       }
       
-      // Get authenticated user from isolated auth system
+      // Use the isolated auth system
       const { getIsolatedSession } = require('./auth-isolated/auth-core');
       const session = getIsolatedSession(sessionId);
-      console.log('Profile endpoint - Session data:', session);
       
       if (!session) {
         return res.status(401).json({ message: "Invalid session" });
       }
       
-      // Get user data from database using session email
-      const userResult = await db.select({
-        id: users.id,
-        email: users.email,
-        licenseId: users.licenseId,
-        userRole: users.userRole,
-        createdAt: users.createdAt
-      })
-      .from(users)
-      .where(eq(users.email, session.email))
-      .limit(1);
-      
-      if (userResult.length === 0) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      const user = userResult[0];
-      
-      // Get license information
+      // Get license data for the user
       const licenseResult = await db.select()
         .from(licenses)
-        .where(eq(licenses.id, user.licenseId || 0))
+        .where(eq(licenses.email, session.email))
         .limit(1);
       
       const license = licenseResult[0];
       
-      // Build profile response with actual user data
+      if (!license) {
+        return res.status(404).json({ message: "User license not found" });
+      }
+      
+      // Return profile data based on license information
       const profileData = {
         user: {
-          id: user.id,
-          email: user.email,
-          firstName: license?.firstName || '',
-          lastName: license?.lastName || '',
-          role: user.userRole || 'loadmaster',
-          squadron: 'Training Squadron', // Default value
-          serviceBranch: 'Air Force', // Default value
-          licenseExpiry: license?.expiryDate?.toISOString()
+          id: session.userId,
+          email: session.email,
+          firstName: license.firstName || '',
+          lastName: license.lastName || '',
+          role: session.role,
+          squadron: 'Training Squadron',
+          serviceBranch: 'Air Force',
+          licenseExpiry: license.expiryDate?.toISOString()
         },
-        submissions: [], // Will be populated when submission system is connected
+        submissions: [],
         trainingModules: [
           {
             id: 1,
@@ -901,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             id: 2,
-            title: 'C-130 Cargo Operations',
+            title: 'C-130 Cargo Operations', 
             aircraftType: 'C-130',
             completed: false,
             progress: 0
