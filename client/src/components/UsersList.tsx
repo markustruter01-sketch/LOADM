@@ -28,41 +28,38 @@ export default function UsersList() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{[key: number]: boolean}>({});
 
-  // Fetch users from licensing system
-  const { data: users = [], isLoading } = useQuery<User[]>({
-    queryKey: ['/api/licensing/licenses'],
-    select: (data: any[]) => data.map((license: any) => ({
+  // Fetch users from licensing system with forced refresh
+  const { data: licensesData = [], isLoading, refetch } = useQuery<any[]>({
+    queryKey: ['/api/licensing/licenses', Date.now()], // Force unique key
+    staleTime: 0,
+    gcTime: 0, // Don't cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
+  });
+
+  // Transform license data to user format with strict deduplication
+  const seenEmails = new Set<string>();
+  const allUsers: User[] = licensesData
+    .filter((license: any) => {
+      if (seenEmails.has(license.email)) {
+        return false; // Skip duplicate emails
+      }
+      seenEmails.add(license.email);
+      return true;
+    })
+    .map((license: any) => ({
       id: license.userId || license.id,
       email: license.email,
-      isAdmin: license.licenseType === 'instructor',
-      isSuperAdmin: false,
+      isAdmin: license.licenseType === 'instructor' || license.licenseType === 'superadmin',
+      isSuperAdmin: license.licenseType === 'superadmin',
       createdAt: license.createdAt,
       licenseId: license.id,
       licenseKey: license.licenseKey,
       userRole: license.licenseType,
       hasPassword: !!license.hasPassword,
       isFirstLogin: license.isFirstLogin,
-      password: license.isFirstLogin ? '12345678' : '********'
-    }))
-  });
-
-  // Add superadmin to the list
-  const allUsers: User[] = [
-    {
-      id: 9,
-      email: 'markustruter01@gmail.com',
-      isAdmin: true,
-      isSuperAdmin: true,
-      createdAt: '2025-01-15T10:00:00Z',
-      licenseId: null,
-      licenseKey: 'SUPERADMIN',
-      userRole: 'superadmin',
-      hasPassword: true,
-      isFirstLogin: false,
-      password: 'Skating69!'
-    },
-    ...users
-  ];
+      password: license.isFirstLogin ? 'Password1!' : '********'
+    }));
 
   const togglePasswordVisibility = (userId: number) => {
     setShowPasswords(prev => ({
@@ -86,11 +83,11 @@ export default function UsersList() {
 
   // Calculate stats
   const stats = {
-    totalUsers: users.length,
-    superAdmins: users.filter(u => u.isSuperAdmin).length,
-    instructors: users.filter(u => u.isAdmin && !u.isSuperAdmin).length,
-    loadmasters: users.filter(u => !u.isAdmin && !u.isSuperAdmin).length,
-    activeUsers: users.length // All users are considered active
+    totalUsers: allUsers.length,
+    superAdmins: allUsers.filter(u => u.isSuperAdmin).length,
+    instructors: allUsers.filter(u => u.isAdmin && !u.isSuperAdmin).length,
+    loadmasters: allUsers.filter(u => !u.isAdmin && !u.isSuperAdmin).length,
+    activeUsers: allUsers.length // All users are considered active
   };
 
   const getRoleIcon = (user: User) => {
