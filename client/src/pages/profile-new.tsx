@@ -12,12 +12,19 @@ export default function ProfileNew() {
     queryKey: ['profile-deployment'],
     queryFn: async () => {
       console.log("DEPLOYMENT: Fetching profile data");
-      const response = await fetch('/api/profile', {
+      
+      // Use absolute URL construction for deployment reliability
+      const baseUrl = window.location.origin;
+      const profileUrl = `${baseUrl}/api/profile`;
+      console.log("DEPLOYMENT: Requesting URL:", profileUrl);
+      
+      const response = await fetch(profileUrl, {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
         }
       });
       
@@ -27,7 +34,24 @@ export default function ProfileNew() {
       if (!response.ok) {
         const errorText = await response.text();
         console.log("DEPLOYMENT: Error response:", errorText);
-        throw new Error(`Profile fetch failed: ${response.status}`);
+        console.log("DEPLOYMENT: Error response type:", typeof errorText);
+        
+        // Check if we got HTML instead of JSON
+        if (errorText.includes('<!DOCTYPE') || errorText.includes('<html>')) {
+          console.log("DEPLOYMENT: Received HTML instead of JSON - routing issue");
+          throw new Error('Server returned HTML instead of JSON. This may be a routing configuration issue.');
+        }
+        
+        throw new Error(`Profile fetch failed: ${response.status} - ${errorText}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      console.log("DEPLOYMENT: Content-Type:", contentType);
+      
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.log("DEPLOYMENT: Non-JSON response:", responseText);
+        throw new Error('Server did not return JSON response');
       }
       
       const data = await response.json();

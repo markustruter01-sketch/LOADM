@@ -13,7 +13,6 @@ import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page";
-import ProfilePage from "@/pages/profile-page";
 import ProfileNew from "@/pages/profile-new";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
