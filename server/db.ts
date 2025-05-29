@@ -7,6 +7,7 @@ import path from 'path';
 import { exec } from 'child_process';
 
 neonConfig.webSocketConstructor = ws;
+neonConfig.poolQueryViaFetch = true;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
