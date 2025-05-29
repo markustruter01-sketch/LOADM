@@ -74,28 +74,10 @@ function MissionComplexityAnalyzer() {
 
     // Remove airframe capacity exceeded factor as requested
 
-    // Cargo Weight (0-5 points)
-    let cargoWeightPoints = 0;
-    const weightPercentage = (missionData.cargoWeight / currentLimits.maxWeight) * 100;
-    if (weightPercentage > 90) cargoWeightPoints = 5;
-    else if (weightPercentage > 70) cargoWeightPoints = 3;
-    else if (weightPercentage > 50) cargoWeightPoints = 2;
-    factors.push({ name: 'Cargo Weight vs Capacity', points: cargoWeightPoints, maxPoints: 5 });
-    totalPoints += cargoWeightPoints;
-
     // Tech Prep Required (0-10 points)
     const techPrepPoints = missionData.requiresTechPrep ? 10 : 0;
     factors.push({ name: 'Mechanical Equipment (Tech Prep)', points: techPrepPoints, maxPoints: 10 });
     totalPoints += techPrepPoints;
-
-    // Pallet Count (0-5 points)
-    let palletPoints = 0;
-    const palletPercentage = (missionData.palletCount / currentLimits.maxPallets) * 100;
-    if (palletPercentage > 80) palletPoints = 5;
-    else if (palletPercentage > 60) palletPoints = 3;
-    else if (palletPercentage > 40) palletPoints = 2;
-    factors.push({ name: 'Pallet Count vs Capacity', points: palletPoints, maxPoints: 5 });
-    totalPoints += palletPoints;
 
     // International Destination (0-8 points)
     const internationalPoints = missionData.isInternational ? 8 : 0;
@@ -132,7 +114,7 @@ function MissionComplexityAnalyzer() {
     totalPoints += noLoadingTeamPoints;
 
     // Calculate percentage
-    const maxTotalPoints = 100; // Updated to remove airframe capacity factor
+    const maxTotalPoints = 90; // Updated after removing cargo weight and pallet count factors
     const percentage = (totalPoints / maxTotalPoints) * 100;
 
     // Determine category
@@ -346,7 +328,7 @@ function MissionComplexityAnalyzer() {
                 <Progress value={result.score} className="h-3" />
               </div>
 
-              <div className={`p-4 rounded-lg ${result.color === 'text-green-600' ? 'bg-green-50' : result.color === 'text-yellow-600' ? 'bg-yellow-50' : 'bg-red-50'}`}>
+              <div className={`p-4 rounded-lg border ${result.color === 'text-green-600' ? 'bg-green-950/20 border-green-800' : result.color === 'text-yellow-600' ? 'bg-yellow-950/20 border-yellow-800' : 'bg-red-950/20 border-red-800'}`}>
                 <h4 className={`font-semibold ${result.color}`}>{result.category} Mission</h4>
                 <p className="text-sm text-muted-foreground mt-1">
                   {result.category === 'Beginner' && 'Suitable for new loadmasters with supervision'}
