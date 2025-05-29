@@ -48,10 +48,17 @@ interface ProfileData {
 export default function Profile() {
   const { user } = useSimpleAuth();
 
-  const { data: profileData, isLoading } = useQuery<ProfileData>({
+  const { data: profileData, isLoading, error } = useQuery<ProfileData>({
     queryKey: ['/api/profile'],
     enabled: !!user,
+    retry: 1,
+    refetchOnMount: true,
   });
+
+  console.log('Profile component - User:', user);
+  console.log('Profile component - Loading:', isLoading);
+  console.log('Profile component - Data:', profileData);
+  console.log('Profile component - Error:', error);
 
   if (isLoading) {
     return (
