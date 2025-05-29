@@ -31,15 +31,15 @@ export const aircraftConfigs: Record<string, AircraftConfig> = {
   c17: {
     id: 'c17',
     name: 'Globemaster C-17',
-    maxPayload: 170860, // lbs (converted from 77,500 kg)
-    maxPalletWeight: 22046, // lbs (converted from 10,000 kg)
+    maxPayload: 170900, // lbs
+    maxPalletWeight: 10000, // lbs
     positions: 18,
     useKg: false
   },
   c130: {
     id: 'c130',
     name: 'Hercules C-130',
-    maxPayload: 44092, // lbs (converted from 20,000 kg)
+    maxPayload: 42000, // lbs
     maxPalletWeight: 10000, // lbs
     positions: 8,
     useKg: false
@@ -47,8 +47,8 @@ export const aircraftConfigs: Record<string, AircraftConfig> = {
   kc30a: {
     id: 'kc30a',
     name: 'Airbus KC30-A',
-    maxPayload: 45000, // kg (keeping as kg)
-    maxPalletWeight: 6800, // kg (keeping as kg)
+    maxPayload: 34000, // kg
+    maxPalletWeight: 6800, // kg
     positions: 26,
     useKg: true
   }

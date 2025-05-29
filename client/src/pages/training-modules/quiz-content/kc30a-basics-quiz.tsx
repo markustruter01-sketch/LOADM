@@ -44,9 +44,9 @@ export default function KC30ABasicsQuiz() {
     },
     {
       question: "What is the maximum cargo payload capacity of the KC30-A?",
-      options: ["30,000 kg", "38,000 kg", "45,000 kg", "54,000 kg"],
-      correctAnswer: 2,
-      explanation: "The KC30-A has a maximum cargo payload capacity of approximately 45,000 kg. This capacity must be balanced with the aircraft's fuel load, especially on missions that involve aerial refueling operations."
+      options: ["30,000 kg", "34,000 kg", "38,000 kg", "45,000 kg"],
+      correctAnswer: 1,
+      explanation: "The KC30-A has a maximum cargo payload capacity of approximately 34,000 kg. This capacity must be balanced with the aircraft's fuel load, especially on missions that involve aerial refueling operations."
     },
     {
       question: "What is the alternative cargo configuration available for the KC30-A?",
