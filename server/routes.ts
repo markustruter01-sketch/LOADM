@@ -835,25 +835,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current user data (for authentication check)
   app.get("/api/user", async (req, res) => {
     try {
+      console.log("API /user endpoint hit");
       const sessionId = req.cookies?.sessionId;
+      console.log("Session ID in /api/user:", sessionId);
       
       if (!sessionId) {
+        console.log("No session ID found in /api/user");
         return res.status(401).json({ message: "No session found" });
       }
       
       const { getIsolatedSession } = require('./auth-isolated/auth-core');
       const session = getIsolatedSession(sessionId);
+      console.log("Session data in /api/user:", session);
       
       if (!session) {
+        console.log("Invalid session in /api/user");
         return res.status(401).json({ message: "Invalid session" });
       }
       
       // Return basic user info for authentication
-      res.json({
+      const userData = {
         id: session.userId,
         email: session.email,
         role: session.role
-      });
+      };
+      console.log("Returning user data:", userData);
+      res.json(userData);
     } catch (error) {
       console.error("Error checking user auth:", error);
       res.status(500).json({ message: "Authentication check failed" });
