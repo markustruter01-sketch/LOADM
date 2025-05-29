@@ -1378,10 +1378,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory API endpoints
   app.get("/api/phone-directory", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
       const directories = await db.select().from(phoneDirectory);
       res.json(directories);
     } catch (error) {
@@ -1392,10 +1388,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/phone-directory", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
       const { airbaseCode, airbaseName, contacts } = req.body;
       const [newDirectory] = await db.insert(phoneDirectory).values({
         airbaseCode,
@@ -1411,10 +1403,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/phone-directory/:id", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
       const id = parseInt(req.params.id);
       const { airbaseCode, airbaseName, contacts } = req.body;
       
@@ -1442,10 +1430,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/phone-directory/:id", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
       const id = parseInt(req.params.id);
       await db.delete(phoneDirectory).where(eq(phoneDirectory.id, id));
       res.json({ message: "Directory entry deleted successfully" });
