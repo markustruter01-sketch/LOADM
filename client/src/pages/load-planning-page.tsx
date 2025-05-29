@@ -3020,8 +3020,8 @@ export default function LoadPlanningPage() {
                     {/* Reset Button */}
                     <div className="mt-4">
                       <Button 
-                        variant="outline" 
-                        className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" 
+                        variant="secondary" 
+                        className="w-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600" 
                         onClick={handleReset}
                       >
                         <RefreshCw className="h-4 w-4 mr-2" />
