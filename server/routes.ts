@@ -1378,7 +1378,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory API endpoints
   app.get("/api/phone-directory", async (req, res) => {
     try {
+      console.log("Phone directory GET request received");
       const directories = await db.select().from(phoneDirectory);
+      console.log("Phone directory data:", directories);
       res.json(directories);
     } catch (error) {
       console.error("Error fetching phone directory:", error);
