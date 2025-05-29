@@ -66,11 +66,7 @@ export default function Header() {
                   </DropdownMenuItem>
                 )}
                 
-                <DropdownMenuItem asChild>
-                  <div className="w-full cursor-pointer" onClick={() => setLocation("/profile")}>
-                    My Profile
-                  </div>
-                </DropdownMenuItem>
+
                 
                 {user.role === 'superadmin' && (
                   <>
@@ -97,12 +93,12 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            location !== "/auth" && location !== "/profile" && (
+            location !== "/auth" && (
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="text-muted-foreground hover:text-foreground p-0"
-                onClick={() => navigateTo("/profile")}
+                onClick={() => setShowLoginModal(true)}
               >
                 <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
                 <span className="sr-only">Login</span>
