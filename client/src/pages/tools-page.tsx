@@ -74,13 +74,13 @@ function MissionComplexityAnalyzer() {
 
     // Remove airframe capacity exceeded factor as requested
 
-    // Cargo Weight (0-15 points)
+    // Cargo Weight (0-5 points)
     let cargoWeightPoints = 0;
     const weightPercentage = (missionData.cargoWeight / currentLimits.maxWeight) * 100;
-    if (weightPercentage > 90) cargoWeightPoints = 15;
-    else if (weightPercentage > 70) cargoWeightPoints = 10;
-    else if (weightPercentage > 50) cargoWeightPoints = 5;
-    factors.push({ name: 'Cargo Weight vs Capacity', points: cargoWeightPoints, maxPoints: 15 });
+    if (weightPercentage > 90) cargoWeightPoints = 5;
+    else if (weightPercentage > 70) cargoWeightPoints = 3;
+    else if (weightPercentage > 50) cargoWeightPoints = 2;
+    factors.push({ name: 'Cargo Weight vs Capacity', points: cargoWeightPoints, maxPoints: 5 });
     totalPoints += cargoWeightPoints;
 
     // Tech Prep Required (0-10 points)
@@ -88,13 +88,13 @@ function MissionComplexityAnalyzer() {
     factors.push({ name: 'Mechanical Equipment (Tech Prep)', points: techPrepPoints, maxPoints: 10 });
     totalPoints += techPrepPoints;
 
-    // Pallet Count (0-10 points)
+    // Pallet Count (0-5 points)
     let palletPoints = 0;
     const palletPercentage = (missionData.palletCount / currentLimits.maxPallets) * 100;
-    if (palletPercentage > 80) palletPoints = 10;
-    else if (palletPercentage > 60) palletPoints = 7;
-    else if (palletPercentage > 40) palletPoints = 4;
-    factors.push({ name: 'Pallet Count vs Capacity', points: palletPoints, maxPoints: 10 });
+    if (palletPercentage > 80) palletPoints = 5;
+    else if (palletPercentage > 60) palletPoints = 3;
+    else if (palletPercentage > 40) palletPoints = 2;
+    factors.push({ name: 'Pallet Count vs Capacity', points: palletPoints, maxPoints: 5 });
     totalPoints += palletPoints;
 
     // International Destination (0-8 points)
@@ -126,9 +126,9 @@ function MissionComplexityAnalyzer() {
     factors.push({ name: 'Captain Experience Level', points: captainPoints, maxPoints: 10 });
     totalPoints += captainPoints;
 
-    // No Loading Team (0-10 points) - Having no loading team increases difficulty
-    const noLoadingTeamPoints = !missionData.hasLoadingTeam ? 10 : 0;
-    factors.push({ name: 'No Loading Team Assistance', points: noLoadingTeamPoints, maxPoints: 10 });
+    // No Loading Team (0-25 points) - Having no loading team increases difficulty
+    const noLoadingTeamPoints = !missionData.hasLoadingTeam ? 25 : 0;
+    factors.push({ name: 'No Loading Team Assistance', points: noLoadingTeamPoints, maxPoints: 25 });
     totalPoints += noLoadingTeamPoints;
 
     // Calculate percentage
