@@ -48,6 +48,72 @@ function rateLimiter(req: Request, res: Response, next: NextFunction) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Remove duplicate auth setup - handled in index.ts now
 
+  // Phone Directory API endpoints - placed early to avoid middleware conflicts
+  app.get("/api/phone-directory", async (req, res) => {
+    try {
+      console.log("Phone directory GET request received");
+      const directories = await db.select().from(phoneDirectory);
+      console.log("Phone directory data:", directories);
+      res.json(directories);
+    } catch (error) {
+      console.error("Error fetching phone directory:", error);
+      res.status(500).json({ message: "Failed to fetch phone directory" });
+    }
+  });
+
+  app.post("/api/phone-directory", async (req, res) => {
+    try {
+      const { airbaseCode, airbaseName, contacts } = req.body;
+      const [newDirectory] = await db.insert(phoneDirectory).values({
+        airbaseCode,
+        airbaseName,
+        contacts: JSON.stringify(contacts)
+      }).returning();
+      res.json(newDirectory);
+    } catch (error) {
+      console.error("Error creating phone directory entry:", error);
+      res.status(500).json({ message: "Failed to create phone directory entry" });
+    }
+  });
+
+  app.put("/api/phone-directory/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { airbaseCode, airbaseName, contacts } = req.body;
+      
+      const [updatedDirectory] = await db
+        .update(phoneDirectory)
+        .set({ 
+          airbaseCode,
+          airbaseName,
+          contacts: JSON.stringify(contacts),
+          updatedAt: new Date() 
+        })
+        .where(eq(phoneDirectory.id, id))
+        .returning();
+
+      if (!updatedDirectory) {
+        return res.status(404).json({ message: "Directory entry not found" });
+      }
+
+      res.json(updatedDirectory);
+    } catch (error) {
+      console.error("Error updating phone directory entry:", error);
+      res.status(500).json({ message: "Failed to update phone directory entry" });
+    }
+  });
+
+  app.delete("/api/phone-directory/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await db.delete(phoneDirectory).where(eq(phoneDirectory.id, id));
+      res.json({ message: "Directory entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting phone directory entry:", error);
+      res.status(500).json({ message: "Failed to delete phone directory entry" });
+    }
+  });
+
   // License management endpoints - integrated into main routes
   app.get("/api/licensing/licenses", async (req, res) => {
     try {
@@ -1375,71 +1441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Phone Directory API endpoints
-  app.get("/api/phone-directory", async (req, res) => {
-    try {
-      console.log("Phone directory GET request received");
-      const directories = await db.select().from(phoneDirectory);
-      console.log("Phone directory data:", directories);
-      res.json(directories);
-    } catch (error) {
-      console.error("Error fetching phone directory:", error);
-      res.status(500).json({ message: "Failed to fetch phone directory" });
-    }
-  });
 
-  app.post("/api/phone-directory", async (req, res) => {
-    try {
-      const { airbaseCode, airbaseName, contacts } = req.body;
-      const [newDirectory] = await db.insert(phoneDirectory).values({
-        airbaseCode,
-        airbaseName,
-        contacts: JSON.stringify(contacts)
-      }).returning();
-      res.json(newDirectory);
-    } catch (error) {
-      console.error("Error creating phone directory entry:", error);
-      res.status(500).json({ message: "Failed to create phone directory entry" });
-    }
-  });
-
-  app.put("/api/phone-directory/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { airbaseCode, airbaseName, contacts } = req.body;
-      
-      const [updatedDirectory] = await db
-        .update(phoneDirectory)
-        .set({ 
-          airbaseCode,
-          airbaseName,
-          contacts: JSON.stringify(contacts),
-          updatedAt: new Date() 
-        })
-        .where(eq(phoneDirectory.id, id))
-        .returning();
-
-      if (!updatedDirectory) {
-        return res.status(404).json({ message: "Directory entry not found" });
-      }
-
-      res.json(updatedDirectory);
-    } catch (error) {
-      console.error("Error updating phone directory entry:", error);
-      res.status(500).json({ message: "Failed to update phone directory entry" });
-    }
-  });
-
-  app.delete("/api/phone-directory/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      await db.delete(phoneDirectory).where(eq(phoneDirectory.id, id));
-      res.json({ message: "Directory entry deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting phone directory entry:", error);
-      res.status(500).json({ message: "Failed to delete phone directory entry" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
