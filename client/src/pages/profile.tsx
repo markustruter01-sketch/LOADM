@@ -110,53 +110,38 @@ export default function Profile() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Profile Header */}
-      <div className="flex items-center space-x-8 py-6">
-        <div className="relative">
-          <div className={`w-24 h-24 rounded-full ${getServiceBranchColor(profileData.user.serviceBranch || '')} flex items-center justify-center text-white text-3xl font-bold shadow-lg ring-4 ring-white`}>
-            {profileData.user.firstName[0]}{profileData.user.lastName?.[0]}
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full border-3 border-white flex items-center justify-center">
-            <CheckCircle className="w-4 h-4 text-white" />
-          </div>
+      <div className="flex items-center space-x-6">
+        <div className={`w-20 h-20 rounded-full ${getServiceBranchColor(profileData.user.serviceBranch || '')} flex items-center justify-center text-white text-2xl font-bold`}>
+          {profileData.user.firstName[0]}{profileData.user.lastName?.[0]}
         </div>
-        <div className="flex-1 space-y-3">
-          <div>
-            <h1 className="text-4xl font-bold text-white tracking-tight">
-              {profileData.user.firstName} {profileData.user.lastName}
-            </h1>
-            <p className="text-xl text-gray-300 font-medium">{profileData.user.email}</p>
-          </div>
-          <div className="flex items-center flex-wrap gap-3">
-            <Badge variant="secondary" className="flex items-center space-x-2 px-3 py-1.5 text-sm font-semibold">
-              <User className="w-4 h-4" />
-              <span className="capitalize">{profileData.user.role}</span>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {profileData.user.firstName} {profileData.user.lastName}
+          </h1>
+          <p className="text-lg text-gray-600">{profileData.user.email}</p>
+          <div className="flex items-center space-x-4 mt-2">
+            <Badge variant="outline" className="flex items-center space-x-1">
+              <User className="w-3 h-3" />
+              <span>{profileData.user.role}</span>
             </Badge>
             {profileData.user.squadron && (
-              <Badge variant="outline" className="px-3 py-1.5 text-sm font-medium border-gray-300">
-                <span className="text-gray-300">Squadron: {profileData.user.squadron}</span>
-              </Badge>
+              <Badge variant="outline">Squadron: {profileData.user.squadron}</Badge>
             )}
             {profileData.user.serviceBranch && (
-              <Badge className={`${getServiceBranchColor(profileData.user.serviceBranch)} text-white px-3 py-1.5 text-sm font-semibold shadow-md`}>
+              <Badge className={getServiceBranchColor(profileData.user.serviceBranch)}>
                 {profileData.user.serviceBranch}
               </Badge>
             )}
           </div>
         </div>
-        <div className="flex flex-col space-y-3">
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="flex items-center space-x-2 shadow-sm hover:shadow-md transition-all duration-200"
-            onClick={() => window.location.href = '/first-time-password'}
-          >
-            <Key className="w-4 h-4" />
-            <span>Reset Password</span>
-          </Button>
-          <Badge variant="secondary" className="text-center justify-center">
-            License Active
-          </Badge>
-        </div>
+        <Button 
+          variant="outline" 
+          className="flex items-center space-x-2"
+          onClick={() => window.location.href = '/first-time-password'}
+        >
+          <Key className="w-4 h-4" />
+          <span>Reset Password</span>
+        </Button>
       </div>
 
       <Separator />

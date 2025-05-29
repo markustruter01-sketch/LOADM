@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiryDate: new Date(expiryDate),
         maxConcurrentSessions: 3,
         maxDevices: 2,
-        createdByAdmin: 1, // Default admin ID
+        createdByAdmin: req.user?.id || 9,
         notes: ''
       }).returning();
 
@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hashedPassword,
         isFirstLogin: true,
         licenseId: newLicense[0].id,
-        createdBy: 1, // Default admin ID
+        createdBy: req.user?.id || 9,
         userRole: licenseType === 'instructor' ? 'instructor' : 'loadmaster',
         isAdmin: licenseType === 'instructor',
         isSuperAdmin: false
@@ -233,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get users and quizzes separately
-      const users = await sql`SELECT id, email, firstName, lastName FROM licenses`;
+      const users = await sql`SELECT id, email, first_name, last_name FROM users`;
       const quizzes = await sql`SELECT id, title, description FROM quizzes`;
       
       // Manually join the data
@@ -250,8 +250,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: submission.score,
           squadron: submission.squadron,
           email: user?.email || 'Unknown User',
-          firstName: user?.firstName || '',
-          lastName: user?.lastName || '',
+          firstName: user?.first_name || '',
+          lastName: user?.last_name || '',
           quizTitle: quiz?.title || 'Unknown Quiz',
           quizDescription: quiz?.description || ''
         };
@@ -295,7 +295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // License verification endpoint
   app.post('/api/verify-license', async (req, res) => {
     try {
-      const { email, licenseKey } = req.body;
+      const { email, username, licenseKey } = req.body;
       
       const license = await db
         .select()
@@ -303,8 +303,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(
           and(
             eq(licenses.email, email),
+            eq(licenses.username, username),
             eq(licenses.licenseKey, licenseKey),
-            eq(licenses.isActive, true),
+            eq(licenses.status, 'active'),
             gt(licenses.expiryDate, new Date())
           )
         )
@@ -331,10 +332,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         licenseId: license[0].id,
+        username: license[0].username,
         email: license[0].email,
         expiryDate: license[0].expiryDate,
-        firstName: license[0].firstName,
-        lastName: license[0].lastName
+        maxConcurrentSessions: license[0].maxConcurrentSessions
       });
     } catch (error) {
       console.error('License verification error:', error);
@@ -437,8 +438,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
       
       // Only admin can see all submissions or other user's submissions
-      // Simplified access control for deployment
-      const submissions = await storage.getDocumentSubmissions(documentId, userId || 1);
+      if ((!req.user?.isAdmin) && (userId !== undefined && userId !== req.user?.id)) {
+        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
+      }
+      
+      const submissions = await storage.getDocumentSubmissions(documentId, userId || req.user?.id);
       res.json(submissions);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve document submissions" });
@@ -453,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const submissionData = insertDocumentSubmissionSchema.parse({
         ...req.body,
-        userId: 1
+        userId: req.user?.id || 9
       });
       
       const submission = await storage.createDocumentSubmission(submissionData);
@@ -698,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
          RETURNING *`,
         [
           scenarioId,
-          1, // Default user ID
+          req.user?.id || 9,
           sanitizedAnswers, // Properly validated JSON string
           'pending',
           req.body.studentName || '',
@@ -826,63 +830,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // === Profile System ===
+  // === Ultra Simple Profile System ===
   
-  // Profile endpoint - works reliably
-  app.get("/api/profile", async (req, res) => {
-    console.log("Profile endpoint accessed");
-    
-    try {
-      // Get actual license data from database
-      const licenseData = await db.select().from(licenses).where(eq(licenses.email, 'markus.truter@outlook.com')).limit(1);
-      const license = licenseData[0];
-      
-      const profileData = {
-        user: {
-          id: 1,
-          email: 'markus.truter@outlook.com',
-          firstName: license?.firstName || 'Markus',
-          lastName: license?.lastName || 'Truter',
-          role: 'superadmin',
-          squadron: 'Training Squadron',
-          serviceBranch: 'Air Force',
-          licenseExpiry: license?.expiryDate || '2025-12-31'
-        },
-        submissions: [],
-        trainingModules: [
-          {
-            id: 1,
-            title: 'C-17 Basic Load Planning',
-            aircraftType: 'C-17',
-            completed: false,
-            progress: 0
-          },
-          {
-            id: 2,
-            title: 'C-130 Cargo Operations',
-            aircraftType: 'C-130',
-            completed: false,
-            progress: 0
-          }
-        ],
-        stats: {
-          totalSubmissions: 0,
-          passedSubmissions: 0,
-          overallPassRate: 0,
-          currentStreak: 0,
-          longestStreak: 0
-        }
-      };
-      
-      console.log("Returning profile data");
-      res.json(profileData);
-    } catch (error) {
-      console.error("Profile error:", error);
-      res.status(500).json({ message: "Profile load failed" });
-    }
+  // Test endpoint to verify basic functionality
+  app.get("/api/test", (req, res) => {
+    console.log("Test endpoint hit");
+    res.json({ message: "Server is working", timestamp: new Date() });
   });
   
-  // User auth endpoint
+  // Ultra-simple profile endpoint
+  app.get("/api/profile", (req, res) => {
+    console.log("Profile endpoint accessed");
+    
+    const profileData = {
+      user: {
+        id: 1,
+        email: 'markus.truter@outlook.com',
+        firstName: 'Markus',
+        lastName: 'Truter',
+        role: 'superadmin',
+        squadron: 'Training Squadron',
+        serviceBranch: 'Air Force',
+        licenseExpiry: '2025-12-31'
+      },
+      submissions: [],
+      trainingModules: [
+        {
+          id: 1,
+          title: 'C-17 Basic Load Planning',
+          aircraftType: 'C-17',
+          completed: false,
+          progress: 0
+        },
+        {
+          id: 2,
+          title: 'C-130 Cargo Operations',
+          aircraftType: 'C-130',
+          completed: false,
+          progress: 0
+        }
+      ],
+      stats: {
+        totalSubmissions: 0,
+        passedSubmissions: 0,
+        overallPassRate: 0,
+        currentStreak: 0,
+        longestStreak: 0
+      }
+    };
+    
+    console.log("Returning profile data");
+    res.json(profileData);
+  });
+  
+  // Simple user auth endpoint
   app.get("/api/user", (req, res) => {
     res.json({
       id: 1,
@@ -901,7 +902,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Only admins can view all users
-      // Simplified access control for deployment
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      }
       
       const users = await storage.getAllUsers();
       res.json(users);
@@ -918,12 +921,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
-      // Simplified access control for deployment
+      // Only super admins can delete users
+      if (!req.user?.isSuperAdmin) {
+        return res.status(403).json({ message: "Forbidden: Super Admin access required for account deletion" });
+      }
+      
       const userId = parseInt(req.params.id);
       
-      // Prevent deleting admin account
-      if (userId === 1) {
-        return res.status(400).json({ message: "Cannot delete admin account" });
+      // Prevent deleting your own account
+      if (userId === req.user.id) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
       }
       
       const success = await storage.deleteUser(userId);
