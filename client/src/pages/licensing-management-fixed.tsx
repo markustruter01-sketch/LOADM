@@ -196,13 +196,17 @@ export default function LicensingManagementFixed() {
   });
 
   const getStatusBadge = (license: License) => {
-    if (license.isExpired) {
+    const today = new Date();
+    const expiry = new Date(license.expiryDate);
+    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
       return <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" />Expired</Badge>;
     }
-    if (license.status === 'suspended') {
-      return <Badge variant="secondary" className="gap-1"><AlertTriangle className="w-3 h-3" />Suspended</Badge>;
+    if (!license.isActive) {
+      return <Badge variant="secondary" className="gap-1"><AlertTriangle className="w-3 h-3" />Inactive</Badge>;
     }
-    if (license.daysUntilExpiry <= 7 && license.daysUntilExpiry > 0) {
+    if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
       return <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-600"><Clock className="w-3 h-3" />Expiring Soon</Badge>;
     }
     return <Badge variant="default" className="gap-1 bg-green-500"><CheckCircle className="w-3 h-3" />Active</Badge>;
@@ -548,7 +552,7 @@ export default function LicensingManagementFixed() {
                   <TableRow key={license.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{license.username}</div>
+                        <div className="font-medium">{license.firstName} {license.lastName}</div>
                         <div className="text-sm text-gray-500">{license.email}</div>
                       </div>
                     </TableCell>
@@ -570,13 +574,18 @@ export default function LicensingManagementFixed() {
                         {format(new Date(license.expiryDate), 'MMM dd, yyyy')}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {license.daysUntilExpiry > 0 ? `${license.daysUntilExpiry} days left` : 'Expired'}
+                        {(() => {
+                          const today = new Date();
+                          const expiry = new Date(license.expiryDate);
+                          const daysLeft = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          return daysLeft > 0 ? `${daysLeft} days left` : 'Expired';
+                        })()}
                       </div>
                     </TableCell>
-                    <TableCell>{license.maxConcurrentSessions}</TableCell>
+                    <TableCell>1</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        {license.status === 'active' ? (
+                        {license.isActive ? (
                           <Button 
                             size="sm" 
                             variant="outline"
