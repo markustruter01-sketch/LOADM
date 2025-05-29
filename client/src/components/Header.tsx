@@ -33,9 +33,9 @@ export default function Header() {
 
   return (
     <header className="bg-muted shadow-md">
-      <div className="container mx-auto px-4 md:px-6 py-4 md:py-3 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/">
-          <div className="flex items-center cursor-pointer touch-manipulation">
+          <div className="flex items-center cursor-pointer">
             <Logo />
           </div>
         </Link>
@@ -45,8 +45,8 @@ export default function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-3 icon-button">
-                  <UserCircle style={{ height: '1.8rem', width: '1.8rem' }} />
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
+                  <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>

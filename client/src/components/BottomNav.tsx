@@ -66,11 +66,11 @@ export default function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 w-full border-t border-border bg-card shadow-lg z-50">
-      <div className="grid grid-cols-6 h-20 md:h-16">
+      <div className="grid grid-cols-6 h-16">
         {allNavItems.map((item) => (
           <div key={item.href} className="flex justify-center">
             <div 
-              className="flex flex-col items-center justify-center w-full p-3 md:p-2 cursor-pointer touch-manipulation icon-button"
+              className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
               onClick={() => handleNavClick(item.href)}
             >
               <div 
@@ -79,8 +79,8 @@ export default function BottomNav() {
                   item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <item.icon className="h-6 w-6 md:h-5 md:w-5 mb-1" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <item.icon className="h-5 w-5 mb-1" />
+                <span className="text-xs">{item.label}</span>
               </div>
             </div>
           </div>

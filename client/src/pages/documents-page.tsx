@@ -298,7 +298,7 @@ export default function DocumentsPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => toggleAirfieldExpansion(entry.id)}
-                                    className="p-2 h-auto icon-button touch-manipulation"
+                                    className="p-1 h-auto"
                                   >
                                     {isExpanded ? (
                                       <ChevronDown className="w-4 h-4" />
