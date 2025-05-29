@@ -45,31 +45,6 @@ export default function HomePage() {
         />
       </Helmet>
 
-      {/* Header with User Profile */}
-      <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" id="app-header">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold">LOADMworkflow</h1>
-            </div>
-            {user && (
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">
-                  Welcome, {user.firstName || user.email}
-                </span>
-                <Card 
-                  className="p-2 cursor-pointer hover:bg-muted/50 transition-colors" 
-                  onClick={handleCardClick("/profile")}
-                  data-tour="profile"
-                >
-                  <UserCircle className="h-5 w-5" />
-                </Card>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-4 py-8 mb-16">
         <div className="max-w-4xl mx-auto">
           {/* Service Branch Selection */}
@@ -135,7 +110,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/training-modules")} data-tour="training">
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/training-modules")}>
                   <div className="absolute top-1 right-1">
                     <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>
                   </div>
@@ -150,7 +125,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/load-planning")} data-tour="load-planning">
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/load-planning")}>
                   <CardContent className="flex flex-col items-center justify-center p-6">
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Package2 className="h-8 w-8 text-primary" />
@@ -174,7 +149,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/tools")} data-tour="tools">
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/tools")}>
                   <CardContent className="flex flex-col items-center justify-center p-6">
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Wrench className="h-8 w-8 text-primary" />
@@ -186,7 +161,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/instructors-portal")} data-tour="instructor-portal">
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/instructors-portal")}>
                   <CardContent className="flex flex-col items-center justify-center p-6">
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <GraduationCap className="h-8 w-8 text-primary" />

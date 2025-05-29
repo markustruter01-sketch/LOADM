@@ -4,9 +4,6 @@ import { createOfflineQueryClient } from "@/lib/queryClient";
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { IsolatedLoginForm } from './auth-isolated/login-component';
 import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
-import { OnboardingTour, useOnboardingTour } from '@/components/onboarding-tour';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { TourTrigger } from '@/components/tour-trigger';
 
 // Import all your existing pages
 import DocumentFormPage from "@/pages/document-form-page";
@@ -70,14 +67,12 @@ const queryClient = createOfflineQueryClient();
 
 function AuthenticatedApp() {
   const { user } = useIsolatedAuth();
-  const { showTour, startTour, closeTour, completeTour } = useOnboardingTour();
   
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="App">
-          <Header />
-          <main className="main-content">
+      <div className="App">
+        <Header />
+        <main className="main-content">
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/army" component={ArmyHomePage} />
@@ -144,18 +139,7 @@ function AuthenticatedApp() {
         </main>
         <BottomNav />
         <Footer />
-        
-        {/* Onboarding Tour */}
-        <OnboardingTour
-          isOpen={showTour}
-          onClose={closeTour}
-          onComplete={completeTour}
-        />
-        
-        {/* Tour Trigger Button */}
-        <TourTrigger />
       </div>
-      </TooltipProvider>
     </QueryClientProvider>
   );
 }
