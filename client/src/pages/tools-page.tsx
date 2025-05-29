@@ -72,16 +72,7 @@ function MissionComplexityAnalyzer() {
 
     const currentLimits = airframeLimits[missionData.airframe];
 
-    // Airframe Capacity Exceeded Factor (0-20 points)
-    let capacityExceededPoints = 0;
-    const weightExceeded = missionData.cargoWeight > currentLimits.maxWeight;
-    const palletExceeded = missionData.palletCount > currentLimits.maxPallets;
-    
-    if (weightExceeded && palletExceeded) capacityExceededPoints = 20;
-    else if (weightExceeded || palletExceeded) capacityExceededPoints = 12;
-    
-    factors.push({ name: 'Exceeds Airframe Capacity', points: capacityExceededPoints, maxPoints: 20 });
-    totalPoints += capacityExceededPoints;
+    // Remove airframe capacity exceeded factor as requested
 
     // Cargo Weight (0-15 points)
     let cargoWeightPoints = 0;
@@ -126,22 +117,22 @@ function MissionComplexityAnalyzer() {
     factors.push({ name: 'Single Loadmaster', points: singleLoadmasterPoints, maxPoints: 10 });
     totalPoints += singleLoadmasterPoints;
 
-    // Captain Category (0-10 points) - D = least experienced (10 pts), A = most experienced (0 pts)
+    // Captain Category (1-10 points) - D = least experienced (10 pts), A = most experienced (1 pt)
     let captainPoints = 0;
     if (missionData.captainCategory === 'D') captainPoints = 10;
     else if (missionData.captainCategory === 'C') captainPoints = 6;
     else if (missionData.captainCategory === 'B') captainPoints = 3;
-    else if (missionData.captainCategory === 'A') captainPoints = 0;
+    else if (missionData.captainCategory === 'A') captainPoints = 1;
     factors.push({ name: 'Captain Experience Level', points: captainPoints, maxPoints: 10 });
     totalPoints += captainPoints;
 
-    // No Loading Team (0-10 points)
+    // No Loading Team (0-10 points) - Having no loading team increases difficulty
     const noLoadingTeamPoints = !missionData.hasLoadingTeam ? 10 : 0;
     factors.push({ name: 'No Loading Team Assistance', points: noLoadingTeamPoints, maxPoints: 10 });
     totalPoints += noLoadingTeamPoints;
 
     // Calculate percentage
-    const maxTotalPoints = 120; // Updated to include airframe capacity factor (20 pts)
+    const maxTotalPoints = 100; // Updated to remove airframe capacity factor
     const percentage = (totalPoints / maxTotalPoints) * 100;
 
     // Determine category
