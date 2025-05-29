@@ -294,51 +294,189 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          {/* Recent Activity */}
+          {/* Detailed Activity History */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Clock className="w-5 h-5" />
-                <span>Recent Activity</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5" />
+                  <span>Activity History</span>
+                </div>
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                  <div className="flex items-center space-x-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span>{stats.passedSubmissions} Passed</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <XCircle className="w-4 h-4 text-red-600" />
+                    <span>{stats.failedSubmissions} Failed</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Hourglass className="w-4 h-4 text-yellow-600" />
+                    <span>{stats.pendingGrading} Pending</span>
+                  </div>
+                </div>
               </CardTitle>
-              <CardDescription>Your latest submissions and achievements</CardDescription>
+              <CardDescription>Your complete submission history across all activities</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {submissions.slice(0, 5).map((submission, index) => (
-                  <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        submission.passed === true ? 'bg-green-500' : 
-                        submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
-                      }`} />
-                      <div>
-                        <p className="text-sm font-medium">{submission.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(submission.submissionDate).toLocaleDateString()}
-                        </p>
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="all">All ({submissions.length})</TabsTrigger>
+                  <TabsTrigger value="scenarios">Scenarios ({submissionsByType.scenarios.length})</TabsTrigger>
+                  <TabsTrigger value="quizzes">Quizzes ({submissionsByType.quizzes.length})</TabsTrigger>
+                  <TabsTrigger value="assessments">Assessments ({submissionsByType.assessments.length})</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="all" className="space-y-4 mt-4">
+                  {submissions.slice(0, 10).map((submission: any) => (
+                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          submission.passed === true ? 'bg-green-500' : 
+                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                        }`} />
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-medium">{submission.title}</p>
+                            <Badge variant="outline" className="text-xs">
+                              {submission.type}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(submission.submissionDate).toLocaleDateString()} at {new Date(submission.submissionDate).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {submission.score > 0 && (
+                          <span className="text-sm font-medium">{submission.score}%</span>
+                        )}
+                        <Badge variant={
+                          submission.passed === true ? 'default' : 
+                          submission.passed === false ? 'destructive' : 'secondary'
+                        }>
+                          {submission.passed === true ? 'Pass' : 
+                           submission.passed === false ? 'Fail' : 'Pending Review'}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {submission.score !== undefined && (
-                        <span className="text-sm font-medium">{submission.score}%</span>
-                      )}
-                      <Badge variant={
-                        submission.passed === true ? 'default' : 
-                        submission.passed === false ? 'destructive' : 'secondary'
-                      }>
-                        {submission.passed === true ? 'Pass' : 
-                         submission.passed === false ? 'Fail' : 'Pending'}
-                      </Badge>
+                  ))}
+                  {submissions.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No submissions yet. Start training to see your progress here!
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="scenarios" className="space-y-4 mt-4">
+                  {submissionsByType.scenarios.slice(0, 10).map((submission: any) => (
+                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          submission.passed === true ? 'bg-green-500' : 
+                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                        }`} />
+                        <div>
+                          <p className="text-sm font-medium">{submission.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(submission.submissionDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {submission.score > 0 && (
+                          <span className="text-sm font-medium">{submission.score}%</span>
+                        )}
+                        <Badge variant={
+                          submission.passed === true ? 'default' : 
+                          submission.passed === false ? 'destructive' : 'secondary'
+                        }>
+                          {submission.passed === true ? 'Pass' : 
+                           submission.passed === false ? 'Fail' : 'Pending Review'}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {submissions.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No submissions yet. Start training to see your progress here!
-                  </p>
-                )}
-              </div>
+                  ))}
+                  {submissionsByType.scenarios.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No scenario submissions yet. Try the load planning scenarios!
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="quizzes" className="space-y-4 mt-4">
+                  {submissionsByType.quizzes.slice(0, 10).map((submission: any) => (
+                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          submission.passed === true ? 'bg-green-500' : 
+                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                        }`} />
+                        <div>
+                          <p className="text-sm font-medium">{submission.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(submission.submissionDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {submission.score > 0 && (
+                          <span className="text-sm font-medium">{submission.score}%</span>
+                        )}
+                        <Badge variant={
+                          submission.passed === true ? 'default' : 
+                          submission.passed === false ? 'destructive' : 'secondary'
+                        }>
+                          {submission.passed === true ? 'Pass' : 
+                           submission.passed === false ? 'Fail' : 'Pending Review'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {submissionsByType.quizzes.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No quiz submissions yet. Complete your weekly quiz to maintain your streak!
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="assessments" className="space-y-4 mt-4">
+                  {submissionsByType.assessments.slice(0, 10).map((submission: any) => (
+                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          submission.passed === true ? 'bg-green-500' : 
+                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                        }`} />
+                        <div>
+                          <p className="text-sm font-medium">{submission.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(submission.submissionDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {submission.score > 0 && (
+                          <span className="text-sm font-medium">{submission.score}%</span>
+                        )}
+                        <Badge variant={
+                          submission.passed === true ? 'default' : 
+                          submission.passed === false ? 'destructive' : 'secondary'
+                        }>
+                          {submission.passed === true ? 'Pass' : 
+                           submission.passed === false ? 'Fail' : 'Pending Review'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {submissionsByType.assessments.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No assessment submissions yet. Try the document-based assessments!
+                    </p>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
@@ -427,60 +565,131 @@ export default function UserProfile() {
             </Card>
           )}
 
-          {/* Achievements Section */}
+          {/* Achievements & Gamification */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Award className="w-5 h-5" />
                 <span>Achievements</span>
               </CardTitle>
-              <CardDescription>Your training milestones</CardDescription>
+              <CardDescription>Your training milestones and progress rewards</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {stats.totalSubmissions >= 10 && (
+              {/* Weekly Goal Progress */}
+              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">Weekly Goal</span>
+                  </div>
+                  <span className="text-xs text-blue-600">
+                    {gamification.thisWeekActivity}/{gamification.weeklyGoal}
+                  </span>
+                </div>
+                <Progress 
+                  value={(gamification.thisWeekActivity / gamification.weeklyGoal) * 100} 
+                  className="h-2" 
+                />
+                <p className="text-xs text-blue-600 mt-1">
+                  {gamification.thisWeekActivity >= gamification.weeklyGoal 
+                    ? "Goal completed this week! 🎉" 
+                    : `${gamification.weeklyGoal - gamification.thisWeekActivity} more activity needed this week`}
+                </p>
+              </div>
+
+              {/* Earned Achievements */}
+              {gamification.achievements.firstSubmission && (
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-green-50 border border-green-200">
+                  <Award className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium text-green-800">First Steps</p>
+                    <p className="text-xs text-green-600">Completed your first submission</p>
+                  </div>
+                </div>
+              )}
+
+              {gamification.achievements.quickLearner && (
                 <div className="flex items-center space-x-3 p-2 rounded-lg bg-yellow-50 border border-yellow-200">
                   <Award className="w-5 h-5 text-yellow-600" />
                   <div>
-                    <p className="text-sm font-medium text-yellow-800">Active Learner</p>
+                    <p className="text-sm font-medium text-yellow-800">Quick Learner</p>
                     <p className="text-xs text-yellow-600">Completed 10+ submissions</p>
                   </div>
                 </div>
               )}
 
-              {stats.overallPassRate >= 80 && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-green-50 border border-green-200">
-                  <Award className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium text-green-800">High Achiever</p>
-                    <p className="text-xs text-green-600">80%+ pass rate</p>
-                  </div>
-                </div>
-              )}
-
-              {stats.longestStreak >= 5 && (
+              {gamification.achievements.perfectionist && (
                 <div className="flex items-center space-x-3 p-2 rounded-lg bg-purple-50 border border-purple-200">
                   <Award className="w-5 h-5 text-purple-600" />
                   <div>
-                    <p className="text-sm font-medium text-purple-800">Consistent Performer</p>
-                    <p className="text-xs text-purple-600">5+ week streak</p>
+                    <p className="text-sm font-medium text-purple-800">Perfectionist</p>
+                    <p className="text-xs text-purple-600">95%+ pass rate with 5+ submissions</p>
                   </div>
                 </div>
               )}
 
-              {trainingModules.filter(m => m.completed).length >= 2 && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-blue-50 border border-blue-200">
-                  <Award className="w-5 h-5 text-blue-600" />
+              {gamification.achievements.weeklyWarrior && (
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-orange-50 border border-orange-200">
+                  <Flame className="w-5 h-5 text-orange-600" />
                   <div>
-                    <p className="text-sm font-medium text-blue-800">Multi-Aircraft Certified</p>
-                    <p className="text-xs text-blue-600">Completed multiple aircraft types</p>
+                    <p className="text-sm font-medium text-orange-800">Weekly Warrior</p>
+                    <p className="text-xs text-orange-600">4+ week streak maintained</p>
                   </div>
                 </div>
               )}
 
-              {stats.totalSubmissions === 0 && stats.longestStreak === 0 && trainingModules.filter(m => m.completed).length === 0 && (
+              {gamification.achievements.monthlyMaster && (
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-red-50 border border-red-200">
+                  <Flame className="w-5 h-5 text-red-600" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">Monthly Master</p>
+                    <p className="text-xs text-red-600">12+ week streak achieved!</p>
+                  </div>
+                </div>
+              )}
+
+              {gamification.achievements.consistent && (
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-indigo-50 border border-indigo-200">
+                  <Award className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p className="text-sm font-medium text-indigo-800">Consistency Champion</p>
+                    <p className="text-xs text-indigo-600">8+ week longest streak</p>
+                  </div>
+                </div>
+              )}
+
+              {gamification.achievements.diverseLearner && (
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-teal-50 border border-teal-200">
+                  <Award className="w-5 h-5 text-teal-600" />
+                  <div>
+                    <p className="text-sm font-medium text-teal-800">Multi-Aircraft Expert</p>
+                    <p className="text-xs text-teal-600">Completed 3+ aircraft types</p>
+                  </div>
+                </div>
+              )}
+
+              {!Object.values(gamification.achievements).some(Boolean) && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Complete training to unlock achievements!
+                  Complete activities to unlock achievements! Start with a quiz or scenario to earn your first badge.
                 </p>
+              )}
+
+              {/* Streak Information */}
+              {stats.currentStreak > 0 && (
+                <div className="mt-4 p-3 rounded-lg bg-gray-50 border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Flame className="w-4 h-4 text-orange-500" />
+                      <span className="text-sm font-medium">Current Streak</span>
+                    </div>
+                    <span className="text-sm font-bold">{stats.currentStreak} weeks</span>
+                  </div>
+                  {gamification.streakData.streakAtRisk && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      ⚠️ Complete an activity this week to keep your streak alive!
+                    </p>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
