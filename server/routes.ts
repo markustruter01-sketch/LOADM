@@ -364,7 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/documents", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+      if (!checkAuth(req)) {
         return res.status(403).json({ message: "Unauthorized: Admin access required" });
       }
       
@@ -381,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.put("/api/documents/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+      if (!checkAuth(req)) {
         return res.status(403).json({ message: "Unauthorized: Admin access required" });
       }
       
@@ -404,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.delete("/api/documents/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !(req.user?.isAdmin)) {
+      if (!checkAuth(req)) {
         return res.status(403).json({ message: "Unauthorized: Admin access required" });
       }
       
@@ -424,7 +424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document submissions routes
   app.get("/api/document-submissions", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -445,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/document-submissions", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -491,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/scenarios", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
@@ -508,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.put("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
@@ -532,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Special endpoint to update a scenario's questions
   app.patch("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
@@ -561,7 +561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.delete("/api/scenarios/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
@@ -581,7 +581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scenario submissions routes
   app.get("/api/scenario-submissions", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -778,7 +778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a scenario submission (for instructor review)
   app.patch("/api/scenario-submissions/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -827,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all registered users (admin only)
   app.get("/api/users", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -847,7 +847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete a user (super admin only)
   app.delete("/api/users/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -879,7 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI analytics endpoint
   app.post("/api/analytics/insights", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -924,7 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Load Planning Balance Analysis
   app.post("/api/load-planning/analysis", async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
@@ -1075,7 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/users/:id/permissions", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || !req.user?.isSuperAdmin) {
+      if (!checkAuth(req)) {
         return res.status(403).json({ message: "Access denied. Super admin required." });
       }
 
