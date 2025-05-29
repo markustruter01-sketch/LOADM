@@ -3021,7 +3021,7 @@ export default function LoadPlanningPage() {
                     <div className="mt-4">
                       <Button 
                         variant="outline" 
-                        className="w-full flex items-center justify-center bg-card border-border text-card-foreground hover:bg-muted" 
+                        className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" 
                         onClick={handleReset}
                       >
                         <RefreshCw className="h-4 w-4 mr-2" />

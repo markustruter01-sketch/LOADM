@@ -34,7 +34,9 @@ export default function UsersList() {
     staleTime: 0
   });
 
-  // Transform license data to user format with deduplication
+  // Debug logging and transform license data to user format
+  console.log('License data received:', licensesData);
+  
   const seenEmails = new Set<string>();
   const allUsers: User[] = Array.isArray(licensesData) ? licensesData
     .filter((license: any) => {
@@ -58,6 +60,8 @@ export default function UsersList() {
       isFirstLogin: license.isFirstLogin,
       password: license.isFirstLogin ? 'Password1!' : '********'
     })) : [];
+
+  console.log('Processed users:', allUsers);
 
   const togglePasswordVisibility = (userId: number) => {
     setShowPasswords(prev => ({
