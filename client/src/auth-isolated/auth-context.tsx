@@ -35,7 +35,7 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
   const checkAuthStatus = async () => {
     console.log('✅ ISOLATED CLIENT: Checking auth status...');
     try {
-      const response = await fetch('/api/isolated-auth/user', {
+      const response = await fetch('/auth-isolated/user', {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -63,7 +63,7 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     console.log('✅ ISOLATED CLIENT: Login attempt for', email);
     try {
-      const response = await fetch('/api/isolated-auth/login', {
+      const response = await fetch('/auth-isolated/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
     document.cookie = 'sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     
     // Call logout API
-    fetch('/api/isolated-auth/logout', { 
+    fetch('/auth-isolated/logout', { 
       method: 'POST',
       credentials: 'include',
       headers: {
