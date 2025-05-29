@@ -151,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deletedLicense = await db.delete(licenses).where(eq(licenses.id, licenseId)).returning();
       
       console.log('🗑️ DELETE LICENSE: Successfully deleted license');
-      res.json({ success: true, message: "License and associated user deleted successfully" });
+      res.status(200).json({ success: true, message: "License and associated user deleted successfully" });
     } catch (error) {
       console.error('🗑️ DELETE LICENSE: Error occurred:', error);
       res.status(500).json({ message: "Failed to delete license" });
