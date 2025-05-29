@@ -97,9 +97,9 @@ export async function authenticateUser(email: string, password: string) {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      role: user.role,
+      firstName: user.first_name || user.firstName || '',
+      lastName: user.last_name || user.lastName || '',
+      role: user.user_role || user.role || 'loadmaster',
       isFirstLogin: user.is_first_login
     };
   } catch (error) {

@@ -69,7 +69,7 @@ export function registerLicensingRoutes(app: Express) {
       }).returning();
 
       // Create user account with temporary password
-      const defaultPassword = '12345678';
+      const defaultPassword = 'Password1!';
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
       const newUser = await db.insert(users).values({
