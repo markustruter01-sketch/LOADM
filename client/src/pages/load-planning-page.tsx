@@ -3021,7 +3021,7 @@ export default function LoadPlanningPage() {
                     <div className="mt-4">
                       <Button 
                         variant="outline" 
-                        className="w-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700" 
+                        className="w-full flex items-center justify-center border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white" 
                         onClick={handleReset}
                       >
                         <RefreshCw className="h-4 w-4 mr-2" />
@@ -3033,7 +3033,7 @@ export default function LoadPlanningPage() {
                     <div className="mt-2">
                       <Button 
                         variant="outline" 
-                        className="w-full flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary" 
+                        className="w-full flex items-center justify-center border-orange-600 text-orange-400 hover:bg-orange-900/20 hover:text-orange-300" 
                         onClick={() => {
                           // Find the chat component and scroll to it
                           const cargoAssistantElement = document.getElementById('cargo-balance-assistant');
