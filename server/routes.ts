@@ -844,7 +844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "No session found" });
       }
       
-      const { getIsolatedSession } = require('./auth-isolated/auth-core');
+      const { getIsolatedSession } = await import('./auth-isolated/auth-core.js');
       const session = getIsolatedSession(sessionId);
       console.log("Session data in /api/user:", session);
       
@@ -880,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Use the isolated auth system
-      const { getIsolatedSession } = require('./auth-isolated/auth-core');
+      const { getIsolatedSession } = await import('./auth-isolated/auth-core.js');
       const session = getIsolatedSession(sessionId);
       console.log("Session data:", session);
       
