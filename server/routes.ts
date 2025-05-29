@@ -835,25 +835,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user profile data
   app.get("/api/profile", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
       // Get session data from cookie
       const sessionId = req.cookies?.sessionId;
+      console.log('Profile endpoint - SessionId from cookie:', sessionId);
+      
       if (!sessionId) {
         return res.status(401).json({ message: "No session found" });
       }
       
-      // Get authenticated user email from auth system
-      const { getAuthenticatedUser } = require('./auth-isolated/auth-core');
-      const authenticatedUser = await getAuthenticatedUser(sessionId);
+      // Get authenticated user from isolated auth system
+      const { getIsolatedSession } = require('./auth-isolated/auth-core');
+      const session = getIsolatedSession(sessionId);
+      console.log('Profile endpoint - Session data:', session);
       
-      if (!authenticatedUser) {
+      if (!session) {
         return res.status(401).json({ message: "Invalid session" });
       }
       
-      // Get user data from database
+      // Get user data from database using session email
       const userResult = await db.select({
         id: users.id,
         email: users.email,
@@ -862,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: users.createdAt
       })
       .from(users)
-      .where(eq(users.email, authenticatedUser.email))
+      .where(eq(users.email, session.email))
       .limit(1);
       
       if (userResult.length === 0) {
