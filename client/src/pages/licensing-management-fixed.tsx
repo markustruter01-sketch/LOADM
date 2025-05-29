@@ -18,21 +18,17 @@ import { useLocation } from "wouter";
 interface License {
   id: number;
   email: string;
-  username: string;
+  firstName: string;
+  lastName: string;
   licenseKey: string;
   licenseType: 'loadmaster' | 'instructor' | 'superadmin';
-  issuedDate: string;
+  isActive: boolean;
   expiryDate: string;
-  status: 'active' | 'suspended' | 'expired';
-  maxConcurrentSessions: number;
-  maxDevices: number;
-  notes: string;
   createdAt: string;
-  updatedAt: string;
-  activeSessionCount: number;
-  totalSessionCount: number;
-  isExpired: boolean;
-  daysUntilExpiry: number;
+  userId: number;
+  userEmail: string;
+  isFirstLogin: boolean;
+  hasPassword: string;
 }
 
 interface DashboardStats {
@@ -53,9 +49,11 @@ export default function LicensingManagementFixed() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Fetch licenses
-  const { data: licenses = [], isLoading: licensesLoading } = useQuery<License[]>({
-    queryKey: ['/api/licensing/licenses']
+  // Fetch licenses with cache refresh
+  const { data: licenses = [], isLoading: licensesLoading, refetch: refetchLicenses } = useQuery<License[]>({
+    queryKey: ['/api/licensing/licenses'],
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0  // Don't cache the data
   });
 
   // Fetch dashboard stats
