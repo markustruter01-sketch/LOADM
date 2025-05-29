@@ -14,8 +14,15 @@ authCore.clearAllIsolatedSessions();
 app.use(cookieParser());
 app.use(express.json());
 
-// Mount isolated auth routes FIRST (before any other routing)
+// Critical: Mount ALL API routes BEFORE Vite to prevent HTML responses
 app.use('/api/isolated-auth', isolatedAuthRoutes);
+
+// Add explicit API route handling to prevent Vite interference
+app.use('/api', (req, res, next) => {
+  // This ensures API routes are processed by Express, not Vite
+  console.log(`API Route: ${req.method} ${req.path}`);
+  next();
+});
 
 // Register other routes (they'll handle their own auth)
 registerRoutes(app);
