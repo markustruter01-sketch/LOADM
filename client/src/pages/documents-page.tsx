@@ -46,6 +46,10 @@ function PhoneDirectorySection() {
 
   const { data: directories = [], isLoading } = useQuery<DirectoryEntry[]>({
     queryKey: ["/api/phone-directory"],
+    select: (data: any[]) => data.map(entry => ({
+      ...entry,
+      contacts: typeof entry.contacts === 'string' ? JSON.parse(entry.contacts) : entry.contacts
+    }))
   });
 
   const createMutation = useMutation({

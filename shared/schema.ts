@@ -371,12 +371,7 @@ export const phoneDirectory = pgTable("phone_directory", {
   id: serial("id").primaryKey(),
   airbaseCode: text("airbase_code").notNull(), // e.g., "BNE", "SYD", "PER"
   airbaseName: text("airbase_name").notNull(), // e.g., "Brisbane", "Sydney", "Perth"
-  contacts: json("contacts").notNull().$type<Array<{
-    id: string;
-    name: string;
-    phoneNumber: string;
-    description: string;
-  }>>(),
+  contacts: text("contacts").notNull(), // JSON string stored as text
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
