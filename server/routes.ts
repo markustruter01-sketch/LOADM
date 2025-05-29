@@ -133,22 +133,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Delete license and associated user
   app.delete("/api/licensing/licenses/:id", async (req, res) => {
+    console.log('🗑️ DELETE LICENSE: Request received for ID:', req.params.id);
     try {
       const licenseId = parseInt(req.params.id);
       
-      if (!licenseId) {
+      if (!licenseId || isNaN(licenseId)) {
+        console.log('🗑️ DELETE LICENSE: Invalid license ID');
         return res.status(400).json({ message: "Invalid license ID" });
       }
 
+      console.log('🗑️ DELETE LICENSE: Deleting user accounts for license:', licenseId);
       // First, delete the associated user account
       await db.delete(users).where(eq(users.licenseId, licenseId));
       
+      console.log('🗑️ DELETE LICENSE: Deleting license:', licenseId);
       // Then delete the license
-      await db.delete(licenses).where(eq(licenses.id, licenseId));
+      const deletedLicense = await db.delete(licenses).where(eq(licenses.id, licenseId)).returning();
       
+      console.log('🗑️ DELETE LICENSE: Successfully deleted license');
       res.json({ success: true, message: "License and associated user deleted successfully" });
     } catch (error) {
-      console.error('Error deleting license:', error);
+      console.error('🗑️ DELETE LICENSE: Error occurred:', error);
       res.status(500).json({ message: "Failed to delete license" });
     }
   });
