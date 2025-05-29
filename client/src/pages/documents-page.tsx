@@ -44,13 +44,20 @@ function PhoneDirectorySection() {
     contacts: [] as Contact[]
   });
 
-  const { data: directories = [], isLoading } = useQuery<DirectoryEntry[]>({
+  const { data: directories = [], isLoading, error } = useQuery<DirectoryEntry[]>({
     queryKey: ["/api/phone-directory"],
-    select: (data: any[]) => data.map(entry => ({
-      ...entry,
-      contacts: typeof entry.contacts === 'string' ? JSON.parse(entry.contacts) : entry.contacts
-    }))
+    select: (data: any[]) => {
+      console.log("Phone directory raw data:", data);
+      return data.map(entry => ({
+        ...entry,
+        contacts: typeof entry.contacts === 'string' ? JSON.parse(entry.contacts) : entry.contacts
+      }));
+    }
   });
+
+  console.log("Phone directory directories:", directories);
+  console.log("Phone directory isLoading:", isLoading);
+  console.log("Phone directory error:", error);
 
   const createMutation = useMutation({
     mutationFn: (data: typeof newEntry) => apiRequest("/api/phone-directory", {
