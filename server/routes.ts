@@ -1094,6 +1094,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile endpoint
+  app.get("/api/profile", async (req, res) => {
+    try {
+      // Bulletproof authentication check
+      const sessionId = req.cookies?.sessionId;
+      if (!sessionId || !sessionId.startsWith('isolated_')) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get session to find user ID
+      const { getIsolatedSession } = await import('./auth-isolated/auth-core');
+      const session = getIsolatedSession(sessionId);
+      if (!session) {
+        return res.status(401).json({ message: "Invalid session" });
+      }
+
+      const userId = session.userId;
+
+      // Get user details from licenses table
+      const userLicense = await db.select().from(licenses).where(eq(licenses.id, userId)).limit(1);
+      if (userLicense.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const user = userLicense[0];
+
+      // Get user submissions from scenario_submissions table
+      const { pool } = await import('./db');
+      const submissionsResult = await pool.query(`
+        SELECT 
+          ss.id,
+          ss.scenario_id as "scenarioId",
+          ss.submission_date as "submissionDate",
+          ss.score,
+          ss.passed,
+          ss.instructor_feedback as "instructorFeedback",
+          s.title as "scenarioTitle"
+        FROM scenario_submissions ss
+        LEFT JOIN scenarios s ON ss.scenario_id = s.id
+        WHERE ss.user_id = $1
+        ORDER BY ss.submission_date DESC
+      `, [userId]);
+
+      // Calculate weekly streak
+      const calculateStreak = (submissions: any[]) => {
+        if (submissions.length === 0) return { current: 0, longest: 0 };
+        
+        // Group submissions by week
+        const weeklySubmissions = new Map();
+        submissions.forEach(sub => {
+          const date = new Date(sub.submissionDate);
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - date.getDay()); // Start of week
+          const weekKey = weekStart.toISOString().split('T')[0];
+          weeklySubmissions.set(weekKey, true);
+        });
+
+        const weeks = Array.from(weeklySubmissions.keys()).sort().reverse();
+        
+        let currentStreak = 0;
+        let longestStreak = 0;
+        let tempStreak = 0;
+
+        // Calculate current streak from most recent week
+        const now = new Date();
+        const currentWeekStart = new Date(now);
+        currentWeekStart.setDate(now.getDate() - now.getDay());
+        
+        for (let i = 0; i < weeks.length; i++) {
+          const weekDate = new Date(weeks[i]);
+          const expectedWeek = new Date(currentWeekStart);
+          expectedWeek.setDate(expectedWeek.getDate() - (i * 7));
+          
+          if (Math.abs(weekDate.getTime() - expectedWeek.getTime()) < 7 * 24 * 60 * 60 * 1000) {
+            if (i === 0 || currentStreak === i) currentStreak++;
+            tempStreak++;
+            longestStreak = Math.max(longestStreak, tempStreak);
+          } else {
+            tempStreak = 0;
+          }
+        }
+
+        return { current: currentStreak, longest: longestStreak };
+      };
+
+      const submissions = submissionsResult.rows.map(row => ({
+        id: row.id,
+        type: 'scenario' as const,
+        title: row.scenarioTitle || 'Untitled Scenario',
+        submissionDate: row.submissionDate,
+        passed: row.passed,
+        score: row.score || 0,
+        instructorFeedback: row.instructorFeedback
+      }));
+
+      const streakData = calculateStreak(submissions);
+      
+      // Calculate pass rate
+      const gradedSubmissions = submissions.filter(s => s.passed !== null);
+      const passedCount = gradedSubmissions.filter(s => s.passed).length;
+      const passRate = gradedSubmissions.length > 0 ? (passedCount / gradedSubmissions.length) * 100 : 0;
+
+      // Training modules based on actual data
+      const trainingModules = [
+        {
+          id: 1,
+          title: "C-17 Load Planning Basics",
+          aircraftType: "C-17",
+          completed: submissions.some(s => s.title.includes("C-17")),
+          completionDate: submissions.find(s => s.title.includes("C-17"))?.submissionDate,
+          progress: Math.min(100, (submissions.filter(s => s.title.includes("C-17")).length * 25))
+        },
+        {
+          id: 2,
+          title: "C-130 Cargo Operations",
+          aircraftType: "C-130",
+          completed: submissions.some(s => s.title.includes("C-130")),
+          completionDate: submissions.find(s => s.title.includes("C-130"))?.submissionDate,
+          progress: Math.min(100, (submissions.filter(s => s.title.includes("C-130")).length * 25))
+        },
+        {
+          id: 3,
+          title: "KC30A Fuel & Cargo",
+          aircraftType: "KC30A",
+          completed: submissions.some(s => s.title.includes("KC30A")),
+          completionDate: submissions.find(s => s.title.includes("KC30A"))?.submissionDate,
+          progress: Math.min(100, (submissions.filter(s => s.title.includes("KC30A")).length * 25))
+        },
+        {
+          id: 4,
+          title: "C-27J Operations",
+          aircraftType: "C-27J",
+          completed: submissions.some(s => s.title.includes("C-27J")),
+          completionDate: submissions.find(s => s.title.includes("C-27J"))?.submissionDate,
+          progress: Math.min(100, (submissions.filter(s => s.title.includes("C-27J")).length * 25))
+        }
+      ];
+
+      const profileData = {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.licenseType === 'instructor' ? 'Instructor' : 'Loadmaster',
+          squadron: 'AMG',
+          serviceBranch: 'Air Force',
+          licenseExpiry: user.expiryDate
+        },
+        submissions,
+        trainingModules,
+        stats: {
+          totalSubmissions: submissions.length,
+          passedSubmissions: passedCount,
+          overallPassRate: passRate,
+          currentStreak: streakData.current,
+          longestStreak: streakData.longest
+        }
+      };
+
+      res.json(profileData);
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+      res.status(500).json({ message: "Failed to fetch profile data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

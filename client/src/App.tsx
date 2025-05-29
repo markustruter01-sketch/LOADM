@@ -14,6 +14,7 @@ import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page";
 import ProfilePage from "@/pages/profile-page";
+import Profile from "@/pages/profile";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
 import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
@@ -93,7 +94,7 @@ function AuthenticatedApp() {
             <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
             <Route path="/documents" component={DocumentsPage} />
             <Route path="/cargo-manifest" component={DocumentsPage} />
-            <Route path="/profile" component={ProfilePage} />
+            <Route path="/profile" component={Profile} />
             <Route path="/tools" component={ToolsPage} />
             <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
             <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
