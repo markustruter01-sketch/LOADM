@@ -863,19 +863,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user profile data
   app.get("/api/profile", async (req, res) => {
     try {
+      console.log("Profile endpoint hit");
       const sessionId = req.cookies?.sessionId;
+      console.log("Session ID:", sessionId);
       
       if (!sessionId) {
+        console.log("No session ID found");
         return res.status(401).json({ message: "No session found" });
       }
       
       // Use the isolated auth system
       const { getIsolatedSession } = require('./auth-isolated/auth-core');
       const session = getIsolatedSession(sessionId);
+      console.log("Session data:", session);
       
       if (!session) {
+        console.log("Invalid session");
         return res.status(401).json({ message: "Invalid session" });
       }
+      
+      console.log("Looking up license for email:", session.email);
       
       // Get license data for the user
       const licenseResult = await db.select()
@@ -883,10 +890,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(licenses.email, session.email))
         .limit(1);
       
+      console.log("License query result:", licenseResult);
       const license = licenseResult[0];
       
       if (!license) {
-        return res.status(404).json({ message: "User license not found" });
+        console.log("No license found for user");
+        // Return basic profile data even without license
+        const profileData = {
+          user: {
+            id: session.userId,
+            email: session.email,
+            firstName: 'User',
+            lastName: '',
+            role: session.role,
+            squadron: 'Training Squadron',
+            serviceBranch: 'Air Force',
+            licenseExpiry: null
+          },
+          submissions: [],
+          trainingModules: [
+            {
+              id: 1,
+              title: 'C-17 Basic Load Planning',
+              aircraftType: 'C-17',
+              completed: false,
+              progress: 0
+            },
+            {
+              id: 2,
+              title: 'C-130 Cargo Operations', 
+              aircraftType: 'C-130',
+              completed: false,
+              progress: 0
+            }
+          ],
+          stats: {
+            totalSubmissions: 0,
+            passedSubmissions: 0,
+            overallPassRate: 0,
+            currentStreak: 0,
+            longestStreak: 0
+          }
+        };
+        
+        console.log("Returning basic profile data:", profileData);
+        return res.json(profileData);
       }
       
       // Return profile data based on license information
@@ -894,7 +942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: {
           id: session.userId,
           email: session.email,
-          firstName: license.firstName || '',
+          firstName: license.firstName || 'User',
           lastName: license.lastName || '',
           role: session.role,
           squadron: 'Training Squadron',
@@ -927,10 +975,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
+      console.log("Returning full profile data:", profileData);
       res.json(profileData);
     } catch (error) {
       console.error("Error fetching profile:", error);
-      res.status(500).json({ message: "Failed to load profile data" });
+      res.status(500).json({ message: "Failed to load profile data", error: error.message });
     }
   });
   
