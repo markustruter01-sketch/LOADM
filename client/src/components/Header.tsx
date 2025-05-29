@@ -66,16 +66,24 @@ export default function Header() {
                   </DropdownMenuItem>
                 )}
                 
+                <DropdownMenuItem asChild>
+                  <div className="w-full cursor-pointer" onClick={() => setLocation("/profile")}>
+                    My Profile
+                  </div>
+                </DropdownMenuItem>
+                
                 {user.role === 'superadmin' && (
                   <>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <div className="w-full cursor-pointer" onClick={() => setLocation("/superadmin-dashboard")}>
                         Admin Dashboard
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                   </>
                 )}
+                
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <div className="w-full cursor-pointer">
                     <button 

@@ -125,7 +125,11 @@ export default function Profile() {
             )}
           </div>
         </div>
-        <Button variant="outline" className="flex items-center space-x-2">
+        <Button 
+          variant="outline" 
+          className="flex items-center space-x-2"
+          onClick={() => window.location.href = '/first-time-password'}
+        >
           <Key className="w-4 h-4" />
           <span>Reset Password</span>
         </Button>
