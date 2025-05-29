@@ -14,6 +14,79 @@ authCore.clearAllIsolatedSessions();
 app.use(cookieParser());
 app.use(express.json());
 
+// NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
+import { db } from './db';
+import { phoneDirectory } from '../shared/schema';
+import { eq } from 'drizzle-orm';
+
+app.get("/api/phone-directory", async (req, res) => {
+  try {
+    console.log("NUCLEAR: Phone directory GET request received");
+    const directories = await db.select().from(phoneDirectory);
+    console.log("NUCLEAR: Phone directory data:", directories);
+    res.json(directories);
+  } catch (error) {
+    console.error("NUCLEAR: Error fetching phone directory:", error);
+    res.status(500).json({ message: "Failed to fetch phone directory" });
+  }
+});
+
+app.post("/api/phone-directory", async (req, res) => {
+  try {
+    console.log("NUCLEAR: Phone directory POST request received");
+    const { airbaseCode, airbaseName, contacts } = req.body;
+    const [newDirectory] = await db.insert(phoneDirectory).values({
+      airbaseCode,
+      airbaseName,
+      contacts: JSON.stringify(contacts)
+    }).returning();
+    res.json(newDirectory);
+  } catch (error) {
+    console.error("NUCLEAR: Error creating phone directory entry:", error);
+    res.status(500).json({ message: "Failed to create phone directory entry" });
+  }
+});
+
+app.put("/api/phone-directory/:id", async (req, res) => {
+  try {
+    console.log("NUCLEAR: Phone directory PUT request received");
+    const id = parseInt(req.params.id);
+    const { airbaseCode, airbaseName, contacts } = req.body;
+    
+    const [updatedDirectory] = await db
+      .update(phoneDirectory)
+      .set({ 
+        airbaseCode,
+        airbaseName,
+        contacts: JSON.stringify(contacts),
+        updatedAt: new Date() 
+      })
+      .where(eq(phoneDirectory.id, id))
+      .returning();
+
+    if (!updatedDirectory) {
+      return res.status(404).json({ message: "Directory entry not found" });
+    }
+
+    res.json(updatedDirectory);
+  } catch (error) {
+    console.error("NUCLEAR: Error updating phone directory entry:", error);
+    res.status(500).json({ message: "Failed to update phone directory entry" });
+  }
+});
+
+app.delete("/api/phone-directory/:id", async (req, res) => {
+  try {
+    console.log("NUCLEAR: Phone directory DELETE request received");
+    const id = parseInt(req.params.id);
+    await db.delete(phoneDirectory).where(eq(phoneDirectory.id, id));
+    res.json({ message: "Directory entry deleted successfully" });
+  } catch (error) {
+    console.error("NUCLEAR: Error deleting phone directory entry:", error);
+    res.status(500).json({ message: "Failed to delete phone directory entry" });
+  }
+});
+
 // Mount isolated auth routes FIRST (before any other routing)
 app.use('/auth-isolated', isolatedAuthRoutes);
 
