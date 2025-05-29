@@ -110,7 +110,7 @@ export default function Profile() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Profile Header */}
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-slate-50 to-slate-100">
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-gray-100 to-gray-200">
         <CardContent className="p-8">
           <div className="flex items-center space-x-8">
             <div className="relative">
