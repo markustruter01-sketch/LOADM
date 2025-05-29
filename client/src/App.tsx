@@ -13,7 +13,7 @@ import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/cargo-manifest-page";
-
+import UserProfile from "@/pages/user-profile";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
 import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
@@ -125,6 +125,7 @@ function AuthenticatedApp() {
             <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
             <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
             <Route path="/license-registration" component={LicenseRegistration} />
+            <AuthenticatedRoute path="/user-profile" component={UserProfile} />
             <InstructorRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
             <InstructorRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
             <InstructorRoute path="/instructors-portal/resources" component={TeachingMaterials} />

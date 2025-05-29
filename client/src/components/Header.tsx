@@ -79,6 +79,12 @@ export default function Header() {
                   </>
                 )}
                 
+                <DropdownMenuItem asChild>
+                  <div className="w-full cursor-pointer" onClick={() => setLocation("/user-profile")}>
+                    User Profile
+                  </div>
+                </DropdownMenuItem>
+                
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <div className="w-full cursor-pointer">
