@@ -3021,7 +3021,7 @@ export default function LoadPlanningPage() {
                     <div className="mt-4">
                       <Button 
                         variant="secondary" 
-                        className="w-full flex items-center justify-center !bg-gray-500 hover:!bg-gray-400 !text-white !border-gray-600" 
+                        className="w-full flex items-center justify-center !bg-gray-800 hover:!bg-gray-700 !text-white !border-gray-700" 
                         onClick={handleReset}
                       >
                         <RefreshCw className="h-4 w-4 mr-2" />
