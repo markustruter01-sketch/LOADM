@@ -131,13 +131,19 @@ router.post('/change-password', async (req, res) => {
     
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     
-    await sql`
+    // Update password and first login status
+    const result = await sql`
       UPDATE users 
       SET hashed_password = ${hashedPassword}, is_first_login = false 
       WHERE email = ${session.email}
+      RETURNING id, email
     `;
     
-    console.log(`✅ ISOLATED: Password changed for ${session.email}`);
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    console.log(`✅ ISOLATED: Password changed successfully for ${session.email}`);
     res.json({ success: true, message: 'Password updated successfully' });
     
   } catch (error) {
