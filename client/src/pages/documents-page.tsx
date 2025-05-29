@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import DocumentCard from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,11 +39,23 @@ export default function DocumentsPage() {
   // Phone Directory state
   const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [expandedAirfields, setExpandedAirfields] = useState<Set<number>>(new Set());
   const [newEntry, setNewEntry] = useState({
     airbaseCode: "",
     airbaseName: "",
     contacts: [] as Contact[]
   });
+
+  // Helper function to toggle airfield expansion
+  const toggleAirfieldExpansion = (id: number) => {
+    const newExpanded = new Set(expandedAirfields);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedAirfields(newExpanded);
+  };
 
   const { data: directories = [], isLoading: directoryLoading, error: directoryError } = useQuery<DirectoryEntry[]>({
     queryKey: ["/api/phone-directory"],
@@ -274,52 +286,73 @@ export default function DocumentsPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {directories.map((entry) => (
-                      <Card key={entry.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg">{entry.airbaseCode}</CardTitle>
-                              <p className="text-sm text-muted-foreground">{entry.airbaseName}</p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setEditingEntry(entry)}
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => deleteMutation.mutate(entry.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            {entry.contacts.map((contact) => (
-                              <div key={contact.id} className="border-l-4 border-primary pl-4 py-2">
-                                <div className="flex justify-between items-start">
+                    {directories.map((entry) => {
+                      const isExpanded = expandedAirfields.has(entry.id);
+                      return (
+                        <Card key={entry.id} className="hover:shadow-lg transition-shadow">
+                          <CardHeader className="pb-3">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleAirfieldExpansion(entry.id)}
+                                    className="p-1 h-auto"
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronDown className="w-4 h-4" />
+                                    ) : (
+                                      <ChevronRight className="w-4 h-4" />
+                                    )}
+                                  </Button>
                                   <div>
-                                    <h4 className="font-medium">{contact.name}</h4>
-                                    <p className="text-sm text-muted-foreground">{contact.description}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="font-mono text-sm">{contact.phoneNumber}</p>
+                                    <CardTitle className="text-lg">{entry.airbaseCode}</CardTitle>
+                                    <p className="text-sm text-muted-foreground">{entry.airbaseName}</p>
                                   </div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingEntry(entry)}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => deleteMutation.mutate(entry.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          {isExpanded && (
+                            <CardContent>
+                              <div className="space-y-3">
+                                {entry.contacts.map((contact) => (
+                                  <div key={contact.id} className="border-l-4 border-primary pl-4 py-2">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h4 className="font-medium">{contact.name}</h4>
+                                        <p className="text-sm text-muted-foreground">{contact.description}</p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="font-mono text-sm">{contact.phoneNumber}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          )}
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
 
