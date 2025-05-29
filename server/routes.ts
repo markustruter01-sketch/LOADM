@@ -86,10 +86,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Email, first name, license type, and expiry date are required" });
       }
 
-      // Check if email already exists
+      // Check if email already exists in licenses table
+      const existingLicense = await db.select().from(licenses).where(eq(licenses.email, email)).limit(1);
+      if (existingLicense.length > 0) {
+        return res.status(400).json({ message: "A license with this email address already exists" });
+      }
+
+      // Also check users table for consistency
       const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
       if (existingUser.length > 0) {
-        return res.status(400).json({ message: "User with this email already exists" });
+        return res.status(400).json({ message: "A user with this email address already exists" });
       }
 
       // Generate unique license key
