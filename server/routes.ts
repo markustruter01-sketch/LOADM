@@ -830,57 +830,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // === Ultra Simple Profile System ===
+  // === Production-Ready Profile System ===
   
-  // Test endpoint to verify basic functionality
-  app.get("/api/test", (req, res) => {
-    console.log("Test endpoint hit");
-    res.json({ message: "Server is working", timestamp: new Date() });
-  });
-  
-  // Ultra-simple profile endpoint
-  app.get("/api/profile", (req, res) => {
-    console.log("Profile endpoint accessed");
+  // Robust profile endpoint that works in both dev and production
+  app.get("/api/profile", async (req, res) => {
+    console.log("=== PROFILE ENDPOINT ACCESSED ===");
     
-    const profileData = {
-      user: {
-        id: 1,
-        email: 'markus.truter@outlook.com',
-        firstName: 'Markus',
-        lastName: 'Truter',
-        role: 'superadmin',
-        squadron: 'Training Squadron',
-        serviceBranch: 'Air Force',
-        licenseExpiry: '2025-12-31'
-      },
-      submissions: [],
-      trainingModules: [
-        {
-          id: 1,
-          title: 'C-17 Basic Load Planning',
-          aircraftType: 'C-17',
-          completed: false,
-          progress: 0
-        },
-        {
-          id: 2,
-          title: 'C-130 Cargo Operations',
-          aircraftType: 'C-130',
-          completed: false,
-          progress: 0
-        }
-      ],
-      stats: {
-        totalSubmissions: 0,
-        passedSubmissions: 0,
-        overallPassRate: 0,
-        currentStreak: 0,
-        longestStreak: 0
+    try {
+      // Get authenticated user from isolated auth system
+      const authResult = await import('./auth-isolated/auth-core').then(module => 
+        module.checkIsolatedAuth(req)
+      );
+      
+      console.log("Auth check result:", authResult);
+      
+      if (!authResult.authenticated || !authResult.user) {
+        console.log("User not authenticated, returning error");
+        return res.status(401).json({ 
+          message: "Authentication required",
+          authenticated: false 
+        });
       }
-    };
-    
-    console.log("Returning profile data");
-    res.json(profileData);
+      
+      const user = authResult.user;
+      console.log("Authenticated user:", user.email);
+      
+      // Get license data from database
+      const licenseQuery = await db.select()
+        .from(licenses)
+        .where(eq(licenses.email, user.email))
+        .limit(1);
+      
+      const license = licenseQuery[0];
+      console.log("License found:", !!license);
+      
+      // Get user submissions for statistics
+      let submissionsData = [];
+      try {
+        submissionsData = await db.select()
+          .from(scenarioSubmissions)
+          .where(eq(scenarioSubmissions.userId, user.id))
+          .orderBy(desc(scenarioSubmissions.submissionDate));
+        console.log(`Found ${submissionsData.length} submissions`);
+      } catch (submissionError) {
+        console.log("No submissions found or error:", submissionError);
+      }
+      
+      // Calculate statistics
+      const totalSubmissions = submissionsData.length;
+      const passedSubmissions = submissionsData.filter(s => s.passed).length;
+      const overallPassRate = totalSubmissions > 0 ? Math.round((passedSubmissions / totalSubmissions) * 100) : 0;
+      
+      // Build profile response
+      const profileData = {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: license?.firstName || user.firstName || 'User',
+          lastName: license?.lastName || user.lastName || '',
+          role: user.role,
+          squadron: license?.squadron || 'Training Squadron',
+          serviceBranch: license?.serviceBranch || 'Air Force',
+          licenseExpiry: license?.expiryDate
+        },
+        submissions: submissionsData.slice(0, 10), // Last 10 submissions
+        trainingModules: [
+          {
+            id: 1,
+            title: 'C-17 Basic Load Planning',
+            aircraftType: 'C-17',
+            completed: false,
+            progress: 0
+          },
+          {
+            id: 2,
+            title: 'C-130 Cargo Operations',
+            aircraftType: 'C-130',
+            completed: false,
+            progress: 0
+          },
+          {
+            id: 3,
+            title: 'C-27J Load Configuration',
+            aircraftType: 'C-27J',
+            completed: false,
+            progress: 0
+          },
+          {
+            id: 4,
+            title: 'KC30A Tanker Operations',
+            aircraftType: 'KC30A',
+            completed: false,
+            progress: 0
+          }
+        ],
+        stats: {
+          totalSubmissions,
+          passedSubmissions,
+          overallPassRate,
+          currentStreak: 0,
+          longestStreak: 0
+        }
+      };
+      
+      console.log("Profile data prepared successfully");
+      res.json(profileData);
+      
+    } catch (error: any) {
+      console.error("PROFILE ERROR:", error);
+      console.error("Error stack:", error.stack);
+      
+      // Return a safe error response
+      res.status(500).json({ 
+        message: "Profile loading failed", 
+        error: "Internal server error",
+        authenticated: false
+      });
+    }
   });
   
   // Simple user auth endpoint
