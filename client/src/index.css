@@ -100,4 +100,18 @@
   .section-spacing {
     @apply mb-10;
   }
+  
+  /* Prevent white backgrounds from overriding dark theme */
+  .btn-reset {
+    @apply bg-orange-600 hover:bg-orange-700 text-white border-orange-600;
+  }
+  
+  /* Override any white backgrounds in components */
+  .card-dark {
+    @apply bg-card border-border text-card-foreground;
+  }
+  
+  .page-dark {
+    @apply bg-background min-h-screen text-foreground;
+  }
 }

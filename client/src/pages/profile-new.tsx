@@ -41,12 +41,12 @@ export default function ProfileNew() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
             <div className="flex items-center gap-2">
-              <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
-              <span className="text-lg font-medium">Loading profile...</span>
+              <RefreshCw className="h-6 w-6 animate-spin text-orange-500" />
+              <span className="text-lg font-medium text-foreground">Loading profile...</span>
             </div>
           </div>
         </div>
@@ -56,15 +56,15 @@ export default function ProfileNew() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-7xl mx-auto">
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-red-800 bg-red-900/20">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700">
+              <CardTitle className="flex items-center gap-2 text-red-400">
                 <AlertCircle className="h-5 w-5" />
                 Profile Loading Error
               </CardTitle>
-              <CardDescription className="text-red-600">
+              <CardDescription className="text-red-300">
                 Unable to load profile data. This may be a deployment configuration issue.
               </CardDescription>
             </CardHeader>
@@ -72,7 +72,7 @@ export default function ProfileNew() {
               <Button onClick={() => refetch()} variant="outline" className="mr-2">
                 Try Again
               </Button>
-              <p className="text-sm text-red-600 mt-2">
+              <p className="text-sm text-red-300 mt-2">
                 Error: {error.message}
               </p>
             </CardContent>
@@ -84,11 +84,11 @@ export default function ProfileNew() {
 
   if (!profile || !profile.user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="min-h-screen bg-background p-4">
         <div className="max-w-7xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Unavailable</CardTitle>
+              <CardTitle className="text-foreground">Profile Unavailable</CardTitle>
               <CardDescription>
                 Profile data could not be loaded. Please try refreshing the page.
               </CardDescription>
@@ -105,48 +105,48 @@ export default function ProfileNew() {
   const { user, submissions, trainingModules, stats } = profile;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Loadmaster Profile</h1>
-          <p className="text-slate-600">Professional training and performance overview</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Loadmaster Profile</h1>
+          <p className="text-muted-foreground">Professional training and performance overview</p>
         </div>
 
         {/* User Info Card */}
-        <Card className="border-blue-200 bg-white/80 backdrop-blur">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <User className="h-5 w-5 text-orange-500" />
               Personal Information
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm font-medium text-slate-500">Name</p>
-                <p className="text-lg font-semibold">{user.firstName} {user.lastName}</p>
+                <p className="text-sm font-medium text-muted-foreground">Name</p>
+                <p className="text-lg font-semibold text-card-foreground">{user.firstName} {user.lastName}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500">Email</p>
-                <p className="text-lg">{user.email}</p>
+                <p className="text-sm font-medium text-muted-foreground">Email</p>
+                <p className="text-lg text-card-foreground">{user.email}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500">Role</p>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                <p className="text-sm font-medium text-muted-foreground">Role</p>
+                <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/30">
                   {user.role}
                 </Badge>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500">Squadron</p>
-                <p className="text-lg">{user.squadron}</p>
+                <p className="text-sm font-medium text-muted-foreground">Squadron</p>
+                <p className="text-lg text-card-foreground">{user.squadron}</p>
               </div>
             </div>
             
             {user.licenseExpiry && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm font-medium text-slate-500">License Expiry</p>
-                <p className="text-lg">{format(new Date(user.licenseExpiry), 'PPP')}</p>
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm font-medium text-muted-foreground">License Expiry</p>
+                <p className="text-lg text-card-foreground">{format(new Date(user.licenseExpiry), 'PPP')}</p>
               </div>
             )}
           </CardContent>
@@ -154,60 +154,60 @@ export default function ProfileNew() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Total Submissions</p>
-                  <p className="text-2xl font-bold">{stats.totalSubmissions}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                  <p className="text-2xl font-bold text-card-foreground">{stats.totalSubmissions}</p>
                 </div>
-                <Trophy className="h-8 w-8 text-amber-600" />
+                <Trophy className="h-8 w-8 text-amber-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Pass Rate</p>
-                  <p className="text-2xl font-bold">{stats.overallPassRate}%</p>
+                  <p className="text-sm font-medium text-muted-foreground">Pass Rate</p>
+                  <p className="text-2xl font-bold text-card-foreground">{stats.overallPassRate}%</p>
                 </div>
-                <Target className="h-8 w-8 text-green-600" />
+                <Target className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Passed</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.passedSubmissions}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Passed</p>
+                  <p className="text-2xl font-bold text-green-400">{stats.passedSubmissions}</p>
                 </div>
-                <Award className="h-8 w-8 text-green-600" />
+                <Award className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-card border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Average Score</p>
-                  <p className="text-2xl font-bold">{stats.averageScore || 0}%</p>
+                  <p className="text-sm font-medium text-muted-foreground">Average Score</p>
+                  <p className="text-2xl font-bold text-card-foreground">{stats.averageScore || 0}%</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-600" />
+                <TrendingUp className="h-8 w-8 text-orange-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Training Modules */}
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 text-card-foreground">
+              <BookOpen className="h-5 w-5 text-orange-500" />
               Training Modules
             </CardTitle>
             <CardDescription>
@@ -216,16 +216,18 @@ export default function ProfileNew() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {trainingModules.map((module) => (
-                <Card key={module.id} className="border-slate-200">
+              {trainingModules.map((module: any) => (
+                <Card key={module.id} className="border-border bg-muted/50">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold">{module.title}</h3>
-                      <Badge variant="outline">{module.aircraftType}</Badge>
+                      <h3 className="font-semibold text-card-foreground">{module.title}</h3>
+                      <Badge variant="outline" className="border-orange-500/30 text-orange-300">
+                        {module.aircraftType}
+                      </Badge>
                     </div>
-                    <p className="text-sm text-slate-600 mb-3">{module.description}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{module.description}</p>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Progress</span>
                         <span>{module.progress}%</span>
                       </div>
@@ -233,7 +235,7 @@ export default function ProfileNew() {
                     </div>
                     <Button 
                       size="sm" 
-                      className="w-full mt-3"
+                      className="w-full mt-3 bg-orange-600 hover:bg-orange-700"
                       variant={module.completed ? "secondary" : "default"}
                     >
                       {module.completed ? "Completed" : "Start Training"}
@@ -247,29 +249,30 @@ export default function ProfileNew() {
 
         {/* Recent Submissions */}
         {submissions && submissions.length > 0 && (
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-card-foreground">
+                <Clock className="h-5 w-5 text-orange-500" />
                 Recent Submissions
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {submissions.slice(0, 5).map((submission, index) => (
-                  <div key={submission.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                {submissions.slice(0, 5).map((submission: any, index: number) => (
+                  <div key={submission.id} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
                     <div>
-                      <p className="font-medium">Scenario {submission.scenarioId}</p>
-                      <p className="text-sm text-slate-500">
+                      <p className="font-medium text-card-foreground">Scenario {submission.scenarioId}</p>
+                      <p className="text-sm text-muted-foreground">
                         {format(new Date(submission.submissionDate), 'PPp')}
                       </p>
                     </div>
                     <div className="text-right">
-                      <Badge variant={submission.passed ? "secondary" : "destructive"}>
+                      <Badge variant={submission.passed ? "secondary" : "destructive"} 
+                             className={submission.passed ? "bg-green-500/20 text-green-300 border-green-500/30" : ""}>
                         {submission.passed ? "Passed" : "Failed"}
                       </Badge>
                       {submission.score && (
-                        <p className="text-sm text-slate-500 mt-1">{submission.score}%</p>
+                        <p className="text-sm text-muted-foreground mt-1">{submission.score}%</p>
                       )}
                     </div>
                   </div>
