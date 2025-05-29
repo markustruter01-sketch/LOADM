@@ -830,6 +830,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // === Profile Routes ===
+  
+  // Get user profile data
+  app.get("/api/profile", async (req, res) => {
+    try {
+      if (!checkAuth(req)) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Get session data from cookie
+      const sessionId = req.cookies?.sessionId;
+      if (!sessionId) {
+        return res.status(401).json({ message: "No session found" });
+      }
+      
+      // Get authenticated user email from auth system
+      const { getAuthenticatedUser } = require('./auth-isolated/auth-core');
+      const authenticatedUser = await getAuthenticatedUser(sessionId);
+      
+      if (!authenticatedUser) {
+        return res.status(401).json({ message: "Invalid session" });
+      }
+      
+      // Get user data from database
+      const userResult = await db.select({
+        id: users.id,
+        email: users.email,
+        licenseId: users.licenseId,
+        userRole: users.userRole,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(eq(users.email, authenticatedUser.email))
+      .limit(1);
+      
+      if (userResult.length === 0) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const user = userResult[0];
+      
+      // Get license information
+      const licenseResult = await db.select()
+        .from(licenses)
+        .where(eq(licenses.id, user.licenseId || 0))
+        .limit(1);
+      
+      const license = licenseResult[0];
+      
+      // Build profile response with actual user data
+      const profileData = {
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: license?.firstName || '',
+          lastName: license?.lastName || '',
+          role: user.userRole || 'loadmaster',
+          squadron: 'Training Squadron', // Default value
+          serviceBranch: 'Air Force', // Default value
+          licenseExpiry: license?.expiryDate?.toISOString()
+        },
+        submissions: [], // Will be populated when submission system is connected
+        trainingModules: [
+          {
+            id: 1,
+            title: 'C-17 Basic Load Planning',
+            aircraftType: 'C-17',
+            completed: false,
+            progress: 0
+          },
+          {
+            id: 2,
+            title: 'C-130 Cargo Operations',
+            aircraftType: 'C-130',
+            completed: false,
+            progress: 0
+          }
+        ],
+        stats: {
+          totalSubmissions: 0,
+          passedSubmissions: 0,
+          overallPassRate: 0,
+          currentStreak: 0,
+          longestStreak: 0
+        }
+      };
+      
+      res.json(profileData);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: "Failed to load profile data" });
+    }
+  });
+  
   // === User Management Routes ===
   
   // Get all registered users (admin only)
