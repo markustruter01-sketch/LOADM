@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle, Info } from "lucide-react";
 
 interface MissionData {
+  airframe: 'C-17' | 'C-130' | 'C-27J' | 'KC30A';
   cargoWeight: number;
   requiresTechPrep: boolean;
   palletCount: number;
@@ -43,6 +44,7 @@ interface ComplexityResult {
 
 function MissionComplexityAnalyzer() {
   const [missionData, setMissionData] = useState<MissionData>({
+    airframe: 'C-17',
     cargoWeight: 0,
     requiresTechPrep: false,
     palletCount: 0,
@@ -60,12 +62,34 @@ function MissionComplexityAnalyzer() {
     let totalPoints = 0;
     const factors = [];
 
+    // Define airframe limits
+    const airframeLimits = {
+      'C-17': { maxWeight: 170900, maxPallets: 18 },
+      'C-130': { maxWeight: 42000, maxPallets: 6 },
+      'C-27J': { maxWeight: 25000, maxPallets: 4 },
+      'KC30A': { maxWeight: 75000, maxPallets: 26 } // KC30A uses kg, but we'll convert for display
+    };
+
+    const currentLimits = airframeLimits[missionData.airframe];
+
+    // Airframe Capacity Exceeded Factor (0-20 points)
+    let capacityExceededPoints = 0;
+    const weightExceeded = missionData.cargoWeight > currentLimits.maxWeight;
+    const palletExceeded = missionData.palletCount > currentLimits.maxPallets;
+    
+    if (weightExceeded && palletExceeded) capacityExceededPoints = 20;
+    else if (weightExceeded || palletExceeded) capacityExceededPoints = 12;
+    
+    factors.push({ name: 'Exceeds Airframe Capacity', points: capacityExceededPoints, maxPoints: 20 });
+    totalPoints += capacityExceededPoints;
+
     // Cargo Weight (0-15 points)
     let cargoWeightPoints = 0;
-    if (missionData.cargoWeight > 100000) cargoWeightPoints = 15;
-    else if (missionData.cargoWeight > 50000) cargoWeightPoints = 10;
-    else if (missionData.cargoWeight > 20000) cargoWeightPoints = 5;
-    factors.push({ name: 'Cargo Weight', points: cargoWeightPoints, maxPoints: 15 });
+    const weightPercentage = (missionData.cargoWeight / currentLimits.maxWeight) * 100;
+    if (weightPercentage > 90) cargoWeightPoints = 15;
+    else if (weightPercentage > 70) cargoWeightPoints = 10;
+    else if (weightPercentage > 50) cargoWeightPoints = 5;
+    factors.push({ name: 'Cargo Weight vs Capacity', points: cargoWeightPoints, maxPoints: 15 });
     totalPoints += cargoWeightPoints;
 
     // Tech Prep Required (0-10 points)
@@ -75,10 +99,11 @@ function MissionComplexityAnalyzer() {
 
     // Pallet Count (0-10 points)
     let palletPoints = 0;
-    if (missionData.palletCount >= 15) palletPoints = 10;
-    else if (missionData.palletCount >= 10) palletPoints = 7;
-    else if (missionData.palletCount >= 5) palletPoints = 4;
-    factors.push({ name: 'Pallet Count', points: palletPoints, maxPoints: 10 });
+    const palletPercentage = (missionData.palletCount / currentLimits.maxPallets) * 100;
+    if (palletPercentage > 80) palletPoints = 10;
+    else if (palletPercentage > 60) palletPoints = 7;
+    else if (palletPercentage > 40) palletPoints = 4;
+    factors.push({ name: 'Pallet Count vs Capacity', points: palletPoints, maxPoints: 10 });
     totalPoints += palletPoints;
 
     // International Destination (0-8 points)
@@ -101,12 +126,13 @@ function MissionComplexityAnalyzer() {
     factors.push({ name: 'Single Loadmaster', points: singleLoadmasterPoints, maxPoints: 10 });
     totalPoints += singleLoadmasterPoints;
 
-    // Captain Category (0-10 points)
+    // Captain Category (0-10 points) - D = least experienced (10 pts), A = most experienced (0 pts)
     let captainPoints = 0;
     if (missionData.captainCategory === 'D') captainPoints = 10;
     else if (missionData.captainCategory === 'C') captainPoints = 6;
     else if (missionData.captainCategory === 'B') captainPoints = 3;
-    factors.push({ name: 'Captain Category', points: captainPoints, maxPoints: 10 });
+    else if (missionData.captainCategory === 'A') captainPoints = 0;
+    factors.push({ name: 'Captain Experience Level', points: captainPoints, maxPoints: 10 });
     totalPoints += captainPoints;
 
     // No Loading Team (0-10 points)
@@ -115,7 +141,7 @@ function MissionComplexityAnalyzer() {
     totalPoints += noLoadingTeamPoints;
 
     // Calculate percentage
-    const maxTotalPoints = 100;
+    const maxTotalPoints = 120; // Updated to include airframe capacity factor (20 pts)
     const percentage = (totalPoints / maxTotalPoints) * 100;
 
     // Determine category
@@ -151,31 +177,74 @@ function MissionComplexityAnalyzer() {
     });
   };
 
+  const airframeLimits = {
+    'C-17': { maxWeight: 170900, maxPallets: 18 },
+    'C-130': { maxWeight: 42000, maxPallets: 6 },
+    'C-27J': { maxWeight: 25000, maxPallets: 4 },
+    'KC30A': { maxWeight: 75000, maxPallets: 26 }
+  };
+
+  const currentLimits = airframeLimits[missionData.airframe];
+
   return (
     <div className="space-y-6">
+      {/* Airframe Selection */}
+      <div className="p-4 border rounded-lg bg-primary/5">
+        <Label htmlFor="airframe" className="text-lg font-semibold">Select Aircraft Type</Label>
+        <Select value={missionData.airframe} onValueChange={(value) => setMissionData(prev => ({ ...prev, airframe: value as 'C-17' | 'C-130' | 'C-27J' | 'KC30A' }))}>
+          <SelectTrigger className="mt-2">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="C-17">C-17 Globemaster III (Max: 170,900 lbs, 18 pallets)</SelectItem>
+            <SelectItem value="C-130">C-130 Hercules (Max: 42,000 lbs, 6 pallets)</SelectItem>
+            <SelectItem value="C-27J">C-27J Spartan (Max: 25,000 lbs, 4 pallets)</SelectItem>
+            <SelectItem value="KC30A">KC30A (Max: 75,000 lbs, 26 pallets)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Input Fields */}
         <div className="space-y-4">
           <div>
-            <Label htmlFor="cargoWeight">Cargo Weight (lbs)</Label>
+            <Label htmlFor="cargoWeight">
+              Cargo Weight (lbs) 
+              <span className="text-sm text-muted-foreground ml-2">
+                Max: {currentLimits.maxWeight.toLocaleString()} lbs
+              </span>
+            </Label>
             <Input
               id="cargoWeight"
               type="number"
               value={missionData.cargoWeight}
               onChange={(e) => setMissionData(prev => ({ ...prev, cargoWeight: parseInt(e.target.value) || 0 }))}
               placeholder="Enter cargo weight"
+              className={missionData.cargoWeight > currentLimits.maxWeight ? "border-red-500" : ""}
             />
+            {missionData.cargoWeight > currentLimits.maxWeight && (
+              <p className="text-sm text-red-600 mt-1">⚠️ Exceeds aircraft capacity</p>
+            )}
           </div>
 
           <div>
-            <Label htmlFor="palletCount">Number of Pallets</Label>
+            <Label htmlFor="palletCount">
+              Number of Pallets
+              <span className="text-sm text-muted-foreground ml-2">
+                Max: {currentLimits.maxPallets} pallets
+              </span>
+            </Label>
             <Input
               id="palletCount"
               type="number"
               value={missionData.palletCount}
               onChange={(e) => setMissionData(prev => ({ ...prev, palletCount: parseInt(e.target.value) || 0 }))}
               placeholder="Enter pallet count"
+              className={missionData.palletCount > currentLimits.maxPallets ? "border-red-500" : ""}
             />
+            {missionData.palletCount > currentLimits.maxPallets && (
+              <p className="text-sm text-red-600 mt-1">⚠️ Exceeds aircraft pallet capacity</p>
+            )}
           </div>
 
           <div>
@@ -198,10 +267,10 @@ function MissionComplexityAnalyzer() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="D">D Category (Most Experienced)</SelectItem>
+                <SelectItem value="D">D Category (Least Experienced)</SelectItem>
                 <SelectItem value="C">C Category</SelectItem>
                 <SelectItem value="B">B Category</SelectItem>
-                <SelectItem value="A">A Category (Least Experienced)</SelectItem>
+                <SelectItem value="A">A Category (Most Experienced)</SelectItem>
               </SelectContent>
             </Select>
           </div>
