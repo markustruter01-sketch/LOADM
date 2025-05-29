@@ -832,6 +832,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // === Profile Routes ===
   
+  // Get current user data (for authentication check)
+  app.get("/api/user", async (req, res) => {
+    try {
+      const sessionId = req.cookies?.sessionId;
+      
+      if (!sessionId) {
+        return res.status(401).json({ message: "No session found" });
+      }
+      
+      const { getIsolatedSession } = require('./auth-isolated/auth-core');
+      const session = getIsolatedSession(sessionId);
+      
+      if (!session) {
+        return res.status(401).json({ message: "Invalid session" });
+      }
+      
+      // Return basic user info for authentication
+      res.json({
+        id: session.userId,
+        email: session.email,
+        role: session.role
+      });
+    } catch (error) {
+      console.error("Error checking user auth:", error);
+      res.status(500).json({ message: "Authentication check failed" });
+    }
+  });
+  
   // Get user profile data
   app.get("/api/profile", async (req, res) => {
     try {
