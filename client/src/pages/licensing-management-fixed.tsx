@@ -52,8 +52,7 @@ export default function LicensingManagementFixed() {
   // Fetch licenses with cache refresh
   const { data: licenses = [], isLoading: licensesLoading, refetch: refetchLicenses } = useQuery<License[]>({
     queryKey: ['/api/licensing/licenses'],
-    staleTime: 0, // Always fetch fresh data
-    cacheTime: 0  // Don't cache the data
+    staleTime: 0 // Always fetch fresh data
   });
 
   // Fetch dashboard stats
@@ -413,9 +412,10 @@ export default function LicensingManagementFixed() {
     );
   };
 
-  const filteredLicenses = licenses.filter(license => 
+  const filteredLicenses = licenses.filter((license: License) => 
     license.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    license.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (license.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (license.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     license.licenseKey.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
