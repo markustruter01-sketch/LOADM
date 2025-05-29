@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle } from "lucide-react";
+import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target } from "lucide-react";
 import { useLocation } from "wouter";
 import {
   Card,
@@ -11,6 +11,308 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, CheckCircle, Info } from "lucide-react";
+
+interface MissionData {
+  cargoWeight: number;
+  requiresTechPrep: boolean;
+  palletCount: number;
+  isInternational: boolean;
+  hasLiveAnimals: boolean;
+  hasDangerousGoods: boolean;
+  loadmasterCount: 1 | 2;
+  captainCategory: 'D' | 'C' | 'B' | 'A';
+  hasLoadingTeam: boolean;
+}
+
+interface ComplexityResult {
+  score: number;
+  category: 'Beginner' | 'Intermediate' | 'Advanced';
+  categoryLetter: 'D' | 'C' | 'B/A';
+  color: string;
+  icon: any;
+  factors: Array<{ name: string; points: number; maxPoints: number }>;
+}
+
+function MissionComplexityAnalyzer() {
+  const [missionData, setMissionData] = useState<MissionData>({
+    cargoWeight: 0,
+    requiresTechPrep: false,
+    palletCount: 0,
+    isInternational: false,
+    hasLiveAnimals: false,
+    hasDangerousGoods: false,
+    loadmasterCount: 1,
+    captainCategory: 'D',
+    hasLoadingTeam: false,
+  });
+
+  const [result, setResult] = useState<ComplexityResult | null>(null);
+
+  const calculateComplexity = () => {
+    let totalPoints = 0;
+    const factors = [];
+
+    // Cargo Weight (0-15 points)
+    let cargoWeightPoints = 0;
+    if (missionData.cargoWeight > 100000) cargoWeightPoints = 15;
+    else if (missionData.cargoWeight > 50000) cargoWeightPoints = 10;
+    else if (missionData.cargoWeight > 20000) cargoWeightPoints = 5;
+    factors.push({ name: 'Cargo Weight', points: cargoWeightPoints, maxPoints: 15 });
+    totalPoints += cargoWeightPoints;
+
+    // Tech Prep Required (0-10 points)
+    const techPrepPoints = missionData.requiresTechPrep ? 10 : 0;
+    factors.push({ name: 'Mechanical Equipment (Tech Prep)', points: techPrepPoints, maxPoints: 10 });
+    totalPoints += techPrepPoints;
+
+    // Pallet Count (0-10 points)
+    let palletPoints = 0;
+    if (missionData.palletCount >= 15) palletPoints = 10;
+    else if (missionData.palletCount >= 10) palletPoints = 7;
+    else if (missionData.palletCount >= 5) palletPoints = 4;
+    factors.push({ name: 'Pallet Count', points: palletPoints, maxPoints: 10 });
+    totalPoints += palletPoints;
+
+    // International Destination (0-8 points)
+    const internationalPoints = missionData.isInternational ? 8 : 0;
+    factors.push({ name: 'International Destination', points: internationalPoints, maxPoints: 8 });
+    totalPoints += internationalPoints;
+
+    // Live Animals (0-12 points)
+    const liveAnimalPoints = missionData.hasLiveAnimals ? 12 : 0;
+    factors.push({ name: 'Live Animals', points: liveAnimalPoints, maxPoints: 12 });
+    totalPoints += liveAnimalPoints;
+
+    // Dangerous Goods (0-15 points)
+    const dangerousGoodsPoints = missionData.hasDangerousGoods ? 15 : 0;
+    factors.push({ name: 'Dangerous Goods', points: dangerousGoodsPoints, maxPoints: 15 });
+    totalPoints += dangerousGoodsPoints;
+
+    // Single Loadmaster (0-10 points)
+    const singleLoadmasterPoints = missionData.loadmasterCount === 1 ? 10 : 0;
+    factors.push({ name: 'Single Loadmaster', points: singleLoadmasterPoints, maxPoints: 10 });
+    totalPoints += singleLoadmasterPoints;
+
+    // Captain Category (0-10 points)
+    let captainPoints = 0;
+    if (missionData.captainCategory === 'D') captainPoints = 10;
+    else if (missionData.captainCategory === 'C') captainPoints = 6;
+    else if (missionData.captainCategory === 'B') captainPoints = 3;
+    factors.push({ name: 'Captain Category', points: captainPoints, maxPoints: 10 });
+    totalPoints += captainPoints;
+
+    // No Loading Team (0-10 points)
+    const noLoadingTeamPoints = !missionData.hasLoadingTeam ? 10 : 0;
+    factors.push({ name: 'No Loading Team Assistance', points: noLoadingTeamPoints, maxPoints: 10 });
+    totalPoints += noLoadingTeamPoints;
+
+    // Calculate percentage
+    const maxTotalPoints = 100;
+    const percentage = (totalPoints / maxTotalPoints) * 100;
+
+    // Determine category
+    let category: 'Beginner' | 'Intermediate' | 'Advanced';
+    let categoryLetter: 'D' | 'C' | 'B/A';
+    let color: string;
+    let icon: any;
+
+    if (percentage <= 33.3) {
+      category = 'Beginner';
+      categoryLetter = 'D';
+      color = 'text-green-600';
+      icon = CheckCircle;
+    } else if (percentage <= 66.6) {
+      category = 'Intermediate';
+      categoryLetter = 'C';
+      color = 'text-yellow-600';
+      icon = Info;
+    } else {
+      category = 'Advanced';
+      categoryLetter = 'B/A';
+      color = 'text-red-600';
+      icon = AlertTriangle;
+    }
+
+    setResult({
+      score: Math.round(percentage),
+      category,
+      categoryLetter,
+      color,
+      icon,
+      factors,
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Input Fields */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="cargoWeight">Cargo Weight (lbs)</Label>
+            <Input
+              id="cargoWeight"
+              type="number"
+              value={missionData.cargoWeight}
+              onChange={(e) => setMissionData(prev => ({ ...prev, cargoWeight: parseInt(e.target.value) || 0 }))}
+              placeholder="Enter cargo weight"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="palletCount">Number of Pallets</Label>
+            <Input
+              id="palletCount"
+              type="number"
+              value={missionData.palletCount}
+              onChange={(e) => setMissionData(prev => ({ ...prev, palletCount: parseInt(e.target.value) || 0 }))}
+              placeholder="Enter pallet count"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="loadmasterCount">Number of Loadmasters</Label>
+            <Select value={missionData.loadmasterCount.toString()} onValueChange={(value) => setMissionData(prev => ({ ...prev, loadmasterCount: parseInt(value) as 1 | 2 }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Loadmaster</SelectItem>
+                <SelectItem value="2">2 Loadmasters</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="captainCategory">Captain Category</Label>
+            <Select value={missionData.captainCategory} onValueChange={(value) => setMissionData(prev => ({ ...prev, captainCategory: value as 'D' | 'C' | 'B' | 'A' }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="D">D Category (Most Experienced)</SelectItem>
+                <SelectItem value="C">C Category</SelectItem>
+                <SelectItem value="B">B Category</SelectItem>
+                <SelectItem value="A">A Category (Least Experienced)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Checkboxes */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="techPrep"
+              checked={missionData.requiresTechPrep}
+              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, requiresTechPrep: !!checked }))}
+            />
+            <Label htmlFor="techPrep">Mechanical Equipment (Tech Prep Form Required)</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="international"
+              checked={missionData.isInternational}
+              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, isInternational: !!checked }))}
+            />
+            <Label htmlFor="international">International Destination</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="liveAnimals"
+              checked={missionData.hasLiveAnimals}
+              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasLiveAnimals: !!checked }))}
+            />
+            <Label htmlFor="liveAnimals">Live Animals</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="dangerousGoods"
+              checked={missionData.hasDangerousGoods}
+              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasDangerousGoods: !!checked }))}
+            />
+            <Label htmlFor="dangerousGoods">Dangerous Goods</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="loadingTeam"
+              checked={missionData.hasLoadingTeam}
+              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasLoadingTeam: !!checked }))}
+            />
+            <Label htmlFor="loadingTeam">Loading Team Available</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Analyze Button */}
+      <div className="flex justify-center">
+        <Button onClick={calculateComplexity} className="px-8 py-2">
+          Analyze Mission Complexity
+        </Button>
+      </div>
+
+      {/* Results */}
+      {result && (
+        <div className="mt-8 p-6 border rounded-lg bg-muted/20">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold">Mission Complexity Analysis</h3>
+            <div className="flex items-center space-x-3">
+              <result.icon className={`h-6 w-6 ${result.color}`} />
+              <Badge variant="outline" className={`${result.color} text-lg px-3 py-1`}>
+                {result.categoryLetter} Category
+              </Badge>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Complexity Score</span>
+                  <span className={`text-2xl font-bold ${result.color}`}>{result.score}%</span>
+                </div>
+                <Progress value={result.score} className="h-3" />
+              </div>
+
+              <div className={`p-4 rounded-lg ${result.color === 'text-green-600' ? 'bg-green-50' : result.color === 'text-yellow-600' ? 'bg-yellow-50' : 'bg-red-50'}`}>
+                <h4 className={`font-semibold ${result.color}`}>{result.category} Mission</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {result.category === 'Beginner' && 'Suitable for new loadmasters with supervision'}
+                  {result.category === 'Intermediate' && 'Requires experienced loadmaster or close supervision'}
+                  {result.category === 'Advanced' && 'Requires highly experienced loadmaster and additional support'}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-3">Complexity Factors</h4>
+              <div className="space-y-2">
+                {result.factors.map((factor, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span>{factor.name}</span>
+                    <span className="font-medium">{factor.points}/{factor.maxPoints}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ToolsPage() {
   const [_, navigate] = useLocation();
@@ -59,9 +361,10 @@ export default function ToolsPage() {
 
           {/* Tools Categories */}
           <Tabs defaultValue="weight-balance" className="mb-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="weight-balance">Weight & Balance</TabsTrigger>
               <TabsTrigger value="psi-calculators">PSI Calculators</TabsTrigger>
+              <TabsTrigger value="mission-analysis">Mission Analysis</TabsTrigger>
             </TabsList>
             
             {/* Weight & Balance Tools */}
@@ -311,6 +614,25 @@ export default function ToolsPage() {
                       Open Calculator
                     </Button>
                   </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Mission Analysis Tools */}
+            <TabsContent value="mission-analysis" className="mt-6">
+              <div className="grid grid-cols-1 gap-6 mb-10">
+                {/* Mission Complexity Analyzer */}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="bg-primary/10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Mission Complexity Analyzer</CardTitle>
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardDescription>One-Click Mission Difficulty Assessment</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <MissionComplexityAnalyzer />
+                  </CardContent>
                 </Card>
               </div>
             </TabsContent>
