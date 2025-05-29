@@ -179,51 +179,63 @@ export default function DocumentsPage() {
             <TabsContent value="documents" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <DocumentCard
-                  title="Load Planning Form"
-                  description="Complete detailed load planning documentation for cargo aircraft operations."
-                  lastUpdated="2 minutes ago"
-                  status="New"
-                  onOpen={() => window.open("/documents/load-planning", "_blank")}
+                  document={{
+                    id: "1",
+                    title: "Load Planning Form",
+                    description: "Complete detailed load planning documentation for cargo aircraft operations.",
+                    lastUpdated: new Date().toISOString(),
+                    type: "New"
+                  }}
                 />
                 
                 <DocumentCard
-                  title="Passenger/Crew and Cargo Manifest"
-                  description="Generate and complete detailed cargo manifests for all shipments."
-                  lastUpdated="2 minutes ago"
-                  status="New"
-                  onOpen={() => window.open("/documents/cargo-manifest", "_blank")}
+                  document={{
+                    id: "2",
+                    title: "Passenger/Crew and Cargo Manifest",
+                    description: "Generate and complete detailed cargo manifests for all shipments.",
+                    lastUpdated: new Date().toISOString(),
+                    type: "New"
+                  }}
                 />
                 
                 <DocumentCard
-                  title="Dangerous Goods Declaration"
-                  description="Complete DG documentation for hazardous materials transportation."
-                  lastUpdated="2 minutes ago"
-                  status="New"
-                  onOpen={() => window.open("/documents/dangerous-goods", "_blank")}
+                  document={{
+                    id: "3",
+                    title: "Dangerous Goods Declaration",
+                    description: "Complete DG documentation for hazardous materials transportation.",
+                    lastUpdated: new Date().toISOString(),
+                    type: "New"
+                  }}
                 />
                 
                 <DocumentCard
-                  title="Weight & Balance Sheet"
-                  description="Calculate and document aircraft weight distribution and balance."
-                  lastUpdated="2 minutes ago"
-                  status="New"
-                  onOpen={() => window.open("/documents/weight-balance", "_blank")}
+                  document={{
+                    id: "4",
+                    title: "Weight & Balance Sheet",
+                    description: "Calculate and document aircraft weight distribution and balance.",
+                    lastUpdated: new Date().toISOString(),
+                    type: "New"
+                  }}
                 />
                 
                 <DocumentCard
-                  title="Special Handling Form"
-                  description="Document special handling requirements for unusual cargo types or sensitive items."
-                  lastUpdated="2 minutes ago"
-                  status="New"
-                  onOpen={() => window.open("/documents/special-handling", "_blank")}
+                  document={{
+                    id: "5",
+                    title: "Special Handling Form",
+                    description: "Document special handling requirements for unusual cargo types or sensitive items.",
+                    lastUpdated: new Date().toISOString(),
+                    type: "New"
+                  }}
                 />
                 
                 <DocumentCard
-                  title="Aircraft Tie-Down Diagram"
-                  description="Detailed cargo restraint planning diagram with tie-down points and calculations."
-                  lastUpdated="2 minutes ago"
-                  status="New"
-                  onOpen={() => window.open("/documents/tie-down", "_blank")}
+                  document={{
+                    id: "6",
+                    title: "Aircraft Tie-Down Diagram",
+                    description: "Detailed cargo restraint planning diagram with tie-down points and calculations.",
+                    lastUpdated: new Date().toISOString(),
+                    type: "New"
+                  }}
                 />
               </div>
             </TabsContent>
