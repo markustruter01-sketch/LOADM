@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiryDate: new Date(expiryDate),
         maxConcurrentSessions: 3,
         maxDevices: 2,
-        createdByAdmin: req.user?.id || 9,
+        createdByAdmin: 1, // Default admin ID
         notes: ''
       }).returning();
 
@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hashedPassword,
         isFirstLogin: true,
         licenseId: newLicense[0].id,
-        createdBy: req.user?.id || 9,
+        createdBy: 1, // Default admin ID
         userRole: licenseType === 'instructor' ? 'instructor' : 'loadmaster',
         isAdmin: licenseType === 'instructor',
         isSuperAdmin: false
@@ -233,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get users and quizzes separately
-      const users = await sql`SELECT id, email, first_name, last_name FROM users`;
+      const users = await sql`SELECT id, email, firstName, lastName FROM licenses`;
       const quizzes = await sql`SELECT id, title, description FROM quizzes`;
       
       // Manually join the data
@@ -250,8 +250,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           score: submission.score,
           squadron: submission.squadron,
           email: user?.email || 'Unknown User',
-          firstName: user?.first_name || '',
-          lastName: user?.last_name || '',
+          firstName: user?.firstName || '',
+          lastName: user?.lastName || '',
           quizTitle: quiz?.title || 'Unknown Quiz',
           quizDescription: quiz?.description || ''
         };
