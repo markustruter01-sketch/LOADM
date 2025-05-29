@@ -9,56 +9,86 @@ import { format } from "date-fns";
 
 export default function ProfileNew() {
   const { data: profile, isLoading, error, refetch } = useQuery({
-    queryKey: ['profile-deployment'],
+    queryKey: ['profile-production-ready'],
     queryFn: async () => {
-      console.log("DEPLOYMENT: Fetching profile data");
+      console.log("PROFILE: Starting fetch process");
       
-      // Use absolute URL construction for deployment reliability
-      const baseUrl = window.location.origin;
-      const profileUrl = `${baseUrl}/api/profile`;
-      console.log("DEPLOYMENT: Requesting URL:", profileUrl);
+      // Multiple fallback strategies for deployment reliability
+      const urls = [
+        '/api/profile',
+        `${window.location.origin}/api/profile`,
+        `${window.location.protocol}//${window.location.host}/api/profile`
+      ];
       
-      const response = await fetch(profileUrl, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
+      let lastError = null;
+      
+      for (const url of urls) {
+        try {
+          console.log("PROFILE: Trying URL:", url);
+          
+          const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          
+          console.log("PROFILE: Response status:", response.status);
+          console.log("PROFILE: Response URL:", response.url);
+          
+          // Check if response is redirected to login or other page
+          if (response.url && !response.url.includes('/api/profile')) {
+            console.log("PROFILE: Response was redirected to:", response.url);
+            throw new Error('Request was redirected - authentication may be required');
+          }
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.log("PROFILE: Error response:", errorText.substring(0, 200));
+            
+            if (errorText.includes('<!DOCTYPE') || errorText.includes('<html>')) {
+              throw new Error('Received HTML page instead of JSON API response');
+            }
+            
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+          }
+          
+          const contentType = response.headers.get('content-type') || '';
+          console.log("PROFILE: Content-Type:", contentType);
+          
+          if (!contentType.includes('application/json')) {
+            const text = await response.text();
+            console.log("PROFILE: Non-JSON response:", text.substring(0, 200));
+            throw new Error(`Expected JSON but got: ${contentType}`);
+          }
+          
+          const data = await response.json();
+          console.log("PROFILE: Successfully parsed JSON data");
+          
+          // Validate response structure
+          if (!data || typeof data !== 'object') {
+            throw new Error('Invalid response format');
+          }
+          
+          return data;
+          
+        } catch (err) {
+          console.log("PROFILE: URL failed:", url, err.message);
+          lastError = err;
+          continue;
         }
-      });
-      
-      console.log("DEPLOYMENT: Response status:", response.status);
-      console.log("DEPLOYMENT: Response headers:", Object.fromEntries(response.headers.entries()));
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("DEPLOYMENT: Error response:", errorText);
-        console.log("DEPLOYMENT: Error response type:", typeof errorText);
-        
-        // Check if we got HTML instead of JSON
-        if (errorText.includes('<!DOCTYPE') || errorText.includes('<html>')) {
-          console.log("DEPLOYMENT: Received HTML instead of JSON - routing issue");
-          throw new Error('Server returned HTML instead of JSON. This may be a routing configuration issue.');
-        }
-        
-        throw new Error(`Profile fetch failed: ${response.status} - ${errorText}`);
       }
       
-      const contentType = response.headers.get('content-type');
-      console.log("DEPLOYMENT: Content-Type:", contentType);
-      
-      if (!contentType || !contentType.includes('application/json')) {
-        const responseText = await response.text();
-        console.log("DEPLOYMENT: Non-JSON response:", responseText);
-        throw new Error('Server did not return JSON response');
-      }
-      
-      const data = await response.json();
-      console.log("DEPLOYMENT: Profile data received:", data);
-      return data;
+      console.error("PROFILE: All URLs failed, last error:", lastError);
+      throw lastError || new Error('All profile endpoints failed');
     },
-    retry: 1,
+    retry: 2,
+    retryDelay: 1000,
     staleTime: 0,
     refetchOnWindowFocus: false
   });
