@@ -365,3 +365,27 @@ export type ScenarioQuestion = {
   options: string[];
   correctAnswer: string;
 };
+
+// Phone Directory schema
+export const phoneDirectory = pgTable("phone_directory", {
+  id: serial("id").primaryKey(),
+  airbaseCode: text("airbase_code").notNull(), // e.g., "BNE", "SYD", "PER"
+  airbaseName: text("airbase_name").notNull(), // e.g., "Brisbane", "Sydney", "Perth"
+  contacts: json("contacts").notNull().$type<Array<{
+    id: string;
+    name: string;
+    phoneNumber: string;
+    description: string;
+  }>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pick({
+  airbaseCode: true,
+  airbaseName: true,
+  contacts: true,
+});
+
+export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
+export type PhoneDirectory = typeof phoneDirectory.$inferSelect;

@@ -1,8 +1,16 @@
 import { Helmet } from "react-helmet";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { Loader2 } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X } from "lucide-react";
 import DocumentCard from "@/components/DocumentCard";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function DocumentsPage() {
   const { data: documents, isLoading } = useQuery<Document[]>({
