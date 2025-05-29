@@ -28,19 +28,19 @@ export default function UsersList() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{[key: number]: boolean}>({});
 
-  // Fetch users from licensing system with forced refresh
+  // Fetch users from licensing system
   const { data: licensesData = [], isLoading, refetch } = useQuery<any[]>({
-    queryKey: ['/api/licensing/licenses', Date.now()], // Force unique key
-    staleTime: 0,
-    gcTime: 0, // Don't cache
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    queryKey: ['/api/licensing/licenses'],
+    staleTime: 0
   });
 
-  // Transform license data to user format with strict deduplication
+  // Debug logging and transform license data to user format
+  console.log('License data received:', licensesData);
+  
   const seenEmails = new Set<string>();
-  const allUsers: User[] = licensesData
+  const allUsers: User[] = Array.isArray(licensesData) ? licensesData
     .filter((license: any) => {
+      if (!license?.email) return false; // Skip invalid entries
       if (seenEmails.has(license.email)) {
         return false; // Skip duplicate emails
       }
@@ -59,7 +59,9 @@ export default function UsersList() {
       hasPassword: !!license.hasPassword,
       isFirstLogin: license.isFirstLogin,
       password: license.isFirstLogin ? 'Password1!' : '********'
-    }));
+    })) : [];
+
+  console.log('Processed users:', allUsers);
 
   const togglePasswordVisibility = (userId: number) => {
     setShowPasswords(prev => ({
