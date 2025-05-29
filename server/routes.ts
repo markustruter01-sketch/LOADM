@@ -131,6 +131,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete license and associated user
+  app.delete("/api/licensing/licenses/:id", async (req, res) => {
+    try {
+      const licenseId = parseInt(req.params.id);
+      
+      if (!licenseId) {
+        return res.status(400).json({ message: "Invalid license ID" });
+      }
+
+      // First, delete the associated user account
+      await db.delete(users).where(eq(users.licenseId, licenseId));
+      
+      // Then delete the license
+      await db.delete(licenses).where(eq(licenses.id, licenseId));
+      
+      res.json({ success: true, message: "License and associated user deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting license:', error);
+      res.status(500).json({ message: "Failed to delete license" });
+    }
+  });
+
   // License dashboard stats
   app.get("/api/licensing/dashboard-stats", async (req, res) => {
     try {
