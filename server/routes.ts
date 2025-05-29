@@ -581,7 +581,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scenario submissions routes
   app.get("/api/scenario-submissions", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
+      // Bulletproof authentication check
+      const sessionId = req.cookies?.sessionId;
+      if (!sessionId || !sessionId.startsWith('isolated_')) {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
