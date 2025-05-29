@@ -1396,8 +1396,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const validatedData = insertPhoneDirectorySchema.parse(req.body);
-      const [newDirectory] = await db.insert(phoneDirectory).values(validatedData).returning();
+      const { airbaseCode, airbaseName, contacts } = req.body;
+      const [newDirectory] = await db.insert(phoneDirectory).values({
+        airbaseCode,
+        airbaseName,
+        contacts: JSON.stringify(contacts)
+      }).returning();
       res.json(newDirectory);
     } catch (error) {
       console.error("Error creating phone directory entry:", error);
@@ -1412,11 +1416,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      const validatedData = insertPhoneDirectorySchema.parse(req.body);
+      const { airbaseCode, airbaseName, contacts } = req.body;
       
       const [updatedDirectory] = await db
         .update(phoneDirectory)
-        .set({ ...validatedData, updatedAt: new Date() })
+        .set({ 
+          airbaseCode,
+          airbaseName,
+          contacts: JSON.stringify(contacts),
+          updatedAt: new Date() 
+        })
         .where(eq(phoneDirectory.id, id))
         .returning();
 
