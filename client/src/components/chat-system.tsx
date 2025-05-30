@@ -191,8 +191,8 @@ export function ChatSystem() {
                       {/* Chat bubble */}
                       <div className={`max-w-[280px] p-3 rounded-2xl ${
                         message.messageType === "question" 
-                          ? "bg-blue-100 text-blue-900 rounded-tl-sm" 
-                          : "bg-green-100 text-green-900 rounded-tl-sm"
+                          ? "bg-gray-100 text-gray-800 rounded-tl-sm" 
+                          : "bg-gray-200 text-gray-900 rounded-tl-sm"
                       }`}>
                         <div className="text-sm leading-relaxed">
                           {message.content}
