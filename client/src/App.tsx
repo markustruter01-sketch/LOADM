@@ -96,6 +96,7 @@ function AuthenticatedApp() {
             <Route path="/cargo-manifest" component={DocumentsPage} />
 
             <Route path="/tools" component={ToolsPage} />
+            <Route path="/tools/restraint-calculator" component={RestraintCalculatorPage} />
             <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
             <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
             <Route path="/tools/box-psi" component={BoxPsiCalculatorPage} />
