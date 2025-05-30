@@ -59,7 +59,6 @@ import PermissionsDashboard from "@/pages/permissions-dashboard";
 // Import route protection components (we'll adapt these)
 import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
 import { ChatSystem } from "@/components/chat-system";
 // import OfflineStatus from "@/components/OfflineStatus";
@@ -139,7 +138,6 @@ function AuthenticatedApp() {
           </Switch>
         </main>
         <BottomNav />
-        <Footer />
         <ChatSystem />
       </div>
     </QueryClientProvider>
