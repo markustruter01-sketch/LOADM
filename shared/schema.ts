@@ -230,7 +230,7 @@ export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).pi
   squadron: true,
 });
 
-// Phone Directory schema
+// Phone Directory schema (moved from later in file to avoid conflicts)
 export const phoneDirectory = pgTable("phone_directory", {
   id: serial("id").primaryKey(),
   airbaseCode: text("airbase_code").notNull(),
@@ -239,6 +239,15 @@ export const phoneDirectory = pgTable("phone_directory", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pick({
+  airbaseCode: true,
+  airbaseName: true,
+  contacts: true,
+});
+
+export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
+export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
 
 // Chat Messages schema
 export const chatMessages = pgTable("chat_messages", {
@@ -268,6 +277,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   scenarioSubmissions: many(scenarioSubmissions),
   quizzes: many(quizzes),
   quizSubmissions: many(quizSubmissions),
+  chatMessages: many(chatMessages),
   license: one(licenses, {
     fields: [users.licenseId],
     references: [licenses.id],
@@ -357,6 +367,13 @@ export const quizSubmissionsRelations = relations(quizSubmissions, ({ one }) => 
   }),
 }));
 
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  user: one(users, {
+    fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+}));
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -405,14 +422,3 @@ export type ScenarioQuestion = {
   options: string[];
   correctAnswer: string;
 };
-
-
-
-export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pick({
-  airbaseCode: true,
-  airbaseName: true,
-  contacts: true,
-});
-
-export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
-export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
