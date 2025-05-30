@@ -1,6 +1,8 @@
 // ISOLATED AUTHENTICATION SERVER
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
+import { createServer } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import isolatedAuthRoutes from './auth-isolated/auth-routes';
@@ -16,8 +18,8 @@ app.use(express.json());
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
-import { phoneDirectory } from '../shared/schema';
-import { eq } from 'drizzle-orm';
+import { phoneDirectory, chatMessages } from '../shared/schema';
+import { eq, sql, gte } from 'drizzle-orm';
 
 app.get("/api/phone-directory", async (req, res) => {
   try {
@@ -87,6 +89,40 @@ app.delete("/api/phone-directory/:id", async (req, res) => {
   }
 });
 
+// Chat message endpoints - bypassing auth middleware
+app.get("/api/chat-messages", async (req, res) => {
+  try {
+    console.log("Chat messages GET request received");
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const messages = await db.select().from(chatMessages)
+      .where(gte(chatMessages.createdAt, sevenDaysAgo))
+      .orderBy(chatMessages.createdAt);
+    
+    console.log("Chat messages retrieved:", messages.length);
+    res.json(messages);
+  } catch (error) {
+    console.error("Error fetching chat messages:", error);
+    res.status(500).json({ message: "Failed to fetch chat messages" });
+  }
+});
+
+// Chat cleanup job - remove messages older than 7 days
+setInterval(async () => {
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const deleted = await db.delete(chatMessages)
+      .where(sql`${chatMessages.createdAt} < ${sevenDaysAgo}`);
+    
+    console.log("Chat cleanup: Removed old messages");
+  } catch (error) {
+    console.error("Chat cleanup error:", error);
+  }
+}, 24 * 60 * 60 * 1000); // Run every 24 hours
+
 // Mount isolated auth routes FIRST (before any other routing)
 app.use('/auth-isolated', isolatedAuthRoutes);
 
@@ -108,8 +144,85 @@ if (app.get("env") === "development") {
 }
 
 const PORT = 5000;
-app.listen(PORT, "0.0.0.0", () => {
+const httpServer = createServer(app);
+
+// WebSocket server for chat
+const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+// Store connected clients with user info
+const connectedClients = new Map<WebSocket, { userId: number, userName: string, userRole: string }>();
+
+wss.on('connection', (ws, req) => {
+  console.log('WebSocket connection established');
+  
+  ws.on('message', async (data) => {
+    try {
+      const message = JSON.parse(data.toString());
+      
+      if (message.type === 'auth') {
+        // Store user info for this connection
+        connectedClients.set(ws, {
+          userId: message.userId,
+          userName: message.userName,
+          userRole: message.userRole
+        });
+        ws.send(JSON.stringify({ type: 'auth_success' }));
+        return;
+      }
+      
+      if (message.type === 'chat_message') {
+        const userInfo = connectedClients.get(ws);
+        if (!userInfo) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
+          return;
+        }
+        
+        // Validate message type permissions
+        if (message.messageType === 'answer' && userInfo.userRole !== 'instructor' && userInfo.userRole !== 'superadmin') {
+          ws.send(JSON.stringify({ type: 'error', message: 'Only instructors can post answers' }));
+          return;
+        }
+        
+        // Save message to database
+        const { chatMessages } = await import('../shared/schema');
+        const { db } = await import('./db');
+        
+        const newMessage = await db.insert(chatMessages).values({
+          userId: userInfo.userId,
+          messageType: message.messageType,
+          content: message.content,
+          userName: userInfo.userName,
+          userRole: userInfo.userRole,
+        }).returning();
+        
+        // Broadcast to all connected clients
+        const broadcastMessage = {
+          type: 'new_message',
+          message: newMessage[0]
+        };
+        
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(broadcastMessage));
+          }
+        });
+      }
+      
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+      ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+    }
+  });
+  
+  ws.on('close', () => {
+    connectedClients.delete(ws);
+    console.log('WebSocket connection closed');
+  });
+});
+
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log('✅ ISOLATED AUTH: All sessions cleared');
   console.log('✅ ISOLATED SERVER: Running on port', PORT);
   console.log('✅ ISOLATED SERVER: Authentication system ready');
+  console.log('✅ CHAT SYSTEM: WebSocket server ready on /ws');
 });

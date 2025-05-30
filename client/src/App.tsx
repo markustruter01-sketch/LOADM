@@ -61,6 +61,7 @@ import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
+import { ChatSystem } from "@/components/chat-system";
 // import OfflineStatus from "@/components/OfflineStatus";
 
 const queryClient = createOfflineQueryClient();
