@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Shield, 
   Users, 
@@ -17,7 +18,9 @@ import {
   Database,
   UserCheck,
   Activity,
-  TrendingUp
+  TrendingUp,
+  MessageCircle,
+  Trash2
 } from "lucide-react";
 
 interface DashboardStats {
@@ -32,10 +35,45 @@ interface DashboardStats {
 
 export default function SuperAdminDashboard() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch dashboard stats
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/licensing/dashboard-stats']
+  });
+
+  // Chat reset mutation
+  const resetChatMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/chat-messages/reset', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to reset chat logs');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Chat Reset Complete",
+        description: "All chat messages have been permanently deleted.",
+      });
+      // Invalidate chat messages cache
+      queryClient.invalidateQueries({ queryKey: ["/api/chat-messages"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Reset Failed",
+        description: `Failed to reset chat logs: ${error.message}`,
+        variant: "destructive",
+      });
+    },
   });
 
   return (
@@ -319,22 +357,58 @@ export default function SuperAdminDashboard() {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-slate-400" />
-                  System Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-slate-300">
-                  <p>System configuration and administrative settings.</p>
-                  <p className="text-sm text-slate-400 mt-2">
-                    Configure system defaults, security settings, and maintenance options.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-slate-400" />
+                    System Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-slate-300">
+                    <p>System configuration and administrative settings.</p>
+                    <p className="text-sm text-slate-400 mt-2">
+                      Configure system defaults, security settings, and maintenance options.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-blue-400" />
+                    Chat Management
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Manage chat system and message history
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="text-sm text-slate-300 mb-3">
+                      <p className="font-medium">Reset All Chat Messages</p>
+                      <p className="text-slate-400 mt-1">
+                        This will permanently delete all chat messages and implement the 7-day cleanup cycle.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => resetChatMutation.mutate()}
+                      disabled={resetChatMutation.isPending}
+                      variant="destructive"
+                      className="w-full flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {resetChatMutation.isPending ? "Resetting..." : "Reset Chat Logs"}
+                    </Button>
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    Warning: This action cannot be undone. All chat history will be permanently lost.
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

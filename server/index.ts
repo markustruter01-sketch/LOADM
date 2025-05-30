@@ -108,6 +108,25 @@ app.get("/api/chat-messages", async (req, res) => {
   }
 });
 
+// Chat reset endpoint - delete all chat messages
+app.delete("/api/chat-messages/reset", async (req, res) => {
+  try {
+    console.log("Chat reset request received");
+    
+    // Delete all chat messages
+    const deleted = await db.delete(chatMessages);
+    
+    console.log("All chat messages deleted successfully");
+    res.json({ 
+      message: "All chat messages have been permanently deleted",
+      success: true 
+    });
+  } catch (error) {
+    console.error("Error resetting chat messages:", error);
+    res.status(500).json({ message: "Failed to reset chat messages" });
+  }
+});
+
 // Chat cleanup job - remove messages older than 7 days
 setInterval(async () => {
   try {
