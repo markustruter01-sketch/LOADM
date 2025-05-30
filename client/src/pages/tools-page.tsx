@@ -440,7 +440,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="default" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -469,7 +469,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -501,7 +501,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -594,7 +594,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -625,7 +625,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -655,7 +655,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -686,7 +686,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -726,7 +726,7 @@ export default function ToolsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="default" className="w-full">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Open Calculator
                     </Button>
                   </CardFooter>
