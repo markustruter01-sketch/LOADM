@@ -720,7 +720,7 @@ export default function ToolsPage() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         • C-17, C-130, C-27J, KC30A profiles<br />
-                        • Distance, altitude, weight factors<br />
+                        • Metric units (km, kg, L/h)<br />
                         • Weather condition adjustments
                       </div>
                     </div>

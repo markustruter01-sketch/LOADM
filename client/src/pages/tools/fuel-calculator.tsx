@@ -45,42 +45,42 @@ export default function FuelCalculatorPage() {
     navigate("/tools");
   };
 
-  // Aircraft fuel burn profiles (gallons per hour at standard conditions)
+  // Aircraft fuel burn profiles (liters per hour at standard conditions)
   const aircraftProfiles = {
     "c-17": {
       name: "C-17 Globemaster III",
-      baseFuelBurn: 6200, // GPH at cruise
-      cruiseSpeed: 450, // knots
-      weightFactor: 0.8, // fuel burn increase per 1000 lbs over base weight
-      baseWeight: 585000, // lbs
-      fuelCapacity: 28000, // gallons
+      baseFuelBurn: 23470, // L/h at cruise (6200 GPH converted)
+      cruiseSpeed: 833, // km/h (450 knots converted)
+      weightFactor: 0.8, // fuel burn increase per 1000 kg over base weight
+      baseWeight: 265350, // kg (585000 lbs converted)
+      fuelCapacity: 106000, // liters (28000 gallons converted)
       altitudeFactor: 0.85 // fuel efficiency at higher altitudes
     },
     "c-130": {
       name: "C-130 Hercules",
-      baseFuelBurn: 1400, // GPH at cruise
-      cruiseSpeed: 320, // knots
+      baseFuelBurn: 5300, // L/h at cruise (1400 GPH converted)
+      cruiseSpeed: 593, // km/h (320 knots converted)
       weightFactor: 0.6,
-      baseWeight: 155000, // lbs
-      fuelCapacity: 9000, // gallons
+      baseWeight: 70310, // kg (155000 lbs converted)
+      fuelCapacity: 34100, // liters (9000 gallons converted)
       altitudeFactor: 0.88
     },
     "c-27j": {
       name: "C-27J Spartan",
-      baseFuelBurn: 800, // GPH at cruise
-      cruiseSpeed: 280, // knots
+      baseFuelBurn: 3030, // L/h at cruise (800 GPH converted)
+      cruiseSpeed: 519, // km/h (280 knots converted)
       weightFactor: 0.5,
-      baseWeight: 45000, // lbs
-      fuelCapacity: 3500, // gallons
+      baseWeight: 20410, // kg (45000 lbs converted)
+      fuelCapacity: 13250, // liters (3500 gallons converted)
       altitudeFactor: 0.90
     },
     "kc30a": {
       name: "KC-30A MRTT",
-      baseFuelBurn: 8500, // GPH at cruise
-      cruiseSpeed: 470, // knots
+      baseFuelBurn: 32170, // L/h at cruise (8500 GPH converted)
+      cruiseSpeed: 871, // km/h (470 knots converted)
       weightFactor: 1.0,
-      baseWeight: 380000, // lbs
-      fuelCapacity: 36000, // gallons
+      baseWeight: 172370, // kg (380000 lbs converted)
+      fuelCapacity: 136280, // liters (36000 gallons converted)
       altitudeFactor: 0.82
     }
   };
@@ -106,7 +106,7 @@ export default function FuelCalculatorPage() {
     const headwind = parseFloat(headwindComponent) || 0;
     const reserve = parseFloat(reserveTime);
 
-    // Calculate ground speed
+    // Calculate ground speed (km/h)
     const trueAirspeed = aircraft.cruiseSpeed;
     const calculatedGroundSpeed = trueAirspeed - headwind;
     setGroundSpeed(calculatedGroundSpeed);
@@ -118,13 +118,13 @@ export default function FuelCalculatorPage() {
     // Calculate fuel burn rate adjustments
     let adjustedFuelBurn = aircraft.baseFuelBurn;
 
-    // Weight adjustment
+    // Weight adjustment (per 1000 kg difference)
     const weightDifference = weight - aircraft.baseWeight;
     const weightAdjustment = (weightDifference / 1000) * aircraft.weightFactor;
     adjustedFuelBurn += (adjustedFuelBurn * weightAdjustment / 100);
 
-    // Altitude efficiency factor
-    if (altitude > 25000) {
+    // Altitude efficiency factor (convert 25000 ft to meters = 7620m)
+    if (altitude > 7620) {
       adjustedFuelBurn *= aircraft.altitudeFactor;
     }
 
@@ -231,22 +231,22 @@ export default function FuelCalculatorPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="distance">Distance (nm)</Label>
+                    <Label htmlFor="distance">Distance (km)</Label>
                     <Input
                       id="distance"
                       type="number"
-                      placeholder="Nautical miles"
+                      placeholder="Kilometers"
                       value={distance}
                       onChange={(e) => setDistance(e.target.value)}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="cruise-altitude">Cruise Altitude (ft)</Label>
+                    <Label htmlFor="cruise-altitude">Cruise Altitude (m)</Label>
                     <Input
                       id="cruise-altitude"
                       type="number"
-                      placeholder="Flight level"
+                      placeholder="Meters above sea level"
                       value={cruiseAltitude}
                       onChange={(e) => setCruiseAltitude(e.target.value)}
                     />
@@ -254,7 +254,7 @@ export default function FuelCalculatorPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gross-weight">Gross Weight (lbs)</Label>
+                  <Label htmlFor="gross-weight">Gross Weight (kg)</Label>
                   <Input
                     id="gross-weight"
                     type="number"
@@ -266,7 +266,7 @@ export default function FuelCalculatorPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="headwind">Headwind Component (kts)</Label>
+                    <Label htmlFor="headwind">Headwind Component (km/h)</Label>
                     <Input
                       id="headwind"
                       type="number"
@@ -330,7 +330,7 @@ export default function FuelCalculatorPage() {
                       <div className="p-4 bg-muted rounded-lg">
                         <h4 className="font-medium mb-1">Ground Speed</h4>
                         <p className="text-xl font-bold text-primary">
-                          {groundSpeed?.toFixed(0)} kts
+                          {groundSpeed?.toFixed(0)} km/h
                         </p>
                       </div>
                       
@@ -347,25 +347,25 @@ export default function FuelCalculatorPage() {
                       <div className="p-4 bg-muted rounded-lg">
                         <h4 className="font-medium mb-2">Fuel Burn Rate</h4>
                         <p className="text-2xl font-bold text-primary">
-                          {fuelBurnRate.toFixed(0)} GPH
+                          {fuelBurnRate.toFixed(0)} L/h
                         </p>
                       </div>
 
                       <div className="space-y-3">
                         <div className="flex justify-between items-center p-3 bg-muted rounded">
                           <span className="font-medium">Trip Fuel:</span>
-                          <span className="font-mono text-lg">{tripFuel?.toFixed(0)} gal</span>
+                          <span className="font-mono text-lg">{tripFuel?.toFixed(0)} L</span>
                         </div>
 
                         <div className="flex justify-between items-center p-3 bg-muted rounded">
                           <span className="font-medium">Reserve Fuel:</span>
-                          <span className="font-mono text-lg">{reserveFuel?.toFixed(0)} gal</span>
+                          <span className="font-mono text-lg">{reserveFuel?.toFixed(0)} L</span>
                         </div>
 
                         <div className="flex justify-between items-center p-3 bg-primary/10 rounded border-2 border-primary/20">
                           <span className="font-bold">Total Required:</span>
                           <div className="text-right">
-                            <span className="font-mono text-xl font-bold">{totalFuelRequired?.toFixed(0)} gal</span>
+                            <span className="font-mono text-xl font-bold">{totalFuelRequired?.toFixed(0)} L</span>
                             {exceedsCapacity && (
                               <div className="flex items-center gap-1 mt-1">
                                 <AlertTriangle className="h-4 w-4 text-destructive" />
@@ -385,12 +385,12 @@ export default function FuelCalculatorPage() {
                         <h4 className="font-medium mb-2">Aircraft Capacity</h4>
                         <div className="flex justify-between">
                           <span>Fuel Capacity:</span>
-                          <span className="font-mono">{aircraft.fuelCapacity.toLocaleString()} gal</span>
+                          <span className="font-mono">{aircraft.fuelCapacity.toLocaleString()} L</span>
                         </div>
                         <div className="flex justify-between mt-1">
                           <span>Remaining:</span>
                           <span className="font-mono">
-                            {totalFuelRequired ? (aircraft.fuelCapacity - totalFuelRequired).toFixed(0) : 0} gal
+                            {totalFuelRequired ? (aircraft.fuelCapacity - totalFuelRequired).toFixed(0) : 0} L
                           </span>
                         </div>
                       </div>
