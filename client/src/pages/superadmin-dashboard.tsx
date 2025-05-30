@@ -46,6 +46,8 @@ export default function SuperAdminDashboard() {
   // Chat reset mutation
   const resetChatMutation = useMutation({
     mutationFn: async () => {
+      console.log("Starting chat reset request...");
+      
       const response = await fetch('/api/chat-messages/reset', {
         method: 'DELETE',
         headers: {
@@ -53,13 +55,21 @@ export default function SuperAdminDashboard() {
         },
       });
       
+      console.log("Reset response status:", response.status);
+      console.log("Reset response ok:", response.ok);
+      
       if (!response.ok) {
-        throw new Error('Failed to reset chat logs');
+        const errorText = await response.text();
+        console.error("Reset request failed:", errorText);
+        throw new Error(`Failed to reset chat logs: ${response.status} ${errorText}`);
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log("Reset successful:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Reset mutation success:", data);
       toast({
         title: "Chat Reset Complete",
         description: "All chat messages have been permanently deleted.",
@@ -68,6 +78,7 @@ export default function SuperAdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/chat-messages"] });
     },
     onError: (error) => {
+      console.error("Reset mutation error:", error);
       toast({
         title: "Reset Failed",
         description: `Failed to reset chat logs: ${error.message}`,
@@ -394,7 +405,15 @@ export default function SuperAdminDashboard() {
                       </p>
                     </div>
                     <Button 
-                      onClick={() => resetChatMutation.mutate()}
+                      onClick={() => {
+                        console.log("Reset button clicked!");
+                        console.log("Mutation state:", {
+                          isPending: resetChatMutation.isPending,
+                          isError: resetChatMutation.isError,
+                          error: resetChatMutation.error
+                        });
+                        resetChatMutation.mutate();
+                      }}
                       disabled={resetChatMutation.isPending}
                       variant="destructive"
                       className="w-full flex items-center gap-2"
