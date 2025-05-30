@@ -31,6 +31,7 @@ import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
 import AdvancedAnalytics from "@/pages/instructors-portal/analytics";
 import WAMCalculatorPage from "@/pages/tools/wam-calculator";
 import RestraintCalculatorPage from "@/pages/tools/restraint-calculator";
+import FuelCalculatorPage from "@/pages/tools/fuel-calculator";
 import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
 import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
 import DrumPsiCalculatorPage from "@/pages/tools/drum-psi";
@@ -97,6 +98,7 @@ function AuthenticatedApp() {
 
             <Route path="/tools" component={ToolsPage} />
             <Route path="/tools/restraint-calculator" component={RestraintCalculatorPage} />
+            <Route path="/tools/fuel-calculator" component={FuelCalculatorPage} />
             <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
             <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
             <Route path="/tools/box-psi" component={BoxPsiCalculatorPage} />

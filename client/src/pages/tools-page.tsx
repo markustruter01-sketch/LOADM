@@ -696,7 +696,42 @@ export default function ToolsPage() {
 
             {/* Mission Analysis Tools */}
             <TabsContent value="mission-analysis" className="mt-6">
-              <div className="grid grid-cols-1 gap-6 mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                {/* Fuel Calculations Tool */}
+                <Card 
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => navigateToTool('fuel-calculator')}
+                >
+                  <CardHeader className="bg-primary/10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Fuel Calculator</CardTitle>
+                      <Truck className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardDescription>Aviation fuel burn calculations</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-2 text-sm">
+                      <div className="font-medium text-primary">Calculate:</div>
+                      <div className="p-3 bg-slate-800 rounded text-xs font-mono">
+                        <div>• Fuel burn per hour</div>
+                        <div>• Trip fuel requirements</div>
+                        <div>• Range calculations</div>
+                        <div>• Reserve fuel planning</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        • C-17, C-130, C-27J, KC30A profiles<br />
+                        • Distance, altitude, weight factors<br />
+                        • Weather condition adjustments
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-muted/50 pt-2">
+                    <Button variant="default" className="w-full">
+                      Open Calculator
+                    </Button>
+                  </CardFooter>
+                </Card>
+
                 {/* Mission Complexity Analyzer */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="bg-primary/10">
