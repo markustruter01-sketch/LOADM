@@ -3,6 +3,14 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Contact interface for phone directory
+export interface Contact {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  description: string;
+}
+
 // License schema - Updated for email-only authentication
 export const licenses = pgTable("licenses", {
   id: serial("id").primaryKey(),
@@ -222,6 +230,38 @@ export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).pi
   squadron: true,
 });
 
+// Phone Directory schema
+export const phoneDirectory = pgTable("phone_directory", {
+  id: serial("id").primaryKey(),
+  airbaseCode: text("airbase_code").notNull(),
+  airbaseName: text("airbase_name").notNull(),
+  contacts: json("contacts").$type<Contact[]>().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Chat Messages schema
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  messageType: text("message_type").notNull(), // "question" or "answer"
+  content: text("content").notNull(),
+  userName: text("user_name").notNull(),
+  userRole: text("user_role").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
+  userId: true,
+  messageType: true,
+  content: true,
+  userName: true,
+  userRole: true,
+});
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   documentSubmissions: many(documentSubmissions),
@@ -366,15 +406,7 @@ export type ScenarioQuestion = {
   correctAnswer: string;
 };
 
-// Phone Directory schema
-export const phoneDirectory = pgTable("phone_directory", {
-  id: serial("id").primaryKey(),
-  airbaseCode: text("airbase_code").notNull(), // e.g., "BNE", "SYD", "PER"
-  airbaseName: text("airbase_name").notNull(), // e.g., "Brisbane", "Sydney", "Perth"
-  contacts: text("contacts").notNull(), // JSON string stored as text
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+
 
 export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pick({
   airbaseCode: true,
