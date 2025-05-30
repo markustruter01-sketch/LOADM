@@ -200,7 +200,8 @@ wss.on('connection', (ws, req) => {
           // Since the isolated auth uses different user IDs, we need to map them
           let actualUserId = userInfo.userId;
           
-          // For the superadmin account, map to the correct user ID
+          // Map to the correct user ID and get proper user details
+          let displayName = userInfo.userName;
           if (userInfo.userRole === 'superadmin') {
             const userRecord = await db.select().from(users).where(eq(users.email, 'markustruter01@gmail.com')).limit(1);
             if (userRecord.length > 0) {
@@ -209,11 +210,19 @@ wss.on('connection', (ws, req) => {
             }
           }
           
+          // Get user details from licenses table for proper name display
+          const { licenses } = await import('../shared/schema');
+          const licenseRecord = await db.select().from(licenses).where(eq(licenses.email, userInfo.userName)).limit(1);
+          if (licenseRecord.length > 0) {
+            displayName = `${licenseRecord[0].firstName} ${licenseRecord[0].lastName}`.trim();
+            console.log('Found license record, display name:', displayName);
+          }
+          
           const messageData = {
             userId: actualUserId,
             messageType: message.messageType,
             content: message.content,
-            userName: userInfo.userName,
+            userName: displayName,
             userRole: userInfo.userRole,
           };
           

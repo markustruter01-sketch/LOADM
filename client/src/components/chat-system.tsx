@@ -174,23 +174,40 @@ export function ChatSystem() {
                   No messages yet. Start a conversation!
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {messages.map((message) => (
-                    <div key={message.id} className="space-y-1">
+                    <div key={message.id} className="flex flex-col space-y-2">
+                      {/* Message header */}
                       <div className="flex items-center gap-2">
-                        <Badge variant={message.messageType === "question" ? "secondary" : "default"}>
+                        <Badge variant={message.messageType === "question" ? "secondary" : "default"} className="text-xs">
                           {message.messageType === "question" ? "Q" : "A"}
                         </Badge>
-                        <span className="text-sm font-medium">{message.userName}</span>
+                        <span className="text-sm font-semibold">{message.userName}</span>
                         <Badge variant="outline" className="text-xs">
                           {message.userRole}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
-                        </span>
                       </div>
-                      <div className="text-sm bg-muted p-3 rounded-lg">
-                        {message.content}
+                      
+                      {/* Chat bubble */}
+                      <div className={`max-w-[280px] p-3 rounded-2xl ${
+                        message.messageType === "question" 
+                          ? "bg-blue-100 text-blue-900 rounded-tl-sm" 
+                          : "bg-green-100 text-green-900 rounded-tl-sm"
+                      }`}>
+                        <div className="text-sm leading-relaxed">
+                          {message.content}
+                        </div>
+                      </div>
+                      
+                      {/* Timestamp */}
+                      <div className="text-xs text-muted-foreground ml-1">
+                        {new Date(message.createdAt).toLocaleString('en-AU', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
                       </div>
                     </div>
                   ))}
