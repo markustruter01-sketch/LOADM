@@ -30,6 +30,7 @@ import StudentProgress from "@/pages/instructors-portal/student-progress";
 import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
 import AdvancedAnalytics from "@/pages/instructors-portal/analytics";
 import WAMCalculatorPage from "@/pages/tools/wam-calculator";
+import RestraintCalculatorPage from "@/pages/tools/restraint-calculator";
 import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
 import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
 import DrumPsiCalculatorPage from "@/pages/tools/drum-psi";

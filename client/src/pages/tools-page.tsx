@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target } from "lucide-react";
+import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target, Anchor } from "lucide-react";
 import { useLocation } from "wouter";
 import {
   Card,
@@ -412,6 +412,40 @@ export default function ToolsPage() {
             {/* Weight & Balance Tools */}
             <TabsContent value="weight-balance" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                {/* Restraint Calculator */}
+                <Card 
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => navigateToTool('restraint-calculator')}
+                >
+                  <CardHeader className="bg-primary/10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Restraint Calculator</CardTitle>
+                      <Anchor className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardDescription>Effective restraint force calculations</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-2 text-sm">
+                      <div className="font-medium text-primary">Calculate:</div>
+                      <div className="p-3 bg-slate-800 rounded text-xs font-mono">
+                        <div>Effective Force = Total Force × cos(θ)</div>
+                        <div>Forward/Aft = Force × cos(horizontal angle)</div>
+                        <div>Lateral = Force × sin(horizontal angle)</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        • Restraint angle analysis<br />
+                        • Component force calculation<br />
+                        • G-force requirement verification
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-muted/50 pt-2">
+                    <Button variant="default" className="w-full">
+                      Open Calculator
+                    </Button>
+                  </CardFooter>
+                </Card>
+
                 {/* WAM Calculator */}
                 <Card 
                   className="hover:shadow-lg transition-shadow cursor-pointer"
