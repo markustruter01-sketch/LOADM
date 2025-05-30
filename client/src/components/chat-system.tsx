@@ -38,21 +38,26 @@ export function ChatSystem() {
 
     ws.onopen = () => {
       console.log("WebSocket connected");
+      console.log("User object:", user);
       setIsConnected(true);
       
       // Authenticate with the server
-      ws.send(JSON.stringify({
+      const authMessage = {
         type: "auth",
         userId: user.id,
         userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
         userRole: user.role
-      }));
+      };
+      console.log("Sending auth message:", authMessage);
+      ws.send(JSON.stringify(authMessage));
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("WebSocket message received:", data);
       
       if (data.type === "new_message") {
+        console.log("New message received:", data.message);
         // Update the messages cache
         queryClient.setQueryData(["/api/chat-messages"], (oldMessages: ChatMessage[] = []) => {
           return [...oldMessages, data.message];
@@ -61,6 +66,10 @@ export function ChatSystem() {
       
       if (data.type === "error") {
         console.error("Chat error:", data.message);
+      }
+      
+      if (data.type === "auth_success") {
+        console.log("Authentication successful");
       }
     };
 
@@ -89,7 +98,10 @@ export function ChatSystem() {
   }, [messages]);
 
   const sendMessage = () => {
-    if (!socket || !content.trim() || !isConnected) return;
+    if (!socket || !content.trim() || !isConnected) {
+      console.log("Cannot send message:", { socket: !!socket, content: content.trim(), isConnected });
+      return;
+    }
 
     // Validate permissions
     if (messageType === "answer" && user?.role !== "instructor" && user?.role !== "superadmin") {
@@ -97,11 +109,14 @@ export function ChatSystem() {
       return;
     }
 
-    socket.send(JSON.stringify({
+    const messageData = {
       type: "chat_message",
       messageType,
       content: content.trim()
-    }));
+    };
+    
+    console.log("Sending message:", messageData);
+    socket.send(JSON.stringify(messageData));
 
     setContent("");
   };

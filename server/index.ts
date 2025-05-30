@@ -158,54 +158,88 @@ wss.on('connection', (ws, req) => {
   ws.on('message', async (data) => {
     try {
       const message = JSON.parse(data.toString());
+      console.log('WebSocket message received:', message);
       
       if (message.type === 'auth') {
+        console.log('Processing auth message:', message);
         // Store user info for this connection
         connectedClients.set(ws, {
           userId: message.userId,
           userName: message.userName,
           userRole: message.userRole
         });
+        console.log('User authenticated:', message.userName);
         ws.send(JSON.stringify({ type: 'auth_success' }));
         return;
       }
       
       if (message.type === 'chat_message') {
+        console.log('Processing chat message:', message);
         const userInfo = connectedClients.get(ws);
         if (!userInfo) {
+          console.log('User not authenticated');
           ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
           return;
         }
         
+        console.log('User info for message:', userInfo);
+        
         // Validate message type permissions
         if (message.messageType === 'answer' && userInfo.userRole !== 'instructor' && userInfo.userRole !== 'superadmin') {
+          console.log('Permission denied: only instructors can post answers');
           ws.send(JSON.stringify({ type: 'error', message: 'Only instructors can post answers' }));
           return;
         }
         
-        // Save message to database
-        const { chatMessages } = await import('../shared/schema');
-        const { db } = await import('./db');
-        
-        const newMessage = await db.insert(chatMessages).values({
-          userId: userInfo.userId,
-          messageType: message.messageType,
-          content: message.content,
-          userName: userInfo.userName,
-          userRole: userInfo.userRole,
-        }).returning();
-        
-        // Broadcast to all connected clients
-        const broadcastMessage = {
-          type: 'new_message',
-          message: newMessage[0]
-        };
-        
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(broadcastMessage));
+        try {
+          // Save message to database
+          const { chatMessages, users } = await import('../shared/schema');
+          const { db } = await import('./db');
+          
+          // Find the actual user ID from the users table based on email
+          // Since the isolated auth uses different user IDs, we need to map them
+          let actualUserId = userInfo.userId;
+          
+          // For the superadmin account, map to the correct user ID
+          if (userInfo.userRole === 'superadmin') {
+            const userRecord = await db.select().from(users).where(eq(users.email, 'markustruter01@gmail.com')).limit(1);
+            if (userRecord.length > 0) {
+              actualUserId = userRecord[0].id;
+              console.log('Mapped superadmin to user ID:', actualUserId);
+            }
           }
-        });
+          
+          const messageData = {
+            userId: actualUserId,
+            messageType: message.messageType,
+            content: message.content,
+            userName: userInfo.userName,
+            userRole: userInfo.userRole,
+          };
+          
+          console.log('Inserting message with data:', messageData);
+          
+          const newMessage = await db.insert(chatMessages).values(messageData).returning();
+          
+          console.log('Message inserted successfully:', newMessage[0]);
+          
+          // Broadcast to all connected clients
+          const broadcastMessage = {
+            type: 'new_message',
+            message: newMessage[0]
+          };
+          
+          console.log('Broadcasting message to', wss.clients.size, 'clients');
+          
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(broadcastMessage));
+            }
+          });
+        } catch (error) {
+          console.error('Error saving message to database:', error);
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to save message' }));
+        }
       }
       
     } catch (error) {
