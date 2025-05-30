@@ -44,7 +44,7 @@ export function ChatSystem() {
       ws.send(JSON.stringify({
         type: "auth",
         userId: user.id,
-        userName: user.name,
+        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
         userRole: user.role
       }));
     };

@@ -140,6 +140,7 @@ function AuthenticatedApp() {
         </main>
         <BottomNav />
         <Footer />
+        <ChatSystem />
       </div>
     </QueryClientProvider>
   );
