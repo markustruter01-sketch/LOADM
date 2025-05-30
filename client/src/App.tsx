@@ -4,57 +4,67 @@ import { createOfflineQueryClient } from "@/lib/queryClient";
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { IsolatedLoginForm } from './auth-isolated/login-component';
 import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
+import { Suspense, lazy } from 'react';
+import { PageWrapper } from "@/components/page-loader";
 
-// Import all your existing pages
-import DocumentFormPage from "@/pages/document-form-page";
-import ScenarioPage from "@/pages/scenario-page-new";
-import DocsListPage from "@/pages/docs-list-page";
-import ScenariosPage from "@/pages/scenarios-page";
-import LoadPlanningPage from "@/pages/load-planning-page";
-import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
-import DocumentsPage from "@/pages/documents-page";
-import UserProfile from "@/pages/user-profile";
-import ToolsPage from "@/pages/tools-page";
-import TrainingModulesPage from "@/pages/training-modules";
-import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
-import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
-import AdminDashboard from "@/pages/admin/admin-dashboard";
-import DocumentManagement from "@/pages/admin/document-management";
-import ScenarioManagement from "@/pages/admin/scenario-management";
-import UserManagement from "@/pages/admin/user-management";
-import InstructorsPortal from "@/pages/instructors-portal";
-import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
-import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
-import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
-import StudentProgress from "@/pages/instructors-portal/student-progress";
-import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
-import AdvancedAnalytics from "@/pages/instructors-portal/analytics";
-import WAMCalculatorPage from "@/pages/tools/wam-calculator";
-import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
-import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
-import DrumPsiCalculatorPage from "@/pages/tools/drum-psi";
-import SkiddedBoxPsiCalculatorPage from "@/pages/tools/skidded-box-psi";
-import TirePsiCalculatorPage from "@/pages/tools/tire-psi";
+// Immediate load for core pages only
 import HomePage from "@/pages/home-page";
 import ArmyHomePage from "@/pages/army-home-page";
 import NavyHomePage from "@/pages/navy-home-page";
 import NotFound from "@/pages/not-found";
-import QuizList from "@/pages/instructors-portal/quizzes";
-import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
-import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
-import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
-import SuperAdminDashboard from "@/pages/superadmin-dashboard";
-import LicensingManagement from "@/pages/licensing-management-fixed";
-import LicenseRegistration from "@/pages/license-registration";
-import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
-import DocumentSubmissions from "@/pages/instructors-portal/document-submissions";
-import TeachingMaterials from "@/pages/instructors-portal/resources";
-import BestPractices from "@/pages/instructors-portal/best-practices";
-import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
-import QuizPage from "@/pages/quizzes/[id]";
-import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
-import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
-import PermissionsDashboard from "@/pages/permissions-dashboard";
+
+// Lazy load all other pages for better initial performance
+const DocumentFormPage = lazy(() => import("@/pages/document-form-page"));
+const ScenarioPage = lazy(() => import("@/pages/scenario-page-new"));
+const DocsListPage = lazy(() => import("@/pages/docs-list-page"));
+const ScenariosPage = lazy(() => import("@/pages/scenarios-page"));
+const LoadPlanningPage = lazy(() => import("@/pages/load-planning-page"));
+const LoadPlanningSelectionPage = lazy(() => import("@/pages/load-planning-selection-page"));
+const DocumentsPage = lazy(() => import("@/pages/documents-page"));
+const UserProfile = lazy(() => import("@/pages/user-profile"));
+const ToolsPage = lazy(() => import("@/pages/tools-page"));
+const TrainingModulesPage = lazy(() => import("@/pages/training-modules"));
+const TrainingModuleDetailPage = lazy(() => import("@/pages/training-modules/[id]"));
+const AirframeIntegratedPage = lazy(() => import("@/pages/airframe-integrated-page"));
+
+// Admin and instructor pages - lazy loaded
+const AdminDashboard = lazy(() => import("@/pages/admin/admin-dashboard"));
+const DocumentManagement = lazy(() => import("@/pages/admin/document-management"));
+const ScenarioManagement = lazy(() => import("@/pages/admin/scenario-management"));
+const UserManagement = lazy(() => import("@/pages/admin/user-management"));
+const InstructorsPortal = lazy(() => import("@/pages/instructors-portal"));
+const InstructorsScenarios = lazy(() => import("@/pages/instructors-portal/scenarios"));
+const CreateScenario = lazy(() => import("@/pages/instructors-portal/scenarios/new-create"));
+const EditScenario = lazy(() => import("@/pages/instructors-portal/scenarios/edit/[id]"));
+const StudentProgress = lazy(() => import("@/pages/instructors-portal/student-progress"));
+const SubmissionReview = lazy(() => import("@/pages/instructors-portal/student-progress/[id]"));
+const AdvancedAnalytics = lazy(() => import("@/pages/instructors-portal/analytics"));
+
+// Tool pages - lazy loaded
+const WAMCalculatorPage = lazy(() => import("@/pages/tools/wam-calculator"));
+const VehicleCgfaPage = lazy(() => import("@/pages/tools/vehicle-cgfa"));
+const BoxPsiCalculatorPage = lazy(() => import("@/pages/tools/box-psi"));
+const DrumPsiCalculatorPage = lazy(() => import("@/pages/tools/drum-psi"));
+const SkiddedBoxPsiCalculatorPage = lazy(() => import("@/pages/tools/skidded-box-psi"));
+const TirePsiCalculatorPage = lazy(() => import("@/pages/tools/tire-psi"));
+
+// Quiz and other specialized pages - lazy loaded
+const QuizList = lazy(() => import("@/pages/instructors-portal/quizzes"));
+const CreateQuiz = lazy(() => import("@/pages/instructors-portal/quizzes/create"));
+const QuizDetail = lazy(() => import("@/pages/instructors-portal/quizzes/[id]"));
+const EditQuizPage = lazy(() => import("@/pages/instructors-portal/quizzes/edit/[id]"));
+const SuperAdminDashboard = lazy(() => import("@/pages/superadmin-dashboard"));
+const LicensingManagement = lazy(() => import("@/pages/licensing-management-fixed"));
+const LicenseRegistration = lazy(() => import("@/pages/license-registration"));
+const ScenarioSubmissions = lazy(() => import("@/pages/instructors-portal/submissions"));
+const DocumentSubmissions = lazy(() => import("@/pages/instructors-portal/document-submissions"));
+const TeachingMaterials = lazy(() => import("@/pages/instructors-portal/resources"));
+const BestPractices = lazy(() => import("@/pages/instructors-portal/best-practices"));
+const ScenarioResources = lazy(() => import("@/pages/instructors-portal/scenarios/resources"));
+const QuizPage = lazy(() => import("@/pages/quizzes/[id]"));
+const QuizSubmissions = lazy(() => import("@/pages/instructors-portal/quiz-submissions"));
+const QuizSubmissionDetail = lazy(() => import("@/pages/instructors-portal/quiz-submissions/[id]"));
+const PermissionsDashboard = lazy(() => import("@/pages/permissions-dashboard"));
 
 // Import route protection components (we'll adapt these)
 import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
@@ -65,6 +75,16 @@ import { ChatSystem } from "@/components/chat-system";
 
 const queryClient = createOfflineQueryClient();
 
+// Loading component for lazy-loaded pages
+const PageLoading = () => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4 mx-auto"></div>
+      <p className="text-white text-lg">Loading...</p>
+    </div>
+  </div>
+);
+
 function AuthenticatedApp() {
   const { user } = useIsolatedAuth();
   
@@ -73,7 +93,8 @@ function AuthenticatedApp() {
       <div className="App">
         <Header />
         <main className="main-content">
-          <Switch>
+          <Suspense fallback={<PageLoading />}>
+            <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/army" component={ArmyHomePage} />
             <Route path="/navy" component={NavyHomePage} />
@@ -136,6 +157,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
             <Route component={NotFound} />
           </Switch>
+          </Suspense>
         </main>
         <BottomNav />
         <ChatSystem />
