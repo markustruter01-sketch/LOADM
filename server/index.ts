@@ -33,49 +33,7 @@ app.get("/api/phone-directory", async (req, res) => {
   }
 });
 
-app.post("/api/phone-directory", async (req, res) => {
-  try {
-    console.log("NUCLEAR: Phone directory POST request received");
-    const { airbaseCode, airbaseName, contacts } = req.body;
-    const [newDirectory] = await db.insert(phoneDirectory).values({
-      airbaseCode,
-      airbaseName,
-      contacts: JSON.stringify(contacts)
-    }).returning();
-    res.json(newDirectory);
-  } catch (error) {
-    console.error("NUCLEAR: Error creating phone directory entry:", error);
-    res.status(500).json({ message: "Failed to create phone directory entry" });
-  }
-});
 
-app.put("/api/phone-directory/:id", async (req, res) => {
-  try {
-    console.log("NUCLEAR: Phone directory PUT request received");
-    const id = parseInt(req.params.id);
-    const { airbaseCode, airbaseName, contacts } = req.body;
-    
-    const [updatedDirectory] = await db
-      .update(phoneDirectory)
-      .set({ 
-        airbaseCode,
-        airbaseName,
-        contacts: JSON.stringify(contacts),
-        updatedAt: new Date() 
-      })
-      .where(eq(phoneDirectory.id, id))
-      .returning();
-
-    if (!updatedDirectory) {
-      return res.status(404).json({ message: "Directory entry not found" });
-    }
-
-    res.json(updatedDirectory);
-  } catch (error) {
-    console.error("NUCLEAR: Error updating phone directory entry:", error);
-    res.status(500).json({ message: "Failed to update phone directory entry" });
-  }
-});
 
 app.delete("/api/phone-directory/:id", async (req, res) => {
   try {

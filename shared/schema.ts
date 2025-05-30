@@ -69,22 +69,17 @@ export const licenseAuditLog = pgTable("license_audit_log", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  email: true,
-  password: true,
-  isAdmin: true,
-  isSuperAdmin: true,
-  licenseId: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  isFirstLogin: true,
 });
 
-export const insertLicenseSchema = createInsertSchema(licenses).pick({
-  email: true,
-  username: true,
-  expiryDate: true,
-  maxConcurrentSessions: true,
-  maxDevices: true,
-  notes: true,
+export const insertLicenseSchema = createInsertSchema(licenses).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertLicenseSessionSchema = createInsertSchema(licenseSessions).pick({
