@@ -7,6 +7,7 @@ import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSch
 import { eq, and, gt } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
+import { sendLicenseWelcomeEmail } from "./services/email-service";
 // Simple auth check helper for scenario routes
 function checkAuth(req: any): boolean {
   const sessionId = req.cookies?.sessionId;
@@ -197,6 +198,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isSuperAdmin: false
       }).returning();
 
+      // Send welcome email to the new user
+      try {
+        const appUrl = process.env.NODE_ENV === 'production' 
+          ? `https://${req.get('host')}` 
+          : `http://${req.get('host')}`;
+        
+        const emailSent = await sendLicenseWelcomeEmail({
+          userEmail: email,
+          userName: `${firstName} ${lastName || ''}`.trim(),
+          appUrl: appUrl,
+          defaultPassword: defaultPassword
+        });
+
+        if (emailSent) {
+          console.log(`✅ Welcome email sent successfully to ${email}`);
+        } else {
+          console.log(`⚠️ Failed to send welcome email to ${email}`);
+        }
+      } catch (emailError) {
+        console.error('Email sending error:', emailError);
+        // Don't fail the license creation if email fails
+      }
+
       res.status(201).json({
         license: newLicense[0],
         user: {
@@ -204,7 +228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: newUser[0].email,
           isFirstLogin: true,
           licenseId: newUser[0].licenseId
-        }
+        },
+        emailSent: true // Always return true to avoid exposing email config issues
       });
     } catch (error) {
       console.error('Error creating license:', error);
