@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { loadmasterQuestions } from '@shared/quiz-questions';
 import * as quizStorage from '../storage-quiz';
+import { requireAuth, requireInstructor } from '../middleware/auth-middleware';
 
 const router = Router();
 
@@ -34,24 +35,21 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new quiz
-router.post('/', (req, res, next) => {
-  const authCore = require('../auth-isolated/auth-core');
-  authCore.requireIsolatedAuth(req, res, next);
-}, async (req, res) => {
+router.post('/', requireInstructor, async (req, res) => {
   try {
-    const { title, description, questionCount, categories, isActive, expiresAt, createdById } = req.body;
+    const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
     
-    if (!title || !questionCount || !categories || !categories.length || !createdById) {
+    if (!title || !questionCount || !categories || !categories.length) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
     const quiz = await quizStorage.createQuiz({
       title,
       description: description || '',
-      createdById,
+      createdById: req.user?.id || 1,
       questionCount,
       categories,
-      isActive,
+      isActive: isActive !== undefined ? isActive : true,
       expiresAt: expiresAt ? new Date(expiresAt) : null
     });
     
@@ -91,16 +89,21 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete a quiz
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireInstructor, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid quiz ID' });
+    }
+    
     const result = await quizStorage.deleteQuiz(id);
     
     if (!result) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    res.status(204).end();
+    res.status(200).json({ success: true, message: 'Quiz deleted successfully' });
   } catch (error) {
     console.error(`Error deleting quiz ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to delete quiz' });
