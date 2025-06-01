@@ -8,15 +8,7 @@ import { eq, and, gt } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-// Simple auth check helper for scenario routes
-function checkAuth(req: any): boolean {
-  const sessionId = req.cookies?.sessionId;
-  if (!sessionId || !sessionId.startsWith('isolated_')) {
-    return false;
-  }
-  // For now, just check if session exists - can be enhanced later
-  return true;
-}
+import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth-middleware";
 
 // Rate limiting for security
 const ONE_MINUTE = 60 * 1000;
@@ -459,12 +451,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/documents", async (req, res) => {
+  app.post("/api/documents", requireInstructor, async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(403).json({ message: "Unauthorized: Admin access required" });
-      }
-      
       const documentData = insertDocumentSchema.parse(req.body);
       const document = await storage.createDocument(documentData);
       res.status(201).json(document);
@@ -476,12 +464,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/documents/:id", async (req, res) => {
+  app.put("/api/documents/:id", requireInstructor, async (req, res) => {
     try {
-      if (!checkAuth(req)) {
-        return res.status(403).json({ message: "Unauthorized: Admin access required" });
-      }
-      
       const documentId = parseInt(req.params.id);
       const documentData = insertDocumentSchema.partial().parse(req.body);
       const document = await storage.updateDocument(documentId, documentData);
