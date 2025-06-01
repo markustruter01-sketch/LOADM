@@ -672,3 +672,25 @@ export const loadmasterQuestions: QuizQuestion[] = [
     difficulty: "medium"
   }
 ];
+
+// Utility function to get random questions by categories
+export function getQuestionsByCategories(categories: QuestionCategory[], count: number): QuizQuestion[] {
+  // Filter questions by categories
+  const filteredQuestions = loadmasterQuestions.filter(question => 
+    categories.includes(question.category)
+  );
+  
+  // If we don't have enough questions, return all filtered questions
+  if (filteredQuestions.length <= count) {
+    return [...filteredQuestions];
+  }
+  
+  // Randomly select the requested number of questions
+  const shuffled = [...filteredQuestions];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  return shuffled.slice(0, count);
+}

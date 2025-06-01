@@ -78,8 +78,12 @@ export default function CreateQuiz() {
   });
 
   const onSubmit = async (data: QuizFormValues) => {
+    console.log("🔧 QUIZ CREATE DEBUG: Form submission started", data);
+    console.log("🔧 QUIZ CREATE DEBUG: User object:", user);
+    
     try {
       if (!user?.id) {
+        console.error("🔧 QUIZ CREATE DEBUG: No user ID found");
         toast({
           title: "Authentication error",
           description: "You must be logged in to create a quiz",
@@ -93,11 +97,15 @@ export default function CreateQuiz() {
         createdById: user.id
       };
 
-      await apiRequest({
+      console.log("🔧 QUIZ CREATE DEBUG: Quiz data to send:", quizData);
+
+      const response = await apiRequest({
         url: "/api/quizzes",
         method: "POST",
         body: quizData
       });
+
+      console.log("🔧 QUIZ CREATE DEBUG: API response:", response);
 
       toast({
         title: "Quiz created",
@@ -107,10 +115,10 @@ export default function CreateQuiz() {
       queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
       setLocation("/instructors-portal/quizzes");
     } catch (error) {
-      console.error("Error creating quiz:", error);
+      console.error("🔧 QUIZ CREATE DEBUG: Error creating quiz:", error);
       toast({
         title: "Error",
-        description: "Failed to create the quiz. Please try again.",
+        description: `Failed to create the quiz: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
