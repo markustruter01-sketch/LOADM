@@ -25,6 +25,7 @@ export default function InstructorQuizzes() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const { data: quizzes, isLoading, refetch } = useQuery({
     queryKey: ['/api/quizzes'],
@@ -34,6 +35,13 @@ export default function InstructorQuizzes() {
     refetchOnMount: true, // Always refresh when component mounts
     staleTime: 0, // Consider data immediately stale
   });
+
+  // Update last refresh time when data changes
+  useEffect(() => {
+    if (quizzes) {
+      setLastRefresh(new Date());
+    }
+  }, [quizzes]);
 
   const handleDeleteQuiz = async (id: number) => {
     try {
@@ -124,8 +132,12 @@ export default function InstructorQuizzes() {
           </div>
         </div>
 
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-4">
           Create random pop quizzes from the library of loadmaster questions. Assign a quiz to test students on specific topics.
+        </p>
+        
+        <p className="text-xs text-muted-foreground mb-8">
+          Last updated: {lastRefresh.toLocaleTimeString()} • Auto-refreshes every 5 seconds
         </p>
 
         {isLoading ? (
