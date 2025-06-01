@@ -449,44 +449,85 @@ export class BlueHairFix {
     }
   }
 
-  // Test frontend quiz management page directly
+  // Advanced frontend testing with React component analysis
   private async testFrontendQuizPage(): Promise<TestResult> {
     try {
-      console.log('🔍 BHS: Testing frontend quiz management page...');
+      console.log('🔍 Blue Hair Fix 💙: Deep frontend analysis starting...');
       
-      // Test the main quiz management route
-      const response = await this.makeRequest('/instructors-portal/quiz-management', {
-        method: 'GET',
-        headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
-      });
+      // Test multiple frontend routes for comprehensive analysis
+      const routes = [
+        '/instructors-portal/quiz-management',
+        '/instructors-portal',
+        '/',
+        '/instructors-portal/quizzes'
+      ];
 
-      if (response.ok) {
-        const html = await response.text();
-        const hasReactApp = html.includes('id="root"') || html.includes('type="module"');
-        
-        if (hasReactApp) {
-          console.log('✅ BHS: Frontend React app structure detected');
-          return {
-            testName: 'Frontend Quiz Page',
-            passed: true,
-            details: { htmlLength: html.length, hasReactApp },
-            timestamp: new Date().toISOString()
-          };
-        } else {
-          return {
-            testName: 'Frontend Quiz Page',
-            passed: false,
-            error: 'No React app structure found in HTML',
-            timestamp: new Date().toISOString()
-          };
+      const routeResults = [];
+      
+      for (const route of routes) {
+        try {
+          const response = await this.makeRequest(route, {
+            method: 'GET',
+            headers: {
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            }
+          });
+
+          if (response.ok) {
+            const html = await response.text();
+            const analysis = {
+              route,
+              status: response.status,
+              hasReactApp: html.includes('id="root"') || html.includes('type="module"'),
+              hasViteScript: html.includes('@vite/client') || html.includes('vite/client'),
+              hasQuizManagement: html.includes('quiz-management') || html.includes('QuizManagement'),
+              hasErrorBoundary: html.includes('ErrorBoundary') || html.includes('error-boundary'),
+              hasLoadingState: html.includes('loading') || html.includes('Loading'),
+              scriptTags: (html.match(/<script/g) || []).length,
+              styleTags: (html.match(/<style/g) || []).length,
+              contentLength: html.length
+            };
+            
+            routeResults.push(analysis);
+            console.log(`📊 Blue Hair Fix 💙: Route ${route} - React: ${analysis.hasReactApp}, Vite: ${analysis.hasViteScript}`);
+          } else {
+            routeResults.push({
+              route,
+              status: response.status,
+              error: `HTTP ${response.status}`
+            });
+          }
+        } catch (routeError: any) {
+          routeResults.push({
+            route,
+            error: routeError.message
+          });
         }
+      }
+
+      // Analyze quiz management specific functionality
+      const quizManagementAnalysis = routeResults.find(r => r.route === '/instructors-portal/quiz-management');
+      
+      if (quizManagementAnalysis && !quizManagementAnalysis.error) {
+        const isWorking = quizManagementAnalysis.hasReactApp && quizManagementAnalysis.hasViteScript;
+        
+        return {
+          testName: 'Frontend Quiz Page',
+          passed: isWorking,
+          details: { 
+            routeAnalysis: routeResults,
+            primaryRoute: quizManagementAnalysis,
+            recommendedFix: !isWorking ? 'Check Vite dev server and React component loading' : 'Frontend structure appears correct'
+          },
+          error: !isWorking ? 'React app or Vite client not properly loaded' : undefined,
+          timestamp: new Date().toISOString()
+        };
       } else {
         return {
           testName: 'Frontend Quiz Page',
           passed: false,
-          error: `Frontend route failed - HTTP ${response.status}`,
+          error: `Quiz management route failed: ${quizManagementAnalysis?.error || 'Unknown error'}`,
+          details: { routeAnalysis: routeResults },
           timestamp: new Date().toISOString()
         };
       }
@@ -555,28 +596,70 @@ export class BlueHairFix {
     }
   }
 
-  // Log analysis function to capture console logs
+  // Advanced console error detection and JavaScript runtime analysis
   private async captureServerLogs(): Promise<TestResult> {
     try {
-      console.log('📋 BHS: Capturing recent server activity...');
+      console.log('📋 Blue Hair Fix 🔵: Advanced diagnostics starting...');
       
-      // Make a few test requests to generate logs
+      // Generate comprehensive test traffic to trigger potential issues
       const testRequests = [
         this.makeRequest('/api/quizzes'),
         this.makeRequest('/api/users'), 
-        this.makeRequest('/auth-isolated/user-check')
+        this.makeRequest('/auth-isolated/user-check'),
+        this.makeRequest('/instructors-portal/quiz-management'),
+        this.makeRequest('/api/instructor/quizzes'),
+        this.makeRequest('/api/instructor/student-progress')
       ];
 
-      await Promise.allSettled(testRequests);
+      const results = await Promise.allSettled(testRequests);
       
-      // Note: In a real implementation, we would capture actual server logs
-      // For now, we'll indicate that log capture was attempted
+      // Analyze response patterns for common issues
+      const diagnostics = {
+        successfulRequests: 0,
+        failedRequests: 0,
+        htmlResponses: 0,
+        jsonResponses: 0,
+        authErrors: 0,
+        serverErrors: 0,
+        routingErrors: 0
+      };
+
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          const response = result.value;
+          diagnostics.successfulRequests++;
+          
+          try {
+            const responseText = await response.clone().text();
+            if (responseText.includes('<!DOCTYPE')) {
+              diagnostics.htmlResponses++;
+            } else if (responseText.startsWith('{') || responseText.startsWith('[')) {
+              diagnostics.jsonResponses++;
+            }
+            
+            if (response.status === 401 || response.status === 403) {
+              diagnostics.authErrors++;
+            } else if (response.status >= 500) {
+              diagnostics.serverErrors++;
+            } else if (response.status === 404) {
+              diagnostics.routingErrors++;
+            }
+          } catch (parseError) {
+            // Response already consumed, skip detailed analysis
+          }
+        } else {
+          diagnostics.failedRequests++;
+        }
+      }
+      
+      console.log('📊 Blue Hair Fix 🔵: Diagnostic Results:', diagnostics);
       
       return {
         testName: 'Server Log Analysis',
-        passed: true,
+        passed: diagnostics.serverErrors === 0 && diagnostics.failedRequests === 0,
         details: { 
-          message: 'Log analysis completed - check console output for detailed logs',
+          diagnostics,
+          recommendations: this.generateRecommendations(diagnostics),
           testRequestsSent: testRequests.length
         },
         timestamp: new Date().toISOString()
@@ -589,6 +672,153 @@ export class BlueHairFix {
         timestamp: new Date().toISOString()
       };
     }
+  }
+
+  // Generate specific recommendations based on diagnostic patterns
+  private generateRecommendations(diagnostics: any): string[] {
+    const recommendations = [];
+    
+    if (diagnostics.htmlResponses > diagnostics.jsonResponses) {
+      recommendations.push('High HTML response ratio suggests API routing issues');
+    }
+    
+    if (diagnostics.authErrors > 0) {
+      recommendations.push('Authentication middleware may have session handling issues');
+    }
+    
+    if (diagnostics.serverErrors > 0) {
+      recommendations.push('Database or internal server errors detected');
+    }
+    
+    if (diagnostics.routingErrors > 0) {
+      recommendations.push('Route definitions may be missing or misconfigured');
+    }
+    
+    if (diagnostics.failedRequests > 0) {
+      recommendations.push('Network connectivity or server startup issues');
+    }
+    
+    return recommendations.length > 0 ? recommendations : ['System appears to be functioning normally'];
+  }
+
+  // Comprehensive React component and state analysis
+  private async testReactComponentLoading(): Promise<TestResult> {
+    try {
+      console.log('⚛️ Blue Hair Fix 🔷: React component analysis...');
+      
+      // Test the quiz management page specifically
+      const response = await this.makeRequest('/instructors-portal/quiz-management', {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+
+      if (!response.ok) {
+        return {
+          testName: 'React Component Loading',
+          passed: false,
+          error: `HTTP ${response.status}: Failed to load quiz management page`,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      const html = await response.text();
+      
+      // Comprehensive frontend analysis
+      const analysis = {
+        hasReactApp: html.includes('id="root"'),
+        hasViteClient: html.includes('@vite/client') || html.includes('vite/client'),
+        hasReactScripts: html.includes('react') || html.includes('React'),
+        hasRouterElements: html.includes('router') || html.includes('Router'),
+        hasQuizComponents: html.includes('quiz') || html.includes('Quiz'),
+        hasErrorBoundary: html.includes('ErrorBoundary'),
+        hasLoadingStates: html.includes('loading') || html.includes('Loading'),
+        scriptCount: (html.match(/<script/g) || []).length,
+        moduleScripts: (html.match(/<script[^>]*type="module"/g) || []).length,
+        inlineScripts: (html.match(/<script(?![^>]*src)/g) || []).length,
+        cssLinks: (html.match(/<link[^>]*rel="stylesheet"/g) || []).length,
+        hasDevServer: html.includes('localhost') || html.includes('127.0.0.1'),
+        contentSize: html.length
+      };
+
+      console.log('📋 Blue Hair Fix 🔵: React Analysis:', analysis);
+
+      // Determine if the React app is properly configured
+      const isProperlyConfigured = analysis.hasReactApp && 
+                                  analysis.hasViteClient && 
+                                  analysis.moduleScripts > 0;
+
+      return {
+        testName: 'React Component Loading',
+        passed: isProperlyConfigured,
+        details: {
+          analysis,
+          issues: this.identifyReactIssues(analysis),
+          solutions: this.suggestReactSolutions(analysis)
+        },
+        error: !isProperlyConfigured ? 'React app not properly initialized' : undefined,
+        timestamp: new Date().toISOString()
+      };
+
+    } catch (error: any) {
+      return {
+        testName: 'React Component Loading',
+        passed: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Identify specific React configuration issues
+  private identifyReactIssues(analysis: any): string[] {
+    const issues = [];
+    
+    if (!analysis.hasReactApp) {
+      issues.push('Missing React root element (#root)');
+    }
+    
+    if (!analysis.hasViteClient) {
+      issues.push('Vite development client not loaded');
+    }
+    
+    if (analysis.moduleScripts === 0) {
+      issues.push('No ES6 module scripts found');
+    }
+    
+    if (!analysis.hasRouterElements) {
+      issues.push('Router components may not be properly configured');
+    }
+    
+    if (analysis.contentSize < 1000) {
+      issues.push('HTML content suspiciously small - possible empty response');
+    }
+    
+    return issues;
+  }
+
+  // Suggest specific solutions for React issues
+  private suggestReactSolutions(analysis: any): string[] {
+    const solutions = [];
+    
+    if (!analysis.hasReactApp) {
+      solutions.push('Add <div id="root"></div> to HTML template');
+    }
+    
+    if (!analysis.hasViteClient) {
+      solutions.push('Ensure Vite dev server is running and HMR is enabled');
+    }
+    
+    if (analysis.moduleScripts === 0) {
+      solutions.push('Check if main React entry point is properly loaded');
+    }
+    
+    if (!analysis.hasQuizComponents) {
+      solutions.push('Verify quiz management components are imported and rendered');
+    }
+    
+    return solutions.length > 0 ? solutions : ['React configuration appears correct'];
   }
 
   // Test database connectivity
@@ -638,7 +868,7 @@ export class BlueHairFix {
       return this.testResults;
     }
     
-    // Run all functionality tests including frontend tests
+    // Run comprehensive Blue Hair Fix 🔹 diagnostic suite
     const tests = [
       () => this.captureServerLogs(),
       () => this.testDatabaseConnectivity(),
@@ -651,7 +881,8 @@ export class BlueHairFix {
       () => this.testChatSystem(),
       () => this.testDocuments(),
       () => this.testFrontendQuizPage(),
-      () => this.testQuizPageAPI()
+      () => this.testQuizPageAPI(),
+      () => this.testReactComponentLoading()
     ];
 
     for (const test of tests) {

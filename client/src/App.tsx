@@ -121,6 +121,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/student-progress" component={StudentProgress} />
             <InstructorRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
             <InstructorRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
+            <InstructorRoute path="/instructors-portal/quiz-management" component={QuizList} />
             <InstructorRoute path="/instructors-portal/quizzes" component={QuizList} />
             <InstructorRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
             <InstructorRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
