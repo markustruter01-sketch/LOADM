@@ -156,8 +156,8 @@ export default function InstructorQuizzes() {
                         Created {formatDate(quiz.createdAt)} by {quiz.createdBy?.username || 'Unknown'}
                       </CardDescription>
                     </div>
-                    <Badge variant={quiz.isActive ? "default" : "secondary"}>
-                      {quiz.isActive ? "Active" : "Inactive"}
+                    <Badge variant={quiz.is_active ? "default" : "secondary"}>
+                      {quiz.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                 </CardHeader>
