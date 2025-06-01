@@ -444,6 +444,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Scenarios routes with database validation
+  app.get("/api/scenarios", async (req, res) => {
+    try {
+      console.log('🎭 SCENARIO LIST: Fetching scenarios');
+      console.log('🎭 SCENARIO LIST: Environment:', process.env.NODE_ENV);
+      console.log('🎭 SCENARIO LIST: Database URL exists:', !!process.env.DATABASE_URL);
+      
+      const scenarios = await storage.getScenarios();
+      console.log('🎭 SCENARIO LIST: Found scenarios count:', scenarios.length);
+      console.log('🎭 SCENARIO LIST: Scenario data sample:', scenarios.slice(0, 3));
+      
+      res.json(scenarios);
+    } catch (error) {
+      console.error('🎭 SCENARIO LIST: Error fetching scenarios:', error);
+      res.status(500).json({ message: "Failed to retrieve scenarios" });
+    }
+  });
+
+  // Database validation endpoint to check migration status
+  app.get("/api/debug/database-status", async (req, res) => {
+    try {
+      console.log('🔍 DATABASE DEBUG: Checking database status');
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Check table existence and row counts
+      const tableChecks = await Promise.allSettled([
+        sql`SELECT COUNT(*) as count FROM users`,
+        sql`SELECT COUNT(*) as count FROM licenses`,
+        sql`SELECT COUNT(*) as count FROM scenarios`,
+        sql`SELECT COUNT(*) as count FROM quizzes`,
+        sql`SELECT COUNT(*) as count FROM quiz_submissions`,
+        sql`SELECT COUNT(*) as count FROM scenario_submissions`,
+        sql`SELECT COUNT(*) as count FROM phone_directory`
+      ]);
+
+      const results = {
+        environment: process.env.NODE_ENV,
+        databaseConnected: true,
+        tables: {
+          users: tableChecks[0].status === 'fulfilled' ? tableChecks[0].value[0].count : 'ERROR',
+          licenses: tableChecks[1].status === 'fulfilled' ? tableChecks[1].value[0].count : 'ERROR',
+          scenarios: tableChecks[2].status === 'fulfilled' ? tableChecks[2].value[0].count : 'ERROR',
+          quizzes: tableChecks[3].status === 'fulfilled' ? tableChecks[3].value[0].count : 'ERROR',
+          quiz_submissions: tableChecks[4].status === 'fulfilled' ? tableChecks[4].value[0].count : 'ERROR',
+          scenario_submissions: tableChecks[5].status === 'fulfilled' ? tableChecks[5].value[0].count : 'ERROR',
+          phone_directory: tableChecks[6].status === 'fulfilled' ? tableChecks[6].value[0].count : 'ERROR'
+        },
+        errors: tableChecks.map((check, index) => 
+          check.status === 'rejected' ? { table: ['users', 'licenses', 'scenarios', 'quizzes', 'quiz_submissions', 'scenario_submissions', 'phone_directory'][index], error: check.reason.message } : null
+        ).filter(Boolean)
+      };
+
+      console.log('🔍 DATABASE DEBUG: Status check complete:', JSON.stringify(results, null, 2));
+      res.json(results);
+    } catch (error) {
+      console.error('🔍 DATABASE DEBUG: Database status check failed:', error);
+      res.status(500).json({ 
+        error: 'Database status check failed',
+        message: error.message,
+        environment: process.env.NODE_ENV
+      });
+    }
+  });
+
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {

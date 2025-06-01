@@ -149,7 +149,7 @@ export default function CreateScenario() {
     })
     .then(response => {
       console.log('🎭 SCENARIO CREATE FORM: Response received:', response.status, response.statusText);
-      console.log('🎭 SCENARIO CREATE FORM: Response headers:', JSON.stringify([...response.headers.entries()]));
+      console.log('🎭 SCENARIO CREATE FORM: Response headers:', JSON.stringify(Object.fromEntries(response.headers)));
       
       if (!response.ok) {
         return response.text().then(text => {

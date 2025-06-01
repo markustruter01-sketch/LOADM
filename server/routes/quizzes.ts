@@ -7,11 +7,20 @@ const router = Router();
 // Get all quizzes
 router.get('/', async (req, res) => {
   try {
+    console.log('🎯 QUIZ LIST: Fetching quizzes');
+    console.log('🎯 QUIZ LIST: Environment:', process.env.NODE_ENV);
+    console.log('🎯 QUIZ LIST: Database URL exists:', !!process.env.DATABASE_URL);
+    
     const activeOnly = req.query.activeOnly === 'true';
+    console.log('🎯 QUIZ LIST: Active only filter:', activeOnly);
+    
     const quizzes = await quizStorage.getQuizzes(activeOnly);
+    console.log('🎯 QUIZ LIST: Found quizzes count:', quizzes.length);
+    console.log('🎯 QUIZ LIST: Quiz data sample:', quizzes.slice(0, 3));
+    
     res.json(quizzes);
   } catch (error) {
-    console.error('Error fetching quizzes:', error);
+    console.error('🎯 QUIZ LIST: Error fetching quizzes:', error);
     res.status(500).json({ error: 'Failed to fetch quizzes' });
   }
 });
