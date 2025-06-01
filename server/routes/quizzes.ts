@@ -102,9 +102,22 @@ router.post('/', requireInstructor, async (req, res) => {
     if (!title || !questionCount || !categories || !categories.length) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+
+    // Debug logging to identify the user ID issue
+    console.log('🔧 QUIZ DEBUG: User object:', req.user);
+    console.log('🔧 QUIZ DEBUG: User ID being used:', req.user.id);
     
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
+    
+    // Verify user exists first
+    const userCheck = await sql`SELECT id FROM users WHERE id = ${req.user.id}`;
+    console.log('🔧 QUIZ DEBUG: User check result:', userCheck);
+    
+    if (userCheck.length === 0) {
+      console.error('🔧 QUIZ DEBUG: User ID does not exist in users table');
+      return res.status(400).json({ error: 'Invalid user reference' });
+    }
     
     const quiz = await sql`
       INSERT INTO quizzes (
@@ -128,6 +141,7 @@ router.post('/', requireInstructor, async (req, res) => {
       RETURNING *
     `;
     
+    console.log('🔧 QUIZ DEBUG: Quiz created successfully with ID:', quiz[0].id);
     res.status(201).json(quiz[0]);
   } catch (error) {
     console.error('Error creating quiz:', error);

@@ -31,11 +31,16 @@ function requireAuth(req: Request, res: Response, next: Function) {
     return res.status(401).json({ error: 'Invalid session' });
   }
   
+  console.log('🔧 AUTH DEBUG: Session data:', session);
+  console.log('🔧 AUTH DEBUG: User ID from session:', session.userId);
+  
   (req as any).user = {
     id: session.userId,
     email: session.email,
     role: session.role
   };
+  
+  console.log('🔧 AUTH DEBUG: User object set:', (req as any).user);
   
   next();
 }
@@ -461,8 +466,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
+      // Debug logging to identify the user ID issue
+      console.log('🔧 OLD ROUTE DEBUG: User object:', (req as any).user);
+      console.log('🔧 OLD ROUTE DEBUG: User ID being used:', (req as any).user?.id);
+
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
+      
+      // Verify user exists first
+      const userCheck = await sql`SELECT id FROM users WHERE id = ${(req as any).user.id}`;
+      console.log('🔧 OLD ROUTE DEBUG: User check result:', userCheck);
+      
+      if (userCheck.length === 0) {
+        console.error('🔧 OLD ROUTE DEBUG: User ID does not exist in users table');
+        return res.status(400).json({ error: 'Invalid user reference' });
+      }
       
       const newQuiz = await sql`
         INSERT INTO quizzes (title, description, created_by_id, question_count, categories, is_active, expires_at)
