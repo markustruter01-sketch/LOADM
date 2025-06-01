@@ -805,7 +805,7 @@ export default function DocumentsPage() {
             {/* Environmental Compatibility */}
             <div className="mb-6">
               <div className="font-bold text-sm mb-3 bg-blue-100 p-2 border border-blue-300">ENVIRONMENTAL COMPATIBILITY:</div>
-              <div class="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <label className="flex items-center"><input type="checkbox" className="mr-2" /> Temperature sensitive items isolated</label>
                 <label className="flex items-center"><input type="checkbox" className="mr-2" /> Humidity sensitive items protected</label>
                 <label className="flex items-center"><input type="checkbox" className="mr-2" /> Fragile items properly cushioned</label>
@@ -922,7 +922,7 @@ export default function DocumentsPage() {
                 <div className="border border-gray-400 p-3">
                   <div className="font-bold text-xs mb-2">SHORING REQUIRED:</div>
                   <div className="text-lg font-mono bg-red-100 p-2 border">NO</div>
-                  <div className="text-xs text-gray-600 mt-1">If Excess > 0</div>
+                  <div className="text-xs text-gray-600 mt-1">If Excess greater than 0</div>
                 </div>
               </div>
             </div>
