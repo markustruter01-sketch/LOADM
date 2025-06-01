@@ -79,12 +79,48 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
   });
 }
 
+
+  // Request tracing for debugging
+  app.use((req, res, next) => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).substr(2, 9);
+    req.requestId = requestId;
+    
+    console.log(`🔍 [${requestId}] ${req.method} ${req.path} - Started`);
+    
+    const originalSend = res.send;
+    res.send = function(data) {
+      const duration = Date.now() - startTime;
+      console.log(`✅ [${requestId}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+      originalSend.call(this, data);
+    };
+    
+    next();
+  });
+
+
+  // Add response time headers
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      res.setHeader('X-Response-Time', `${duration}ms`);
+    });
+    next();
+  });
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory - Public access
-  app.get("/api/phone-directory", async (req, res) => {
+  
+  // Performance optimization: Add caching headers for static data
+  app.use('/api/phone-directory', (req, res, next) => {
+    res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutes
+    next();
+  });
+app.get("/api/phone-directory", async (req, res) => {
     try {
       const directories = await db.select().from(phoneDirectory).orderBy(phoneDirectory.airbaseName);
-      res.json(directories);
+      res.json({ success: true, data: directories });
     } catch (error) {
       console.error("Error fetching phone directory:", error);
       res.status(500).json({ message: "Failed to fetch phone directory" });
@@ -113,9 +149,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .leftJoin(users, eq(licenses.id, users.licenseId))
         .orderBy(desc(licenses.createdAt));
 
-      res.json(allLicenses);
+      res.json({ success: true, data: allLicenses });
     } catch (error) {
-      console.error('Error fetching licenses:', error);
+      console.error('Error fetching licenses:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error fetching licenses:'
+      });
       res.status(500).json({ message: "Failed to fetch licenses" });
     }
   });
@@ -187,7 +228,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         emailSent: true
       });
     } catch (error) {
-      console.error('Error creating license:', error);
+      console.error('Error creating license:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error creating license:'
+      });
       res.status(500).json({ message: "Failed to create license" });
     }
   });
@@ -212,7 +258,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, message: "License deleted successfully" });
     } catch (error) {
-      console.error('Error deleting license:', error);
+      console.error('Error deleting license:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error deleting license:'
+      });
       res.status(500).json({ message: "Failed to delete license" });
     }
   });
@@ -237,7 +288,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true });
     } catch (error) {
-      console.error('Error setting password:', error);
+      console.error('Error setting password:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error setting password:'
+      });
       res.status(500).json({ message: "Failed to set password" });
     }
   });
@@ -246,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/documents", async (req, res) => {
     try {
       const docs = await db.select().from(documents).orderBy(desc(documents.createdAt));
-      res.json(docs);
+      res.json({ success: true, data: docs });
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve documents" });
     }
@@ -261,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Document not found" });
       }
       
-      res.json(doc[0]);
+      res.json({ success: true, data: doc[0] });
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve document" });
     }
@@ -285,7 +341,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(newDoc[0]);
     } catch (error) {
-      console.error('Error creating document:', error);
+      console.error('Error creating document:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error creating document:'
+      });
       res.status(500).json({ message: "Failed to create document" });
     }
   });
@@ -310,7 +371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Document not found" });
       }
 
-      res.json(updatedDoc[0]);
+      res.json({ success: true, data: updatedDoc[0] });
     } catch (error) {
       res.status(500).json({ message: "Failed to update document" });
     }
@@ -336,9 +397,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/scenarios", async (req, res) => {
     try {
       const scenarios_list = await db.select().from(scenarios);
-      res.json(scenarios_list);
+      res.json({ success: true, data: scenarios_list });
     } catch (error) {
-      console.error('Scenarios API error:', error);
+      console.error('Scenarios API error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Scenarios API error:'
+      });
       res.status(500).json({ message: "Failed to retrieve scenarios" });
     }
   });
@@ -352,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Scenario not found" });
       }
       
-      res.json(scenario[0]);
+      res.json({ success: true, data: scenario[0] });
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve scenario" });
     }
@@ -403,7 +469,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(newScenario[0]);
     } catch (error) {
-      console.error('Error creating scenario:', error);
+      console.error('Error creating scenario:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error creating scenario:'
+      });
       res.status(500).json({ message: "Failed to create scenario: " + error.message });
     }
   });
@@ -441,9 +512,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Scenario not found" });
       }
 
-      res.json(updatedScenario[0]);
+      res.json({ success: true, data: updatedScenario[0] });
     } catch (error) {
-      console.error('Error updating scenario:', error);
+      console.error('Error updating scenario:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error updating scenario:'
+      });
       res.status(500).json({ message: "Failed to update scenario: " + error.message });
     }
   });
@@ -465,7 +541,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, message: "Scenario deleted successfully" });
     } catch (error) {
-      console.error('Error deleting scenario:', error);
+      console.error('Error deleting scenario:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error deleting scenario:'
+      });
       res.status(500).json({ message: "Failed to delete scenario" });
     }
   });
@@ -483,9 +564,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY q.created_at DESC
       `;
       
-      res.json(quizzes_list);
+      res.json({ success: true, data: quizzes_list });
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      console.error('Error fetching quizzes:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error fetching quizzes:'
+      });
       res.status(500).json({ error: 'Failed to fetch quizzes' });
     }
   });
@@ -507,7 +593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Quiz not found' });
       }
       
-      res.json(quiz[0]);
+      res.json({ success: true, data: quiz[0] });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch quiz' });
     }
@@ -545,7 +631,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(newQuiz[0]);
     } catch (error) {
-      console.error('Error creating quiz:', error);
+      console.error('Error creating quiz:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error creating quiz:'
+      });
       res.status(500).json({ error: 'Failed to create quiz' });
     }
   });
@@ -577,9 +668,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY qs.submission_date DESC
       `;
       
-      res.json(submissions);
+      res.json({ success: true, data: submissions });
     } catch (error) {
-      console.error('Quiz submissions API error:', error);
+      console.error('Quiz submissions API error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Quiz submissions API error:'
+      });
       res.status(500).json({ error: 'Failed to fetch quiz submissions' });
     }
   });
@@ -618,9 +714,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
       }
       
-      res.json(submissions);
+      res.json({ success: true, data: submissions });
     } catch (error) {
-      console.error('Scenario submissions API error:', error);
+      console.error('Scenario submissions API error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Scenario submissions API error:'
+      });
       res.status(500).json({ error: 'Failed to fetch scenario submissions' });
     }
   });
@@ -660,9 +761,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `;
       }
       
-      res.json(submissions);
+      res.json({ success: true, data: submissions });
     } catch (error) {
-      console.error('Document submissions API error:', error);
+      console.error('Document submissions API error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Document submissions API error:'
+      });
       res.status(500).json({ error: 'Failed to fetch document submissions' });
     }
   });
@@ -687,7 +793,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(newSubmission[0]);
     } catch (error) {
-      console.error('Error creating document submission:', error);
+      console.error('Error creating document submission:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error creating document submission:'
+      });
       res.status(500).json({ error: 'Failed to create submission' });
     }
   });
@@ -711,7 +822,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(newSubmission[0]);
     } catch (error) {
-      console.error('Error creating scenario submission:', error);
+      console.error('Error creating scenario submission:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error creating scenario submission:'
+      });
       res.status(500).json({ error: 'Failed to create submission' });
     }
   });
@@ -748,9 +864,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remove correct answers for security
       const quizQuestions = selectedQuestions.map(({ correctAnswer, ...rest }) => rest);
       
-      res.json(quizQuestions);
+      res.json({ success: true, data: quizQuestions });
     } catch (error) {
-      console.error('Error fetching quiz questions:', error);
+      console.error('Error fetching quiz questions:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Error fetching quiz questions:'
+      });
       res.status(500).json({ error: 'Failed to fetch quiz questions' });
     }
   });
@@ -805,7 +926,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passed: score >= 70
       });
     } catch (error) {
-      console.error('Quiz submission error:', error);
+      console.error('Quiz submission error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Quiz submission error:'
+      });
       res.status(500).json({ error: 'Failed to submit quiz' });
     }
   });
@@ -816,9 +942,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       const quizzes = await sql`SELECT * FROM quizzes ORDER BY created_at DESC`;
-      res.json(quizzes);
+      res.json({ success: true, data: quizzes });
     } catch (error) {
-      console.error('Instructor quizzes error:', error);
+      console.error('Instructor quizzes error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Instructor quizzes error:'
+      });
       res.status(500).json({ error: "Failed to fetch instructor quizzes" });
     }
   });
@@ -826,7 +957,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/instructor/student-progress", requireInstructor, async (req, res) => {
     try {
       const submissions = await db.select().from(scenarioSubmissions);
-      res.json(submissions);
+      res.json({ success: true, data: submissions });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch student progress" });
     }
@@ -836,7 +967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/chat/messages", requireAuth, async (req, res) => {
     try {
       const messages = await db.select().from(chatMessages).orderBy(desc(chatMessages.createdAt));
-      res.json(messages);
+      res.json({ success: true, data: messages });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch messages" });
     }
@@ -848,7 +979,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/quizzes', quizRoutes);
     console.log('✅ Quiz routes module mounted successfully');
   } catch (error) {
-    console.error('Failed to mount quiz routes:', error);
+    console.error('Failed to mount quiz routes:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Failed to mount quiz routes:'
+      });
   }
 
   const httpServer = createServer();
@@ -911,7 +1047,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error('Scenario submission error:', error);
+      console.error('Scenario submission error:', {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        context: 'Scenario submission error:'
+      });
       res.status(500).json({ error: "Failed to submit scenario" });
     }
   });
