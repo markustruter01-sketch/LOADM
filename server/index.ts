@@ -102,6 +102,7 @@ setInterval(async () => {
 
 // Mount isolated auth routes FIRST (before any other routing)
 app.use('/auth-isolated', isolatedAuthRoutes);
+app.use('/auth', isolatedAuthRoutes);
 
 // Register other routes (they'll handle their own auth)
 registerRoutes(app);
