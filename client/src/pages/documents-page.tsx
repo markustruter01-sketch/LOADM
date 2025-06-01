@@ -196,7 +196,7 @@ export default function DocumentsPage() {
                     title: "Load Planning Form",
                     description: "Complete detailed load planning documentation for cargo aircraft operations.",
                     lastUpdated: new Date().toISOString(),
-                    type: "New"
+                    type: "Form"
                   }}
                 />
                 
@@ -206,7 +206,7 @@ export default function DocumentsPage() {
                     title: "Passenger/Crew and Cargo Manifest",
                     description: "Generate and complete detailed cargo manifests for all shipments.",
                     lastUpdated: new Date().toISOString(),
-                    type: "New"
+                    type: "Form"
                   }}
                 />
                 
@@ -216,7 +216,7 @@ export default function DocumentsPage() {
                     title: "Dangerous Goods Declaration",
                     description: "Complete DG documentation for hazardous materials transportation.",
                     lastUpdated: new Date().toISOString(),
-                    type: "New"
+                    type: "Form"
                   }}
                 />
                 
@@ -226,7 +226,7 @@ export default function DocumentsPage() {
                     title: "Weight & Balance Sheet",
                     description: "Calculate and document aircraft weight distribution and balance.",
                     lastUpdated: new Date().toISOString(),
-                    type: "New"
+                    type: "Form"
                   }}
                 />
                 
@@ -236,7 +236,7 @@ export default function DocumentsPage() {
                     title: "Special Handling Form",
                     description: "Document special handling requirements for unusual cargo types or sensitive items.",
                     lastUpdated: new Date().toISOString(),
-                    type: "New"
+                    type: "Form"
                   }}
                 />
                 
@@ -246,7 +246,7 @@ export default function DocumentsPage() {
                     title: "Aircraft Tie-Down Diagram",
                     description: "Detailed cargo restraint planning diagram with tie-down points and calculations.",
                     lastUpdated: new Date().toISOString(),
-                    type: "New"
+                    type: "Form"
                   }}
                 />
               </div>
