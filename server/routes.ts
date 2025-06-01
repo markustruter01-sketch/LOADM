@@ -522,37 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // STUDENT SUBMISSIONS
-  app.get("/api/instructor/quiz-submissions", requireInstructor, async (req, res) => {
-    try {
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      const submissions = await sql`
-        SELECT 
-          qs.id,
-          qs.quiz_id,
-          qs.user_id,
-          qs.submission_date,
-          qs.answers,
-          qs.score,
-          qs.squadron,
-          qs.status,
-          u.email,
-          q.title as quiz_title,
-          q.description as quiz_description
-        FROM quiz_submissions qs
-        LEFT JOIN users u ON qs.user_id = u.id
-        LEFT JOIN quizzes q ON qs.quiz_id = q.id
-        ORDER BY qs.submission_date DESC
-      `;
-      
-      res.json(submissions);
-    } catch (error) {
-      console.error('Quiz submissions API error:', error);
-      res.status(500).json({ error: 'Failed to fetch quiz submissions' });
-    }
-  });
+  // STUDENT SUBMISSIONS (Quiz submissions now handled by quiz-new.ts module)
 
   app.get("/api/scenario-submissions", requireAuth, async (req, res) => {
     try {

@@ -123,6 +123,10 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
     const { answers, squadron } = req.body;
     const user = req.user;
     
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
     if (!answers || !Array.isArray(answers) || answers.length === 0) {
       return res.status(400).json({ error: 'Answers required' });
     }
@@ -204,6 +208,10 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
 router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     
     if (user.role !== 'instructor' && user.role !== 'superadmin') {
       return res.status(403).json({ error: 'Instructor access required' });
