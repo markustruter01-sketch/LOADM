@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
     },
-    staleTime: 0, // Always check for fresh auth data
+    staleTime: 1000, // Check every 1 second for auth data
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
