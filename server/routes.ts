@@ -79,6 +79,10 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Mount new quiz routes
+  app.use('/api/quizzes', quizRoutes);
+  console.log('✅ Quiz routes module mounted successfully');
+  
   // Get current user endpoint for authentication
   app.get("/api/user", requireAuth, async (req, res) => {
     try {
@@ -514,85 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // QUIZ MANAGEMENT
-  app.get("/api/quizzes", async (req, res) => {
-    try {
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      const quizzes_list = await sql`
-        SELECT q.*, u.email as created_by_email
-        FROM quizzes q
-        LEFT JOIN users u ON q.created_by_id = u.id
-        ORDER BY q.created_at DESC
-      `;
-      
-      res.json(quizzes_list);
-    } catch (error) {
-      console.error('Error fetching quizzes:', error);
-      res.status(500).json({ error: 'Failed to fetch quizzes' });
-    }
-  });
-
-  app.get("/api/quizzes/:id", async (req, res) => {
-    try {
-      const quizId = parseInt(req.params.id);
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      const quiz = await sql`
-        SELECT q.*, u.email as created_by_email
-        FROM quizzes q
-        LEFT JOIN users u ON q.created_by_id = u.id
-        WHERE q.id = ${quizId}
-      `;
-      
-      if (quiz.length === 0) {
-        return res.status(404).json({ error: 'Quiz not found' });
-      }
-      
-      res.json(quiz[0]);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch quiz' });
-    }
-  });
-
-  app.post("/api/quizzes", requireInstructor, async (req, res) => {
-    try {
-      const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
-      
-      if (!title || !questionCount || !categories || !categories.length) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
-
-      // Debug logging to identify the user ID issue
-      console.log('🔧 OLD ROUTE DEBUG: User object:', (req as any).user);
-      console.log('🔧 OLD ROUTE DEBUG: User ID being used:', (req as any).user?.id);
-
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      // Verify user exists first
-      const userCheck = await sql`SELECT id FROM users WHERE id = ${(req as any).user.id}`;
-      console.log('🔧 OLD ROUTE DEBUG: User check result:', userCheck);
-      
-      if (userCheck.length === 0) {
-        console.error('🔧 OLD ROUTE DEBUG: User ID does not exist in users table');
-        return res.status(400).json({ error: 'Invalid user reference' });
-      }
-      
-      const newQuiz = await sql`
-        INSERT INTO quizzes (title, description, created_by_id, question_count, categories, is_active, expires_at)
-        VALUES (${title}, ${description || ''}, ${(req as any).user.id}, ${questionCount}, ${JSON.stringify(categories)}, ${isActive !== false}, ${expiresAt ? new Date(expiresAt) : null})
-        RETURNING *
-      `;
-
-      res.status(201).json(newQuiz[0]);
-    } catch (error) {
-      console.error('Error creating quiz:', error);
-      res.status(500).json({ error: 'Failed to create quiz' });
-    }
-  });
+  // Note: Quiz routes are now handled by the new quiz-new.ts module
 
 
 

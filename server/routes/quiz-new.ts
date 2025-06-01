@@ -1,10 +1,19 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import * as authCore from '../auth-isolated/auth-core';
 
 const router = Router();
 
+// Extend Request interface to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    role: string;
+  };
+}
+
 // Simple authentication middleware using the current isolated auth system
-function requireAuth(req: any, res: any, next: any) {
+function requireAuth(req: AuthenticatedRequest, res: Response, next: any) {
   const sessionId = req.cookies?.sessionId;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
@@ -108,7 +117,7 @@ router.get('/:id/questions', async (req, res) => {
 });
 
 // Submit quiz
-router.post('/:id/submit', requireAuth, async (req, res) => {
+router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const quizId = parseInt(req.params.id);
     const { answers, squadron } = req.body;
@@ -192,7 +201,7 @@ router.post('/:id/submit', requireAuth, async (req, res) => {
 });
 
 // Create quiz (instructor only)
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = req.user;
     
