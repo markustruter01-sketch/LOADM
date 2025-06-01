@@ -10,9 +10,10 @@ import {
   scenarios, 
   documentSubmissions, 
   scenarioSubmissions,
-  quizzes,
+  quizzes as quiz,
   quizSubmissions,
-  phoneDirectory
+  phoneDirectory,
+  chatMessages
 } from "@shared/schema";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
 import * as authCore from "./auth-isolated/auth-core";
@@ -333,9 +334,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // SCENARIO MANAGEMENT
   app.get("/api/scenarios", async (req, res) => {
     try {
-      const scenarios_list = await db.select().from(scenarios).orderBy(desc(scenarios.createdAt));
+      const scenarios_list = await db.select().from(scenarios);
       res.json(scenarios_list);
     } catch (error) {
+      console.error('Scenarios API error:', error);
       res.status(500).json({ message: "Failed to retrieve scenarios" });
     }
   });
@@ -786,6 +788,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Quiz submission error:', error);
       res.status(500).json({ error: 'Failed to submit quiz' });
+    }
+  });
+
+  // INSTRUCTOR PORTAL SPECIFIC ENDPOINTS
+  app.get("/api/instructor/quizzes", requireInstructor, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      const quizzes = await sql`SELECT * FROM quizzes ORDER BY created_at DESC`;
+      res.json(quizzes);
+    } catch (error) {
+      console.error('Instructor quizzes error:', error);
+      res.status(500).json({ error: "Failed to fetch instructor quizzes" });
+    }
+  });
+
+  app.get("/api/instructor/student-progress", requireInstructor, async (req, res) => {
+    try {
+      const submissions = await db.select().from(scenarioSubmissions);
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch student progress" });
+    }
+  });
+
+  // CHAT SYSTEM ENDPOINTS
+  app.get("/api/chat/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = await db.select().from(chatMessages).orderBy(desc(chatMessages.createdAt));
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch messages" });
     }
   });
 
