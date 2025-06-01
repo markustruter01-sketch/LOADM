@@ -28,8 +28,9 @@ async function runInstructorCRUDTests() {
     if (setCookieHeader) {
       const cookies = setCookieHeader.split(',');
       for (const cookie of cookies) {
-        if (cookie.trim().startsWith('connect.sid')) {
+        if (cookie.trim().startsWith('sessionId=isolated_')) {
           sessionCookie = cookie.trim().split(';')[0];
+          console.log('Found isolated session cookie:', sessionCookie);
           break;
         }
       }

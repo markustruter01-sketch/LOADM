@@ -37,15 +37,12 @@ export default function InstructorQuizzes() {
         throw new Error('Invalid quiz ID');
       }
 
-      const response = await fetch(`/api/quizzes/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      const response = await apiRequest({
+        url: `/api/quizzes/${id}`,
+        method: 'DELETE'
       });
 
-      if (response.ok) {
+      if (response) {
         toast({
           title: "Quiz deleted",
           description: "The quiz has been successfully deleted.",
