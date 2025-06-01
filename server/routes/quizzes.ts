@@ -5,24 +5,17 @@ const router = Router();
 
 // Authentication middleware for quiz routes
 function requireAuth(req: any, res: any, next: any) {
-  console.log('🔧 QUIZ AUTH: Checking authentication...');
-  console.log('🔧 QUIZ AUTH: Cookies:', req.cookies);
-  
   const sessionId = req.cookies?.sessionId;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
-    console.log('🔧 QUIZ AUTH: No valid session ID found');
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   const session = authCore.getIsolatedSession(sessionId);
   
   if (!session) {
-    console.log('🔧 QUIZ AUTH: Session not found in store');
     return res.status(401).json({ error: 'Invalid session' });
   }
-  
-  console.log('🔧 QUIZ AUTH: Session found:', session);
   
   // Handle hardcoded superadmin case - map to actual database user
   let userId = session.userId;
@@ -32,7 +25,6 @@ function requireAuth(req: any, res: any, next: any) {
   // If this is the hardcoded superadmin, map to the real database user
   if (session.email === 'markustruter01@gmail.com' && session.userId === 1) {
     userId = 9; // Real database user ID
-    console.log('🔧 QUIZ AUTH: Mapping superadmin to user ID 9');
   }
   
   req.user = {
@@ -41,7 +33,6 @@ function requireAuth(req: any, res: any, next: any) {
     role: userRole
   };
   
-  console.log('🔧 QUIZ AUTH: User set:', req.user);
   next();
 }
 
