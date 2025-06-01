@@ -33,9 +33,19 @@ function requireAuth(req: Request, res: Response, next: Function) {
   
   console.log('🔧 AUTH DEBUG: Session data:', session);
   console.log('🔧 AUTH DEBUG: User ID from session:', session.userId);
+  console.log('🔧 AUTH DEBUG: Checking mapping condition:', session.userId === 1, session.email === 'markustruter01@gmail.com');
+  
+  // Handle hardcoded superadmin case - map to actual database user
+  let actualUserId = session.userId;
+  if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+    actualUserId = 9; // Use the actual database user ID
+    console.log('🔧 AUTH DEBUG: Mapped hardcoded user ID 1 to database user ID 9');
+  } else {
+    console.log('🔧 AUTH DEBUG: No mapping applied, using original user ID:', actualUserId);
+  }
   
   (req as any).user = {
-    id: session.userId,
+    id: actualUserId,
     email: session.email,
     role: session.role
   };

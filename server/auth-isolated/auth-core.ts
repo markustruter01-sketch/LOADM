@@ -13,7 +13,7 @@ const ISOLATED_SESSIONS = new Map<string, {
 
 // Hardcoded superadmin for guaranteed access
 const SUPERADMIN = {
-  id: 1,
+  id: 9, // Use actual database user ID for markustruter01@gmail.com
   email: 'markustruter01@gmail.com',
   password: 'Skating69!',
   firstName: 'Marcus',
