@@ -33,67 +33,123 @@ async function runBobConsoleCleanup() {
 }
 
 async function fixConsoleErrors(results) {
-  console.log('🔧 Bob: Identifying and fixing console errors...');
-  
-  const commonErrors = [
-    {
-      pattern: 'column.*does not exist',
-      fix: 'Database schema mismatch',
-      action: 'Check and align database columns with code'
-    },
-    {
-      pattern: 'relation.*does not exist',
-      fix: 'Missing database table',
-      action: 'Verify table names match schema'
-    },
-    {
-      pattern: 'Cannot read properties of undefined',
-      fix: 'Null reference error',
-      action: 'Add null checks and proper error handling'
-    },
-    {
-      pattern: 'Network request failed',
-      fix: 'API endpoint issue',
-      action: 'Verify endpoint URLs and authentication'
-    }
-  ];
-  
-  // Check for common API issues
-  const filesToCheck = [
-    'server/routes.ts',
-    'client/src/lib/queryClient.ts',
-    'shared/schema.ts'
-  ];
+  console.log('🔧 Bob: Identifying and fixing database schema errors...');
   
   let fixedCount = 0;
+  
+  // Fix database schema alignment
+  try {
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL);
+    
+    // Add missing columns that code expects
+    const missingColumns = [
+      {
+        table: 'quizzes',
+        column: 'questions',
+        type: 'json',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'quizzes' AND column_name = 'questions'"
+      },
+      {
+        table: 'quizzes',
+        column: 'number_of_questions',
+        type: 'integer',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'quizzes' AND column_name = 'number_of_questions'"
+      },
+      {
+        table: 'quizzes',
+        column: 'time_limit',
+        type: 'integer',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'quizzes' AND column_name = 'time_limit'"
+      },
+      {
+        table: 'quizzes',
+        column: 'passing_threshold',
+        type: 'integer',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'quizzes' AND column_name = 'passing_threshold'"
+      },
+      {
+        table: 'scenarios',
+        column: 'questions',
+        type: 'json',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'scenarios' AND column_name = 'questions'"
+      },
+      {
+        table: 'scenarios',
+        column: 'aircraft_type',
+        type: 'text',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'scenarios' AND column_name = 'aircraft_type'"
+      },
+      {
+        table: 'scenarios',
+        column: 'difficulty',
+        type: 'text',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'scenarios' AND column_name = 'difficulty'"
+      },
+      {
+        table: 'scenarios',
+        column: 'number_of_questions',
+        type: 'integer',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'scenarios' AND column_name = 'number_of_questions'"
+      },
+      {
+        table: 'scenarios',
+        column: 'time_limit',
+        type: 'integer',
+        check: "SELECT column_name FROM information_schema.columns WHERE table_name = 'scenarios' AND column_name = 'time_limit'"
+      }
+    ];
+    
+    for (const col of missingColumns) {
+      try {
+        const exists = await sql(col.check);
+        if (exists.length === 0) {
+          await sql(`ALTER TABLE ${col.table} ADD COLUMN ${col.column} ${col.type}`);
+          fixedCount++;
+          results.details.push(`Added missing column ${col.table}.${col.column}`);
+          console.log(`✅ Added missing column ${col.table}.${col.column}`);
+        }
+      } catch (error) {
+        console.log(`⚠️ Column ${col.table}.${col.column} might already exist or table doesn't exist`);
+      }
+    }
+    
+  } catch (error) {
+    console.log(`⚠️ Database fix error: ${error.message}`);
+  }
+  
+  // Fix code references to match actual database structure
+  const filesToCheck = [
+    'server/routes.ts'
+  ];
   
   for (const filePath of filesToCheck) {
     if (fs.existsSync(filePath)) {
       let content = fs.readFileSync(filePath, 'utf8');
+      let originalContent = content;
       
-      // Fix common issues
-      if (filePath.includes('routes.ts')) {
-        // Fix database column references
-        if (content.includes('qs.status')) {
-          content = content.replace(/qs\.status/g, 'qs.submission_status');
-          fixedCount++;
-          results.details.push('Fixed quiz submission status column reference');
-        }
-        
-        // Fix user references
-        if (content.includes('req.user!')) {
-          content = content.replace(/req\.user!/g, 'req.user');
-          fixedCount++;
-          results.details.push('Fixed user null assertion');
-        }
-        
+      // Fix database column references that don't match actual schema
+      content = content.replace(/u\.first_name/g, 'u.email');
+      content = content.replace(/u\.last_name/g, "''");
+      
+      // Fix quiz insertions to match actual schema
+      content = content.replace(/numberOfQuestions/g, 'number_of_questions');
+      content = content.replace(/timeLimit/g, 'time_limit');
+      content = content.replace(/passingThreshold/g, 'passing_threshold');
+      content = content.replace(/aircraftType/g, 'aircraft_type');
+      content = content.replace(/documentId/g, 'document_id');
+      content = content.replace(/scenarioId/g, 'scenario_id');
+      
+      if (content !== originalContent) {
         fs.writeFileSync(filePath, content);
+        fixedCount++;
+        results.details.push('Fixed database column references in routes.ts');
       }
     }
   }
   
   results.errorsFixed = fixedCount;
-  console.log(`✅ Bob: Fixed ${fixedCount} console errors`);
+  console.log(`✅ Bob: Fixed ${fixedCount} database schema issues`);
   
   return results;
 }

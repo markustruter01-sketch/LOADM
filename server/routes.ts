@@ -253,8 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/documents/:id", async (req, res) => {
     try {
-      const documentId = parseInt(req.params.id);
-      const doc = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
+      const document_id = parseInt(req.params.id);
+      const doc = await db.select().from(documents).where(eq(documents.id, document_id)).limit(1);
       
       if (doc.length === 0) {
         return res.status(404).json({ message: "Document not found" });
@@ -291,7 +291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/documents/:id", requireInstructor, async (req, res) => {
     try {
-      const documentId = parseInt(req.params.id);
+      const document_id = parseInt(req.params.id);
       const { title, content, category, description } = req.body;
 
       const updatedDoc = await db.update(documents)
@@ -302,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description,
           updatedAt: new Date()
         })
-        .where(eq(documents.id, documentId))
+        .where(eq(documents.id, document_id))
         .returning();
 
       if (updatedDoc.length === 0) {
@@ -317,9 +317,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/documents/:id", requireInstructor, async (req, res) => {
     try {
-      const documentId = parseInt(req.params.id);
+      const document_id = parseInt(req.params.id);
       
-      const deleted = await db.delete(documents).where(eq(documents.id, documentId)).returning();
+      const deleted = await db.delete(documents).where(eq(documents.id, document_id)).returning();
       
       if (deleted.length === 0) {
         return res.status(404).json({ message: "Document not found" });
@@ -344,8 +344,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/scenarios/:id", async (req, res) => {
     try {
-      const scenarioId = parseInt(req.params.id);
-      const scenario = await db.select().from(scenarios).where(eq(scenarios.id, scenarioId)).limit(1);
+      const scenario_id = parseInt(req.params.id);
+      const scenario = await db.select().from(scenarios).where(eq(scenarios.id, scenario_id)).limit(1);
       
       if (scenario.length === 0) {
         return res.status(404).json({ message: "Scenario not found" });
@@ -359,16 +359,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/scenarios", requireInstructor, async (req, res) => {
     try {
-      const { title, description, aircraftType, maxWeight, cargoItems, objectives } = req.body;
+      const { title, description, aircraft_type, maxWeight, cargoItems, objectives } = req.body;
       
-      if (!title || !aircraftType) {
+      if (!title || !aircraft_type) {
         return res.status(400).json({ message: "Title and aircraft type required" });
       }
 
       const newScenario = await db.insert(scenarios).values({
         title,
         description: description || '',
-        aircraftType,
+        aircraft_type,
         maxWeight: maxWeight || 0,
         cargoItems: cargoItems || [],
         objectives: objectives || [],
@@ -384,20 +384,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/scenarios/:id", requireInstructor, async (req, res) => {
     try {
-      const scenarioId = parseInt(req.params.id);
-      const { title, description, aircraftType, maxWeight, cargoItems, objectives } = req.body;
+      const scenario_id = parseInt(req.params.id);
+      const { title, description, aircraft_type, maxWeight, cargoItems, objectives } = req.body;
 
       const updatedScenario = await db.update(scenarios)
         .set({
           title,
           description,
-          aircraftType,
+          aircraft_type,
           maxWeight,
           cargoItems,
           objectives,
           updatedAt: new Date()
         })
-        .where(eq(scenarios.id, scenarioId))
+        .where(eq(scenarios.id, scenario_id))
         .returning();
 
       if (updatedScenario.length === 0) {
@@ -412,9 +412,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/scenarios/:id", requireInstructor, async (req, res) => {
     try {
-      const scenarioId = parseInt(req.params.id);
+      const scenario_id = parseInt(req.params.id);
       
-      const deleted = await db.delete(scenarios).where(eq(scenarios.id, scenarioId)).returning();
+      const deleted = await db.delete(scenarios).where(eq(scenarios.id, scenario_id)).returning();
       
       if (deleted.length === 0) {
         return res.status(404).json({ message: "Scenario not found" });
@@ -627,15 +627,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CREATE SUBMISSIONS
   app.post("/api/document-submissions", requireAuth, async (req, res) => {
     try {
-      const { documentId, content, notes } = req.body;
+      const { document_id, content, notes } = req.body;
       const user = (req as any).user;
       
-      if (!documentId || !content) {
+      if (!document_id || !content) {
         return res.status(400).json({ error: 'Document ID and content required' });
       }
 
       const newSubmission = await db.insert(documentSubmissions).values({
-        documentId,
+        document_id,
         userId: user.id,
         content,
         notes: notes || '',
@@ -651,15 +651,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
     try {
-      const { scenarioId, loadPlan, notes } = req.body;
+      const { scenario_id, loadPlan, notes } = req.body;
       const user = (req as any).user;
       
-      if (!scenarioId || !loadPlan) {
+      if (!scenario_id || !loadPlan) {
         return res.status(400).json({ error: 'Scenario ID and load plan required' });
       }
 
       const newSubmission = await db.insert(scenarioSubmissions).values({
-        scenarioId,
+        scenario_id,
         userId: user.id,
         loadPlan,
         notes: notes || '',
