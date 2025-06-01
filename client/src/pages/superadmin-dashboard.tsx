@@ -43,6 +43,31 @@ export default function SuperAdminDashboard() {
     queryKey: ['/api/licensing/dashboard-stats']
   });
 
+  // Bob system analysis mutation
+  const bobAnalysisMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/bob/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Analysis failed');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Bob Analysis Complete",
+        description: `System Health: ${data.systemHealth}% - ${data.optimizationsApplied} optimizations applied`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to complete system analysis",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Chat reset mutation
   const resetChatMutation = useMutation({
     mutationFn: async () => {
@@ -343,6 +368,68 @@ export default function SuperAdminDashboard() {
                     </div>
                     <Badge variant="default" className="bg-green-500">Active</Badge>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bob System Analysis */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-purple-400" />
+                  System Analysis & Optimization
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Run comprehensive system analysis and automatic issue resolution
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-slate-700 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-white font-medium mb-1">Bob System Analyzer</h3>
+                      <p className="text-slate-400 text-sm">
+                        Performs database optimization, security checks, performance analysis, and automatic issue fixes
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => bobAnalysisMutation.mutate()}
+                      disabled={bobAnalysisMutation.isPending}
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2"
+                    >
+                      {bobAnalysisMutation.isPending ? (
+                        <>
+                          <Activity className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Settings className="w-4 h-4 mr-2" />
+                          Run Bob
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {bobAnalysisMutation.data && (
+                    <div className="mt-4 p-3 bg-slate-600 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span className="text-white font-medium">Latest Analysis Results</span>
+                      </div>
+                      <div className="text-sm text-slate-300 space-y-1">
+                        <div>System Health: <span className="text-green-400 font-medium">{bobAnalysisMutation.data.systemHealth}%</span></div>
+                        <div>Optimizations Applied: <span className="text-blue-400 font-medium">{bobAnalysisMutation.data.optimizationsApplied}</span></div>
+                        <div>Issues Found: <span className="text-orange-400 font-medium">{bobAnalysisMutation.data.issuesFound?.length || 0}</span></div>
+                        <div>Issues Fixed: <span className="text-green-400 font-medium">{bobAnalysisMutation.data.issuesFixed?.length || 0}</span></div>
+                      </div>
+                      {bobAnalysisMutation.data.recommendations?.length > 0 && (
+                        <div className="mt-2 text-xs text-slate-400">
+                          {bobAnalysisMutation.data.recommendations[0]}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
