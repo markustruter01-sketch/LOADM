@@ -1,0 +1,21 @@
+{
+  "summary": {
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 1,
+    "successRate": 0
+  },
+  "tests": [
+    {
+      "name": "Authentication",
+      "steps": [
+        "Attempting login"
+      ],
+      "success": false,
+      "errors": [
+        "Login failed: 400 - {\"error\":\"Email and password required\"}"
+      ]
+    }
+  ],
+  "timestamp": "2025-06-01T22:32:33.361Z"
+}

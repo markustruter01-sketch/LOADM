@@ -51,6 +51,7 @@ class BobSimpleTester {
         this.sessionCookies = setCookieHeader.split(',').map(cookie => 
           cookie.split(';')[0]
         ).join('; ');
+        console.log('🍪 Session cookies:', this.sessionCookies);
       }
       
       const isJson = response.headers.get('content-type')?.includes('application/json');
@@ -83,23 +84,24 @@ class BobSimpleTester {
     try {
       // Test login
       testResult.steps.push('Attempting login');
-      const loginResponse = await this.makeRequest('/api/login', {
+      const loginResponse = await this.makeRequest('/auth/login', {
         method: 'POST',
         body: {
-          username: 'markustruter01@gmail.com',
+          email: 'markustruter01@gmail.com',
           password: 'password123'
         }
       });
 
       if (!loginResponse.success) {
-        throw new Error(`Login failed: ${loginResponse.status} - ${loginResponse.error || loginResponse.data}`);
+        console.log('Login response data:', loginResponse.data);
+        throw new Error(`Login failed: ${loginResponse.status} - ${JSON.stringify(loginResponse.data)}`);
       }
 
       console.log('✅ Login successful');
 
       // Test user endpoint
       testResult.steps.push('Testing user endpoint');
-      const userResponse = await this.makeRequest('/user');
+      const userResponse = await this.makeRequest('/auth/user');
 
       if (!userResponse.success) {
         throw new Error(`User endpoint failed: ${userResponse.status}`);

@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "totalTests": 3,
+    "passed": 2,
+    "failed": 1,
+    "successRate": 67
+  },
+  "tests": [
+    {
+      "name": "Authentication",
+      "steps": [
+        "Attempting login",
+        "Testing user endpoint"
+      ],
+      "success": true,
+      "errors": []
+    },
+    {
+      "name": "Quiz Creation",
+      "steps": [
+        "Creating quiz"
+      ],
+      "success": false,
+      "errors": [
+        "Quiz creation failed: 401 - {\"error\":\"Authentication required\"}"
+      ],
+      "createdQuizId": null
+    },
+    {
+      "name": "Quiz List",
+      "steps": [
+        "Fetching quiz list"
+      ],
+      "success": true,
+      "errors": [],
+      "quizCount": 1
+    }
+  ],
+  "timestamp": "2025-06-01T22:31:54.270Z"
+}
