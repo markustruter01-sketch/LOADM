@@ -33,7 +33,7 @@ import { DatePicker } from "../../../components/ui/date-picker";
 import InstructorLayout from "../../../components/InstructorLayout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 // Define category options for the dropdown
 const categoryOptions = [
@@ -62,7 +62,7 @@ type QuizFormValues = z.infer<typeof quizFormSchema>;
 export default function CreateQuiz() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   
   // Initialize form with default values
   const form = useForm<QuizFormValues>({

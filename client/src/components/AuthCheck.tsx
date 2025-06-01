@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Loader2 } from "lucide-react";
 
 interface AuthCheckProps {
@@ -12,7 +12,7 @@ interface AuthCheckProps {
  * If the user is not authenticated, they are redirected to the login page.
  */
 export default function AuthCheck({ children }: AuthCheckProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
   const [, navigate] = useLocation();
 
   // Use effect for redirecting unauthenticated users

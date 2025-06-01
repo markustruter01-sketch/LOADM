@@ -1,7 +1,7 @@
 import { Document } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 
 // Helper function to get the correct route for each document
