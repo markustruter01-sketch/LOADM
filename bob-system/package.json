@@ -9,7 +9,11 @@
     "analyze": "node bob-ultimate.js analyze",
     "monitor": "node bob-ultimate.js monitor",
     "fix": "node bob-ultimate.js fix",
-    "test-gen": "node bob-ultimate.js generate-tests"
+    "test-gen": "node bob-ultimate.js generate-tests",
+    "ui-test": "node bob-browser-tester.js test",
+    "ui-interactive": "node bob-browser-tester.js interactive",
+    "test-quiz": "node bob-browser-tester.js quiz",
+    "test-auth": "node bob-browser-tester.js auth"
   },
   "dependencies": {
     "chokidar": "^3.5.3",
@@ -17,7 +21,9 @@
     "typescript": "^5.3.3",
     "eslint": "^8.56.0",
     "@typescript-eslint/parser": "^6.18.1",
-    "@typescript-eslint/eslint-plugin": "^6.18.1"
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "playwright": "^1.40.1",
+    "puppeteer": "^21.6.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",

@@ -86,12 +86,19 @@ node bob-ultimate.js query "authentication is broken"
 
 ## Commands
 
+### Code Analysis & Monitoring
 - `analyze` - Run comprehensive codebase analysis
 - `monitor` - Start real-time monitoring (runs continuously)
 - `fix` - Apply automatic fixes to detected issues
 - `generate-tests` - Create comprehensive test suite
 - `diagnose [error]` - Analyze specific error patterns
 - `query [question]` - Ask questions in natural language
+
+### Browser Testing & UI Interaction
+- `ui-test` - Run complete UI test suite with browser automation
+- `ui-interactive` - Enter interactive mode for manual browser control
+- `test-quiz` - Test quiz creation workflow specifically
+- `test-auth` - Test authentication flow specifically
 
 ## Output
 
