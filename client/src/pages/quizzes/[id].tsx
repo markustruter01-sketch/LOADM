@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleAuth } from "@/hooks/use-simple-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function QuizPage() {
@@ -17,7 +17,7 @@ export default function QuizPage() {
   const [, setLocation] = useLocation();
   const quizId = params?.id;
   const { toast } = useToast();
-  const { user } = useSimpleAuth();
+  const { user } = useIsolatedAuth();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [squadron, setSquadron] = useState<string>("AMG");
   const [isSubmitting, setIsSubmitting] = useState(false);

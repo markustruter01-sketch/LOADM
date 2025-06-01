@@ -50,8 +50,14 @@ export default function DocumentCard({ document }: DocumentCardProps) {
   });
 
   const handleDocumentClick = () => {
-    const route = getDocumentRoute(document);
-    window.location.href = route;
+    const formId = getFormId(document.title);
+    if (formId) {
+      // Navigate to cargo manifest page with the form ID as a hash
+      window.location.href = `/cargo-manifest#${formId}`;
+    } else {
+      // Default navigation to cargo manifest page
+      window.location.href = '/cargo-manifest';
+    }
   };
 
   return (
