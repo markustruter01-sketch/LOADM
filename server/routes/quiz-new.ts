@@ -190,37 +190,23 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
       ) RETURNING id, score, correct_count, total_questions, passed
     `;
 
-    // Prepare detailed feedback for each question
+    // Prepare detailed feedback for each question using the same source as quiz display
     const questionFeedback = [];
+    const { loadmasterQuestions: feedbackQuestions } = await import('@shared/quiz-questions');
+    
     for (const answer of answers) {
-      try {
-        const questionResults = await sql`
-          SELECT 
-            question_text,
-            option_1,
-            option_2, 
-            option_3,
-            option_4,
-            correct_option
-          FROM questions 
-          WHERE id = ${answer.questionId}
-        `;
+      const question = loadmasterQuestions.find(q => q.id === answer.questionId);
+      
+      if (question) {
+        const isCorrect = answer.answeredOption === question.correctAnswer;
         
-        if (questionResults.length > 0) {
-          const question = questionResults[0];
-          const options = [question.option_1, question.option_2, question.option_3, question.option_4];
-          const isCorrect = answer.answeredOption === question.correct_option;
-          
-          questionFeedback.push({
-            questionId: answer.questionId,
-            questionText: question.question_text,
-            yourAnswer: options[answer.answeredOption] || 'No answer',
-            correctAnswer: options[question.correct_option] || 'Not available',
-            isCorrect: isCorrect
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching question feedback:', err);
+        questionFeedback.push({
+          questionId: answer.questionId,
+          questionText: question.question,
+          yourAnswer: question.options[answer.answeredOption] || 'No answer',
+          correctAnswer: question.options[question.correctAnswer] || 'Not available',
+          isCorrect: isCorrect
+        });
       }
     }
 
