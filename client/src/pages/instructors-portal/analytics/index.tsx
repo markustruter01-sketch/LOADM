@@ -285,9 +285,12 @@ export default function AdvancedAnalytics() {
   
   function calculateOverviewStats(submissions: any[]) {
     // Count total licensed students from users data (all active users except superadmins)
-    const totalLicensedStudents = users ? users.filter(user => 
-      user.licenseStatus === 'active' && user.role !== 'superadmin'
-    ).length : 0;
+    const totalLicensedStudents = users ? users.filter(user => {
+      const isActive = user.licenseStatus === 'active';
+      const isNotSuperadmin = user.role !== 'superadmin';
+      console.log(`User: ${user.email}, Role: ${user.role}, License: ${user.licenseStatus}, Include: ${isActive && isNotSuperadmin}`);
+      return isActive && isNotSuperadmin;
+    }).length : 0;
     
     // Filter submissions with scores
     const submissionsWithScores = submissions.filter(sub => 
