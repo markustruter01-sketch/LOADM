@@ -39,11 +39,16 @@ router.post('/', (req, res, next) => {
   authCore.requireIsolatedAuth(req, res, next);
 }, async (req, res) => {
   try {
-    const { title, description, questionCount, categories, isActive, expiresAt, createdById } = req.body;
+    const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
     
-    if (!title || !questionCount || !categories || !categories.length || !createdById) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!title || !questionCount || !categories || !categories.length) {
+      return res.status(400).json({ error: 'Missing required fields: title, questionCount, and categories are required' });
     }
+
+    // Use the authenticated user's ID as the creator
+    const createdById = req.user?.userId || req.user?.id || 1;
+    
+    console.log('Creating quiz with:', { title, questionCount, categories, createdById });
     
     const quiz = await quizStorage.createQuiz({
       title,
@@ -51,14 +56,15 @@ router.post('/', (req, res, next) => {
       createdById,
       questionCount,
       categories,
-      isActive,
+      isActive: isActive !== undefined ? isActive : true,
       expiresAt: expiresAt ? new Date(expiresAt) : null
     });
     
+    console.log('Quiz created successfully:', quiz.id);
     res.status(201).json(quiz);
   } catch (error) {
     console.error('Error creating quiz:', error);
-    res.status(500).json({ error: 'Failed to create quiz' });
+    res.status(500).json({ error: 'Failed to create quiz', details: error.message });
   }
 });
 

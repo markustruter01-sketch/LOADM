@@ -8,14 +8,24 @@ import { eq, and, gt } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-// Simple auth check helper for scenario routes
+// Enhanced auth check helper for scenario routes
 function checkAuth(req: any): boolean {
   const sessionId = req.cookies?.sessionId;
   if (!sessionId || !sessionId.startsWith('isolated_')) {
     return false;
   }
-  // For now, just check if session exists - can be enhanced later
-  return true;
+  
+  // Import and check with isolated auth system
+  const { getIsolatedSession } = require('./auth-isolated/auth-core');
+  const session = getIsolatedSession(sessionId);
+  
+  if (session) {
+    // Add user info to request for later use
+    req.user = session;
+    return true;
+  }
+  
+  return false;
 }
 
 // Rate limiting for security
