@@ -195,7 +195,7 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
     const { loadmasterQuestions: feedbackQuestions } = await import('@shared/quiz-questions');
     
     for (const answer of answers) {
-      const question = loadmasterQuestions.find(q => q.id === answer.questionId);
+      const question = feedbackQuestions.find(q => q.id === answer.questionId);
       
       if (question) {
         const isCorrect = answer.answeredOption === question.correctAnswer;
