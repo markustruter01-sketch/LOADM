@@ -103,9 +103,9 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <ClipboardList className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Scenarios</h3>
+                    <h3 className="text-lg font-medium mb-2">Quiz Scenarios</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Training scenarios and simulations for loadmasters
+                      Interactive quizzes and assessments for training
                     </p>
                   </CardContent>
                 </Card>
@@ -118,9 +118,9 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Plane className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Aircraft Training</h3>
+                    <h3 className="text-lg font-medium mb-2">Training Modules</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Progressive aircraft-specific training modules
+                      Structured learning modules and course materials
                     </p>
                   </CardContent>
                 </Card>
@@ -130,9 +130,9 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Package2 className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Load Planning</h3>
+                    <h3 className="text-lg font-medium mb-2">Cargo Planning</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Visual load planning tools for aircraft cargo
+                      Aircraft load calculation and cargo planning tools
                     </p>
                   </CardContent>
                 </Card>
@@ -142,9 +142,9 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <FileCheck className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Documents</h3>
+                    <h3 className="text-lg font-medium mb-2">Document Center</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Access and complete required documentation
+                      Submit and review required training documents
                     </p>
                   </CardContent>
                 </Card>
@@ -154,9 +154,9 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Wrench className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Tools</h3>
+                    <h3 className="text-lg font-medium mb-2">Calculation Tools</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Loadmaster calculators and specialized tools
+                      Weight, balance, and performance calculators
                     </p>
                   </CardContent>
                 </Card>

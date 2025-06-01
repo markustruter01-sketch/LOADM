@@ -96,9 +96,9 @@ export default function ArmyHomePage() {
                       <div className="rounded-full bg-primary/10 p-3 mb-4">
                         <ClipboardList className="h-8 w-8 text-primary" />
                       </div>
-                      <h3 className="text-lg font-medium mb-2">Scenarios</h3>
+                      <h3 className="text-lg font-medium mb-2">Quiz Scenarios</h3>
                       <p className="text-sm text-center text-muted-foreground">
-                        Training scenarios and simulations for Army logistics
+                        Interactive quizzes and assessments for Army training
                       </p>
                     </CardContent>
                   </Card>
@@ -113,9 +113,9 @@ export default function ArmyHomePage() {
                       <div className="rounded-full bg-primary/10 p-3 mb-4">
                         <Plane className="h-8 w-8 text-primary" />
                       </div>
-                      <h3 className="text-lg font-medium mb-2">Vehicle Training</h3>
+                      <h3 className="text-lg font-medium mb-2">Training Modules</h3>
                       <p className="text-sm text-center text-muted-foreground">
-                        Progressive vehicle-specific training modules
+                        Structured learning modules and course materials
                       </p>
                     </CardContent>
                   </Card>
