@@ -37,12 +37,15 @@ export default function InstructorQuizzes() {
         throw new Error('Invalid quiz ID');
       }
 
-      const response = await apiRequest({
-        url: `/api/quizzes/${id}`,
-        method: 'DELETE'
+      const response = await fetch(`/api/quizzes/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (response && response.success) {
+      if (response.ok) {
         toast({
           title: "Quiz deleted",
           description: "The quiz has been successfully deleted.",
@@ -52,7 +55,8 @@ export default function InstructorQuizzes() {
         await queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
         setQuizToDelete(null);
       } else {
-        throw new Error('Delete operation failed');
+        const errorData = await response.text();
+        throw new Error(`Delete operation failed: ${response.status} - ${errorData}`);
       }
     } catch (error: any) {
       console.error("Error deleting quiz:", error);
