@@ -95,10 +95,7 @@ export default function CreateQuiz() {
 
       await apiRequest("/api/quizzes", {
         method: "POST",
-        body: JSON.stringify(quizData),
-        headers: {
-          "Content-Type": "application/json"
-        }
+        body: quizData
       });
 
       toast({

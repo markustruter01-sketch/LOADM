@@ -7,7 +7,7 @@ export default function SuperAdminRedirect() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (user && user.isSuperAdmin) {
+    if (user && user.role === 'superadmin') {
       // Force redirect to superadmin dashboard
       setLocation('/superadmin-dashboard');
     }
