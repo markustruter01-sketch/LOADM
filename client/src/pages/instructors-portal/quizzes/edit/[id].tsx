@@ -109,7 +109,7 @@ export default function EditQuizPage() {
         description: quiz.description || "",
         questionCount: quiz.questionCount,
         categories: quiz.categories || [],
-        isActive: quiz.isActive,
+        isActive: quiz.is_active,
         expires: quiz.expiresAt ? new Date(quiz.expiresAt) : null
       });
     }

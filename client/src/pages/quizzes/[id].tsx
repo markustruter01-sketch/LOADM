@@ -138,7 +138,7 @@ export default function QuizPage() {
     );
   }
 
-  if (!quiz.isActive) {
+  if (!quiz.is_active) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-card border border-gray-800 rounded-lg p-6 text-center">

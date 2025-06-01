@@ -137,8 +137,8 @@ export default function QuizDetails() {
               <h1 className="text-2xl font-bold">{quiz.title}</h1>
               <p className="text-muted-foreground mt-1">{quiz.description}</p>
             </div>
-            <Badge className={quiz.isActive ? "bg-green-500" : "bg-gray-500"}>
-              {quiz.isActive ? "Active" : "Inactive"}
+            <Badge className={quiz.is_active ? "bg-green-500" : "bg-gray-500"}>
+              {quiz.is_active ? "Active" : "Inactive"}
             </Badge>
           </div>
 
