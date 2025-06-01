@@ -254,6 +254,134 @@ export class BlueHairFix {
     }
   }
 
+  // Test instructor portal specific endpoints
+  private async testInstructorQuizzes(): Promise<TestResult> {
+    try {
+      const response = await this.makeRequest('/api/instructor/quizzes');
+      
+      if (response.ok) {
+        const quizzes = await response.json();
+        return {
+          testName: 'Instructor Quiz Portal',
+          passed: true,
+          details: { instructorQuizCount: quizzes.length },
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        const error = await response.text();
+        return {
+          testName: 'Instructor Quiz Portal',
+          passed: false,
+          error: `HTTP ${response.status}: ${error}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error: any) {
+      return {
+        testName: 'Instructor Quiz Portal',
+        passed: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Test student progress tracking
+  private async testStudentProgress(): Promise<TestResult> {
+    try {
+      const response = await this.makeRequest('/api/instructor/student-progress');
+      
+      if (response.ok) {
+        const progress = await response.json();
+        return {
+          testName: 'Student Progress Tracking',
+          passed: true,
+          details: { progressEntries: Array.isArray(progress) ? progress.length : 'object' },
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        const error = await response.text();
+        return {
+          testName: 'Student Progress Tracking',
+          passed: false,
+          error: `HTTP ${response.status}: ${error}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error: any) {
+      return {
+        testName: 'Student Progress Tracking',
+        passed: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Test chat system
+  private async testChatSystem(): Promise<TestResult> {
+    try {
+      const response = await this.makeRequest('/api/chat/messages');
+      
+      if (response.ok) {
+        const messages = await response.json();
+        return {
+          testName: 'Chat System',
+          passed: true,
+          details: { messageCount: messages.length },
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        const error = await response.text();
+        return {
+          testName: 'Chat System',
+          passed: false,
+          error: `HTTP ${response.status}: ${error}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error: any) {
+      return {
+        testName: 'Chat System',
+        passed: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  // Test documents endpoint
+  private async testDocuments(): Promise<TestResult> {
+    try {
+      const response = await this.makeRequest('/api/documents');
+      
+      if (response.ok) {
+        const documents = await response.json();
+        return {
+          testName: 'Documents Portal',
+          passed: true,
+          details: { documentCount: documents.length },
+          timestamp: new Date().toISOString()
+        };
+      } else {
+        const error = await response.text();
+        return {
+          testName: 'Documents Portal',
+          passed: false,
+          error: `HTTP ${response.status}: ${error}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+    } catch (error: any) {
+      return {
+        testName: 'Documents Portal',
+        passed: false,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
   // Test database connectivity
   private async testDatabaseConnectivity(): Promise<TestResult> {
     try {
@@ -307,7 +435,11 @@ export class BlueHairFix {
       () => this.testQuizCreation(),
       () => this.testQuizListing(),
       () => this.testScenarioListing(),
-      () => this.testSubmissionRetrieval()
+      () => this.testSubmissionRetrieval(),
+      () => this.testInstructorQuizzes(),
+      () => this.testStudentProgress(),
+      () => this.testChatSystem(),
+      () => this.testDocuments()
     ];
 
     for (const test of tests) {
