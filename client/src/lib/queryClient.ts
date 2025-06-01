@@ -72,3 +72,31 @@ export const getQueryFn = () => async ({ queryKey }: { queryKey: string[] }) => 
   
   return response.json();
 };
+
+// Create offline query client function (expected by App.tsx)
+export const createOfflineQueryClient = () => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        queryFn: async ({ queryKey }) => {
+          const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+          const response = await fetch(url as string, {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.status}`);
+          }
+          
+          return response.json();
+        },
+        retry: 1,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+};
