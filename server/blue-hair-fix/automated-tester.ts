@@ -56,7 +56,7 @@ export class BlueHairFix {
   // Test authentication by logging in as superadmin
   private async testLogin(): Promise<TestResult> {
     try {
-      const response = await this.makeRequest('/api/auth/login', {
+      const response = await this.makeRequest('/auth-isolated/login', {
         method: 'POST',
         body: JSON.stringify({
           email: 'markustruter01@gmail.com',
