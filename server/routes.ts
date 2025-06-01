@@ -79,36 +79,6 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
   });
 }
 
-
-  // Request tracing for debugging
-  app.use((req, res, next) => {
-    const startTime = Date.now();
-    const requestId = Math.random().toString(36).substr(2, 9);
-    req.requestId = requestId;
-    
-    console.log(`🔍 [${requestId}] ${req.method} ${req.path} - Started`);
-    
-    const originalSend = res.send;
-    res.send = function(data) {
-      const duration = Date.now() - startTime;
-      console.log(`✅ [${requestId}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
-      originalSend.call(this, data);
-    };
-    
-    next();
-  });
-
-
-  // Add response time headers
-  app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      res.setHeader('X-Response-Time', `${duration}ms`);
-    });
-    next();
-  });
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory - Public access
   
