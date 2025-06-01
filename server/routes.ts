@@ -81,16 +81,10 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory - Public access
-  
-  // Performance optimization: Add caching headers for static data
-  app.use('/api/phone-directory', (req, res, next) => {
-    res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutes
-    next();
-  });
-app.get("/api/phone-directory", async (req, res) => {
+  app.get("/api/phone-directory", async (req, res) => {
     try {
       const directories = await db.select().from(phoneDirectory).orderBy(phoneDirectory.airbaseName);
-      res.json({ success: true, data: directories });
+      res.json(directories);
     } catch (error) {
       console.error("Error fetching phone directory:", error);
       res.status(500).json({ message: "Failed to fetch phone directory" });
@@ -119,14 +113,9 @@ app.get("/api/phone-directory", async (req, res) => {
         .leftJoin(users, eq(licenses.id, users.licenseId))
         .orderBy(desc(licenses.createdAt));
 
-      res.json({ success: true, data: allLicenses });
+      res.json(allLicenses);
     } catch (error) {
-      console.error('Error fetching licenses:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error fetching licenses:'
-      });
+      console.error('Error fetching licenses:', error);
       res.status(500).json({ message: "Failed to fetch licenses" });
     }
   });
@@ -198,12 +187,7 @@ app.get("/api/phone-directory", async (req, res) => {
         emailSent: true
       });
     } catch (error) {
-      console.error('Error creating license:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error creating license:'
-      });
+      console.error('Error creating license:', error);
       res.status(500).json({ message: "Failed to create license" });
     }
   });
@@ -228,12 +212,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.json({ success: true, message: "License deleted successfully" });
     } catch (error) {
-      console.error('Error deleting license:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error deleting license:'
-      });
+      console.error('Error deleting license:', error);
       res.status(500).json({ message: "Failed to delete license" });
     }
   });
@@ -258,12 +237,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.json({ success: true });
     } catch (error) {
-      console.error('Error setting password:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error setting password:'
-      });
+      console.error('Error setting password:', error);
       res.status(500).json({ message: "Failed to set password" });
     }
   });
@@ -272,7 +246,7 @@ app.get("/api/phone-directory", async (req, res) => {
   app.get("/api/documents", async (req, res) => {
     try {
       const docs = await db.select().from(documents).orderBy(desc(documents.createdAt));
-      res.json({ success: true, data: docs });
+      res.json(docs);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve documents" });
     }
@@ -287,7 +261,7 @@ app.get("/api/phone-directory", async (req, res) => {
         return res.status(404).json({ message: "Document not found" });
       }
       
-      res.json({ success: true, data: doc[0] });
+      res.json(doc[0]);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve document" });
     }
@@ -311,12 +285,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.status(201).json(newDoc[0]);
     } catch (error) {
-      console.error('Error creating document:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error creating document:'
-      });
+      console.error('Error creating document:', error);
       res.status(500).json({ message: "Failed to create document" });
     }
   });
@@ -341,7 +310,7 @@ app.get("/api/phone-directory", async (req, res) => {
         return res.status(404).json({ message: "Document not found" });
       }
 
-      res.json({ success: true, data: updatedDoc[0] });
+      res.json(updatedDoc[0]);
     } catch (error) {
       res.status(500).json({ message: "Failed to update document" });
     }
@@ -367,14 +336,9 @@ app.get("/api/phone-directory", async (req, res) => {
   app.get("/api/scenarios", async (req, res) => {
     try {
       const scenarios_list = await db.select().from(scenarios);
-      res.json({ success: true, data: scenarios_list });
+      res.json(scenarios_list);
     } catch (error) {
-      console.error('Scenarios API error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Scenarios API error:'
-      });
+      console.error('Scenarios API error:', error);
       res.status(500).json({ message: "Failed to retrieve scenarios" });
     }
   });
@@ -388,7 +352,7 @@ app.get("/api/phone-directory", async (req, res) => {
         return res.status(404).json({ message: "Scenario not found" });
       }
       
-      res.json({ success: true, data: scenario[0] });
+      res.json(scenario[0]);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve scenario" });
     }
@@ -439,12 +403,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.status(201).json(newScenario[0]);
     } catch (error) {
-      console.error('Error creating scenario:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error creating scenario:'
-      });
+      console.error('Error creating scenario:', error);
       res.status(500).json({ message: "Failed to create scenario: " + error.message });
     }
   });
@@ -482,14 +441,9 @@ app.get("/api/phone-directory", async (req, res) => {
         return res.status(404).json({ message: "Scenario not found" });
       }
 
-      res.json({ success: true, data: updatedScenario[0] });
+      res.json(updatedScenario[0]);
     } catch (error) {
-      console.error('Error updating scenario:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error updating scenario:'
-      });
+      console.error('Error updating scenario:', error);
       res.status(500).json({ message: "Failed to update scenario: " + error.message });
     }
   });
@@ -511,12 +465,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.json({ success: true, message: "Scenario deleted successfully" });
     } catch (error) {
-      console.error('Error deleting scenario:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error deleting scenario:'
-      });
+      console.error('Error deleting scenario:', error);
       res.status(500).json({ message: "Failed to delete scenario" });
     }
   });
@@ -534,14 +483,9 @@ app.get("/api/phone-directory", async (req, res) => {
         ORDER BY q.created_at DESC
       `;
       
-      res.json({ success: true, data: quizzes_list });
+      res.json(quizzes_list);
     } catch (error) {
-      console.error('Error fetching quizzes:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error fetching quizzes:'
-      });
+      console.error('Error fetching quizzes:', error);
       res.status(500).json({ error: 'Failed to fetch quizzes' });
     }
   });
@@ -563,7 +507,7 @@ app.get("/api/phone-directory", async (req, res) => {
         return res.status(404).json({ error: 'Quiz not found' });
       }
       
-      res.json({ success: true, data: quiz[0] });
+      res.json(quiz[0]);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch quiz' });
     }
@@ -601,12 +545,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.status(201).json(newQuiz[0]);
     } catch (error) {
-      console.error('Error creating quiz:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error creating quiz:'
-      });
+      console.error('Error creating quiz:', error);
       res.status(500).json({ error: 'Failed to create quiz' });
     }
   });
@@ -638,14 +577,9 @@ app.get("/api/phone-directory", async (req, res) => {
         ORDER BY qs.submission_date DESC
       `;
       
-      res.json({ success: true, data: submissions });
+      res.json(submissions);
     } catch (error) {
-      console.error('Quiz submissions API error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Quiz submissions API error:'
-      });
+      console.error('Quiz submissions API error:', error);
       res.status(500).json({ error: 'Failed to fetch quiz submissions' });
     }
   });
@@ -684,14 +618,9 @@ app.get("/api/phone-directory", async (req, res) => {
         `;
       }
       
-      res.json({ success: true, data: submissions });
+      res.json(submissions);
     } catch (error) {
-      console.error('Scenario submissions API error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Scenario submissions API error:'
-      });
+      console.error('Scenario submissions API error:', error);
       res.status(500).json({ error: 'Failed to fetch scenario submissions' });
     }
   });
@@ -731,14 +660,9 @@ app.get("/api/phone-directory", async (req, res) => {
         `;
       }
       
-      res.json({ success: true, data: submissions });
+      res.json(submissions);
     } catch (error) {
-      console.error('Document submissions API error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Document submissions API error:'
-      });
+      console.error('Document submissions API error:', error);
       res.status(500).json({ error: 'Failed to fetch document submissions' });
     }
   });
@@ -763,12 +687,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.status(201).json(newSubmission[0]);
     } catch (error) {
-      console.error('Error creating document submission:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error creating document submission:'
-      });
+      console.error('Error creating document submission:', error);
       res.status(500).json({ error: 'Failed to create submission' });
     }
   });
@@ -792,12 +711,7 @@ app.get("/api/phone-directory", async (req, res) => {
 
       res.status(201).json(newSubmission[0]);
     } catch (error) {
-      console.error('Error creating scenario submission:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error creating scenario submission:'
-      });
+      console.error('Error creating scenario submission:', error);
       res.status(500).json({ error: 'Failed to create submission' });
     }
   });
@@ -834,14 +748,9 @@ app.get("/api/phone-directory", async (req, res) => {
       // Remove correct answers for security
       const quizQuestions = selectedQuestions.map(({ correctAnswer, ...rest }) => rest);
       
-      res.json({ success: true, data: quizQuestions });
+      res.json(quizQuestions);
     } catch (error) {
-      console.error('Error fetching quiz questions:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Error fetching quiz questions:'
-      });
+      console.error('Error fetching quiz questions:', error);
       res.status(500).json({ error: 'Failed to fetch quiz questions' });
     }
   });
@@ -896,12 +805,7 @@ app.get("/api/phone-directory", async (req, res) => {
         passed: score >= 70
       });
     } catch (error) {
-      console.error('Quiz submission error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Quiz submission error:'
-      });
+      console.error('Quiz submission error:', error);
       res.status(500).json({ error: 'Failed to submit quiz' });
     }
   });
@@ -912,14 +816,9 @@ app.get("/api/phone-directory", async (req, res) => {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       const quizzes = await sql`SELECT * FROM quizzes ORDER BY created_at DESC`;
-      res.json({ success: true, data: quizzes });
+      res.json(quizzes);
     } catch (error) {
-      console.error('Instructor quizzes error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Instructor quizzes error:'
-      });
+      console.error('Instructor quizzes error:', error);
       res.status(500).json({ error: "Failed to fetch instructor quizzes" });
     }
   });
@@ -927,7 +826,7 @@ app.get("/api/phone-directory", async (req, res) => {
   app.get("/api/instructor/student-progress", requireInstructor, async (req, res) => {
     try {
       const submissions = await db.select().from(scenarioSubmissions);
-      res.json({ success: true, data: submissions });
+      res.json(submissions);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch student progress" });
     }
@@ -937,7 +836,7 @@ app.get("/api/phone-directory", async (req, res) => {
   app.get("/api/chat/messages", requireAuth, async (req, res) => {
     try {
       const messages = await db.select().from(chatMessages).orderBy(desc(chatMessages.createdAt));
-      res.json({ success: true, data: messages });
+      res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch messages" });
     }
@@ -949,12 +848,7 @@ app.get("/api/phone-directory", async (req, res) => {
     app.use('/api/quizzes', quizRoutes);
     console.log('✅ Quiz routes module mounted successfully');
   } catch (error) {
-    console.error('Failed to mount quiz routes:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Failed to mount quiz routes:'
-      });
+    console.error('Failed to mount quiz routes:', error);
   }
 
   const httpServer = createServer();
@@ -1017,12 +911,7 @@ app.get("/api/phone-directory", async (req, res) => {
       });
       
     } catch (error) {
-      console.error('Scenario submission error:', {
-        error: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString(),
-        context: 'Scenario submission error:'
-      });
+      console.error('Scenario submission error:', error);
       res.status(500).json({ error: "Failed to submit scenario" });
     }
   });
