@@ -1,4 +1,5 @@
 import { Quiz, InsertQuiz, QuizSubmission, InsertQuizSubmission } from '@shared/schema';
+import { pool } from './db';
 
 // Quiz Management Methods
 export async function getQuizzes(activeOnly: boolean = false): Promise<Quiz[]> {
@@ -101,8 +102,15 @@ export async function createQuiz(insertQuiz: InsertQuiz): Promise<Quiz> {
       insertQuiz.expiresAt
     ];
     
-    const result = await pool.query(query, values);
-    const quiz = result.rows[0];
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const result = await sql`
+      INSERT INTO quizzes(title, description, created_by_id, question_count, categories, is_active, expires_at)
+      VALUES(${insertQuiz.title}, ${insertQuiz.description || ''}, ${insertQuiz.createdById}, ${insertQuiz.questionCount}, ${JSON.stringify(insertQuiz.categories)}, ${insertQuiz.isActive}, ${insertQuiz.expiresAt})
+      RETURNING *
+    `;
+    const quiz = result[0];
     
     return {
       id: quiz.id,
@@ -203,12 +211,14 @@ export async function updateQuiz(id: number, updateData: Partial<InsertQuiz>): P
 
 export async function deleteQuiz(id: number): Promise<boolean> {
   try {
-    const query = `DELETE FROM quizzes WHERE id = $1`;
-    await pool.query(query, [id]);
-    return true;
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const result = await sql`DELETE FROM quizzes WHERE id = ${id} RETURNING id`;
+    return result.length > 0;
   } catch (error) {
     console.error(`Error deleting quiz ${id}:`, error);
-    throw error;
+    return false;
   }
 }
 

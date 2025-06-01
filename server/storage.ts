@@ -204,8 +204,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteScenario(id: number): Promise<boolean> {
-    const result = await db.delete(scenarios).where(eq(scenarios.id, id));
-    return !!result;
+    const result = await db.delete(scenarios).where(eq(scenarios.id, id)).returning();
+    return result.length > 0;
   }
 
   // Scenario Submission Management
