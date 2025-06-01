@@ -1094,4 +1094,5 @@ app.get("/api/phone-directory", async (req, res) => {
       res.status(500).json({ error: "Failed to submit scenario" });
     }
   });
+  return httpServer;
 }
