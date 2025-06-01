@@ -131,7 +131,7 @@ export default function ScenariosPage() {
                             <div className="flex flex-col gap-2 mb-4">
                               <div className="text-sm flex items-center justify-between">
                                 <span className="text-muted-foreground">Questions:</span>
-                                <span className="font-medium">{quiz.questionCount}</span>
+                                <span className="font-medium">{quiz.question_count || 'N/A'}</span>
                               </div>
                               {quiz.expiresAt && (
                                 <div className="text-sm flex items-center justify-between">

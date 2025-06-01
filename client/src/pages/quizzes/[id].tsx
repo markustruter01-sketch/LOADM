@@ -91,14 +91,15 @@ export default function QuizPage() {
         }
       });
 
-      // Instead of showing results, just redirect to scenarios with success message
+      // Show quiz results
+      const result = await response.json();
+      setScore(result.score);
+      setQuizSubmitted(true);
+      
       toast({
-        title: "Quiz Submitted Successfully! 🎉",
-        description: "Your quiz has been submitted for instructor review.",
+        title: "Quiz Submitted Successfully!",
+        description: `You scored ${result.score}% (${result.correctCount}/${result.totalQuestions} correct)`,
       });
-
-      // Redirect back to scenarios immediately
-      setLocation('/scenarios');
 
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}`] });

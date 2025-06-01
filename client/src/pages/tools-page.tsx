@@ -536,31 +536,37 @@ export default function ToolsPage() {
                   </CardFooter>
                 </Card>
 
-                {/* Fuel Calculations */}
+                {/* Fuel Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer opacity-75"
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
                   onClick={() => navigateToTool('fuel-calculator')}
                 >
                   <CardHeader className="bg-primary/10">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Fuel Calculations</CardTitle>
+                      <CardTitle className="text-lg">Fuel Calculator</CardTitle>
                       <TrendingUp className="h-5 w-5 text-primary" />
                     </div>
-                    <CardDescription>Fuel Weight & CG Impact</CardDescription>
+                    <CardDescription>Aviation fuel burn calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="text-sm">
-                      <p>Calculate fuel weight, distribution and center of gravity impacts.</p>
-                      <div className="mt-4 text-xs text-muted-foreground">
-                        • Fuel Density Conversion<br />
-                        • CG Shift Calculation<br />
-                        • Fuel Burn Impact
+                    <div className="space-y-2 text-sm">
+                      <div className="font-medium text-primary">Calculate:</div>
+                      <div className="p-3 bg-slate-800 rounded text-xs font-mono">
+                        <div>• Fuel burn per hour</div>
+                        <div>• Trip fuel requirements</div>
+                        <div>• Range calculations</div>
+                        <div>• Reserve fuel planning</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        • C-17, C-130, C-27J, KC30A profiles<br />
+                        • Metric units (km, kg, L/h)<br />
+                        • Weather condition adjustments
                       </div>
                     </div>
                   </CardContent>
                   <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full" disabled>
-                      Coming Soon
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                      Open Calculator
                     </Button>
                   </CardFooter>
                 </Card>
@@ -697,40 +703,7 @@ export default function ToolsPage() {
             {/* Mission Analysis Tools */}
             <TabsContent value="mission-analysis" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                {/* Fuel Calculations Tool */}
-                <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => navigateToTool('fuel-calculator')}
-                >
-                  <CardHeader className="bg-primary/10">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Fuel Calculator</CardTitle>
-                      <Truck className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardDescription>Aviation fuel burn calculations</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Calculate:</div>
-                      <div className="p-3 bg-slate-800 rounded text-xs font-mono">
-                        <div>• Fuel burn per hour</div>
-                        <div>• Trip fuel requirements</div>
-                        <div>• Range calculations</div>
-                        <div>• Reserve fuel planning</div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        • C-17, C-130, C-27J, KC30A profiles<br />
-                        • Metric units (km, kg, L/h)<br />
-                        • Weather condition adjustments
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                      Open Calculator
-                    </Button>
-                  </CardFooter>
-                </Card>
+
 
                 {/* Mission Complexity Analyzer */}
                 <Card className="hover:shadow-lg transition-shadow">
