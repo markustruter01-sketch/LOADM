@@ -10,7 +10,7 @@ async function runBobFinalScenarioFix() {
     
     // Test authentication flow first
     console.log('🧪 Testing authentication flow...');
-    const loginResponse = await fetch(`${baseUrl}/api/login`, {
+    const loginResponse = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
