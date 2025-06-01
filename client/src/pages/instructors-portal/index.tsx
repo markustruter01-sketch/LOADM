@@ -77,75 +77,106 @@ export default function InstructorsPortal() {
           </p>
         </div>
 
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Comprehensive Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Scenarios</CardTitle>
+              <CardTitle className="text-sm font-medium">Training Scenarios</CardTitle>
               <GraduationCap className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{scenarios?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">Training scenarios available</p>
+              <p className="text-xs text-muted-foreground">Available scenarios</p>
             </CardContent>
           </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Student Attempts</CardTitle>
+              <CardTitle className="text-sm font-medium">Scenario Submissions</CardTitle>
               <Layers className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{scenarioSubmissions?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">Total scenarios attempted</p>
+              <p className="text-xs text-muted-foreground">Student attempts</p>
             </CardContent>
           </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Documents</CardTitle>
-              <FileText className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium">Pop Quizzes</CardTitle>
+              <HelpCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{documents?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">Document templates</p>
+              <div className="text-2xl font-bold">{(scenarioSubmissions?.filter(sub => sub.score >= 70).length || 0)}</div>
+              <p className="text-xs text-muted-foreground">Quiz assessments</p>
             </CardContent>
           </Card>
           
-          {/* Squadron Selection Dropdown */}
-          <div className="relative mb-2">
-            <Select 
-              value={selectedSquadron} 
-              onValueChange={setSelectedSquadron}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Squadron" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="AMG">AMG</SelectItem>
-                <SelectItem value="33SQN">33SQN</SelectItem>
-                <SelectItem value="35SQN">35SQN</SelectItem>
-                <SelectItem value="36SQN">36SQN</SelectItem>
-                <SelectItem value="37SQN">37SQN</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
+              <Award className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {scenarioSubmissions?.length > 0 
+                  ? Math.round((scenarioSubmissions.filter(sub => sub.passed === true).length / scenarioSubmissions.length) * 100)
+                  : 0}%
+              </div>
+              <p className="text-xs text-muted-foreground">Student success rate</p>
+            </CardContent>
+          </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Submissions</CardTitle>
-              <FileCheck className="h-4 w-4 text-primary" />
+              <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+              <BarChart2 className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{filteredCount}</div>
-              <p className="text-xs text-muted-foreground">Total forms completed</p>
+              <div className="text-2xl font-bold">
+                {(() => {
+                  const submissionsWithScores = scenarioSubmissions?.filter(sub => sub.score !== null && sub.score !== undefined) || [];
+                  return submissionsWithScores.length > 0 
+                    ? Math.round(submissionsWithScores.reduce((sum, sub) => sum + sub.score, 0) / submissionsWithScores.length)
+                    : 0;
+                })()}%
+              </div>
+              <p className="text-xs text-muted-foreground">Overall performance</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Management Cards */}
-        <h3 className="text-xl font-semibold mb-4 text-foreground">Scenario Management</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* Squadron Performance Breakdown */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4 text-foreground">Squadron Performance Overview</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {['AMG', '33SQN', '35SQN', '36SQN', '37SQN'].map(squadron => {
+              const squadronSubmissions = scenarioSubmissions?.filter(sub => 
+                sub.squadron === squadron || sub.studentId?.includes(squadron)
+              ) || [];
+              const squadronPassed = squadronSubmissions.filter(sub => sub.passed === true).length;
+              const squadronPassRate = squadronSubmissions.length > 0 ? Math.round((squadronPassed / squadronSubmissions.length) * 100) : 0;
+              
+              return (
+                <Card key={squadron} className="bg-card hover:bg-card/90 transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">{squadron}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-lg font-bold">{squadronSubmissions.length}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {squadronPassRate}% pass rate
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Core Management Actions */}
+        <h3 className="text-xl font-semibold mb-4 text-foreground">Core Management Functions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -194,19 +225,19 @@ export default function InstructorsPortal() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Student Submissions</CardTitle>
-                <BarChart2 className="h-5 w-5 text-primary" />
+                <FileText className="h-5 w-5 text-primary" />
               </div>
-              <CardDescription>View student performance and results</CardDescription>
+              <CardDescription>Review and grade all student work</CardDescription>
             </CardHeader>
             <CardContent className="h-28 flex items-center justify-center">
               <div className="text-center text-muted-foreground text-sm">
-                Track student progress, analyze performance metrics, and identify improvement areas
+                Access all {scenarioSubmissions?.length || 0} submissions with grading tools and feedback systems
               </div>
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/submissions">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  View Student Submissions
+                  Review Submissions
                 </Button>
               </Link>
             </CardFooter>
