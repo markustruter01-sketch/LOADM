@@ -91,6 +91,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users endpoint for analytics - instructor access required
+  app.get("/api/users", requireAuth, async (req, res) => {
+    try {
+      const allUsers = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          role: users.role,
+          licenseStatus: licenses.isActive,
+          squadron: users.squadron,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .leftJoin(licenses, eq(users.licenseId, licenses.id));
+
+      // Map license status to readable format
+      const formattedUsers = allUsers.map(user => ({
+        ...user,
+        licenseStatus: user.licenseStatus ? 'active' : 'inactive'
+      }));
+
+      res.json(formattedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   // SUPERADMIN LICENSE MANAGEMENT
   app.get("/api/licensing/licenses", requireSuperAdmin, async (req, res) => {
     try {

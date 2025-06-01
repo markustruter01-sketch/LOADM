@@ -125,6 +125,10 @@ export default function AdvancedAnalytics() {
   const { data: documentSubmissions, isLoading: isLoadingDocumentSubmissions } = useQuery<DocumentSubmission[]>({
     queryKey: ["/api/document-submissions"],
   });
+
+  const { data: users, isLoading: isLoadingUsers } = useQuery<any[]>({
+    queryKey: ["/api/users"],
+  });
   
   // Derived state for analytics
   const [overviewStats, setOverviewStats] = useState({
@@ -229,12 +233,14 @@ export default function AdvancedAnalytics() {
     scenarioSubmissions, 
     quizSubmissions, 
     documentSubmissions,
+    users,
     selectedSquadron,
     selectedAssessmentType,
     selectedDateRange,
     isLoadingScenarioSubmissions,
     isLoadingQuizSubmissions,
-    isLoadingDocumentSubmissions
+    isLoadingDocumentSubmissions,
+    isLoadingUsers
   ]);
   
   // Helper functions for data processing
@@ -278,14 +284,10 @@ export default function AdvancedAnalytics() {
   }
   
   function calculateOverviewStats(submissions: any[]) {
-    // Count unique students based on studentId or userId
-    const uniqueStudentIds = new Set();
-    submissions.forEach(sub => {
-      const studentIdentifier = sub.studentId || sub.userId;
-      if (studentIdentifier) {
-        uniqueStudentIds.add(studentIdentifier);
-      }
-    });
+    // Count total licensed students from users data
+    const totalLicensedStudents = users ? users.filter(user => 
+      user.role === 'student' && user.licenseStatus === 'active'
+    ).length : 0;
     
     // Filter submissions with scores
     const submissionsWithScores = submissions.filter(sub => 
@@ -332,7 +334,7 @@ export default function AdvancedAnalytics() {
     }));
     
     setOverviewStats({
-      totalStudents: uniqueStudentIds.size,
+      totalStudents: totalLicensedStudents,
       totalSubmissions: submissions.length,
       avgScore: Math.round(avgScore * 10) / 10, // Round to 1 decimal place
       passRate: Math.round(passRate * 10) / 10, // Round to 1 decimal place
