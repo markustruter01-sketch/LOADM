@@ -75,7 +75,7 @@ function AuthenticatedApp() {
     <QueryClientProvider client={queryClient}>
       <div className="App">
         <Header />
-        <main className="main-content">
+        <main className="main-content pb-20">
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/army" component={ArmyHomePage} />
