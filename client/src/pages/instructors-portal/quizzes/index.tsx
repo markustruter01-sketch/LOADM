@@ -33,26 +33,35 @@ export default function InstructorQuizzes() {
 
   const handleDeleteQuiz = async (id: number) => {
     try {
-      await apiRequest({
+      if (!id || isNaN(id)) {
+        throw new Error('Invalid quiz ID');
+      }
+
+      const response = await apiRequest({
         url: `/api/quizzes/${id}`,
         method: 'DELETE'
       });
 
-      toast({
-        title: "Quiz deleted",
-        description: "The quiz has been successfully deleted.",
-      });
+      if (response && response.success) {
+        toast({
+          title: "Quiz deleted",
+          description: "The quiz has been successfully deleted.",
+        });
 
-      // Invalidate quizzes cache
-      queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
-      setQuizToDelete(null);
-    } catch (error) {
+        // Invalidate quizzes cache and refresh data
+        await queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
+        setQuizToDelete(null);
+      } else {
+        throw new Error('Delete operation failed');
+      }
+    } catch (error: any) {
       console.error("Error deleting quiz:", error);
       toast({
         title: "Error",
-        description: "Failed to delete the quiz. Please try again.",
+        description: error?.message || "Failed to delete the quiz. Please try again.",
         variant: "destructive",
       });
+      setQuizToDelete(null);
     }
   };
 
