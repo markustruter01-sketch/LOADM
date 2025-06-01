@@ -80,6 +80,22 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get current user endpoint for authentication
+  app.get("/api/user", requireAuth, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ error: 'No user session found' });
+      }
+      
+      console.log('✅ ISOLATED: User check request successful for:', user.email);
+      res.json(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      res.status(500).json({ error: 'Failed to get user information' });
+    }
+  });
+
   // Phone Directory - Public access
   app.get("/api/phone-directory", async (req, res) => {
     try {

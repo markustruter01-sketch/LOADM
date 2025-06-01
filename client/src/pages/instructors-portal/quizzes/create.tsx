@@ -116,9 +116,10 @@ export default function CreateQuiz() {
       setLocation("/instructors-portal/quizzes");
     } catch (error) {
       console.error("🔧 QUIZ CREATE DEBUG: Error creating quiz:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Error",
-        description: `Failed to create the quiz: ${error.message || 'Unknown error'}`,
+        description: `Failed to create the quiz: ${errorMessage}`,
         variant: "destructive"
       });
     }
