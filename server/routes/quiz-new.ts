@@ -237,7 +237,7 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
         ${description}, 
         ${user.id}, 
         ${question_count}, 
-        ${categories}, 
+        ${JSON.stringify(categories)}, 
         ${is_active || false}, 
         ${expires_at || null},
         NOW()
