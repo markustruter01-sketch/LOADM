@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 export default function SuperAdminRedirect() {
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
