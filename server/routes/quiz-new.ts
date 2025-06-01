@@ -16,13 +16,19 @@ interface AuthenticatedRequest extends Request {
 function requireAuth(req: AuthenticatedRequest, res: Response, next: any) {
   const sessionId = req.cookies?.sessionId;
   
+  console.log('🔧 QUIZ AUTH: Session ID from cookies:', sessionId);
+  console.log('🔧 QUIZ AUTH: All cookies:', req.cookies);
+  
   if (!sessionId || !sessionId.startsWith('isolated_')) {
+    console.log('🔧 QUIZ AUTH: No valid session ID found');
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   const session = authCore.getIsolatedSession(sessionId);
+  console.log('🔧 QUIZ AUTH: Session data:', session);
   
   if (!session) {
+    console.log('🔧 QUIZ AUTH: Session not found in storage');
     return res.status(401).json({ error: 'Invalid session' });
   }
   
@@ -40,6 +46,7 @@ function requireAuth(req: AuthenticatedRequest, res: Response, next: any) {
     role: session.role
   };
   
+  console.log('🔧 QUIZ AUTH: User set to:', req.user);
   next();
 }
 
