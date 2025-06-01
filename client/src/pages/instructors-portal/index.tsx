@@ -107,7 +107,7 @@ export default function InstructorsPortal() {
               <HelpCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(scenarioSubmissions?.filter(sub => sub.score >= 70).length || 0)}</div>
+              <div className="text-2xl font-bold">{(scenarioSubmissions?.filter(sub => (sub.score || 0) >= 70).length || 0)}</div>
               <p className="text-xs text-muted-foreground">Quiz assessments</p>
             </CardContent>
           </Card>

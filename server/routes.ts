@@ -889,7 +889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { scenarioId, answers, timeSpent, notes } = req.body;
       
-      if (!req.user) {
+      if (!(req as any).user) {
         return res.status(401).json({ error: "Authentication required" });
       }
       
@@ -911,7 +911,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (scenario[0].questions && Array.isArray(scenario[0].questions)) {
         scenario[0].questions.forEach((question, index) => {
           totalPoints += question.points || 10;
-          const userAnswer = answers.find(a => a.questionId === question.id);
+          const userAnswer = answers.find((a: any) => a.questionId === question.id);
           if (userAnswer && userAnswer.answer === question.expectedAnswer) {
             score += question.points || 10;
           }
@@ -926,7 +926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           scenario_id, user_id, answers, score, time_spent, 
           notes, passed, submission_date
         ) VALUES (
-          ${scenarioId}, ${req.user.id}, ${JSON.stringify(answers)}, 
+          ${scenarioId}, ${(req as any).user.id}, ${JSON.stringify(answers)}, 
           ${percentage}, ${timeSpent || 0}, ${notes || ''}, 
           ${passed}, NOW()
         ) RETURNING *
