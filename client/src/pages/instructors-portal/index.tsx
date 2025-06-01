@@ -119,8 +119,8 @@ export default function InstructorsPortal() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {scenarioSubmissions?.length > 0 
-                  ? Math.round((scenarioSubmissions.filter(sub => sub.passed === true).length / scenarioSubmissions.length) * 100)
+                {(scenarioSubmissions?.length || 0) > 0 
+                  ? Math.round(((scenarioSubmissions?.filter(sub => sub.passed === true).length || 0) / (scenarioSubmissions?.length || 1)) * 100)
                   : 0}%
               </div>
               <p className="text-xs text-muted-foreground">Student success rate</p>
@@ -137,7 +137,7 @@ export default function InstructorsPortal() {
                 {(() => {
                   const submissionsWithScores = scenarioSubmissions?.filter(sub => sub.score !== null && sub.score !== undefined) || [];
                   return submissionsWithScores.length > 0 
-                    ? Math.round(submissionsWithScores.reduce((sum, sub) => sum + sub.score, 0) / submissionsWithScores.length)
+                    ? Math.round(submissionsWithScores.reduce((sum, sub) => sum + (sub.score || 0), 0) / submissionsWithScores.length)
                     : 0;
                 })()}%
               </div>
