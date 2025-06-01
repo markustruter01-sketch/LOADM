@@ -20,9 +20,10 @@ import * as authCore from "./auth-isolated/auth-core";
 
 // Authentication middleware
 function requireAuth(req: Request, res: Response, next: Function) {
-  const sessionId = req.cookies?.sessionId;
+  const sessionId = (req as any).cookies?.sessionId;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
+    console.log('✅ ISOLATED: No valid session found');
     return res.status(401).json({ error: 'Authentication required' });
   }
   
@@ -811,4 +812,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer();
   httpServer.on("request", app);
   return httpServer;
+
+  // Submit scenario
+  app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
+    try {
+      const { scenarioId, answers, timeSpent, notes } = req.body;
+      
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Calculate score and determine if passed
+      const scenario = await sql`
+        SELECT * FROM scenarios WHERE id = ${scenarioId}
+      `;
+      
+      if (scenario.length === 0) {
+        return res.status(404).json({ error: "Scenario not found" });
+      }
+      
+      let score = 0;
+      let totalPoints = 0;
+      
+      if (scenario[0].questions && Array.isArray(scenario[0].questions)) {
+        scenario[0].questions.forEach((question, index) => {
+          totalPoints += question.points || 10;
+          const userAnswer = answers.find(a => a.questionId === question.id);
+          if (userAnswer && userAnswer.answer === question.expectedAnswer) {
+            score += question.points || 10;
+          }
+        });
+      }
+      
+      const percentage = totalPoints > 0 ? (score / totalPoints) * 100 : 0;
+      const passed = percentage >= 70; // 70% passing threshold
+      
+      const submission = await sql`
+        INSERT INTO scenario_submissions (
+          scenario_id, user_id, answers, score, time_spent, 
+          notes, passed, submission_date
+        ) VALUES (
+          ${scenarioId}, ${req.user.id}, ${JSON.stringify(answers)}, 
+          ${percentage}, ${timeSpent || 0}, ${notes || ''}, 
+          ${passed}, NOW()
+        ) RETURNING *
+      `;
+      
+      res.json({
+        success: true,
+        submission: submission[0],
+        score: percentage,
+        passed
+      });
+      
+    } catch (error) {
+      console.error('Scenario submission error:', error);
+      res.status(500).json({ error: "Failed to submit scenario" });
+    }
+  });
 }
