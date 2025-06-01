@@ -128,7 +128,7 @@ router.get('/:id', async (req: any, res: any) => {
 // Create a new quiz
 router.post('/', requireInstructor, async (req: any, res: any) => {
   try {
-    const { title, description, questionCount, categories, isActive, expiresAt, timeLimit, passingThreshold } = req.body;
+    const { title, description, questionCount, categories, isActive, expiresAt, timeLimit, passingThreshold, createdById } = req.body;
     
     if (!title || !questionCount || !categories || !categories.length) {
       return res.status(400).json({ error: 'Missing required fields: title, questionCount, and categories are required' });
