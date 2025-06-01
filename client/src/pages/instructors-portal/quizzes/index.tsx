@@ -42,20 +42,16 @@ export default function InstructorQuizzes() {
         method: 'DELETE'
       });
 
-      if (response) {
-        toast({
-          title: "Quiz deleted",
-          description: "The quiz has been successfully deleted.",
-        });
+      // apiRequest throws on error, so if we reach here, deletion was successful
+      toast({
+        title: "Quiz deleted",
+        description: "The quiz has been successfully deleted.",
+      });
 
-        // Invalidate and refetch quizzes data immediately
-        await queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
-        await queryClient.refetchQueries({ queryKey: ['/api/quizzes'] });
-        setQuizToDelete(null);
-      } else {
-        const errorData = await response.text();
-        throw new Error(`Delete operation failed: ${response.status} - ${errorData}`);
-      }
+      // Invalidate and refetch quizzes data immediately
+      await queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/quizzes'] });
+      setQuizToDelete(null);
     } catch (error: any) {
       console.error("Error deleting quiz:", error);
       toast({
