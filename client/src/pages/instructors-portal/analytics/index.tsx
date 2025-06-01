@@ -350,13 +350,14 @@ export default function AdvancedAnalytics() {
       "90-100%": 0
     };
     
-    // Only include submissions with scores in score distribution
-    const submissionsWithScores = submissions.filter(sub => 
-      sub.calculatedScore !== undefined || sub.score !== undefined
-    );
+    // Only include submissions with valid scores in score distribution
+    const submissionsWithScores = submissions.filter(sub => {
+      const score = sub.calculatedScore !== undefined ? sub.calculatedScore : sub.score;
+      return score !== undefined && score !== null && score > 0;
+    });
     
     submissionsWithScores.forEach(sub => {
-      const score = sub.calculatedScore !== undefined ? sub.calculatedScore : (sub.score || 0);
+      const score = sub.calculatedScore !== undefined ? sub.calculatedScore : sub.score;
       if (score < 50) scoreGroups["0-49%"]++;
       else if (score < 70) scoreGroups["50-69%"]++;
       else if (score < 90) scoreGroups["70-89%"]++;
