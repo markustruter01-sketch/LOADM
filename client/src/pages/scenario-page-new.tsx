@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import SuccessAnimation from "@/components/SuccessAnimation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -41,7 +41,7 @@ export default function ScenarioPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false);
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});

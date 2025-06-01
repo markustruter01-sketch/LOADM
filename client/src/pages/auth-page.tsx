@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {

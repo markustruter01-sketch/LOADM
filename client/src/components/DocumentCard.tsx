@@ -45,6 +45,7 @@ interface DocumentCardProps {
 }
 
 export default function DocumentCard({ document }: DocumentCardProps) {
+  const [, navigate] = useLocation();
   const formattedDate = formatDistanceToNow(new Date(document.lastUpdated), {
     addSuffix: true,
   });
@@ -53,10 +54,10 @@ export default function DocumentCard({ document }: DocumentCardProps) {
     const formId = getFormId(document.title);
     if (formId) {
       // Navigate to cargo manifest page with the form ID as a hash
-      window.location.href = `/cargo-manifest#${formId}`;
+      navigate(`/cargo-manifest#${formId}`);
     } else {
       // Default navigation to cargo manifest page
-      window.location.href = '/cargo-manifest';
+      navigate('/cargo-manifest');
     }
   };
 

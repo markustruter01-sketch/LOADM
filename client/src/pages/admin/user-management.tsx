@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 export default function UserManagement() {
   const { toast } = useToast();

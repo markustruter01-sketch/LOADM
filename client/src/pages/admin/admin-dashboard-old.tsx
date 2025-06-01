@@ -5,11 +5,11 @@ import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@sha
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, ClipboardList, Users, BarChart3, Layers, FileCheck, UserCircle, ShieldAlert, UserCog } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { useEffect } from "react";
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
 
   const { data: documents } = useQuery<Document[]>({
     queryKey: ["/api/documents"],

@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
 import { useEffect, useState } from "react";
@@ -11,7 +11,7 @@ export function ProtectedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
   
   if (isLoading) {
     return (
@@ -43,7 +43,7 @@ export function AuthenticatedRoute({
   path: string;
   component: () => React.JSX.Element;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useIsolatedAuth();
   
   if (isLoading) {
     return (

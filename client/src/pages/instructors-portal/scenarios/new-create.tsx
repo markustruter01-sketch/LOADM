@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -52,7 +52,7 @@ const formSchema = z.object({
 
 export default function CreateScenario() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   const [_, navigate] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   

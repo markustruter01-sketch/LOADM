@@ -35,7 +35,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, CheckCircle, Loader2, XCircle, BarChart4 } from "lucide-react";
 import { format } from 'date-fns';
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 interface AnswerResponse {
   questionId: string;
@@ -48,7 +48,7 @@ export default function SubmissionReview() {
   const { id } = useParams<{ id: string }>();
   const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useIsolatedAuth();
   
   const submissionId = parseInt(id);
   const [instructorFeedback, setInstructorFeedback] = useState("");
