@@ -548,8 +548,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT 
             ss.*,
             u.email,
-            u.first_name,
-            u.last_name,
             s.title as scenario_title
           FROM scenario_submissions ss
           LEFT JOIN users u ON ss.user_id = u.id
@@ -562,8 +560,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT 
             ss.*,
             u.email,
-            u.first_name,
-            u.last_name,
             s.title as scenario_title
           FROM scenario_submissions ss
           LEFT JOIN users u ON ss.user_id = u.id
@@ -594,8 +590,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT 
             ds.*,
             u.email,
-            u.first_name,
-            u.last_name,
             d.title as document_title
           FROM document_submissions ds
           LEFT JOIN users u ON ds.user_id = u.id
@@ -608,8 +602,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT 
             ds.*,
             u.email,
-            u.first_name,
-            u.last_name,
             d.title as document_title
           FROM document_submissions ds
           LEFT JOIN users u ON ds.user_id = u.id
