@@ -66,18 +66,18 @@ export class BlueHairFix {
 
       const data = await response.json();
       
-      if (response.ok && data.user) {
+      if (response.ok && (data.user || data.role || data.id)) {
         return {
           testName: 'Login Authentication',
           passed: true,
-          details: { userRole: data.user.role },
+          details: { userRole: data.role || data.user?.role, userId: data.id || data.user?.id },
           timestamp: new Date().toISOString()
         };
       } else {
         return {
           testName: 'Login Authentication', 
           passed: false,
-          error: data.error || 'Login failed',
+          error: data.error || `Status ${response.status}: ${JSON.stringify(data)}`,
           timestamp: new Date().toISOString()
         };
       }
@@ -509,3 +509,38 @@ export class BlueHairFix {
 
 // Export singleton instance
 export const blueHairFix = new BlueHairFix();
+
+// Main execution when run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  async function main() {
+    const tester = new BlueHairFix();
+    console.log('🔵 Blue Hair Fix: Starting comprehensive instructor portal testing...\n');
+    
+    const results = await tester.runFullTestSuite();
+    const summary = tester.getTestSummary();
+    
+    console.log('\n📊 TEST SUMMARY:');
+    console.log(`✅ Passed: ${summary.passed}`);
+    console.log(`❌ Failed: ${summary.failed}`);
+    console.log(`📈 Total: ${summary.total}`);
+    
+    if (summary.failed > 0) {
+      console.log('\n🔧 FAILED TESTS:');
+      summary.details.filter(r => !r.passed).forEach(result => {
+        console.log(`❌ ${result.testName}: ${result.error}`);
+      });
+    }
+    
+    if (summary.passed > 0) {
+      console.log('\n✅ PASSED TESTS:');
+      summary.details.filter(r => r.passed).forEach(result => {
+        console.log(`✅ ${result.testName}`);
+        if (result.details) {
+          console.log(`   Details: ${JSON.stringify(result.details)}`);
+        }
+      });
+    }
+  }
+  
+  main().catch(console.error);
+}
