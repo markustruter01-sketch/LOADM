@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "totalTests": 1,
+    "passed": 0,
+    "failed": 1,
+    "successRate": 0
+  },
+  "tests": [
+    {
+      "name": "Authentication",
+      "steps": [
+        "Attempting login",
+        "Testing user endpoint"
+      ],
+      "success": false,
+      "errors": [
+        "User endpoint failed: 401"
+      ]
+    }
+  ],
+  "timestamp": "2025-06-01T22:30:48.503Z"
+}
