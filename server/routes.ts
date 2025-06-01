@@ -823,6 +823,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mount quiz routes module for proper DELETE endpoint handling
+  try {
+    const { default: quizRoutes } = await import('./routes/quizzes');
+    app.use('/api/quizzes', quizRoutes);
+    console.log('✅ Quiz routes module mounted successfully');
+  } catch (error) {
+    console.error('Failed to mount quiz routes:', error);
+  }
+
   const httpServer = createServer();
   httpServer.on("request", app);
   return httpServer;
