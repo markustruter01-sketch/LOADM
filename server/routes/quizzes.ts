@@ -17,8 +17,14 @@ function requireAuth(req: any, res: any, next: any) {
     return res.status(401).json({ error: 'Invalid session' });
   }
   
+  // Handle hardcoded superadmin case - map to actual database user
+  let actualUserId = session.userId;
+  if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+    actualUserId = 9; // Use the actual database user ID
+  }
+  
   req.user = {
-    id: session.userId,
+    id: actualUserId,
     email: session.email,
     role: session.role
   };

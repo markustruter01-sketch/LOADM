@@ -507,29 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/quizzes/:id", requireInstructor, async (req, res) => {
-    try {
-      const quizId = parseInt(req.params.id);
-      
-      if (isNaN(quizId)) {
-        return res.status(400).json({ error: 'Invalid quiz ID' });
-      }
 
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      const deleted = await sql`DELETE FROM quizzes WHERE id = ${quizId} RETURNING id`;
-      
-      if (deleted.length === 0) {
-        return res.status(404).json({ error: 'Quiz not found' });
-      }
-
-      res.json({ success: true, message: 'Quiz deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting quiz:', error);
-      res.status(500).json({ error: 'Failed to delete quiz' });
-    }
-  });
 
   // STUDENT SUBMISSIONS
   app.get("/api/instructor/quiz-submissions", requireInstructor, async (req, res) => {
