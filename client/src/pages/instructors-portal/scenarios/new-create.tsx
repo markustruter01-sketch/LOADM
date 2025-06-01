@@ -120,8 +120,13 @@ export default function CreateScenario() {
     }
   };
 
-  // Very simple submit function
+  // Enhanced submit function with comprehensive debugging
   const onSubmit = (data: any) => {
+    console.log('🎭 SCENARIO CREATE FORM: Submit button clicked');
+    console.log('🎭 SCENARIO CREATE FORM: Form data:', JSON.stringify(data, null, 2));
+    console.log('🎭 SCENARIO CREATE FORM: Current user:', JSON.stringify(user, null, 2));
+    console.log('🎭 SCENARIO CREATE FORM: Environment:', window.location.hostname);
+    
     setIsSubmitting(true);
     
     // Add the number of questions field
@@ -130,8 +135,8 @@ export default function CreateScenario() {
       numberOfQuestions: data.questions.length
     };
     
-    // Log what we're submitting
-    // Process scenario data for submission
+    console.log('🎭 SCENARIO CREATE FORM: Submit data prepared:', JSON.stringify(submitData, null, 2));
+    console.log('🎭 SCENARIO CREATE FORM: Making fetch request to /api/scenarios');
     
     // Make the API call
     fetch("/api/scenarios", {
@@ -143,12 +148,19 @@ export default function CreateScenario() {
       credentials: "include"
     })
     .then(response => {
+      console.log('🎭 SCENARIO CREATE FORM: Response received:', response.status, response.statusText);
+      console.log('🎭 SCENARIO CREATE FORM: Response headers:', JSON.stringify([...response.headers.entries()]));
+      
       if (!response.ok) {
-        throw new Error(`Server error (${response.status})`);
+        return response.text().then(text => {
+          console.log('🎭 SCENARIO CREATE FORM: Error response body:', text);
+          throw new Error(`Server error (${response.status}): ${text}`);
+        });
       }
       return response.json();
     })
     .then(result => {
+      console.log('🎭 SCENARIO CREATE FORM: Success response:', JSON.stringify(result, null, 2));
       toast({
         title: "Success!",
         description: "Scenario created successfully"
@@ -157,7 +169,9 @@ export default function CreateScenario() {
       navigate("/instructors-portal/scenarios");
     })
     .catch(error => {
-      console.error("Error creating scenario:", error);
+      console.error('🎭 SCENARIO CREATE FORM: Error occurred:', error);
+      console.error('🎭 SCENARIO CREATE FORM: Error message:', error.message);
+      console.error('🎭 SCENARIO CREATE FORM: Error stack:', error.stack);
       toast({
         title: "Error",
         description: error.message || "Failed to create scenario",
@@ -165,6 +179,7 @@ export default function CreateScenario() {
       });
     })
     .finally(() => {
+      console.log('🎭 SCENARIO CREATE FORM: Request completed');
       setIsSubmitting(false);
     });
   };

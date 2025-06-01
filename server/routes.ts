@@ -598,18 +598,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/scenarios", async (req, res) => {
     try {
-      if (!checkAuth(req)) {
+      console.log('🎭 SCENARIO CREATION: Request received');
+      console.log('🎭 SCENARIO CREATION: Headers:', JSON.stringify(req.headers, null, 2));
+      console.log('🎭 SCENARIO CREATION: Cookies:', JSON.stringify(req.cookies, null, 2));
+      console.log('🎭 SCENARIO CREATION: Body:', JSON.stringify(req.body, null, 2));
+      
+      const authResult = checkAuth(req);
+      console.log('🎭 SCENARIO CREATION: Auth result:', authResult);
+      console.log('🎭 SCENARIO CREATION: User from auth:', JSON.stringify(req.user, null, 2));
+      
+      if (!authResult) {
+        console.log('🎭 SCENARIO CREATION: Authentication failed');
         return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
+      console.log('🎭 SCENARIO CREATION: Parsing scenario data...');
       const scenarioData = insertScenarioSchema.parse(req.body);
+      console.log('🎭 SCENARIO CREATION: Scenario data parsed successfully:', JSON.stringify(scenarioData, null, 2));
+      
+      console.log('🎭 SCENARIO CREATION: Creating scenario in storage...');
       const scenario = await storage.createScenario(scenarioData);
+      console.log('🎭 SCENARIO CREATION: Scenario created successfully:', JSON.stringify(scenario, null, 2));
+      
       res.status(201).json(scenario);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('🎭 SCENARIO CREATION: Error occurred:', error);
+      console.error('🎭 SCENARIO CREATION: Error stack:', error.stack);
+      console.error('🎭 SCENARIO CREATION: Error message:', error.message);
+      
       if (error instanceof z.ZodError) {
+        console.log('🎭 SCENARIO CREATION: Validation error:', JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ message: "Invalid scenario data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create scenario" });
+      res.status(500).json({ message: "Failed to create scenario", details: error.message || 'Unknown error' });
     }
   });
   

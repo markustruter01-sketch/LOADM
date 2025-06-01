@@ -35,22 +35,39 @@ router.get('/:id', async (req, res) => {
 
 // Create a new quiz
 router.post('/', (req, res, next) => {
+  console.log('🎯 QUIZ CREATION: Request received');
+  console.log('🎯 QUIZ CREATION: Headers:', JSON.stringify(req.headers, null, 2));
+  console.log('🎯 QUIZ CREATION: Cookies:', JSON.stringify(req.cookies, null, 2));
+  console.log('🎯 QUIZ CREATION: Body:', JSON.stringify(req.body, null, 2));
+  
   const authCore = require('../auth-isolated/auth-core');
   authCore.requireIsolatedAuth(req, res, next);
 }, async (req, res) => {
   try {
+    console.log('🎯 QUIZ CREATION: Authentication passed');
+    console.log('🎯 QUIZ CREATION: User from auth:', JSON.stringify(req.user, null, 2));
+    
     const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
     
+    console.log('🎯 QUIZ CREATION: Extracted data:', {
+      title,
+      description,
+      questionCount,
+      categories,
+      isActive,
+      expiresAt
+    });
+    
     if (!title || !questionCount || !categories || !categories.length) {
+      console.log('🎯 QUIZ CREATION: Validation failed - missing required fields');
       return res.status(400).json({ error: 'Missing required fields: title, questionCount, and categories are required' });
     }
 
     // Use the authenticated user's ID as the creator
     const createdById = req.user?.userId || req.user?.id || 1;
+    console.log('🎯 QUIZ CREATION: Using createdById:', createdById);
     
-    console.log('Creating quiz with:', { title, questionCount, categories, createdById });
-    
-    const quiz = await quizStorage.createQuiz({
+    const quizData = {
       title,
       description: description || '',
       createdById,
@@ -58,13 +75,19 @@ router.post('/', (req, res, next) => {
       categories,
       isActive: isActive !== undefined ? isActive : true,
       expiresAt: expiresAt ? new Date(expiresAt) : null
-    });
+    };
     
-    console.log('Quiz created successfully:', quiz.id);
+    console.log('🎯 QUIZ CREATION: Creating quiz with data:', JSON.stringify(quizData, null, 2));
+    
+    const quiz = await quizStorage.createQuiz(quizData);
+    
+    console.log('🎯 QUIZ CREATION: Quiz created successfully:', JSON.stringify(quiz, null, 2));
     res.status(201).json(quiz);
-  } catch (error) {
-    console.error('Error creating quiz:', error);
-    res.status(500).json({ error: 'Failed to create quiz', details: error.message });
+  } catch (error: any) {
+    console.error('🎯 QUIZ CREATION: Error occurred:', error);
+    console.error('🎯 QUIZ CREATION: Error stack:', error.stack);
+    console.error('🎯 QUIZ CREATION: Error message:', error.message);
+    res.status(500).json({ error: 'Failed to create quiz', details: error.message || 'Unknown error' });
   }
 });
 

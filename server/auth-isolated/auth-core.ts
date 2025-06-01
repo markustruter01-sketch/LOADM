@@ -109,17 +109,30 @@ export async function authenticateUser(email: string, password: string) {
 }
 
 export function requireIsolatedAuth(req: any, res: any, next: any) {
+  console.log('🔐 AUTH MIDDLEWARE: Request received');
+  console.log('🔐 AUTH MIDDLEWARE: Request path:', req.path);
+  console.log('🔐 AUTH MIDDLEWARE: Request method:', req.method);
+  console.log('🔐 AUTH MIDDLEWARE: Request headers:', JSON.stringify(req.headers, null, 2));
+  console.log('🔐 AUTH MIDDLEWARE: Request cookies:', JSON.stringify(req.cookies, null, 2));
+  
   const sessionId = req.cookies?.sessionId;
+  console.log('🔐 AUTH MIDDLEWARE: Session ID:', sessionId);
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
+    console.log('🔐 AUTH MIDDLEWARE: No valid session ID found');
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   const session = getIsolatedSession(sessionId);
+  console.log('🔐 AUTH MIDDLEWARE: Session lookup result:', JSON.stringify(session, null, 2));
+  
   if (!session) {
+    console.log('🔐 AUTH MIDDLEWARE: Session not found in store');
+    console.log('🔐 AUTH MIDDLEWARE: Available sessions:', Array.from(ISOLATED_SESSIONS.keys()));
     return res.status(401).json({ error: 'Invalid session' });
   }
   
+  console.log('🔐 AUTH MIDDLEWARE: Authentication successful');
   req.user = session;
   next();
 }
