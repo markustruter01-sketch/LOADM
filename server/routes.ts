@@ -552,7 +552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM scenario_submissions ss
           LEFT JOIN users u ON ss.user_id = u.id
           LEFT JOIN scenarios s ON ss.scenario_id = s.id
-          ORDER BY ss.submitted_at DESC
+          ORDER BY ss.submission_date DESC
         `;
       } else {
         // Students can only see their own submissions
@@ -565,7 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN users u ON ss.user_id = u.id
           LEFT JOIN scenarios s ON ss.scenario_id = s.id
           WHERE ss.user_id = ${user.id}
-          ORDER BY ss.submitted_at DESC
+          ORDER BY ss.submission_date DESC
         `;
       }
       
@@ -594,7 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM document_submissions ds
           LEFT JOIN users u ON ds.user_id = u.id
           LEFT JOIN documents d ON ds.document_id = d.id
-          ORDER BY ds.submitted_at DESC
+          ORDER BY ds.submission_date DESC
         `;
       } else {
         // Students can only see their own submissions
@@ -607,7 +607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN users u ON ds.user_id = u.id
           LEFT JOIN documents d ON ds.document_id = d.id
           WHERE ds.user_id = ${user.id}
-          ORDER BY ds.submitted_at DESC
+          ORDER BY ds.submission_date DESC
         `;
       }
       
