@@ -123,11 +123,16 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
     const { answers, squadron } = req.body;
     const user = req.user;
     
+    console.log('QUIZ SUBMIT DEBUG: Request body:', JSON.stringify(req.body, null, 2));
+    console.log('QUIZ SUBMIT DEBUG: Answers:', answers);
+    console.log('QUIZ SUBMIT DEBUG: User:', user);
+    
     if (!user) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
     
     if (!answers || !Array.isArray(answers) || answers.length === 0) {
+      console.log('QUIZ SUBMIT DEBUG: Answers validation failed');
       return res.status(400).json({ error: 'Answers required' });
     }
 
