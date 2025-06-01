@@ -360,46 +360,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/scenarios", requireInstructor, async (req, res) => {
     try {
-      const { title, description, aircraft_type, maxWeight, cargoItems, objectives } = req.body;
+      const { 
+        title, 
+        description, 
+        aircraftType, 
+        difficulty, 
+        questions, 
+        numberOfQuestions, 
+        timeLimit 
+      } = req.body;
       
-      if (!title || !aircraft_type) {
-        return res.status(400).json({ message: "Title and aircraft type required" });
+      if (!title || !description) {
+        return res.status(400).json({ message: "Title and description are required" });
       }
 
-      const newScenario = await db.insert(scenarios).values({
-        title,
-        description: description || '',
-        aircraft_type,
-        maxWeight: maxWeight || 0,
-        cargoItems: cargoItems || [],
-        objectives: objectives || [],
-        createdBy: (req as any).user.id
-      }).returning();
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const newScenario = await sql`
+        INSERT INTO scenarios (
+          title, 
+          description, 
+          aircraft_type, 
+          difficulty, 
+          questions, 
+          number_of_questions, 
+          time_limit, 
+          created_by_id,
+          created_at
+        ) VALUES (
+          ${title}, 
+          ${description}, 
+          ${aircraftType || 'C-17'}, 
+          ${difficulty || 'Medium'}, 
+          ${JSON.stringify(questions || [])}, 
+          ${numberOfQuestions || 1}, 
+          ${timeLimit || 60}, 
+          ${(req as any).user.id},
+          NOW()
+        ) RETURNING *
+      `;
 
       res.status(201).json(newScenario[0]);
     } catch (error) {
       console.error('Error creating scenario:', error);
-      res.status(500).json({ message: "Failed to create scenario" });
+      res.status(500).json({ message: "Failed to create scenario: " + error.message });
     }
   });
 
   app.put("/api/scenarios/:id", requireInstructor, async (req, res) => {
     try {
-      const scenario_id = parseInt(req.params.id);
-      const { title, description, aircraft_type, maxWeight, cargoItems, objectives } = req.body;
+      const scenarioId = parseInt(req.params.id);
+      const { 
+        title, 
+        description, 
+        aircraftType, 
+        difficulty, 
+        questions, 
+        numberOfQuestions, 
+        timeLimit 
+      } = req.body;
 
-      const updatedScenario = await db.update(scenarios)
-        .set({
-          title,
-          description,
-          aircraft_type,
-          maxWeight,
-          cargoItems,
-          objectives,
-          updatedAt: new Date()
-        })
-        .where(eq(scenarios.id, scenario_id))
-        .returning();
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const updatedScenario = await sql`
+        UPDATE scenarios SET 
+          title = ${title}, 
+          description = ${description}, 
+          aircraft_type = ${aircraftType}, 
+          difficulty = ${difficulty}, 
+          questions = ${JSON.stringify(questions)}, 
+          number_of_questions = ${numberOfQuestions}, 
+          time_limit = ${timeLimit}
+        WHERE id = ${scenarioId} 
+        RETURNING *
+      `;
 
       if (updatedScenario.length === 0) {
         return res.status(404).json({ message: "Scenario not found" });
@@ -407,15 +443,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(updatedScenario[0]);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update scenario" });
+      console.error('Error updating scenario:', error);
+      res.status(500).json({ message: "Failed to update scenario: " + error.message });
     }
   });
 
   app.delete("/api/scenarios/:id", requireInstructor, async (req, res) => {
     try {
-      const scenario_id = parseInt(req.params.id);
+      const scenarioId = parseInt(req.params.id);
       
-      const deleted = await db.delete(scenarios).where(eq(scenarios.id, scenario_id)).returning();
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const deleted = await sql`
+        DELETE FROM scenarios WHERE id = ${scenarioId} RETURNING *
+      `;
       
       if (deleted.length === 0) {
         return res.status(404).json({ message: "Scenario not found" });
