@@ -1156,11 +1156,15 @@ export class BlueHairFix {
       return this.testResults;
     }
     
-    // Comprehensive system-wide feature test suite
+    // Comprehensive system-wide feature test suite with CRUD workflow testing
     const tests = [
       // Core System Tests
       () => this.captureServerLogs(),
       () => this.testDatabaseConnectivity(),
+      
+      // Complete CRUD Workflow Tests
+      () => this.testQuizCRUDWorkflow(),
+      () => this.testScenarioCRUDWorkflow(),
       
       // Authentication & User Management
       () => this.testUserManagement(),
