@@ -28,28 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { ArrowLeft, BarChart4, FileText, Search, User } from "lucide-react";
+import { ArrowLeft, FileText, Search, User } from "lucide-react";
 import { format } from 'date-fns';
-import ScenarioAnalytics from "./analytics";
 
 export default function StudentProgress() {
   const [searchTerm, setSearchTerm] = useState("");
   const [scenarioFilter, setScenarioFilter] = useState<number | "all">("all");
   const [squadronFilter, setSquadronFilter] = useState<string>("AMG");
-  // Check if we should default to analytics tab based on URL
-  const [activeTab, setActiveTab] = useState(() => {
-    // Check if we're in a browser environment
-    if (typeof window !== 'undefined') {
-      return window.location.search.includes('tab=analytics') ? 'analytics' : 'submissions';
-    }
-    return 'submissions';
-  });
   
   // Fetch all scenario submissions
   const { data: submissions, isLoading: isLoadingSubmissions } = useQuery<ScenarioSubmission[]>({
@@ -268,7 +253,7 @@ export default function StudentProgress() {
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Link href={`/instructors-portal/student-progress/${submission.id}`}>
+                              <Link href={`/instructors-portal/submissions/${submission.id}`}>
                                 <Button variant="outline" size="sm">
                                   Review
                                 </Button>
@@ -282,12 +267,7 @@ export default function StudentProgress() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="space-y-6 mt-6">
-            <ScenarioAnalytics />
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
     </>
   );
