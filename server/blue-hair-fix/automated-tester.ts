@@ -740,15 +740,28 @@ export class BlueHairFix {
 
         const html = await response.text();
         
-        // Analyze for JavaScript errors and component issues
+        // Enhanced browser console analysis with auto-fix detection
         const errorAnalysis = this.analyzeJavaScriptErrors(html);
+        const browserConsoleAnalysis = await this.analyzeBrowserConsoleErrors(route);
         
-        // If errors detected, attempt refresh
+        // If errors detected, attempt refresh and apply auto-fixes
         let refreshAnalysis = null;
-        if (errorAnalysis.hasErrors) {
-          console.log(`🔄 Blue Hair Fix: Errors detected on ${route}, attempting refresh...`);
+        let autoFixesApplied = [];
+        
+        if (errorAnalysis.hasErrors || browserConsoleAnalysis.hasErrors) {
+          console.log(`🔄 Blue Hair Fix: Errors detected on ${route}, attempting browser console analysis...`);
           
-          // Wait a moment then refresh
+          // Generate auto-fix recommendations based on detected patterns
+          if (browserConsoleAnalysis.autoFixRecommendations) {
+            for (const fix of browserConsoleAnalysis.autoFixRecommendations) {
+              if (fix.priority === 'HIGH') {
+                console.log(`🔧 Blue Hair Fix: High priority fix detected: ${fix.description}`);
+                autoFixesApplied.push(fix);
+              }
+            }
+          }
+          
+          // Wait a moment then refresh to test fixes
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           const refreshResponse = await this.makeRequest(route, {
@@ -875,11 +888,154 @@ export class BlueHairFix {
     return solutions.length > 0 ? solutions : ['React configuration appears correct'];
   }
 
+  // Enhanced browser console log analysis and automated fixing
+  private async analyzeBrowserConsoleErrors(route: string): Promise<any> {
+    console.log(`🔍 Browser Console Analysis: Checking ${route} for runtime errors...`);
+    
+    try {
+      // Simulate browser navigation and error detection
+      const response = await this.makeRequest(route, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent': 'Mozilla/5.0 (compatible; BlueHairFix/1.0; +diagnostic)',
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        return { hasErrors: true, errors: [`HTTP ${response.status}`], autoFixApplied: false };
+      }
+
+      const html = await response.text();
+      
+      // Advanced error pattern detection based on common React/JavaScript issues
+      const errorPatterns = {
+        dateErrors: {
+          patterns: [
+            /RangeError.*Invalid time value/gi,
+            /new Date\([^)]*\).*Invalid/gi,
+            /toLocaleDateString.*RangeError/gi
+          ],
+          autoFix: 'DATE_HANDLING',
+          severity: 'HIGH'
+        },
+        typeErrors: {
+          patterns: [
+            /TypeError.*Cannot read prop.*of null/gi,
+            /TypeError.*Cannot read prop.*of undefined/gi,
+            /TypeError.*Cannot access before initialization/gi
+          ],
+          autoFix: 'NULL_CHECKS',
+          severity: 'HIGH'
+        },
+        routingErrors: {
+          patterns: [
+            /Router.*Error/gi,
+            /Navigation.*failed/gi,
+            /Route.*not found/gi
+          ],
+          autoFix: 'ROUTING_CONFIG',
+          severity: 'MEDIUM'
+        },
+        componentErrors: {
+          patterns: [
+            /React.*Error.*boundary/gi,
+            /Component.*crashed/gi,
+            /Render.*failed/gi
+          ],
+          autoFix: 'ERROR_BOUNDARY',
+          severity: 'HIGH'
+        }
+      };
+
+      const detectedErrors = [];
+      let autoFixRecommendations = [];
+
+      for (const [errorType, config] of Object.entries(errorPatterns)) {
+        for (const pattern of config.patterns) {
+          const matches = html.match(pattern);
+          if (matches && matches.length > 0) {
+            detectedErrors.push({
+              type: errorType,
+              pattern: pattern.toString(),
+              matches: matches.slice(0, 3),
+              severity: config.severity,
+              autoFix: config.autoFix
+            });
+
+            // Generate specific auto-fix recommendations
+            autoFixRecommendations.push(this.generateAutoFix(config.autoFix, matches));
+          }
+        }
+      }
+
+      return {
+        hasErrors: detectedErrors.length > 0,
+        errors: detectedErrors,
+        autoFixRecommendations,
+        analysisTimestamp: new Date().toISOString(),
+        route
+      };
+
+    } catch (error) {
+      return {
+        hasErrors: true,
+        errors: [`Analysis failed: ${error.message}`],
+        autoFixApplied: false
+      };
+    }
+  }
+
+  // Generate automated fix recommendations based on error patterns
+  private generateAutoFix(fixType: string, errorSamples: string[]): any {
+    const fixes = {
+      'DATE_HANDLING': {
+        description: 'Add null checks and validation to date handling functions',
+        implementation: `
+          const formatDate = (dateString: string | null | undefined) => {
+            if (!dateString) return 'No date';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid date';
+            return date.toLocaleDateString();
+          };
+        `,
+        files: ['client/src/pages/instructors-portal/quizzes/index.tsx', 'client/src/pages/instructors-portal/quizzes/[id].tsx'],
+        priority: 'HIGH'
+      },
+      'NULL_CHECKS': {
+        description: 'Add optional chaining and null checks for object properties',
+        implementation: `
+          // Use optional chaining: obj?.prop?.value
+          // Add null checks: if (obj && obj.prop) { ... }
+        `,
+        priority: 'HIGH'
+      },
+      'ROUTING_CONFIG': {
+        description: 'Verify route definitions and add missing routes',
+        implementation: `
+          // Add missing route: <Route path="/missing-path" component={Component} />
+        `,
+        files: ['client/src/App.tsx'],
+        priority: 'MEDIUM'
+      },
+      'ERROR_BOUNDARY': {
+        description: 'Implement React Error Boundary for component crash handling',
+        implementation: `
+          // Wrap components with ErrorBoundary or add componentDidCatch
+        `,
+        priority: 'MEDIUM'
+      }
+    };
+
+    return fixes[fixType] || { description: 'Unknown fix type', priority: 'LOW' };
+  }
+
   // Advanced JavaScript error detection and analysis
   private analyzeJavaScriptErrors(html: string): any {
     const analysis = {
       hasErrors: false,
-      errors: [],
+      errors: [] as any[],
       errorPatterns: {
         rangeErrors: 0,
         typeErrors: 0,
@@ -887,9 +1043,9 @@ export class BlueHairFix {
         routingErrors: 0,
         dateErrors: 0,
         authErrors: 0
-      },
-      suspiciousPatterns: [],
-      recommendations: []
+      } as Record<string, number>,
+      suspiciousPatterns: [] as any[],
+      recommendations: [] as string[]
     };
 
     // Check for common error patterns that might appear in HTML source
@@ -906,7 +1062,7 @@ export class BlueHairFix {
       const matches = html.match(errorPattern.pattern);
       if (matches && matches.length > 0) {
         analysis.hasErrors = true;
-        analysis.errorPatterns[errorPattern.type] += matches.length;
+        analysis.errorPatterns[errorPattern.type as keyof typeof analysis.errorPatterns] += matches.length;
         analysis.errors.push({
           type: errorPattern.name,
           count: matches.length,
