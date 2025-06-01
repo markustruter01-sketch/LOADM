@@ -123,20 +123,8 @@ export default function StudentProgress() {
           </Card>
         </div>
         
-        {/* Tabs for Submissions and Analytics */}
-        <Tabs defaultValue={activeTab} className="mb-8">
-          <TabsList>
-            <TabsTrigger value="submissions" className="flex items-center">
-              <FileText className="h-4 w-4 mr-2" />
-              Submissions
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center">
-              <BarChart4 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="submissions" className="space-y-6 mt-6">
+        {/* Student Submissions Content */}
+        <div className="space-y-6 mt-6">
             {/* Filters */}
             <Card className="mb-8">
               <CardHeader>

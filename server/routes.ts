@@ -567,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qs.answers,
           qs.score,
           qs.squadron,
-          qs.submission_status,
+          qs.status,
           u.email,
           q.title as quiz_title,
           q.description as quiz_description
