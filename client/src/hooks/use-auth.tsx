@@ -40,15 +40,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
+    refetch: refetchUser,
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    select: (data) => data || null, // Ensure we always return null and not undefined
-    staleTime: 5 * 60 * 1000, // Keep auth data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnWindowFocus: false, // Disable automatic refetch that causes auth resets
-    refetchOnReconnect: true, // Refetch when connection is restored
-    retry: false, // Don't retry failed auth requests
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/user", {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.status === 401) {
+          return null; // Not authenticated
+        }
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user: ${response.status}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('Auth query error:', error);
+        return null;
+      }
+    },
+    staleTime: 0, // Always check for fresh auth data
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+    retry: false,
   });
 
   const loginMutation = useMutation({
@@ -56,12 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest({
         method: "POST",
         url: "/api/login",
-        data: credentials
+        body: credentials
       });
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: async (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      await refetchUser(); // Force immediate refetch to ensure auth state is updated
       // Don't redirect on login - let the modal handle navigation
     },
     onError: (error: Error) => {
