@@ -701,63 +701,117 @@ export class BlueHairFix {
     return recommendations.length > 0 ? recommendations : ['System appears to be functioning normally'];
   }
 
-  // Comprehensive React component and state analysis
+  // Enhanced React component analysis with error detection and page refresh
   private async testReactComponentLoading(): Promise<TestResult> {
     try {
-      console.log('⚛️ Blue Hair Fix 🔷: React component analysis...');
+      console.log('⚛️ Blue Hair Fix 🔸: Advanced React error analysis with refresh...');
       
-      // Test the quiz management page specifically
-      const response = await this.makeRequest('/instructors-portal/quiz-management', {
-        method: 'GET',
-        headers: {
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-        }
-      });
+      // Test multiple quiz-related routes to identify specific error patterns
+      const testRoutes = [
+        '/instructors-portal/quiz-management',
+        '/instructors-portal/quizzes', 
+        '/instructors-portal'
+      ];
 
-      if (!response.ok) {
+      const routeAnalysis = [];
+      
+      for (const route of testRoutes) {
+        console.log(`🔍 Blue Hair Fix: Testing route ${route}...`);
+        
+        // First request
+        const response = await this.makeRequest(route, {
+          method: 'GET',
+          headers: {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+
+        if (!response.ok) {
+          routeAnalysis.push({
+            route,
+            status: response.status,
+            error: `HTTP ${response.status}: Failed to load page`,
+            refreshAttempted: false
+          });
+          continue;
+        }
+
+        const html = await response.text();
+        
+        // Analyze for JavaScript errors and component issues
+        const errorAnalysis = this.analyzeJavaScriptErrors(html);
+        
+        // If errors detected, attempt refresh
+        let refreshAnalysis = null;
+        if (errorAnalysis.hasErrors) {
+          console.log(`🔄 Blue Hair Fix: Errors detected on ${route}, attempting refresh...`);
+          
+          // Wait a moment then refresh
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const refreshResponse = await this.makeRequest(route, {
+            method: 'GET',
+            headers: {
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'If-None-Match': '*'
+            }
+          });
+          
+          if (refreshResponse.ok) {
+            const refreshHtml = await refreshResponse.text();
+            refreshAnalysis = this.analyzeJavaScriptErrors(refreshHtml);
+          }
+        }
+
+        routeAnalysis.push({
+          route,
+          status: response.status,
+          initialAnalysis: errorAnalysis,
+          refreshAnalysis,
+          refreshAttempted: !!refreshAnalysis,
+          contentSize: html.length
+        });
+      }
+
+      // Focus on the quiz management route
+      const quizManagementAnalysis = routeAnalysis.find(r => r.route === '/instructors-portal/quiz-management');
+      
+      if (!quizManagementAnalysis || quizManagementAnalysis.status !== 200) {
         return {
           testName: 'React Component Loading',
           passed: false,
-          error: `HTTP ${response.status}: Failed to load quiz management page`,
+          error: 'Quiz management route failed to load',
+          details: { routeAnalysis },
           timestamp: new Date().toISOString()
         };
       }
 
-      const html = await response.text();
+      const initialErrors = quizManagementAnalysis.initialAnalysis;
+      const refreshErrors = quizManagementAnalysis.refreshAnalysis;
       
-      // Comprehensive frontend analysis
-      const analysis = {
-        hasReactApp: html.includes('id="root"'),
-        hasViteClient: html.includes('@vite/client') || html.includes('vite/client'),
-        hasReactScripts: html.includes('react') || html.includes('React'),
-        hasRouterElements: html.includes('router') || html.includes('Router'),
-        hasQuizComponents: html.includes('quiz') || html.includes('Quiz'),
-        hasErrorBoundary: html.includes('ErrorBoundary'),
-        hasLoadingStates: html.includes('loading') || html.includes('Loading'),
-        scriptCount: (html.match(/<script/g) || []).length,
-        moduleScripts: (html.match(/<script[^>]*type="module"/g) || []).length,
-        inlineScripts: (html.match(/<script(?![^>]*src)/g) || []).length,
-        cssLinks: (html.match(/<link[^>]*rel="stylesheet"/g) || []).length,
-        hasDevServer: html.includes('localhost') || html.includes('127.0.0.1'),
-        contentSize: html.length
-      };
-
-      console.log('📋 Blue Hair Fix 🔵: React Analysis:', analysis);
-
-      // Determine if the React app is properly configured
-      const isProperlyConfigured = analysis.hasReactApp && 
-                                  analysis.hasViteClient && 
-                                  analysis.moduleScripts > 0;
+      // Determine overall error status
+      const hasErrors = initialErrors?.hasErrors || false;
+      const errorsFixed = refreshErrors ? !refreshErrors.hasErrors : false;
 
       return {
         testName: 'React Component Loading',
-        passed: isProperlyConfigured,
+        passed: !hasErrors || errorsFixed,
         details: {
-          analysis,
-          issues: this.identifyReactIssues(analysis),
-          solutions: this.suggestReactSolutions(analysis)
+          routeAnalysis,
+          initialErrors,
+          refreshErrors,
+          errorStatus: {
+            hasInitialErrors: hasErrors,
+            errorsFixedOnRefresh: errorsFixed,
+            totalErrors: initialErrors?.errors?.length || 0
+          },
+          recommendations: initialErrors?.recommendations || []
         },
-        error: !isProperlyConfigured ? 'React app not properly initialized' : undefined,
+        error: hasErrors && !errorsFixed ? 'JavaScript runtime errors detected in components' : undefined,
         timestamp: new Date().toISOString()
       };
 
@@ -819,6 +873,84 @@ export class BlueHairFix {
     }
     
     return solutions.length > 0 ? solutions : ['React configuration appears correct'];
+  }
+
+  // Advanced JavaScript error detection and analysis
+  private analyzeJavaScriptErrors(html: string): any {
+    const analysis = {
+      hasErrors: false,
+      errors: [],
+      errorPatterns: {
+        rangeErrors: 0,
+        typeErrors: 0,
+        referenceErrors: 0,
+        routingErrors: 0,
+        dateErrors: 0,
+        authErrors: 0
+      },
+      suspiciousPatterns: [],
+      recommendations: []
+    };
+
+    // Check for common error patterns that might appear in HTML source
+    const errorPatterns = [
+      { name: 'RangeError', pattern: /RangeError|Invalid time value/gi, type: 'rangeErrors' },
+      { name: 'TypeError', pattern: /TypeError|Cannot read prop/gi, type: 'typeErrors' },
+      { name: 'ReferenceError', pattern: /ReferenceError|is not defined/gi, type: 'referenceErrors' },
+      { name: 'Routing Error', pattern: /Router|routing|navigation.*error/gi, type: 'routingErrors' },
+      { name: 'Date Error', pattern: /Invalid Date|time value.*invalid/gi, type: 'dateErrors' },
+      { name: 'Auth Error', pattern: /Unauthorized|auth.*fail|login.*required/gi, type: 'authErrors' }
+    ];
+
+    for (const errorPattern of errorPatterns) {
+      const matches = html.match(errorPattern.pattern);
+      if (matches && matches.length > 0) {
+        analysis.hasErrors = true;
+        analysis.errorPatterns[errorPattern.type] += matches.length;
+        analysis.errors.push({
+          type: errorPattern.name,
+          count: matches.length,
+          samples: matches.slice(0, 3) // First 3 matches
+        });
+      }
+    }
+
+    // Check for suspicious patterns in script content
+    const suspiciousPatterns = [
+      { name: 'Empty Date Constructor', pattern: /new Date\(\s*\)/gi },
+      { name: 'Undefined Props Access', pattern: /\.props\.\w+(?!\?)/gi },
+      { name: 'Missing Error Boundary', pattern: /componentDidCatch|ErrorBoundary/gi },
+      { name: 'Async Without Await', pattern: /async\s+\w+\s*\([^)]*\)\s*{[^}]*(?!await)/gi }
+    ];
+
+    for (const pattern of suspiciousPatterns) {
+      const matches = html.match(pattern.pattern);
+      if (matches) {
+        analysis.suspiciousPatterns.push({
+          name: pattern.name,
+          count: matches.length
+        });
+      }
+    }
+
+    // Generate specific recommendations based on error patterns
+    if (analysis.errorPatterns.dateErrors > 0 || analysis.errorPatterns.rangeErrors > 0) {
+      analysis.recommendations.push('Date/time handling issues detected - check date parsing and formatting');
+    }
+    
+    if (analysis.errorPatterns.routingErrors > 0) {
+      analysis.recommendations.push('Router configuration issues - verify route definitions and navigation');
+    }
+    
+    if (analysis.errorPatterns.typeErrors > 0) {
+      analysis.recommendations.push('Type safety issues - check prop types and null/undefined handling');
+    }
+
+    if (analysis.errorPatterns.authErrors > 0) {
+      analysis.recommendations.push('Authentication issues - verify session handling and user permissions');
+    }
+
+    return analysis;
   }
 
   // Test database connectivity

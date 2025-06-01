@@ -235,8 +235,10 @@ export default function QuizSubmissions() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">
-                          {new Date(submission.submissionDate).toLocaleDateString()} at{' '}
-                          {new Date(submission.submissionDate).toLocaleTimeString()}
+                          {submission.submissionDate ? 
+                            `${new Date(submission.submissionDate).toLocaleDateString()} at ${new Date(submission.submissionDate).toLocaleTimeString()}` :
+                            'No date available'
+                          }
                         </span>
                       </div>
                     </div>

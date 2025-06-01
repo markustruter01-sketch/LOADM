@@ -56,8 +56,12 @@ export default function InstructorQuizzes() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'No date';
+    
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid date';
+    
     return new Intl.DateTimeFormat('en-AU', {
       day: 'numeric',
       month: 'short',
