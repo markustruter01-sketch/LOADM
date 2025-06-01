@@ -92,7 +92,7 @@ export default function QuizPage() {
       });
 
       // Show quiz results
-      const result = await response.json();
+      const result = response;
       setScore(result.score);
       setQuizSubmitted(true);
       
