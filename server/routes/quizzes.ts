@@ -4,7 +4,7 @@ import * as authCore from '../auth-isolated/auth-core';
 const router = Router();
 
 // Authentication middleware for quiz routes
-function requireAuth(req: any, res: any, next: any) {
+function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.sessionId;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
@@ -32,7 +32,7 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
-function requireInstructor(req: any, res: any, next: any) {
+function requireInstructor(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   requireAuth(req, res, () => {
     if (req.user && (req.user.role === 'instructor' || req.user.role === 'superadmin')) {
       next();
@@ -43,7 +43,7 @@ function requireInstructor(req: any, res: any, next: any) {
 }
 
 // Get all quizzes
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);

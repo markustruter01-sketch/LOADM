@@ -93,7 +93,8 @@ export default function CreateQuiz() {
         createdById: user.id
       };
 
-      await apiRequest("/api/quizzes", {
+      await apiRequest({
+        url: "/api/quizzes",
         method: "POST",
         body: quizData
       });
