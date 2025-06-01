@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-simple-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 interface SimpleLoginModalProps {
   open: boolean;
@@ -21,7 +21,7 @@ export default function SimpleLoginModal({ open, onClose, onSuccess }: SimpleLog
   const [isLoading, setIsLoading] = useState(false);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login } = useIsolatedAuth();
 
   const validatePassword = (password: string) => {
     if (password.length < 6) return "Password must be at least 6 characters long";

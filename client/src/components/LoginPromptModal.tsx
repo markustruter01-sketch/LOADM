@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 interface LoginPromptModalProps {
   open: boolean;
@@ -18,7 +18,7 @@ export default function LoginPromptModal({ open, onClose, onSuccess }: LoginProm
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login } = useIsolatedAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
