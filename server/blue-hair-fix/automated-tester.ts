@@ -1156,21 +1156,48 @@ export class BlueHairFix {
       return this.testResults;
     }
     
-    // Run comprehensive Blue Hair Fix 🔹 diagnostic suite
+    // Comprehensive system-wide feature test suite
     const tests = [
+      // Core System Tests
       () => this.captureServerLogs(),
       () => this.testDatabaseConnectivity(),
+      
+      // Authentication & User Management
+      () => this.testUserManagement(),
+      () => this.testPermissionSystem(),
+      
+      // Quiz & Training Features
       () => this.testQuizCreation(),
       () => this.testQuizListing(),
-      () => this.testScenarioListing(),
-      () => this.testSubmissionRetrieval(),
+      () => this.testQuizSubmissions(),
       () => this.testInstructorQuizzes(),
-      () => this.testStudentProgress(),
-      () => this.testChatSystem(),
+      
+      // Scenario Management
+      () => this.testScenarioListing(),
+      () => this.testScenarioCreation(),
+      () => this.testSubmissionRetrieval(),
+      
+      // Document System
       () => this.testDocuments(),
+      () => this.testDocumentSubmissions(),
+      
+      // Progress & Analytics
+      () => this.testStudentProgress(),
+      () => this.testAnalyticsDashboard(),
+      
+      // Load Planning Tools
+      () => this.testLoadPlanningTools(),
+      () => this.testCalculatorTools(),
+      
+      // Communication Features
+      () => this.testChatSystem(),
+      
+      // Frontend Integration Tests
       () => this.testFrontendQuizPage(),
       () => this.testQuizPageAPI(),
-      () => this.testReactComponentLoading()
+      () => this.testReactComponentLoading(),
+      () => this.testNavigationRoutes(),
+      () => this.testResponsiveDesign()
     ];
 
     for (const test of tests) {
