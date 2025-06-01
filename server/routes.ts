@@ -1,49 +1,72 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, phoneDirectory, licenses, users } from "@shared/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { db } from "./db";
-import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
+import { 
+  licenses, 
+  users, 
+  documents, 
+  scenarios, 
+  documentSubmissions, 
+  scenarioSubmissions,
+  quizzes,
+  quizSubmissions,
+  phoneDirectory
+} from "@shared/schema";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth-middleware";
+import * as authCore from "./auth-isolated/auth-core";
 
-// Rate limiting for security
-const ONE_MINUTE = 60 * 1000;
-const MAX_REQUESTS_PER_MINUTE = 30;
-
-// Simple in-memory rate limiter for auth endpoints
-const requestCounts: Record<string, { count: number, resetTime: number }> = {};
-
-function rateLimiter(req: Request, res: Response, next: NextFunction) {
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  const now = Date.now();
+// Authentication middleware
+function requireAuth(req: Request, res: Response, next: Function) {
+  const sessionId = req.cookies?.sessionId;
   
-  // Initialize or reset if time window has passed
-  if (!requestCounts[ip] || now > requestCounts[ip].resetTime) {
-    requestCounts[ip] = { count: 1, resetTime: now + ONE_MINUTE };
-    return next();
+  if (!sessionId || !sessionId.startsWith('isolated_')) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
   
-  // Increment count for existing IP
-  requestCounts[ip].count += 1;
+  const session = authCore.getIsolatedSession(sessionId);
   
-  // Check if limit exceeded
-  if (requestCounts[ip].count > MAX_REQUESTS_PER_MINUTE) {
-    return res.status(429).json({ message: "Too many requests, please try again later" });
+  if (!session) {
+    return res.status(401).json({ error: 'Invalid session' });
   }
+  
+  (req as any).user = {
+    id: session.userId,
+    email: session.email,
+    role: session.role
+  };
   
   next();
 }
 
+function requireInstructor(req: Request, res: Response, next: Function) {
+  requireAuth(req, res, () => {
+    const user = (req as any).user;
+    if (user && (user.role === 'instructor' || user.role === 'superadmin')) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Instructor access required' });
+    }
+  });
+}
+
+function requireSuperAdmin(req: Request, res: Response, next: Function) {
+  requireAuth(req, res, () => {
+    const user = (req as any).user;
+    if (user && user.role === 'superadmin') {
+      next();
+    } else {
+      res.status(403).json({ error: 'Superadmin access required' });
+    }
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Phone Directory API endpoints
+  // Phone Directory - Public access
   app.get("/api/phone-directory", async (req, res) => {
     try {
-      console.log("NUCLEAR: Phone directory GET request received");
-      const directories = await db.select().from(phoneDirectory);
-      console.log("NUCLEAR: Phone directory data:", directories);
+      const directories = await db.select().from(phoneDirectory).orderBy(phoneDirectory.airbaseName);
       res.json(directories);
     } catch (error) {
       console.error("Error fetching phone directory:", error);
@@ -51,27 +74,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // License management endpoints
+  // SUPERADMIN LICENSE MANAGEMENT
   app.get("/api/licensing/licenses", requireSuperAdmin, async (req, res) => {
     try {
-      const allLicenses = await db.select({
-        id: licenses.id,
-        licenseKey: licenses.licenseKey,
-        email: licenses.email,
-        firstName: licenses.firstName,
-        lastName: licenses.lastName,
-        licenseType: licenses.licenseType,
-        isActive: licenses.isActive,
-        expiryDate: licenses.expiryDate,
-        createdAt: licenses.createdAt,
-        userId: users.id,
-        userEmail: users.email,
-        isFirstLogin: users.isFirstLogin,
-        hasPassword: users.hashedPassword
-      })
-      .from(licenses)
-      .leftJoin(users, eq(licenses.id, users.licenseId))
-      .orderBy(licenses.createdAt);
+      const allLicenses = await db
+        .select({
+          id: licenses.id,
+          licenseKey: licenses.licenseKey,
+          email: licenses.email,
+          firstName: licenses.firstName,
+          lastName: licenses.lastName,
+          licenseType: licenses.licenseType,
+          isActive: licenses.isActive,
+          expiryDate: licenses.expiryDate,
+          createdAt: licenses.createdAt,
+          userId: users.id,
+          userEmail: users.email,
+          isFirstLogin: users.isFirstLogin
+        })
+        .from(licenses)
+        .leftJoin(users, eq(licenses.id, users.licenseId))
+        .orderBy(desc(licenses.createdAt));
 
       res.json(allLicenses);
     } catch (error) {
@@ -80,29 +103,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new license and user account
   app.post("/api/licensing/licenses", requireSuperAdmin, async (req, res) => {
     try {
       const { email, firstName, lastName, licenseType, expiryDate } = req.body;
 
       if (!email || !firstName || !licenseType || !expiryDate) {
-        return res.status(400).json({ message: "Email, first name, license type, and expiry date are required" });
+        return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Check if email already exists in licenses table
-      const existingLicense = await db.select().from(licenses).where(eq(licenses.email, email)).limit(1);
-      if (existingLicense.length > 0) {
-        return res.status(400).json({ message: "A license with this email address already exists" });
+      // Check for existing email
+      const existing = await db.select().from(licenses).where(eq(licenses.email, email)).limit(1);
+      if (existing.length > 0) {
+        return res.status(400).json({ message: "Email already exists" });
       }
 
-      // Also check users table for consistency
-      const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
-      if (existingUser.length > 0) {
-        return res.status(400).json({ message: "A user with this email address already exists" });
-      }
-
-      // Generate unique license key
       const licenseKey = `LIC-${firstName.toUpperCase()}-${Date.now()}`;
+      const defaultPassword = 'Password1!';
+      const hashedPassword = await import('bcryptjs').then(bcrypt => bcrypt.hash(defaultPassword, 10));
 
       // Create license
       const newLicense = await db.insert(licenses).values({
@@ -115,57 +132,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiryDate: new Date(expiryDate),
         maxConcurrentSessions: 3,
         maxDevices: 2,
-        createdByAdmin: req.user?.id || 9,
+        createdByAdmin: (req as any).user.id,
         notes: ''
       }).returning();
 
-      // Create user account with template password
-      const defaultPassword = 'Password1!';
-      const hashedPassword = await import('bcryptjs').then(bcrypt => bcrypt.hash(defaultPassword, 10));
-
+      // Create user
       const newUser = await db.insert(users).values({
         email,
         hashedPassword,
         isFirstLogin: true,
         licenseId: newLicense[0].id,
-        createdBy: req.user?.id || 9,
+        createdBy: (req as any).user.id,
         userRole: licenseType === 'instructor' ? 'instructor' : 'loadmaster',
         isAdmin: licenseType === 'instructor',
         isSuperAdmin: false
       }).returning();
 
-      // Send welcome email to the new user
+      // Send welcome email
       try {
         const appUrl = process.env.NODE_ENV === 'production' 
           ? `https://${req.get('host')}` 
           : `http://${req.get('host')}`;
         
-        const emailSent = await sendLicenseWelcomeEmail({
+        await sendLicenseWelcomeEmail({
           userEmail: email,
           userName: `${firstName} ${lastName || ''}`.trim(),
-          appUrl: appUrl,
-          defaultPassword: defaultPassword
+          appUrl,
+          defaultPassword
         });
-
-        if (emailSent) {
-          console.log(`✅ Welcome email sent successfully to ${email}`);
-        } else {
-          console.log(`⚠️ Failed to send welcome email to ${email}`);
-        }
       } catch (emailError) {
         console.error('Email sending error:', emailError);
-        // Don't fail the license creation if email fails
       }
 
       res.status(201).json({
         license: newLicense[0],
-        user: {
-          id: newUser[0].id,
-          email: newUser[0].email,
-          isFirstLogin: true,
-          licenseId: newUser[0].licenseId
-        },
-        emailSent: true // Always return true to avoid exposing email config issues
+        user: newUser[0],
+        emailSent: true
       });
     } catch (error) {
       console.error('Error creating license:', error);
@@ -173,59 +175,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete license and associated user
   app.delete("/api/licensing/licenses/:id", requireSuperAdmin, async (req, res) => {
-    console.log('🗑️ DELETE LICENSE: Request received for ID:', req.params.id);
     try {
       const licenseId = parseInt(req.params.id);
       
       if (!licenseId || isNaN(licenseId)) {
-        console.log('🗑️ DELETE LICENSE: Invalid license ID');
         return res.status(400).json({ message: "Invalid license ID" });
       }
 
-      console.log('🗑️ DELETE LICENSE: Deleting user accounts for license:', licenseId);
-      // First, delete the associated user account
+      // Delete user first
       await db.delete(users).where(eq(users.licenseId, licenseId));
       
-      console.log('🗑️ DELETE LICENSE: Deleting license:', licenseId);
-      // Then delete the license
+      // Delete license
       const deletedLicense = await db.delete(licenses).where(eq(licenses.id, licenseId)).returning();
       
-      console.log('🗑️ DELETE LICENSE: Successfully deleted license');
-      res.status(200).json({ success: true, message: "License and associated user deleted successfully" });
+      if (deletedLicense.length === 0) {
+        return res.status(404).json({ message: "License not found" });
+      }
+
+      res.json({ success: true, message: "License deleted successfully" });
     } catch (error) {
-      console.error('🗑️ DELETE LICENSE: Error occurred:', error);
+      console.error('Error deleting license:', error);
       res.status(500).json({ message: "Failed to delete license" });
     }
   });
 
-  // License dashboard stats
-  app.get("/api/licensing/dashboard-stats", requireSuperAdmin, async (req, res) => {
-    try {
-      const allLicenses = await db.select().from(licenses);
-      const activeCount = allLicenses.filter(l => l.isActive).length;
-      const expiredCount = allLicenses.filter(l => new Date(l.expiryDate) < new Date()).length;
-
-      res.json({
-        totalLicenses: allLicenses.length,
-        activeLicenses: activeCount,
-        expiredLicenses: expiredCount,
-        pendingRenewal: expiredCount
-      });
-    } catch (error) {
-      console.error('Error fetching license stats:', error);
-      res.status(500).json({ message: "Failed to fetch license stats" });
-    }
-  });
-
-  // Password setup for first login
+  // PASSWORD MANAGEMENT
   app.post("/api/auth/set-password", async (req, res) => {
     try {
       const { email, newPassword } = req.body;
 
       if (!email || !newPassword) {
-        return res.status(400).json({ message: "Email and password are required" });
+        return res.status(400).json({ message: "Email and password required" });
       }
 
       const hashedPassword = await import('bcryptjs').then(bcrypt => bcrypt.hash(newPassword, 10));
@@ -244,13 +225,288 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quiz submissions endpoint for instructors
+  // DOCUMENT MANAGEMENT
+  app.get("/api/documents", async (req, res) => {
+    try {
+      const docs = await db.select().from(documents).orderBy(desc(documents.createdAt));
+      res.json(docs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve documents" });
+    }
+  });
+
+  app.get("/api/documents/:id", async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const doc = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
+      
+      if (doc.length === 0) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json(doc[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve document" });
+    }
+  });
+
+  app.post("/api/documents", requireInstructor, async (req, res) => {
+    try {
+      const { title, content, category, description } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({ message: "Title and content required" });
+      }
+
+      const newDoc = await db.insert(documents).values({
+        title,
+        content,
+        category: category || 'general',
+        description: description || '',
+        createdBy: (req as any).user.id
+      }).returning();
+
+      res.status(201).json(newDoc[0]);
+    } catch (error) {
+      console.error('Error creating document:', error);
+      res.status(500).json({ message: "Failed to create document" });
+    }
+  });
+
+  app.put("/api/documents/:id", requireInstructor, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const { title, content, category, description } = req.body;
+
+      const updatedDoc = await db.update(documents)
+        .set({
+          title,
+          content,
+          category,
+          description,
+          updatedAt: new Date()
+        })
+        .where(eq(documents.id, documentId))
+        .returning();
+
+      if (updatedDoc.length === 0) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      res.json(updatedDoc[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", requireInstructor, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      
+      const deleted = await db.delete(documents).where(eq(documents.id, documentId)).returning();
+      
+      if (deleted.length === 0) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      res.json({ success: true, message: "Document deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document" });
+    }
+  });
+
+  // SCENARIO MANAGEMENT
+  app.get("/api/scenarios", async (req, res) => {
+    try {
+      const scenarios_list = await db.select().from(scenarios).orderBy(desc(scenarios.createdAt));
+      res.json(scenarios_list);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve scenarios" });
+    }
+  });
+
+  app.get("/api/scenarios/:id", async (req, res) => {
+    try {
+      const scenarioId = parseInt(req.params.id);
+      const scenario = await db.select().from(scenarios).where(eq(scenarios.id, scenarioId)).limit(1);
+      
+      if (scenario.length === 0) {
+        return res.status(404).json({ message: "Scenario not found" });
+      }
+      
+      res.json(scenario[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to retrieve scenario" });
+    }
+  });
+
+  app.post("/api/scenarios", requireInstructor, async (req, res) => {
+    try {
+      const { title, description, aircraftType, maxWeight, cargoItems, objectives } = req.body;
+      
+      if (!title || !aircraftType) {
+        return res.status(400).json({ message: "Title and aircraft type required" });
+      }
+
+      const newScenario = await db.insert(scenarios).values({
+        title,
+        description: description || '',
+        aircraftType,
+        maxWeight: maxWeight || 0,
+        cargoItems: cargoItems || [],
+        objectives: objectives || [],
+        createdBy: (req as any).user.id
+      }).returning();
+
+      res.status(201).json(newScenario[0]);
+    } catch (error) {
+      console.error('Error creating scenario:', error);
+      res.status(500).json({ message: "Failed to create scenario" });
+    }
+  });
+
+  app.put("/api/scenarios/:id", requireInstructor, async (req, res) => {
+    try {
+      const scenarioId = parseInt(req.params.id);
+      const { title, description, aircraftType, maxWeight, cargoItems, objectives } = req.body;
+
+      const updatedScenario = await db.update(scenarios)
+        .set({
+          title,
+          description,
+          aircraftType,
+          maxWeight,
+          cargoItems,
+          objectives,
+          updatedAt: new Date()
+        })
+        .where(eq(scenarios.id, scenarioId))
+        .returning();
+
+      if (updatedScenario.length === 0) {
+        return res.status(404).json({ message: "Scenario not found" });
+      }
+
+      res.json(updatedScenario[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update scenario" });
+    }
+  });
+
+  app.delete("/api/scenarios/:id", requireInstructor, async (req, res) => {
+    try {
+      const scenarioId = parseInt(req.params.id);
+      
+      const deleted = await db.delete(scenarios).where(eq(scenarios.id, scenarioId)).returning();
+      
+      if (deleted.length === 0) {
+        return res.status(404).json({ message: "Scenario not found" });
+      }
+
+      res.json({ success: true, message: "Scenario deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting scenario:', error);
+      res.status(500).json({ message: "Failed to delete scenario" });
+    }
+  });
+
+  // QUIZ MANAGEMENT
+  app.get("/api/quizzes", async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const quizzes_list = await sql`
+        SELECT q.*, u.email as created_by_email
+        FROM quizzes q
+        LEFT JOIN users u ON q.created_by_id = u.id
+        ORDER BY q.created_at DESC
+      `;
+      
+      res.json(quizzes_list);
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      res.status(500).json({ error: 'Failed to fetch quizzes' });
+    }
+  });
+
+  app.get("/api/quizzes/:id", async (req, res) => {
+    try {
+      const quizId = parseInt(req.params.id);
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const quiz = await sql`
+        SELECT q.*, u.email as created_by_email
+        FROM quizzes q
+        LEFT JOIN users u ON q.created_by_id = u.id
+        WHERE q.id = ${quizId}
+      `;
+      
+      if (quiz.length === 0) {
+        return res.status(404).json({ error: 'Quiz not found' });
+      }
+      
+      res.json(quiz[0]);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch quiz' });
+    }
+  });
+
+  app.post("/api/quizzes", requireInstructor, async (req, res) => {
+    try {
+      const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
+      
+      if (!title || !questionCount || !categories || !categories.length) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const newQuiz = await sql`
+        INSERT INTO quizzes (title, description, created_by_id, question_count, categories, is_active, expires_at)
+        VALUES (${title}, ${description || ''}, ${(req as any).user.id}, ${questionCount}, ${JSON.stringify(categories)}, ${isActive !== false}, ${expiresAt ? new Date(expiresAt) : null})
+        RETURNING *
+      `;
+
+      res.status(201).json(newQuiz[0]);
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      res.status(500).json({ error: 'Failed to create quiz' });
+    }
+  });
+
+  app.delete("/api/quizzes/:id", requireInstructor, async (req, res) => {
+    try {
+      const quizId = parseInt(req.params.id);
+      
+      if (isNaN(quizId)) {
+        return res.status(400).json({ error: 'Invalid quiz ID' });
+      }
+
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const deleted = await sql`DELETE FROM quizzes WHERE id = ${quizId} RETURNING id`;
+      
+      if (deleted.length === 0) {
+        return res.status(404).json({ error: 'Quiz not found' });
+      }
+
+      res.json({ success: true, message: 'Quiz deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+      res.status(500).json({ error: 'Failed to delete quiz' });
+    }
+  });
+
+  // STUDENT SUBMISSIONS
   app.get("/api/instructor/quiz-submissions", requireInstructor, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Get quiz submissions with proper ordering and joins
       const submissions = await sql`
         SELECT 
           qs.id,
@@ -272,297 +528,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY qs.submission_date DESC
       `;
       
-      // Format the response
-      const formattedSubmissions = submissions.map(submission => ({
-        id: submission.id,
-        quizId: submission.quiz_id,
-        userId: submission.user_id,
-        submissionDate: submission.submission_date,
-        answers: submission.answers,
-        score: submission.score,
-        squadron: submission.squadron || 'AMG',
-        status: submission.status || 'submitted',
-        email: submission.email || 'Unknown User',
-        firstName: submission.first_name || '',
-        lastName: submission.last_name || '',
-        quizTitle: submission.quiz_title || 'Unknown Quiz',
-        quizDescription: submission.quiz_description || ''
-      }));
-      
-      res.json(formattedSubmissions);
+      res.json(submissions);
     } catch (error) {
       console.error('Quiz submissions API error:', error);
-      res.status(500).json({ error: 'Failed to fetch quiz submissions', details: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ error: 'Failed to fetch quiz submissions' });
     }
   });
 
-  // Mark quiz submission endpoint
-  app.post("/api/quiz-submissions/:id/mark", requireInstructor, async (req, res) => {
+  app.get("/api/scenario-submissions", requireAuth, async (req, res) => {
     try {
-      const { id } = req.params;
-      const { status } = req.body;
-      
+      const user = (req as any).user;
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      await sql`
-        UPDATE quiz_submissions 
-        SET status = ${status}
-        WHERE id = ${parseInt(id)}
-      `;
-      
-      res.json({ success: true, status });
-    } catch (error) {
-      console.error('Error marking quiz submission:', error);
-      res.status(500).json({ error: 'Failed to mark submission' });
-    }
-  });
-  
-  // Import quiz routes
-  const quizzesRouter = await import('./routes/quizzes');
-  app.use('/api/quizzes', quizzesRouter.default);
-  
-  // Documents routes
-  app.get("/api/documents", async (req, res) => {
-    try {
-      const documents = await storage.getDocuments();
-      res.json(documents);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve documents" });
-    }
-  });
-  
-  app.get("/api/documents/:id", async (req, res) => {
-    try {
-      const documentId = parseInt(req.params.id);
-      const document = await storage.getDocument(documentId);
-      
-      if (!document) {
-        return res.status(404).json({ message: "Document not found" });
+      let submissions;
+      if (user.role === 'instructor' || user.role === 'superadmin') {
+        // Instructors can see all submissions
+        submissions = await sql`
+          SELECT 
+            ss.*,
+            u.email,
+            u.first_name,
+            u.last_name,
+            s.title as scenario_title
+          FROM scenario_submissions ss
+          LEFT JOIN users u ON ss.user_id = u.id
+          LEFT JOIN scenarios s ON ss.scenario_id = s.id
+          ORDER BY ss.submitted_at DESC
+        `;
+      } else {
+        // Students can only see their own submissions
+        submissions = await sql`
+          SELECT 
+            ss.*,
+            u.email,
+            u.first_name,
+            u.last_name,
+            s.title as scenario_title
+          FROM scenario_submissions ss
+          LEFT JOIN users u ON ss.user_id = u.id
+          LEFT JOIN scenarios s ON ss.scenario_id = s.id
+          WHERE ss.user_id = ${user.id}
+          ORDER BY ss.submitted_at DESC
+        `;
       }
       
-      res.json(document);
+      res.json(submissions);
     } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve document" });
+      console.error('Scenario submissions API error:', error);
+      res.status(500).json({ error: 'Failed to fetch scenario submissions' });
     }
   });
-  
-  app.post("/api/documents", requireInstructor, async (req, res) => {
-    try {
-      const documentData = insertDocumentSchema.parse(req.body);
-      const document = await storage.createDocument(documentData);
-      res.status(201).json(document);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid document data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create document" });
-    }
-  });
-  
-  app.put("/api/documents/:id", requireInstructor, async (req, res) => {
-    try {
-      const documentId = parseInt(req.params.id);
-      const documentData = insertDocumentSchema.partial().parse(req.body);
-      const document = await storage.updateDocument(documentId, documentData);
-      
-      if (!document) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      res.json(document);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid document data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update document" });
-    }
-  });
-  
-  app.delete("/api/documents/:id", requireInstructor, async (req, res) => {
-    try {
-      const documentId = parseInt(req.params.id);
-      const success = await storage.deleteDocument(documentId);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete document" });
-    }
-  });
-  
-  // Document submissions routes
+
+  // DOCUMENT SUBMISSIONS
   app.get("/api/document-submissions", requireAuth, async (req, res) => {
     try {
-      const documentId = req.query.documentId ? parseInt(req.query.documentId as string) : undefined;
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const user = (req as any).user;
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
       
-      // Only instructors can see all submissions or other user's submissions
-      if (req.user?.role !== 'instructor' && req.user?.role !== 'superadmin' && 
-          (userId !== undefined && userId !== req.user?.id)) {
-        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
+      let submissions;
+      if (user.role === 'instructor' || user.role === 'superadmin') {
+        // Instructors can see all submissions
+        submissions = await sql`
+          SELECT 
+            ds.*,
+            u.email,
+            u.first_name,
+            u.last_name,
+            d.title as document_title
+          FROM document_submissions ds
+          LEFT JOIN users u ON ds.user_id = u.id
+          LEFT JOIN documents d ON ds.document_id = d.id
+          ORDER BY ds.submitted_at DESC
+        `;
+      } else {
+        // Students can only see their own submissions
+        submissions = await sql`
+          SELECT 
+            ds.*,
+            u.email,
+            u.first_name,
+            u.last_name,
+            d.title as document_title
+          FROM document_submissions ds
+          LEFT JOIN users u ON ds.user_id = u.id
+          LEFT JOIN documents d ON ds.document_id = d.id
+          WHERE ds.user_id = ${user.id}
+          ORDER BY ds.submitted_at DESC
+        `;
       }
       
-      const submissions = await storage.getDocumentSubmissions(documentId, userId || req.user?.id);
       res.json(submissions);
     } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve document submissions" });
+      console.error('Document submissions API error:', error);
+      res.status(500).json({ error: 'Failed to fetch document submissions' });
     }
   });
-  
+
+  // CREATE SUBMISSIONS
   app.post("/api/document-submissions", requireAuth, async (req, res) => {
     try {
-      const submissionData = insertDocumentSubmissionSchema.parse(req.body);
-      const submission = await storage.createDocumentSubmission(submissionData);
-      res.status(201).json(submission);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      const { documentId, content, notes } = req.body;
+      const user = (req as any).user;
+      
+      if (!documentId || !content) {
+        return res.status(400).json({ error: 'Document ID and content required' });
       }
-      res.status(500).json({ message: "Failed to create document submission" });
+
+      const newSubmission = await db.insert(documentSubmissions).values({
+        documentId,
+        userId: user.id,
+        content,
+        notes: notes || '',
+        status: 'submitted'
+      }).returning();
+
+      res.status(201).json(newSubmission[0]);
+    } catch (error) {
+      console.error('Error creating document submission:', error);
+      res.status(500).json({ error: 'Failed to create submission' });
     }
   });
-  
-  // Scenarios routes
-  app.get("/api/scenarios", async (req, res) => {
-    try {
-      const scenarios = await storage.getScenarios();
-      res.json(scenarios);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve scenarios" });
-    }
-  });
-  
-  app.get("/api/scenarios/:id", async (req, res) => {
-    try {
-      const scenarioId = parseInt(req.params.id);
-      const scenario = await storage.getScenario(scenarioId);
-      
-      if (!scenario) {
-        return res.status(404).json({ message: "Scenario not found" });
-      }
-      
-      res.json(scenario);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve scenario" });
-    }
-  });
-  
-  app.post("/api/scenarios", requireInstructor, async (req, res) => {
-    try {
-      const scenarioData = insertScenarioSchema.parse(req.body);
-      const scenario = await storage.createScenario(scenarioData);
-      res.status(201).json(scenario);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid scenario data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create scenario" });
-    }
-  });
-  
-  app.put("/api/scenarios/:id", requireInstructor, async (req, res) => {
-    try {
-      const scenarioId = parseInt(req.params.id);
-      const scenarioData = insertScenarioSchema.partial().parse(req.body);
-      const scenario = await storage.updateScenario(scenarioId, scenarioData);
-      
-      if (!scenario) {
-        return res.status(404).json({ message: "Scenario not found" });
-      }
-      
-      res.json(scenario);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid scenario data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update scenario" });
-    }
-  });
-  
-  app.delete("/api/scenarios/:id", requireInstructor, async (req, res) => {
-    try {
-      const scenarioId = parseInt(req.params.id);
-      const success = await storage.deleteScenario(scenarioId);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Scenario not found" });
-      }
-      
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete scenario" });
-    }
-  });
-  
-  // Scenario submissions routes
-  app.get("/api/scenario-submissions", requireAuth, async (req, res) => {
-    try {
-      const scenarioId = req.query.scenarioId ? parseInt(req.query.scenarioId as string) : undefined;
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
-      
-      // Only instructors can see all submissions or other user's submissions
-      if (req.user?.role !== 'instructor' && req.user?.role !== 'superadmin' && 
-          (userId !== undefined && userId !== req.user?.id)) {
-        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
-      }
-      
-      const submissions = await storage.getScenarioSubmissions(scenarioId, userId || req.user?.id);
-      res.json(submissions);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to retrieve scenario submissions" });
-    }
-  });
-  
+
   app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
     try {
-      const submissionData = insertScenarioSubmissionSchema.parse(req.body);
-      const submission = await storage.createScenarioSubmission(submissionData);
-      res.status(201).json(submission);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      const { scenarioId, loadPlan, notes } = req.body;
+      const user = (req as any).user;
+      
+      if (!scenarioId || !loadPlan) {
+        return res.status(400).json({ error: 'Scenario ID and load plan required' });
       }
-      res.status(500).json({ message: "Failed to create scenario submission" });
+
+      const newSubmission = await db.insert(scenarioSubmissions).values({
+        scenarioId,
+        userId: user.id,
+        loadPlan,
+        notes: notes || '',
+        status: 'submitted'
+      }).returning();
+
+      res.status(201).json(newSubmission[0]);
+    } catch (error) {
+      console.error('Error creating scenario submission:', error);
+      res.status(500).json({ error: 'Failed to create submission' });
     }
   });
 
-  // Analytics routes
-  app.post("/api/analytics/generate", requireAuth, async (req, res) => {
+  // QUIZ QUESTIONS AND SUBMISSION
+  app.get("/api/quizzes/:id/questions", async (req, res) => {
     try {
-      const { submissionId, type } = req.body;
-      const analytics = await generateAnalytics(submissionId, type);
-      res.json(analytics);
+      const quizId = parseInt(req.params.id);
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const quiz = await sql`SELECT * FROM quizzes WHERE id = ${quizId}`;
+      
+      if (quiz.length === 0) {
+        return res.status(404).json({ error: 'Quiz not found' });
+      }
+
+      // Import quiz questions dynamically
+      const { loadmasterQuestions } = await import('@shared/quiz-questions');
+      
+      const filteredQuestions = loadmasterQuestions.filter(question => 
+        quiz[0].categories.includes(question.category)
+      );
+      
+      if (filteredQuestions.length === 0) {
+        return res.status(400).json({ error: 'No questions available' });
+      }
+      
+      // Randomly select questions
+      const selectedQuestions = filteredQuestions
+        .sort(() => 0.5 - Math.random())
+        .slice(0, Math.min(quiz[0].question_count, filteredQuestions.length));
+      
+      // Remove correct answers for security
+      const quizQuestions = selectedQuestions.map(({ correctAnswer, ...rest }) => rest);
+      
+      res.json(quizQuestions);
     } catch (error) {
-      res.status(500).json({ message: "Failed to generate analytics" });
+      console.error('Error fetching quiz questions:', error);
+      res.status(500).json({ error: 'Failed to fetch quiz questions' });
     }
   });
 
-  app.post("/api/analytics/cargo-balance", requireAuth, async (req, res) => {
+  app.post("/api/quizzes/:id/submit", requireAuth, async (req, res) => {
     try {
-      const { cargoData } = req.body;
-      const analysis = await analyzeCargoBalance(cargoData);
-      res.json(analysis);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to analyze cargo balance" });
-    }
-  });
+      const quizId = parseInt(req.params.id);
+      const { answers, squadron } = req.body;
+      const user = (req as any).user;
+      
+      if (!answers || !Array.isArray(answers) || answers.length === 0) {
+        return res.status(400).json({ error: 'Answers required' });
+      }
 
-  app.post("/api/analytics/advanced", requireAuth, async (req, res) => {
-    try {
-      const { userId, timeframe } = req.body;
-      const analytics = await generateAdvancedAnalytics(userId, timeframe);
-      res.json(analytics);
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get quiz and questions for scoring
+      const quiz = await sql`SELECT * FROM quizzes WHERE id = ${quizId}`;
+      if (quiz.length === 0) {
+        return res.status(404).json({ error: 'Quiz not found' });
+      }
+
+      const { loadmasterQuestions } = await import('@shared/quiz-questions');
+      const allPossibleQuestions = loadmasterQuestions.filter(q => 
+        quiz[0].categories.includes(q.category)
+      );
+      
+      // Calculate score
+      let correctCount = 0;
+      answers.forEach(answer => {
+        const question = allPossibleQuestions.find(q => q.id === answer.questionId);
+        if (question && question.correctAnswer === parseInt(answer.answeredOption)) {
+          correctCount++;
+        }
+      });
+      
+      const score = Math.round((correctCount / answers.length) * 100);
+      
+      // Save submission
+      const newSubmission = await sql`
+        INSERT INTO quiz_submissions (quiz_id, user_id, answers, score, squadron, submission_date)
+        VALUES (${quizId}, ${user.id}, ${JSON.stringify(answers)}, ${score}, ${squadron || 'AMG'}, NOW())
+        RETURNING *
+      `;
+
+      res.status(201).json({
+        id: newSubmission[0].id,
+        score,
+        correctCount,
+        totalQuestions: answers.length,
+        passed: score >= 70
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to generate advanced analytics" });
+      console.error('Quiz submission error:', error);
+      res.status(500).json({ error: 'Failed to submit quiz' });
     }
   });
 
   const httpServer = createServer();
   httpServer.on("request", app);
-
   return httpServer;
 }

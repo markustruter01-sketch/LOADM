@@ -1,15 +1,67 @@
 import { Router } from 'express';
-import { loadmasterQuestions } from '@shared/quiz-questions';
-import * as quizStorage from '../storage-quiz';
-import { requireAuth, requireInstructor } from '../middleware/auth-middleware';
+import * as authCore from '../auth-isolated/auth-core';
 
 const router = Router();
+
+// Authentication middleware for quiz routes
+function requireAuth(req: any, res: any, next: any) {
+  const sessionId = req.cookies?.sessionId;
+  
+  if (!sessionId || !sessionId.startsWith('isolated_')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const session = authCore.getIsolatedSession(sessionId);
+  
+  if (!session) {
+    return res.status(401).json({ error: 'Invalid session' });
+  }
+  
+  req.user = {
+    id: session.userId,
+    email: session.email,
+    role: session.role
+  };
+  
+  next();
+}
+
+function requireInstructor(req: any, res: any, next: any) {
+  requireAuth(req, res, () => {
+    if (req.user && (req.user.role === 'instructor' || req.user.role === 'superadmin')) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Instructor access required' });
+    }
+  });
+}
 
 // Get all quizzes
 router.get('/', async (req, res) => {
   try {
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
     const activeOnly = req.query.activeOnly === 'true';
-    const quizzes = await quizStorage.getQuizzes(activeOnly);
+    
+    let quizzes;
+    if (activeOnly) {
+      quizzes = await sql`
+        SELECT q.*, u.email as created_by_email
+        FROM quizzes q
+        LEFT JOIN users u ON q.created_by_id = u.id
+        WHERE q.is_active = true
+        ORDER BY q.created_at DESC
+      `;
+    } else {
+      quizzes = await sql`
+        SELECT q.*, u.email as created_by_email
+        FROM quizzes q
+        LEFT JOIN users u ON q.created_by_id = u.id
+        ORDER BY q.created_at DESC
+      `;
+    }
+    
     res.json(quizzes);
   } catch (error) {
     console.error('Error fetching quizzes:', error);
@@ -21,13 +73,21 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const quiz = await quizStorage.getQuiz(id);
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    if (!quiz) {
+    const quiz = await sql`
+      SELECT q.*, u.email as created_by_email
+      FROM quizzes q
+      LEFT JOIN users u ON q.created_by_id = u.id
+      WHERE q.id = ${id}
+    `;
+    
+    if (quiz.length === 0) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    res.json(quiz);
+    res.json(quiz[0]);
   } catch (error) {
     console.error(`Error fetching quiz ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to fetch quiz' });
@@ -43,17 +103,32 @@ router.post('/', requireInstructor, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
-    const quiz = await quizStorage.createQuiz({
-      title,
-      description: description || '',
-      createdById: req.user?.id || 1,
-      questionCount,
-      categories,
-      isActive: isActive !== undefined ? isActive : true,
-      expiresAt: expiresAt ? new Date(expiresAt) : null
-    });
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    res.status(201).json(quiz);
+    const quiz = await sql`
+      INSERT INTO quizzes (
+        title,
+        description,
+        created_by_id,
+        question_count,
+        categories,
+        is_active,
+        expires_at
+      )
+      VALUES (
+        ${title},
+        ${description || ''},
+        ${req.user.id},
+        ${questionCount},
+        ${JSON.stringify(categories)},
+        ${isActive !== false},
+        ${expiresAt ? new Date(expiresAt) : null}
+      )
+      RETURNING *
+    `;
+    
+    res.status(201).json(quiz[0]);
   } catch (error) {
     console.error('Error creating quiz:', error);
     res.status(500).json({ error: 'Failed to create quiz' });
@@ -61,27 +136,32 @@ router.post('/', requireInstructor, async (req, res) => {
 });
 
 // Update a quiz
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireInstructor, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
     
-    const updateData: any = {};
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
-    if (questionCount !== undefined) updateData.questionCount = questionCount;
-    if (categories !== undefined) updateData.categories = categories;
-    if (isActive !== undefined) updateData.isActive = isActive;
-    if (expiresAt !== undefined) updateData.expiresAt = expiresAt ? new Date(expiresAt) : null;
+    const quiz = await sql`
+      UPDATE quizzes 
+      SET 
+        title = ${title},
+        description = ${description},
+        question_count = ${questionCount},
+        categories = ${JSON.stringify(categories)},
+        is_active = ${isActive},
+        expires_at = ${expiresAt ? new Date(expiresAt) : null}
+      WHERE id = ${id}
+      RETURNING *
+    `;
     
-    const quiz = await quizStorage.updateQuiz(id, updateData);
-    
-    if (!quiz) {
+    if (quiz.length === 0) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    res.json(quiz);
+    res.json(quiz[0]);
   } catch (error) {
     console.error(`Error updating quiz ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to update quiz' });
@@ -97,13 +177,16 @@ router.delete('/:id', requireInstructor, async (req, res) => {
       return res.status(400).json({ error: 'Invalid quiz ID' });
     }
     
-    const result = await quizStorage.deleteQuiz(id);
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    if (!result) {
+    const result = await sql`DELETE FROM quizzes WHERE id = ${id} RETURNING id`;
+    
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    res.status(200).json({ success: true, message: 'Quiz deleted successfully' });
+    res.json({ success: true, message: 'Quiz deleted successfully' });
   } catch (error) {
     console.error(`Error deleting quiz ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to delete quiz' });
@@ -114,15 +197,21 @@ router.delete('/:id', requireInstructor, async (req, res) => {
 router.get('/:id/questions', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const quiz = await quizStorage.getQuiz(id);
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    if (!quiz) {
+    const quiz = await sql`SELECT * FROM quizzes WHERE id = ${id}`;
+    
+    if (quiz.length === 0) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
+    // Import quiz questions
+    const { loadmasterQuestions } = await import('@shared/quiz-questions');
+    
     // Filter questions based on the quiz categories
     const filteredQuestions = loadmasterQuestions.filter(question => 
-      quiz.categories.includes(question.category)
+      quiz[0].categories.includes(question.category)
     );
     
     if (filteredQuestions.length === 0) {
@@ -132,15 +221,13 @@ router.get('/:id/questions', async (req, res) => {
     }
     
     // Randomly select questions
-    const selectedQuestions = getRandomQuestions(
-      filteredQuestions, 
-      Math.min(quiz.questionCount, filteredQuestions.length)
-    );
+    const selectedQuestions = filteredQuestions
+      .sort(() => 0.5 - Math.random())
+      .slice(0, Math.min(quiz[0].question_count, filteredQuestions.length));
     
-    // Include full question data but remove correctAnswer for security
+    // Remove correct answers for security
     const quizQuestions = selectedQuestions.map(({ correctAnswer, ...rest }) => ({
       ...rest,
-      // Ensure we keep the ID for answer matching
       id: rest.id
     }));
     
@@ -151,19 +238,24 @@ router.get('/:id/questions', async (req, res) => {
   }
 });
 
-// Get quiz questions with answers (for instructors reviewing submissions)
-router.get('/:id/questions-with-answers', async (req, res) => {
+// Get quiz questions with answers (for instructors)
+router.get('/:id/questions-with-answers', requireInstructor, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const quiz = await quizStorage.getQuiz(id);
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
     
-    if (!quiz) {
+    const quiz = await sql`SELECT * FROM quizzes WHERE id = ${id}`;
+    
+    if (quiz.length === 0) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    // Filter questions based on the quiz categories - return ALL questions for this quiz
+    const { loadmasterQuestions } = await import('@shared/quiz-questions');
+    
+    // Filter questions based on the quiz categories
     const filteredQuestions = loadmasterQuestions.filter(question => 
-      quiz.categories.includes(question.category)
+      quiz[0].categories.includes(question.category)
     );
     
     if (filteredQuestions.length === 0) {
@@ -180,33 +272,29 @@ router.get('/:id/questions-with-answers', async (req, res) => {
   }
 });
 
-// Submit a quiz - COMPLETELY REBUILT FROM SCRATCH
-router.post('/:id/submit', async (req, res) => {
+// Submit a quiz
+router.post('/:id/submit', requireAuth, async (req, res) => {
   try {
-    console.log('=== QUIZ SUBMISSION - COMPLETELY NEW SYSTEM ===');
     const quizId = parseInt(req.params.id);
-    const { userId, answers, squadron } = req.body;
+    const { answers, squadron } = req.body;
     
-    console.log('Raw request body:', JSON.stringify(req.body, null, 2));
-    
-    // Validate basic data
-    if (!userId || !answers || !Array.isArray(answers)) {
-      return res.status(400).json({ error: 'Missing required data' });
+    if (!answers || !Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ error: 'Answers required' });
     }
 
-    if (answers.length === 0) {
-      return res.status(400).json({ error: 'No answers provided' });
-    }
-
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
     // Verify quiz exists
-    const quiz = await quizStorage.getQuiz(quizId);
-    if (!quiz) {
+    const quiz = await sql`SELECT * FROM quizzes WHERE id = ${quizId}`;
+    if (quiz.length === 0) {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
     // Get questions for scoring
+    const { loadmasterQuestions } = await import('@shared/quiz-questions');
     const allPossibleQuestions = loadmasterQuestions.filter(q => 
-      quiz.categories.includes(q.category)
+      quiz[0].categories.includes(q.category)
     );
     
     // Calculate score
@@ -229,74 +317,28 @@ router.post('/:id/submit', async (req, res) => {
     
     const score = Math.round((correctCount / answers.length) * 100);
     
-    // Prepare answers for database
-    const dbAnswers = answers.map(a => ({
-      questionId: a.questionId,
-      answeredOption: parseInt(a.answeredOption)
-    }));
-    
-    console.log('Final answers for DB:', JSON.stringify(dbAnswers, null, 2));
-    
-    // Direct database insertion using SQL tool to guarantee success
-    const answersJson = JSON.stringify(dbAnswers);
-    console.log('Answers JSON being inserted:', answersJson);
-    
-    // Use execute_sql_tool to insert directly
-    const insertSQL = `
+    // Save submission
+    const newSubmission = await sql`
       INSERT INTO quiz_submissions (quiz_id, user_id, answers, score, squadron, submission_date)
-      VALUES (${quizId}, ${userId}, '${answersJson}'::jsonb, ${score}, '${squadron || 'AMG'}', NOW())
-      RETURNING id;
-    `;
-    
-    console.log('Final SQL:', insertSQL);
-    
-    // Import and use the SQL execution directly
-    const { neon } = await import('@neondatabase/serverless');
-    const sql = neon(process.env.DATABASE_URL!);
-    
-    const insertResult = await sql`
-      INSERT INTO quiz_submissions (quiz_id, user_id, answers, score, squadron, submission_date)
-      VALUES (${quizId}, ${userId}, ${answersJson}::jsonb, ${score}, ${squadron || 'AMG'}, NOW())
+      VALUES (${quizId}, ${req.user.id}, ${JSON.stringify(answers)}, ${score}, ${squadron || 'AMG'}, NOW())
       RETURNING id, quiz_id, user_id, submission_date, answers, score, squadron
     `;
     
-    const newSubmission = insertResult[0];
-    
-    console.log('Successfully created submission:', newSubmission.id);
+    console.log('Successfully created quiz submission:', newSubmission[0].id);
     
     res.status(201).json({
-      id: newSubmission.id,
+      id: newSubmission[0].id,
       score,
       correctCount,
       totalQuestions: answers.length,
       feedback,
-      passed: true
+      passed: score >= 70
     });
 
   } catch (error: any) {
-    console.error('QUIZ SUBMISSION ERROR:', error);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ error: 'Failed to submit quiz - please try again' });
+    console.error('Quiz submission error:', error);
+    res.status(500).json({ error: 'Failed to submit quiz' });
   }
 });
-
-// Get all quiz submissions
-router.get('/submissions', async (req, res) => {
-  try {
-    const submissions = await quizStorage.getQuizSubmissions();
-    res.json(submissions);
-  } catch (error) {
-    console.error('Error fetching quiz submissions:', error);
-    res.status(500).json({ error: 'Failed to fetch quiz submissions' });
-  }
-});
-
-// Quiz submissions endpoint removed - now handled in main routes.ts
-
-// Helper function to get random questions
-function getRandomQuestions(questions: any[], count: number) {
-  const shuffled = [...questions].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-}
 
 export default router;
