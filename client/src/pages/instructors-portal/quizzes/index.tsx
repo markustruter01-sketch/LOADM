@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
-import { Plus, BookOpen, Trash2, Edit } from "lucide-react";
+import { Plus, BookOpen, Trash2, Edit, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +26,13 @@ export default function InstructorQuizzes() {
   const { toast } = useToast();
   const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
 
-  const { data: quizzes, isLoading } = useQuery({
+  const { data: quizzes, isLoading, refetch } = useQuery({
     queryKey: ['/api/quizzes'],
     queryFn: ({ queryKey, signal }) => fetch('/api/quizzes', { signal }).then(res => res.json()),
+    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    refetchOnMount: true, // Always refresh when component mounts
+    staleTime: 0, // Consider data immediately stale
   });
 
   const handleDeleteQuiz = async (id: number) => {
@@ -101,13 +105,23 @@ export default function InstructorQuizzes() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-foreground">Pop Quizzes</h1>
-          <Button 
-            onClick={() => setLocation('/instructors-portal/quizzes/create')}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Create Pop Quiz
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => refetch()}
+              variant="outline"
+              className="border-orange-500 text-orange-500 hover:bg-orange-50"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+            <Button 
+              onClick={() => setLocation('/instructors-portal/quizzes/create')}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Pop Quiz
+            </Button>
+          </div>
         </div>
 
         <p className="text-muted-foreground mb-8">

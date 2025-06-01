@@ -88,7 +88,7 @@ class BobSimpleTester {
         method: 'POST',
         body: {
           email: 'markustruter01@gmail.com',
-          password: 'password123'
+          password: 'Skating69!'
         }
       });
 

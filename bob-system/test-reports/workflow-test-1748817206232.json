@@ -1,0 +1,56 @@
+{
+  "summary": {
+    "totalTests": 5,
+    "passed": 5,
+    "failed": 0,
+    "successRate": 100
+  },
+  "tests": [
+    {
+      "name": "Authentication",
+      "steps": [
+        "Attempting login",
+        "Testing user endpoint"
+      ],
+      "success": true,
+      "errors": []
+    },
+    {
+      "name": "Quiz Creation",
+      "steps": [
+        "Creating quiz"
+      ],
+      "success": true,
+      "errors": [],
+      "createdQuizId": 27
+    },
+    {
+      "name": "Quiz List",
+      "steps": [
+        "Fetching quiz list"
+      ],
+      "success": true,
+      "errors": [],
+      "quizCount": 2
+    },
+    {
+      "name": "Quiz Edit",
+      "steps": [
+        "Fetching quiz for edit",
+        "Updating quiz"
+      ],
+      "success": true,
+      "errors": []
+    },
+    {
+      "name": "Quiz Deletion",
+      "steps": [
+        "Deleting quiz",
+        "Verifying deletion"
+      ],
+      "success": true,
+      "errors": []
+    }
+  ],
+  "timestamp": "2025-06-01T22:33:26.230Z"
+}
