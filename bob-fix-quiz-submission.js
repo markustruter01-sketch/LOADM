@@ -129,7 +129,7 @@ async function testQuizSubmission() {
       const result = await submitResponse.json();
       
       if (submitResponse.ok) {
-        console.log('✅ SUCCESS:', result);
+        console.log('✅ SUCCESS:', JSON.stringify(result, null, 2));
         return; // Stop on first success
       } else {
         console.log('❌ FAILED:', result);

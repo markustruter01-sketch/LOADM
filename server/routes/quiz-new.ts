@@ -190,12 +190,47 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
       ) RETURNING id, score, correct_count, total_questions, passed
     `;
 
+    // Prepare detailed feedback for each question
+    const questionFeedback = [];
+    for (const answer of answers) {
+      try {
+        const questionResults = await sql`
+          SELECT 
+            question_text,
+            option_1,
+            option_2, 
+            option_3,
+            option_4,
+            correct_option
+          FROM questions 
+          WHERE id = ${answer.questionId}
+        `;
+        
+        if (questionResults.length > 0) {
+          const question = questionResults[0];
+          const options = [question.option_1, question.option_2, question.option_3, question.option_4];
+          const isCorrect = answer.answeredOption === question.correct_option;
+          
+          questionFeedback.push({
+            questionId: answer.questionId,
+            questionText: question.question_text,
+            yourAnswer: options[answer.answeredOption] || 'No answer',
+            correctAnswer: options[question.correct_option] || 'Not available',
+            isCorrect: isCorrect
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching question feedback:', err);
+      }
+    }
+
     res.json({
       id: submission[0].id,
       score: submission[0].score,
       correctCount: submission[0].correct_count,
       totalQuestions: submission[0].total_questions,
-      passed: submission[0].passed
+      passed: submission[0].passed,
+      questions: questionFeedback
     });
 
   } catch (error) {

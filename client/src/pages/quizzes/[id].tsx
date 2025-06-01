@@ -94,6 +94,7 @@ export default function QuizPage() {
       // Show quiz results
       const result = response;
       setScore(result.score);
+      setSubmissionQuestions(result.questions || []);
       setQuizSubmitted(true);
       
       toast({
