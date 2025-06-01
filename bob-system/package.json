@@ -1,0 +1,26 @@
+{
+  "name": "bob-ultimate-system",
+  "version": "3.0.0",
+  "description": "Ultimate troubleshooting and debugging companion",
+  "type": "module",
+  "main": "bob-ultimate.js",
+  "scripts": {
+    "start": "node bob-ultimate.js",
+    "analyze": "node bob-ultimate.js analyze",
+    "monitor": "node bob-ultimate.js monitor",
+    "fix": "node bob-ultimate.js fix",
+    "test-gen": "node bob-ultimate.js generate-tests"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "glob": "^10.3.10",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/parser": "^6.18.1",
+    "@typescript-eslint/eslint-plugin": "^6.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/glob": "^8.1.0"
+  }
+}
