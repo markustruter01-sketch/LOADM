@@ -56,7 +56,7 @@ router.get('/', async (req, res) => {
         SELECT q.*, u.email as created_by_email
         FROM quizzes q
         LEFT JOIN users u ON q.created_by_id = u.id
-        WHERE q.is_active = true
+        WHERE q.is_active = true AND (q.expires_at IS NULL OR q.expires_at > NOW())
         ORDER BY q.created_at DESC
       `;
     } else {
@@ -68,7 +68,18 @@ router.get('/', async (req, res) => {
       `;
     }
     
-    res.json(quizzes);
+    // Add isActive field to all quizzes
+    const now = new Date();
+    const processedQuizzes = quizzes.map(quiz => {
+      const isExpired = quiz.expires_at && new Date(quiz.expires_at) < now;
+      const isActive = quiz.is_active && !isExpired;
+      return {
+        ...quiz,
+        isActive
+      };
+    });
+    
+    res.json(processedQuizzes);
   } catch (error) {
     console.error('Error fetching quizzes:', error);
     res.status(500).json({ error: 'Failed to fetch quizzes' });
@@ -93,7 +104,17 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    res.json(quiz[0]);
+    // Check if quiz is active and not expired
+    const quizData = quiz[0];
+    const now = new Date();
+    const isExpired = quizData.expires_at && new Date(quizData.expires_at) < now;
+    const isActive = quizData.is_active && !isExpired;
+    
+    // Add isActive field to response
+    res.json({
+      ...quizData,
+      isActive
+    });
   } catch (error) {
     console.error(`Error fetching quiz ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to fetch quiz' });
