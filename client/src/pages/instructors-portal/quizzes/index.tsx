@@ -48,8 +48,9 @@ export default function InstructorQuizzes() {
           description: "The quiz has been successfully deleted.",
         });
 
-        // Invalidate quizzes cache and refresh data
+        // Invalidate and refetch quizzes data immediately
         await queryClient.invalidateQueries({ queryKey: ['/api/quizzes'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/quizzes'] });
         setQuizToDelete(null);
       } else {
         const errorData = await response.text();

@@ -56,8 +56,10 @@ export default function ScenarioManagement() {
     mutationFn: async (id: number) => {
       await apiRequest("DELETE", `/api/scenarios/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
+    onSuccess: async () => {
+      // Immediately refresh the scenarios data
+      await queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/scenarios"] });
       toast({
         title: "Scenario deleted",
         description: "The scenario has been deleted successfully",
