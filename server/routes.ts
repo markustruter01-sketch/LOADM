@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newScenario[0]);
     } catch (error) {
       console.error('Error creating scenario:', error);
-      res.status(500).json({ message: "Failed to create scenario: " + error.message });
+      res.status(500).json({ message: "Failed to create scenario: " + (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
@@ -473,7 +473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedScenario[0]);
     } catch (error) {
       console.error('Error updating scenario:', error);
-      res.status(500).json({ message: "Failed to update scenario: " + error.message });
+      res.status(500).json({ message: "Failed to update scenario: " + (error instanceof Error ? error.message : 'Unknown error') });
     }
   });
 
