@@ -7,20 +7,11 @@ const router = Router();
 // Get all quizzes
 router.get('/', async (req, res) => {
   try {
-    console.log('🎯 QUIZ LIST: Fetching quizzes');
-    console.log('🎯 QUIZ LIST: Environment:', process.env.NODE_ENV);
-    console.log('🎯 QUIZ LIST: Database URL exists:', !!process.env.DATABASE_URL);
-    
     const activeOnly = req.query.activeOnly === 'true';
-    console.log('🎯 QUIZ LIST: Active only filter:', activeOnly);
-    
     const quizzes = await quizStorage.getQuizzes(activeOnly);
-    console.log('🎯 QUIZ LIST: Found quizzes count:', quizzes.length);
-    console.log('🎯 QUIZ LIST: Quiz data sample:', quizzes.slice(0, 3));
-    
     res.json(quizzes);
   } catch (error) {
-    console.error('🎯 QUIZ LIST: Error fetching quizzes:', error);
+    console.error('Error fetching quizzes:', error);
     res.status(500).json({ error: 'Failed to fetch quizzes' });
   }
 });
@@ -44,59 +35,30 @@ router.get('/:id', async (req, res) => {
 
 // Create a new quiz
 router.post('/', (req, res, next) => {
-  console.log('🎯 QUIZ CREATION: Request received');
-  console.log('🎯 QUIZ CREATION: Headers:', JSON.stringify(req.headers, null, 2));
-  console.log('🎯 QUIZ CREATION: Cookies:', JSON.stringify(req.cookies, null, 2));
-  console.log('🎯 QUIZ CREATION: Body:', JSON.stringify(req.body, null, 2));
-  
   const authCore = require('../auth-isolated/auth-core');
   authCore.requireIsolatedAuth(req, res, next);
 }, async (req, res) => {
   try {
-    console.log('🎯 QUIZ CREATION: Authentication passed');
-    console.log('🎯 QUIZ CREATION: User from auth:', JSON.stringify(req.user, null, 2));
+    const { title, description, questionCount, categories, isActive, expiresAt, createdById } = req.body;
     
-    const { title, description, questionCount, categories, isActive, expiresAt } = req.body;
-    
-    console.log('🎯 QUIZ CREATION: Extracted data:', {
-      title,
-      description,
-      questionCount,
-      categories,
-      isActive,
-      expiresAt
-    });
-    
-    if (!title || !questionCount || !categories || !categories.length) {
-      console.log('🎯 QUIZ CREATION: Validation failed - missing required fields');
-      return res.status(400).json({ error: 'Missing required fields: title, questionCount, and categories are required' });
+    if (!title || !questionCount || !categories || !categories.length || !createdById) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
-
-    // Use the authenticated user's ID as the creator
-    const createdById = req.user?.userId || req.user?.id || 1;
-    console.log('🎯 QUIZ CREATION: Using createdById:', createdById);
     
-    const quizData = {
+    const quiz = await quizStorage.createQuiz({
       title,
       description: description || '',
       createdById,
       questionCount,
       categories,
-      isActive: isActive !== undefined ? isActive : true,
+      isActive,
       expiresAt: expiresAt ? new Date(expiresAt) : null
-    };
+    });
     
-    console.log('🎯 QUIZ CREATION: Creating quiz with data:', JSON.stringify(quizData, null, 2));
-    
-    const quiz = await quizStorage.createQuiz(quizData);
-    
-    console.log('🎯 QUIZ CREATION: Quiz created successfully:', JSON.stringify(quiz, null, 2));
     res.status(201).json(quiz);
-  } catch (error: any) {
-    console.error('🎯 QUIZ CREATION: Error occurred:', error);
-    console.error('🎯 QUIZ CREATION: Error stack:', error.stack);
-    console.error('🎯 QUIZ CREATION: Error message:', error.message);
-    res.status(500).json({ error: 'Failed to create quiz', details: error.message || 'Unknown error' });
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    res.status(500).json({ error: 'Failed to create quiz' });
   }
 });
 

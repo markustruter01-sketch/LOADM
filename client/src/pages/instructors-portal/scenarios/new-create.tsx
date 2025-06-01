@@ -3,7 +3,6 @@ import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -121,13 +120,8 @@ export default function CreateScenario() {
     }
   };
 
-  // Enhanced submit function with comprehensive debugging
-  const onSubmit = async (data: any) => {
-    console.log('🎭 SCENARIO CREATE FORM: Submit button clicked');
-    console.log('🎭 SCENARIO CREATE FORM: Form data:', JSON.stringify(data, null, 2));
-    console.log('🎭 SCENARIO CREATE FORM: Current user:', JSON.stringify(user, null, 2));
-    console.log('🎭 SCENARIO CREATE FORM: Environment:', window.location.hostname);
-    
+  // Very simple submit function
+  const onSubmit = (data: any) => {
     setIsSubmitting(true);
     
     // Add the number of questions field
@@ -136,41 +130,43 @@ export default function CreateScenario() {
       numberOfQuestions: data.questions.length
     };
     
-    console.log('🎭 SCENARIO CREATE FORM: Submit data prepared:', JSON.stringify(submitData, null, 2));
-    console.log('🎭 SCENARIO CREATE FORM: Making fetch request to /api/scenarios');
+    // Log what we're submitting
+    // Process scenario data for submission
     
-    // Make the API call using proper authentication
-    try {
-      const result = await apiRequest({
-        url: "/api/scenarios",
-        method: "POST",
-        data: submitData
-      });
-
-      console.log('🎭 SCENARIO CREATE FORM: Success response:', JSON.stringify(result, null, 2));
+    // Make the API call
+    fetch("/api/scenarios", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(submitData),
+      credentials: "include"
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server error (${response.status})`);
+      }
+      return response.json();
+    })
+    .then(result => {
       toast({
         title: "Success!",
         description: "Scenario created successfully"
       });
-      
-      // Invalidate queries to refresh the scenarios list
-      queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
-      
       // Navigate back to scenarios list
       navigate("/instructors-portal/scenarios");
-    } catch (error: any) {
-      console.error('🎭 SCENARIO CREATE FORM: Error occurred:', error);
-      console.error('🎭 SCENARIO CREATE FORM: Error message:', error.message);
-      console.error('🎭 SCENARIO CREATE FORM: Error stack:', error.stack);
+    })
+    .catch(error => {
+      console.error("Error creating scenario:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to create scenario",
         variant: "destructive"
       });
-    } finally {
-      console.log('🎭 SCENARIO CREATE FORM: Request completed');
+    })
+    .finally(() => {
       setIsSubmitting(false);
-    }
+    });
   };
 
   return (

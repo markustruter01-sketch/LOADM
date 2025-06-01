@@ -8,79 +8,14 @@ import { eq, and, gt } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-// Enhanced auth check helper for all routes
-async function checkAuth(req: any): Promise<boolean> {
+// Simple auth check helper for scenario routes
+function checkAuth(req: any): boolean {
   const sessionId = req.cookies?.sessionId;
-  
-  if (!sessionId) {
-    console.log('🔐 AUTH: No session ID found');
+  if (!sessionId || !sessionId.startsWith('isolated_')) {
     return false;
   }
-  
-  console.log('🔐 AUTH: Checking session:', sessionId);
-  
-  // Try isolated auth system first
-  if (sessionId.startsWith('isolated_')) {
-    try {
-      const { getIsolatedSession } = require('./auth-isolated/auth-core');
-      const session = getIsolatedSession(sessionId);
-      
-      if (session) {
-        console.log('🔐 AUTH: Isolated session found:', session.email);
-        req.user = {
-          id: session.userId,
-          email: session.email,
-          isAdmin: session.role === 'superadmin',
-          firstName: 'Admin',
-          lastName: 'User'
-        };
-        return true;
-      } else {
-        console.log('🔐 AUTH: Isolated session not found, checking database...');
-      }
-    } catch (error) {
-      console.error('🔐 AUTH: Error accessing isolated auth system:', error);
-    }
-  }
-  
-  // Database fallback - check if session exists in users table
-  try {
-    const result = await db.select()
-      .from(users)
-      .where(eq(users.email, 'markustruter01@gmail.com'))
-      .limit(1);
-    
-    if (result.length > 0) {
-      const user = result[0];
-      console.log('🔐 AUTH: Database user found:', user.email);
-      req.user = {
-        id: user.id,
-        email: user.email,
-        isAdmin: true,
-        firstName: 'Admin',
-        lastName: 'User'
-      };
-      return true;
-    }
-  } catch (error) {
-    console.error('🔐 AUTH: Database check failed:', error);
-  }
-  
-  // Final fallback for deployed environment
-  if (sessionId) {
-    console.log('🔐 AUTH: Using fallback authentication');
-    req.user = { 
-      id: 1,
-      email: 'markustruter01@gmail.com',
-      isAdmin: true,
-      firstName: 'Admin',
-      lastName: 'User'
-    };
-    return true;
-  }
-  
-  console.log('🔐 AUTH: All authentication methods failed');
-  return false;
+  // For now, just check if session exists - can be enhanced later
+  return true;
 }
 
 // Rate limiting for security
@@ -499,72 +434,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Scenarios routes with database validation
-  app.get("/api/scenarios", async (req, res) => {
-    try {
-      console.log('🎭 SCENARIO LIST: Fetching scenarios');
-      console.log('🎭 SCENARIO LIST: Environment:', process.env.NODE_ENV);
-      console.log('🎭 SCENARIO LIST: Database URL exists:', !!process.env.DATABASE_URL);
-      
-      const scenarios = await storage.getScenarios();
-      console.log('🎭 SCENARIO LIST: Found scenarios count:', scenarios.length);
-      console.log('🎭 SCENARIO LIST: Scenario data sample:', scenarios.slice(0, 3));
-      
-      res.json(scenarios);
-    } catch (error) {
-      console.error('🎭 SCENARIO LIST: Error fetching scenarios:', error);
-      res.status(500).json({ message: "Failed to retrieve scenarios" });
-    }
-  });
-
-  // Database validation endpoint to check migration status
-  app.get("/api/debug/database-status", async (req, res) => {
-    try {
-      console.log('🔍 DATABASE DEBUG: Checking database status');
-      
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      // Check table existence and row counts
-      const tableChecks = await Promise.allSettled([
-        sql`SELECT COUNT(*) as count FROM users`,
-        sql`SELECT COUNT(*) as count FROM licenses`,
-        sql`SELECT COUNT(*) as count FROM scenarios`,
-        sql`SELECT COUNT(*) as count FROM quizzes`,
-        sql`SELECT COUNT(*) as count FROM quiz_submissions`,
-        sql`SELECT COUNT(*) as count FROM scenario_submissions`,
-        sql`SELECT COUNT(*) as count FROM phone_directory`
-      ]);
-
-      const results = {
-        environment: process.env.NODE_ENV,
-        databaseConnected: true,
-        tables: {
-          users: tableChecks[0].status === 'fulfilled' ? tableChecks[0].value[0].count : 'ERROR',
-          licenses: tableChecks[1].status === 'fulfilled' ? tableChecks[1].value[0].count : 'ERROR',
-          scenarios: tableChecks[2].status === 'fulfilled' ? tableChecks[2].value[0].count : 'ERROR',
-          quizzes: tableChecks[3].status === 'fulfilled' ? tableChecks[3].value[0].count : 'ERROR',
-          quiz_submissions: tableChecks[4].status === 'fulfilled' ? tableChecks[4].value[0].count : 'ERROR',
-          scenario_submissions: tableChecks[5].status === 'fulfilled' ? tableChecks[5].value[0].count : 'ERROR',
-          phone_directory: tableChecks[6].status === 'fulfilled' ? tableChecks[6].value[0].count : 'ERROR'
-        },
-        errors: tableChecks.map((check, index) => 
-          check.status === 'rejected' ? { table: ['users', 'licenses', 'scenarios', 'quizzes', 'quiz_submissions', 'scenario_submissions', 'phone_directory'][index], error: check.reason.message } : null
-        ).filter(Boolean)
-      };
-
-      console.log('🔍 DATABASE DEBUG: Status check complete:', JSON.stringify(results, null, 2));
-      res.json(results);
-    } catch (error) {
-      console.error('🔍 DATABASE DEBUG: Database status check failed:', error);
-      res.status(500).json({ 
-        error: 'Database status check failed',
-        message: error.message,
-        environment: process.env.NODE_ENV
-      });
-    }
-  });
-
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {
@@ -719,39 +588,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/scenarios", async (req, res) => {
     try {
-      console.log('🎭 SCENARIO CREATION: Request received');
-      console.log('🎭 SCENARIO CREATION: Headers:', JSON.stringify(req.headers, null, 2));
-      console.log('🎭 SCENARIO CREATION: Cookies:', JSON.stringify(req.cookies, null, 2));
-      console.log('🎭 SCENARIO CREATION: Body:', JSON.stringify(req.body, null, 2));
-      
-      const authResult = await checkAuth(req);
-      console.log('🎭 SCENARIO CREATION: Auth result:', authResult);
-      console.log('🎭 SCENARIO CREATION: User from auth:', JSON.stringify(req.user, null, 2));
-      
-      if (!authResult) {
-        console.log('🎭 SCENARIO CREATION: Authentication failed');
+      if (!checkAuth(req)) {
         return res.status(401).json({ message: "Unauthorized: Authentication required" });
       }
       
-      console.log('🎭 SCENARIO CREATION: Parsing scenario data...');
       const scenarioData = insertScenarioSchema.parse(req.body);
-      console.log('🎭 SCENARIO CREATION: Scenario data parsed successfully:', JSON.stringify(scenarioData, null, 2));
-      
-      console.log('🎭 SCENARIO CREATION: Creating scenario in storage...');
       const scenario = await storage.createScenario(scenarioData);
-      console.log('🎭 SCENARIO CREATION: Scenario created successfully:', JSON.stringify(scenario, null, 2));
-      
       res.status(201).json(scenario);
-    } catch (error: any) {
-      console.error('🎭 SCENARIO CREATION: Error occurred:', error);
-      console.error('🎭 SCENARIO CREATION: Error stack:', error.stack);
-      console.error('🎭 SCENARIO CREATION: Error message:', error.message);
-      
+    } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log('🎭 SCENARIO CREATION: Validation error:', JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ message: "Invalid scenario data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create scenario", details: error.message || 'Unknown error' });
+      res.status(500).json({ message: "Failed to create scenario" });
     }
   });
   
