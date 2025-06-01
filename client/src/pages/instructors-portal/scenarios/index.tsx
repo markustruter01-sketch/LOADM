@@ -54,7 +54,10 @@ export default function ScenarioManagement() {
   // Delete scenario mutation
   const deleteScenarioMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/scenarios/${id}`);
+      await apiRequest({
+        url: `/api/scenarios/${id}`,
+        method: 'DELETE'
+      });
     },
     onSuccess: async () => {
       // Immediately refresh the scenarios data

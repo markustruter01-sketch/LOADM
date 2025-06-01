@@ -98,6 +98,7 @@ export const documents = pgTable("documents", {
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
   type: text("type").notNull(),
   fields: json("fields").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({
