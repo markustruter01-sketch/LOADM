@@ -138,26 +138,11 @@ export default function CreateScenario() {
     console.log('🎭 SCENARIO CREATE FORM: Submit data prepared:', JSON.stringify(submitData, null, 2));
     console.log('🎭 SCENARIO CREATE FORM: Making fetch request to /api/scenarios');
     
-    // Make the API call
-    fetch("/api/scenarios", {
+    // Make the API call using proper authentication
+    apiRequest({
+      url: "/api/scenarios",
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(submitData),
-      credentials: "include"
-    })
-    .then(response => {
-      console.log('🎭 SCENARIO CREATE FORM: Response received:', response.status, response.statusText);
-      console.log('🎭 SCENARIO CREATE FORM: Response headers:', JSON.stringify(Object.fromEntries(response.headers)));
-      
-      if (!response.ok) {
-        return response.text().then(text => {
-          console.log('🎭 SCENARIO CREATE FORM: Error response body:', text);
-          throw new Error(`Server error (${response.status}): ${text}`);
-        });
-      }
-      return response.json();
+      data: submitData
     })
     .then(result => {
       console.log('🎭 SCENARIO CREATE FORM: Success response:', JSON.stringify(result, null, 2));
