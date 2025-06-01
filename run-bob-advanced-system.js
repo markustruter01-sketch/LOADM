@@ -157,6 +157,103 @@ function checkDatabaseSchema() {
   }
 }
 
+// Deep Authentication Analysis
+function deepAuthAnalysis() {
+  console.log('\n🔐 DEEP AUTHENTICATION ANALYSIS');
+  console.log('-'.repeat(40));
+  
+  try {
+    const authHookFile = fs.readFileSync('client/src/hooks/use-auth.tsx', 'utf8');
+    const routesFile = fs.readFileSync('server/routes.ts', 'utf8');
+    
+    // Check auth endpoint mapping
+    if (authHookFile.includes('"/api/user"') && routesFile.includes('app.get("/api/user"')) {
+      console.log('✅ Auth endpoint mapping correct');
+    } else {
+      console.log('❌ Auth endpoint mapping mismatch');
+      return false;
+    }
+    
+    // Check session handling
+    if (routesFile.includes('requireAuth') && routesFile.includes('req.user')) {
+      console.log('✅ Session handling implemented');
+    } else {
+      console.log('❌ Session handling broken');
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.log('❌ Auth analysis failed:', error.message);
+    return false;
+  }
+}
+
+// CRUD Functionality Test
+function testCRUDFunctionality() {
+  console.log('\n🧪 CRUD FUNCTIONALITY TEST');
+  console.log('-'.repeat(30));
+  
+  try {
+    const createFile = fs.readFileSync('client/src/pages/instructors-portal/quizzes/create.tsx', 'utf8');
+    const quizRoutes = fs.readFileSync('server/routes/quizzes.ts', 'utf8');
+    
+    // Test CREATE
+    const hasCreateForm = createFile.includes('onSubmit') && createFile.includes('apiRequest');
+    const hasCreateRoute = quizRoutes.includes('router.post') && quizRoutes.includes('INSERT INTO');
+    console.log(`📝 CREATE: ${hasCreateForm && hasCreateRoute ? '✅' : '❌'} ${hasCreateForm ? 'Form OK' : 'Form Issue'} / ${hasCreateRoute ? 'Route OK' : 'Route Issue'}`);
+    
+    // Test READ
+    const hasListPage = fs.existsSync('client/src/pages/instructors-portal/quizzes/index.tsx');
+    const hasGetRoute = quizRoutes.includes('router.get');
+    console.log(`📖 READ: ${hasListPage && hasGetRoute ? '✅' : '❌'} ${hasListPage ? 'List OK' : 'List Issue'} / ${hasGetRoute ? 'Route OK' : 'Route Issue'}`);
+    
+    // Test UPDATE
+    const hasEditPage = fs.existsSync('client/src/pages/instructors-portal/quizzes/edit');
+    const hasPatchRoute = quizRoutes.includes('router.patch');
+    console.log(`✏️ UPDATE: ${hasEditPage && hasPatchRoute ? '✅' : '❌'} ${hasEditPage ? 'Edit OK' : 'Edit Issue'} / ${hasPatchRoute ? 'Route OK' : 'Route Issue'}`);
+    
+    // Test DELETE
+    const hasDeleteButton = fs.readFileSync('client/src/pages/instructors-portal/quizzes/index.tsx', 'utf8').includes('DELETE');
+    const hasDeleteRoute = quizRoutes.includes('router.delete');
+    console.log(`🗑️ DELETE: ${hasDeleteButton && hasDeleteRoute ? '✅' : '❌'} ${hasDeleteButton ? 'Button OK' : 'Button Issue'} / ${hasDeleteRoute ? 'Route OK' : 'Route Issue'}`);
+    
+    return hasCreateForm && hasCreateRoute && hasListPage && hasGetRoute;
+  } catch (error) {
+    console.log('❌ CRUD test failed:', error.message);
+    return false;
+  }
+}
+
+// Frontend-Backend Data Flow Analysis
+function analyzeDataFlow() {
+  console.log('\n🔄 DATA FLOW ANALYSIS');
+  console.log('-'.repeat(25));
+  
+  try {
+    const createFile = fs.readFileSync('client/src/pages/instructors-portal/quizzes/create.tsx', 'utf8');
+    const quizRoutes = fs.readFileSync('server/routes/quizzes.ts', 'utf8');
+    
+    // Check field mapping
+    const frontendFields = createFile.match(/createdById|questionCount|isActive|expiresAt/g) || [];
+    const backendFields = quizRoutes.match(/createdById|questionCount|isActive|expiresAt/g) || [];
+    
+    console.log(`📤 Frontend fields: ${frontendFields.length} found`);
+    console.log(`📥 Backend fields: ${backendFields.length} found`);
+    
+    if (frontendFields.includes('createdById') && backendFields.includes('createdById')) {
+      console.log('✅ Field mapping appears correct');
+      return true;
+    } else {
+      console.log('❌ Field mapping mismatch detected');
+      return false;
+    }
+  } catch (error) {
+    console.log('❌ Data flow analysis failed:', error.message);
+    return false;
+  }
+}
+
 // Issue Detection and Recommendations
 function detectIssues() {
   console.log('\n🎯 ISSUE DETECTION & RECOMMENDATIONS');
@@ -171,6 +268,9 @@ function detectIssues() {
   const formOk = analyzeQuizForm();
   const routesOk = checkServerRoutes();
   const schemaOk = checkDatabaseSchema();
+  const deepAuthOk = deepAuthAnalysis();
+  const crudOk = testCRUDFunctionality();
+  const dataFlowOk = analyzeDataFlow();
   
   if (systemHealth < 100) {
     issues.push('Missing critical system files');

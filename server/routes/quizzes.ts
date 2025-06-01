@@ -23,7 +23,7 @@ function requireAuth(req: any, res: any, next: any) {
   let userEmail = session.email;
   
   // If this is the hardcoded superadmin, map to the real database user
-  if (session.email === 'markustruter01@gmail.com' && session.userId === 999) {
+  if (session.email === 'markustruter01@gmail.com' && session.userId === 1) {
     userId = 9; // Real database user ID
   }
   
