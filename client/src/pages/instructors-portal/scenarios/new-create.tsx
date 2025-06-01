@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -139,21 +140,25 @@ export default function CreateScenario() {
     console.log('🎭 SCENARIO CREATE FORM: Making fetch request to /api/scenarios');
     
     // Make the API call using proper authentication
-    apiRequest({
-      url: "/api/scenarios",
-      method: "POST",
-      data: submitData
-    })
-    .then(result => {
+    try {
+      const result = await apiRequest({
+        url: "/api/scenarios",
+        method: "POST",
+        data: submitData
+      });
+
       console.log('🎭 SCENARIO CREATE FORM: Success response:', JSON.stringify(result, null, 2));
       toast({
         title: "Success!",
         description: "Scenario created successfully"
       });
+      
+      // Invalidate queries to refresh the scenarios list
+      queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
+      
       // Navigate back to scenarios list
       navigate("/instructors-portal/scenarios");
-    })
-    .catch(error => {
+    } catch (error: any) {
       console.error('🎭 SCENARIO CREATE FORM: Error occurred:', error);
       console.error('🎭 SCENARIO CREATE FORM: Error message:', error.message);
       console.error('🎭 SCENARIO CREATE FORM: Error stack:', error.stack);
@@ -162,11 +167,10 @@ export default function CreateScenario() {
         description: error.message || "Failed to create scenario",
         variant: "destructive"
       });
-    })
-    .finally(() => {
+    } finally {
       console.log('🎭 SCENARIO CREATE FORM: Request completed');
       setIsSubmitting(false);
-    });
+    }
   };
 
   return (
