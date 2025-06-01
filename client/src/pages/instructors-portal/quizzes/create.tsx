@@ -82,14 +82,49 @@ export default function CreateQuiz() {
     console.log("🔧 QUIZ CREATE DEBUG: User object:", user);
     
     try {
+      // Force user data refresh if user is null
       if (!user?.id) {
-        console.error("🔧 QUIZ CREATE DEBUG: No user ID found");
-        toast({
-          title: "Authentication error",
-          description: "You must be logged in to create a quiz",
-          variant: "destructive"
-        });
-        return;
+        console.log("🔧 QUIZ CREATE DEBUG: User is null, checking authentication...");
+        
+        // Try to refetch user data
+        try {
+          const response = await fetch("/api/user", {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            console.log("🔧 QUIZ CREATE DEBUG: Fetched user data:", userData);
+            
+            if (!userData?.id) {
+              toast({
+                title: "Authentication error",
+                description: "You must be logged in to create a quiz",
+                variant: "destructive"
+              });
+              return;
+            }
+          } else {
+            console.error("🔧 QUIZ CREATE DEBUG: Failed to fetch user data");
+            toast({
+              title: "Authentication error", 
+              description: "You must be logged in to create a quiz",
+              variant: "destructive"
+            });
+            return;
+          }
+        } catch (authError) {
+          console.error("🔧 QUIZ CREATE DEBUG: Auth check failed:", authError);
+          toast({
+            title: "Authentication error",
+            description: "You must be logged in to create a quiz",
+            variant: "destructive"
+          });
+          return;
+        }
       }
 
       const quizData = {
