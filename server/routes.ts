@@ -94,24 +94,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Users endpoint for analytics - instructor access required
   app.get("/api/users", requireAuth, async (req, res) => {
     try {
-      const allUsers = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          role: users.role,
-          licenseStatus: licenses.isActive,
-          squadron: users.squadron,
-          createdAt: users.createdAt
-        })
-        .from(users)
-        .leftJoin(licenses, eq(users.licenseId, licenses.id));
+      const allUsers = await db.select().from(users);
+      const allLicenses = await db.select().from(licenses);
+      
+      // Create formatted response with proper data
+      const formattedUsers = allUsers.map(user => {
+        const userLicense = allLicenses.find(license => license.id === user.licenseId);
+        const isActive = userLicense ? userLicense.isActive : false;
+        
+        return {
+          id: user.id,
+          email: user.email,
+          role: user.userRole === 'loadmaster' ? 'student' : user.userRole,
+          licenseStatus: isActive ? 'active' : 'inactive',
+          squadron: 'AMG',
+          createdAt: user.createdAt
+        };
+      });
 
-      // Map license status to readable format
-      const formattedUsers = allUsers.map(user => ({
-        ...user,
-        licenseStatus: user.licenseStatus ? 'active' : 'inactive'
-      }));
-
+      console.log(`Users endpoint: Found ${formattedUsers.length} users`);
       res.json(formattedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
