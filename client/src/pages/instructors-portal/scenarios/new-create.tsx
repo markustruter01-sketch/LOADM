@@ -122,7 +122,7 @@ export default function CreateScenario() {
   };
 
   // Enhanced submit function with comprehensive debugging
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     console.log('🎭 SCENARIO CREATE FORM: Submit button clicked');
     console.log('🎭 SCENARIO CREATE FORM: Form data:', JSON.stringify(data, null, 2));
     console.log('🎭 SCENARIO CREATE FORM: Current user:', JSON.stringify(user, null, 2));
