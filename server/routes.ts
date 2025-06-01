@@ -10,11 +10,10 @@ import {
   scenarios, 
   documentSubmissions, 
   scenarioSubmissions,
-  quizzes as quiz,
-  quizSubmissions,
   phoneDirectory,
   chatMessages
 } from "@shared/schema";
+import quizRoutes from './routes/quiz-new';
 import { sendLicenseWelcomeEmail } from "./services/email-service";
 import * as authCore from "./auth-isolated/auth-core";
 

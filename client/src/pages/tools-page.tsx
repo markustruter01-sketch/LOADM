@@ -507,34 +507,7 @@ export default function ToolsPage() {
                   </CardFooter>
                 </Card>
 
-                {/* Balance Arm Calculator */}
-                <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer opacity-75"
-                  onClick={() => navigateToTool('balance-arm')}
-                >
-                  <CardHeader className="bg-primary/10">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Balance Arm Calculator</CardTitle>
-                      <Scale className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardDescription>Aircraft Balance & Load Distribution</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="text-sm">
-                      <p>Calculate the balance arm for specific aircraft types and configurations.</p>
-                      <div className="mt-4 text-xs text-muted-foreground">
-                        • AC-130 Balance Arm<br />
-                        • C-17 Balance Arm<br />
-                        • KC30A Balance Arm
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button variant="ghost" className="w-full" disabled>
-                      Coming Soon
-                    </Button>
-                  </CardFooter>
-                </Card>
+
 
                 {/* Fuel Calculator */}
                 <Card 
@@ -702,10 +675,8 @@ export default function ToolsPage() {
 
             {/* Mission Analysis Tools */}
             <TabsContent value="mission-analysis" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-
-
-                {/* Mission Complexity Analyzer */}
+              <div className="mb-10">
+                {/* Mission Complexity Analyzer - Full Width */}
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="bg-primary/10">
                     <div className="flex items-center justify-between">
