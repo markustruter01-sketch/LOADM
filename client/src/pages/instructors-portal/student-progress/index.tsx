@@ -59,7 +59,7 @@ export default function StudentProgress() {
       
       // Scenario filter
       if (scenarioFilter !== "all") {
-        if (submission.scenarioId !== scenarioFilter) return false;
+        if ((submission.scenario_id || submission.scenarioId) !== scenarioFilter) return false;
       }
       
       // Search term filter (search in student name, ID, or email)
@@ -254,10 +254,10 @@ export default function StudentProgress() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>{scenario?.title || `Scenario #${submission.scenarioId}`}</TableCell>
+                            <TableCell>{submission.scenario_title || scenario?.title || `Scenario #${submission.scenario_id || submission.scenarioId}`}</TableCell>
                             <TableCell>
-                              {submission.submissionDate ? (
-                                format(new Date(submission.submissionDate), 'MMM d, yyyy')
+                              {submission.submission_date || submission.submissionDate ? (
+                                format(new Date(submission.submission_date || submission.submissionDate), 'MMM d, yyyy')
                               ) : 'Unknown date'}
                             </TableCell>
                             <TableCell>
