@@ -52,7 +52,7 @@ export default function LoadPlanningSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-800">
       <Helmet>
         <title>Aircraft Selection - Load Planning | LOADMworkflow</title>
         <meta name="description" content="Select aircraft for load planning operations" />
@@ -61,10 +61,10 @@ export default function LoadPlanningSelectionPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Plane className="h-8 w-8 text-blue-400" />
+            <Plane className="h-8 w-8 text-orange-400" />
             <h1 className="text-4xl font-bold text-white">Load Planning</h1>
           </div>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Select an aircraft to begin load planning operations. Each aircraft has unique 
             cargo configurations and balance requirements.
           </p>
@@ -74,27 +74,27 @@ export default function LoadPlanningSelectionPage() {
           {aircraftList.map((aircraft) => (
             <Card 
               key={aircraft.id}
-              className="bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 transition-all duration-300 cursor-pointer group"
+              className="bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer group"
               onClick={() => handleAircraftSelect(aircraft.id)}
             >
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 p-4 bg-blue-600/20 rounded-full w-16 h-16 flex items-center justify-center">
-                  <Plane className="h-8 w-8 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                  <Plane className="h-8 w-8 text-orange-400 group-hover:text-blue-300 transition-colors" />
                 </div>
                 <CardTitle className="text-white text-xl">{aircraft.name}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-slate-300 text-sm text-center">
+                <p className="text-gray-300 text-sm text-center">
                   {aircraft.description}
                 </p>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-slate-400">
+                  <div className="flex justify-between text-gray-400">
                     <span>Max Payload:</span>
                     <span className="text-green-400 font-medium">{aircraft.maxPayload}</span>
                   </div>
-                  <div className="flex justify-between text-slate-400">
+                  <div className="flex justify-between text-gray-400">
                     <span>Cargo Positions:</span>
-                    <span className="text-blue-400 font-medium">{aircraft.positions}</span>
+                    <span className="text-orange-400 font-medium">{aircraft.positions}</span>
                   </div>
                 </div>
                 <Button 
@@ -116,7 +116,7 @@ export default function LoadPlanningSelectionPage() {
           <Button 
             variant="outline" 
             onClick={() => navigate("/home")}
-            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            className="border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             Back to Dashboard
           </Button>

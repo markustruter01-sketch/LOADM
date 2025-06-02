@@ -142,7 +142,7 @@ export default function LoadPlanningPage() {
         <Card className="bg-gray-800/50 border-gray-700 mb-6">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Scale className="h-5 w-5" />
+              <Scale className="h-5 w-5 text-orange-400" />
               Balance Scale
               <Badge className={getStatusColor(balanceResult.status)}>
                 {balanceResult.status.toUpperCase()}
@@ -232,7 +232,7 @@ export default function LoadPlanningPage() {
                         <div key={position.id} className="space-y-2">
                           <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
                             position.weight > 0 
-                              ? 'border-blue-500 bg-blue-500/20' 
+                              ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
                             <Label className="text-gray-300 font-bold text-center block mb-2">
@@ -250,7 +250,7 @@ export default function LoadPlanningPage() {
                             <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
                             {/* Weight visualization bar */}
                             {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
                           </div>
                         </div>
@@ -263,7 +263,7 @@ export default function LoadPlanningPage() {
                         <div key={position.id} className="space-y-2">
                           <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
                             position.weight > 0 
-                              ? 'border-blue-500 bg-blue-500/20' 
+                              ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
                             <Label className="text-gray-300 font-bold text-center block mb-2">
@@ -281,7 +281,7 @@ export default function LoadPlanningPage() {
                             <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
                             {/* Weight visualization bar */}
                             {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
                           </div>
                         </div>
@@ -307,7 +307,7 @@ export default function LoadPlanningPage() {
                         <div key={position.id} className="space-y-2">
                           <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
                             position.weight > 0 
-                              ? 'border-blue-500 bg-blue-500/20' 
+                              ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
                             <Label className="text-gray-300 font-bold text-center block mb-1 text-xs">
@@ -324,7 +324,7 @@ export default function LoadPlanningPage() {
                             />
                             <div className="text-xs text-gray-400 text-center">lbs</div>
                             {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
                           </div>
                         </div>
@@ -337,7 +337,7 @@ export default function LoadPlanningPage() {
                         <div key={position.id} className="space-y-2">
                           <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
                             position.weight > 0 
-                              ? 'border-blue-500 bg-blue-500/20' 
+                              ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
                             <Label className="text-gray-300 font-bold text-center block mb-1 text-xs">
@@ -354,7 +354,7 @@ export default function LoadPlanningPage() {
                             />
                             <div className="text-xs text-gray-400 text-center">lbs</div>
                             {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
                           </div>
                         </div>
@@ -380,7 +380,7 @@ export default function LoadPlanningPage() {
                       <div key={position.id} className="space-y-2">
                         <div className={`relative border-2 rounded-lg p-3 transition-all duration-300 ${
                           position.weight > 0 
-                            ? 'border-blue-500 bg-blue-500/20' 
+                            ? 'border-orange-500 bg-orange-500/20' 
                             : 'border-gray-600 bg-gray-700/30'
                         }`}>
                           <Label className="text-gray-300 font-bold text-center block mb-2 text-sm">
@@ -397,7 +397,7 @@ export default function LoadPlanningPage() {
                           />
                           <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
                           {position.weight > 0 && (
-                            <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                            <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                           )}
                         </div>
                       </div>
