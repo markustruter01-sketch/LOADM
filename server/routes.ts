@@ -646,6 +646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/scenario-submissions", requireAuth, ScenarioSubmissionService.getAllSubmissions);
   app.get("/api/scenario-submissions/user", requireAuth, ScenarioSubmissionService.getUserSubmissions);
   app.get("/api/scenario-submissions/:id", requireAuth, ScenarioSubmissionService.getSubmissionById);
+  app.patch("/api/scenario-submissions/:id", requireAuth, ScenarioSubmissionService.updateSubmission);
 
   // Note: All quiz-related endpoints now handled by quiz-new.ts module
 

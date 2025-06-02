@@ -205,12 +205,11 @@ export default function SubmissionReview() {
         passed,
       };
       
-      const response = await apiRequest({
-        method: "PATCH", 
+      return await apiRequest({
         url: `/api/scenario-submissions/${submissionId}`, 
-        data: payload
+        method: "PATCH", 
+        body: payload
       });
-      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });

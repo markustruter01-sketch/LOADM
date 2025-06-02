@@ -243,4 +243,56 @@ export class ScenarioSubmissionService {
       });
     }
   }
+
+  // Update submission with instructor feedback and marking
+  static async updateSubmission(req: AuthRequest, res: Response) {
+    console.log('📝 NEW SCENARIO SUBMISSION SERVICE - Update submission');
+    
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const submissionId = parseInt(req.params.id);
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ error: 'Invalid submission ID' });
+      }
+
+      const { instructorFeedback, markedAnswers, status, score, passed } = req.body;
+
+      console.log('✅ Updating submission:', submissionId);
+      console.log('✅ Update data:', { instructorFeedback, markedAnswers, status, score, passed });
+
+      // Convert markedAnswers to JSON string if it's an object
+      const markedAnswersJson = typeof markedAnswers === 'object' ? 
+        JSON.stringify(markedAnswers) : markedAnswers;
+
+      const [updatedSubmission] = await db.update(scenarioSubmissions)
+        .set({
+          instructorFeedback,
+          markedAnswers: markedAnswersJson,
+          status,
+          score,
+          passed
+        })
+        .where(eq(scenarioSubmissions.id, submissionId))
+        .returning();
+
+      if (!updatedSubmission) {
+        console.log('❌ Submission not found for update:', submissionId);
+        return res.status(404).json({ error: 'Submission not found' });
+      }
+
+      console.log('✅ Submission updated successfully');
+
+      res.json(updatedSubmission);
+
+    } catch (error) {
+      console.error('❌ Failed to update submission:', error);
+      res.status(500).json({ 
+        error: 'Failed to update submission',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }
