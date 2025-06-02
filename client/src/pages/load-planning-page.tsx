@@ -101,6 +101,10 @@ export default function LoadPlanningPage() {
   const [editDgClass, setEditDgClass] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
+  // Weight warning dialog state
+  const [showWeightWarning, setShowWeightWarning] = useState(false);
+  const [weightWarningMessage, setWeightWarningMessage] = useState('');
+
   // Recalculate balance whenever cargo changes
   useEffect(() => {
     const result = calculateBalance(cargoPositions, aircraftId);
@@ -197,13 +201,35 @@ export default function LoadPlanningPage() {
   };
 
   const updateCargoWeight = (positionId: string, weight: number) => {
-    // Pallet weight validation: Max 10,000 lbs total (including 290 lbs tare)
-    const PALLET_TARE_WEIGHT = 290; // lbs
-    const MAX_TOTAL_WEIGHT = 10000; // lbs
-    const MAX_CARGO_WEIGHT = MAX_TOTAL_WEIGHT - PALLET_TARE_WEIGHT; // 9,710 lbs
+    // Get weight limits based on aircraft and cargo type
+    const getWeightLimits = () => {
+      if (aircraftId === 'kc30a' && kc30aCargoType === 'LD3') {
+        return {
+          tareWeight: 110, // kg for LD3
+          maxTotalWeight: 1588, // kg for LD3
+          unit: 'kg'
+        };
+      } else {
+        return {
+          tareWeight: 290, // lbs for pallets
+          maxTotalWeight: 10000, // lbs for pallets
+          unit: 'lbs'
+        };
+      }
+    };
     
-    if (weight > MAX_CARGO_WEIGHT) {
-      alert(`Maximum pallet weight reached!\n\nTotal weight limit: ${MAX_TOTAL_WEIGHT.toLocaleString()} lbs\nPallet tare weight: ${PALLET_TARE_WEIGHT} lbs\nMaximum cargo weight: ${MAX_CARGO_WEIGHT.toLocaleString()} lbs\n\nPlease enter a value of ${MAX_CARGO_WEIGHT.toLocaleString()} lbs or less.`);
+    const limits = getWeightLimits();
+    const maxCargoWeight = limits.maxTotalWeight - limits.tareWeight;
+    
+    if (weight > maxCargoWeight) {
+      setWeightWarningMessage(`
+        Total weight limit: ${limits.maxTotalWeight.toLocaleString()} ${limits.unit}
+        Container tare weight: ${limits.tareWeight} ${limits.unit}
+        Maximum cargo weight: ${maxCargoWeight.toLocaleString()} ${limits.unit}
+        
+        Please enter a value of ${maxCargoWeight.toLocaleString()} ${limits.unit} or less.
+      `);
+      setShowWeightWarning(true);
       return;
     }
     
@@ -227,13 +253,35 @@ export default function LoadPlanningPage() {
   const saveCargoEdit = () => {
     if (!editingPosition) return;
     
-    // Pallet weight validation: Max 10,000 lbs total (including 290 lbs tare)
-    const PALLET_TARE_WEIGHT = 290; // lbs
-    const MAX_TOTAL_WEIGHT = 10000; // lbs
-    const MAX_CARGO_WEIGHT = MAX_TOTAL_WEIGHT - PALLET_TARE_WEIGHT; // 9,710 lbs
+    // Get weight limits based on aircraft and cargo type
+    const getWeightLimits = () => {
+      if (aircraftId === 'kc30a' && kc30aCargoType === 'LD3') {
+        return {
+          tareWeight: 110, // kg for LD3
+          maxTotalWeight: 1588, // kg for LD3
+          unit: 'kg'
+        };
+      } else {
+        return {
+          tareWeight: 290, // lbs for pallets
+          maxTotalWeight: 10000, // lbs for pallets
+          unit: 'lbs'
+        };
+      }
+    };
     
-    if (editWeight > MAX_CARGO_WEIGHT) {
-      alert(`Maximum pallet weight reached!\n\nTotal weight limit: ${MAX_TOTAL_WEIGHT.toLocaleString()} lbs\nPallet tare weight: ${PALLET_TARE_WEIGHT} lbs\nMaximum cargo weight: ${MAX_CARGO_WEIGHT.toLocaleString()} lbs\n\nPlease enter a value of ${MAX_CARGO_WEIGHT.toLocaleString()} lbs or less.`);
+    const limits = getWeightLimits();
+    const maxCargoWeight = limits.maxTotalWeight - limits.tareWeight;
+    
+    if (editWeight > maxCargoWeight) {
+      setWeightWarningMessage(`
+        Total weight limit: ${limits.maxTotalWeight.toLocaleString()} ${limits.unit}
+        Container tare weight: ${limits.tareWeight} ${limits.unit}
+        Maximum cargo weight: ${maxCargoWeight.toLocaleString()} ${limits.unit}
+        
+        Please enter a value of ${maxCargoWeight.toLocaleString()} ${limits.unit} or less.
+      `);
+      setShowWeightWarning(true);
       return;
     }
     
@@ -878,6 +926,50 @@ export default function LoadPlanningPage() {
               </Button>
               <Button onClick={saveCargoEdit} className="bg-primary hover:bg-primary/90">
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Weight Warning Dialog */}
+      <Dialog open={showWeightWarning} onOpenChange={setShowWeightWarning}>
+        <DialogContent className="bg-gray-800 border-gray-600 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-400">
+              <AlertTriangle className="h-5 w-5" />
+              Weight Limit Exceeded
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="border-orange-500 bg-orange-500/10">
+              <AlertTriangle className="h-4 w-4 text-orange-400" />
+              <AlertDescription className="text-card-foreground">
+                Maximum container weight limit has been reached.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-600">
+              <div className="space-y-2 text-sm text-muted-foreground">
+                {weightWarningMessage.split('\n').map((line, index) => (
+                  line.trim() && (
+                    <div key={index} className="flex justify-between">
+                      <span>{line.split(':')[0]}:</span>
+                      <span className="text-card-foreground font-medium">
+                        {line.split(':')[1]?.trim()}
+                      </span>
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => setShowWeightWarning(false)}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                Understood
               </Button>
             </div>
           </div>
