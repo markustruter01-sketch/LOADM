@@ -143,8 +143,11 @@ app.get("/api/user/squadron", async (req, res) => {
 });
 
 app.put("/api/user/squadron", async (req, res) => {
+  console.log('✅ SQUADRON: PUT request received');
+  console.log('✅ SQUADRON: Request body:', req.body);
   try {
     const sessionId = (req as any).cookies?.sessionId;
+    console.log('✅ SQUADRON: Session ID for PUT:', sessionId?.substring(0, 20) + '...');
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
       return res.status(401).json({ error: 'Authentication required' });
