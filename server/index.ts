@@ -103,6 +103,87 @@ setInterval(async () => {
   }
 }, 24 * 60 * 60 * 1000); // Run every 24 hours
 
+// User squadron management endpoints
+app.get("/api/user/squadron", async (req, res) => {
+  try {
+    const sessionId = (req as any).cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Handle hardcoded superadmin case
+    let actualUserId = session.userId;
+    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+      actualUserId = 9;
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const result = await sql`
+      SELECT l.squadron 
+      FROM users u
+      LEFT JOIN licenses l ON u.license_id = l.id
+      WHERE u.id = ${actualUserId}
+    `;
+    
+    res.json({ squadron: result[0]?.squadron || null });
+  } catch (error) {
+    console.error('Error fetching user squadron:', error);
+    res.status(500).json({ error: "Failed to fetch squadron information" });
+  }
+});
+
+app.put("/api/user/squadron", async (req, res) => {
+  try {
+    const sessionId = (req as any).cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Handle hardcoded superadmin case
+    let actualUserId = session.userId;
+    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+      actualUserId = 9;
+    }
+    
+    const { squadron } = req.body;
+    
+    if (!squadron || !['33SQN', '35SQN', '36SQN', '37SQN', 'AMG'].includes(squadron)) {
+      return res.status(400).json({ error: "Invalid squadron selection" });
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Update the squadron in the licenses table
+    await sql`
+      UPDATE licenses 
+      SET squadron = ${squadron}
+      FROM users 
+      WHERE licenses.id = users.license_id 
+      AND users.id = ${actualUserId}
+    `;
+    
+    res.json({ success: true, squadron });
+  } catch (error) {
+    console.error('Error updating user squadron:', error);
+    res.status(500).json({ error: "Failed to update squadron assignment" });
+  }
+});
+
 // Workforce Management Routes - bypassing middleware issues
 import { licenses, users } from '../shared/schema';
 
@@ -244,87 +325,6 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   } catch (error) {
     console.error('Error fetching user submissions:', error);
     res.status(500).json({ error: "Failed to fetch user submissions" });
-  }
-});
-
-// User squadron management endpoints - simplified approach
-app.get("/api/user/squadron", async (req, res) => {
-  try {
-    const sessionId = (req as any).cookies?.sessionId;
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
-    }
-    
-    const { neon } = await import('@neondatabase/serverless');
-    const sql = neon(process.env.DATABASE_URL!);
-    
-    const result = await sql`
-      SELECT l.squadron 
-      FROM users u
-      LEFT JOIN licenses l ON u.license_id = l.id
-      WHERE u.id = ${actualUserId}
-    `;
-    
-    res.json({ squadron: result[0]?.squadron || null });
-  } catch (error) {
-    console.error('Error fetching user squadron:', error);
-    res.status(500).json({ error: "Failed to fetch squadron information" });
-  }
-});
-
-app.put("/api/user/squadron", async (req, res) => {
-  try {
-    const sessionId = (req as any).cookies?.sessionId;
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
-    }
-    
-    const { squadron } = req.body;
-    
-    if (!squadron || !['33SQN', '35SQN', '36SQN', '37SQN', 'AMG'].includes(squadron)) {
-      return res.status(400).json({ error: "Invalid squadron selection" });
-    }
-    
-    const { neon } = await import('@neondatabase/serverless');
-    const sql = neon(process.env.DATABASE_URL!);
-    
-    // Update the squadron in the licenses table
-    await sql`
-      UPDATE licenses 
-      SET squadron = ${squadron}
-      FROM users 
-      WHERE licenses.id = users.license_id 
-      AND users.id = ${actualUserId}
-    `;
-    
-    res.json({ success: true, squadron });
-  } catch (error) {
-    console.error('Error updating user squadron:', error);
-    res.status(500).json({ error: "Failed to update squadron assignment" });
   }
 });
 
