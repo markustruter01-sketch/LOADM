@@ -272,4 +272,57 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response) =
   }
 });
 
+// Delete quiz (instructor only)
+router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
+    if (user.role !== 'instructor' && user.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Instructor access required' });
+    }
+    
+    const quizId = parseInt(req.params.id);
+    
+    if (!quizId || isNaN(quizId)) {
+      return res.status(400).json({ error: 'Invalid quiz ID' });
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Check if quiz exists and user has permission
+    const existingQuiz = await sql`
+      SELECT * FROM quizzes WHERE id = ${quizId}
+    `;
+    
+    if (existingQuiz.length === 0) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    
+    // Allow superadmin or the creator to delete
+    if (user.role !== 'superadmin' && existingQuiz[0].created_by_id !== user.id) {
+      return res.status(403).json({ error: 'You can only delete your own quizzes' });
+    }
+    
+    // Delete associated quiz submissions first (if any)
+    await sql`DELETE FROM quiz_submissions WHERE quiz_id = ${quizId}`;
+    
+    // Delete the quiz
+    const deletedQuiz = await sql`DELETE FROM quizzes WHERE id = ${quizId} RETURNING id`;
+    
+    if (deletedQuiz.length === 0) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    
+    res.json({ message: 'Quiz deleted successfully', id: quizId });
+  } catch (error) {
+    console.error('Error deleting quiz:', error);
+    res.status(500).json({ error: 'Failed to delete quiz' });
+  }
+});
+
 export default router;
