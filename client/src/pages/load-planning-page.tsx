@@ -16,6 +16,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangleIcon } from "lucide-react";
 import LoadBalanceChat from "@/components/LoadBalanceChat";
 import { lbsToKg, kgToLbs } from "@/utils/aircraft-config";
+import { 
+  calculateAdvancedBalance, 
+  getAircraftConfig, 
+  validateCargoLoad,
+  type CargoItem,
+  type BalanceResult 
+} from "@/utils/balance-engine";
 
 interface Pallet {
   id: number;
@@ -90,7 +97,7 @@ export default function LoadPlanningPage() {
   // Balance state: -100 (fully left/forward) to 100 (fully right/aft), 0 is perfectly balanced
   const [balanceValue, setBalanceValue] = useState(0);
   const [balanceCG, setBalanceCG] = useState(53.00); // Centre of Gravity value (18-88 degrees) with decimal precision
-  const [balanceStatus, setBalanceStatus] = useState<'safe' | 'moderate' | 'warning' | 'caution'>('safe');
+  const [balanceStatus, setBalanceStatus] = useState<'safe' | 'moderate' | 'warning' | 'caution' | 'critical'>('safe');
   
   // Fixed warning popup state - simple approach with hard-coded thresholds
   const [warningPopup, setWarningPopup] = useState(false);
@@ -790,116 +797,66 @@ export default function LoadPlanningPage() {
     
     setTotalWeight(weight);
     
-    // Calculate weight balance
+    // Advanced balance calculation using new balance engine
     const cargoPallets = pallets.filter(p => p.location === "cargo");
     if (cargoPallets.length === 0) {
       setBalanceValue(0);
+      setBalanceCG(53.00);
       setBalanceStatus('safe');
       return;
     }
     
-    // Get the cargo area width from ref
-    let cargoWidth = 0;
-    if (cargoRef.current) {
-      cargoWidth = cargoRef.current.offsetWidth;
-    }
-    
-    if (cargoWidth === 0) {
-      return; // Skip calculation if we can't determine cargo area width
-    }
-    
-    // Calculate weight distribution based on horizontal position
-    let totalWeightMoment = 0;
-    let totalWeightInCargo = 0;
-    
-    // Log balance calculation info
-    // Balance calculation based on cargo width and pallet configuration
-    
-    // Determine proper cell positioning based on the grid rather than pallet positions
-    // This ensures correct weight distribution calculations for the balance scale
-    cargoPallets.forEach(pallet => {
-      // Add base weight (136kg) to each pallet's entered weight
-      const palletWeight = (pallet.weight || 0) + PALLET_BASE_WEIGHT;
-      
+    // Convert pallets to CargoItem format for the advanced balance engine
+    const cargoItems: CargoItem[] = cargoPallets.map(pallet => {
       // Extract position number from pallet label (e.g., 'P2' => 2)
       let positionNumber = 0;
-      if (pallet.positionLabel && pallet.positionLabel.startsWith('P')) {
-        positionNumber = parseInt(pallet.positionLabel.substring(1)) - 1; // 0-based index
+      if (pallet.positionLabel) {
+        if (pallet.positionLabel.startsWith('P')) {
+          positionNumber = parseInt(pallet.positionLabel.substring(1)) - 1; // 0-based index
+        } else if (pallet.positionLabel.startsWith('LD')) {
+          positionNumber = parseInt(pallet.positionLabel.substring(2)) - 1; // 0-based index
+        }
       }
       
-      // Calculate normalized position for balance based on position number, not pixel coordinates
-      let normalizedPosition = 0;
-      
-      // Aircraft specific handling for weight distribution 
-      if (currentAircraftId === 'kc30a') {
-        // For KC30-A: 13 columns, 2 rows - normalize position with 14 forward and 12 aft
-        const col = positionNumber % 13;
-        // First 7 positions in each row (14 total) are forward section
-        // Remaining 6 positions in each row (12 total) are aft section
-        const rowOffset = positionNumber < 13 ? 0 : 0.2; // Slight adjustment for aft row
-        normalizedPosition = (col - 6) / 6 + rowOffset; // -1 to 1 across columns with row adjustment
-      } else if (currentAircraftId === 'c27j') {
-        // For 3-position aircraft: -0.66 (left/P1), 0 (center/P2), 0.66 (right/P3)
-        normalizedPosition = (positionNumber - 1) * 0.66; // -0.66, 0, 0.66
-      } else if (currentAircraftId === 'c17') {
-        // For C-17: 9 columns, 2 rows - normalize position across columns 
-        const col = positionNumber % 9;
-        normalizedPosition = (col - 4) / 4; // -1 to 1 across columns
-      } else if (currentAircraftId === 'c130') {
-        // For C-130: 4 columns, 2 rows - normalize position across columns
-        const col = positionNumber % 4;
-        normalizedPosition = (col - 1.5) / 1.5; // -1 to 1 across columns
-      } else {
-        // Fallback to old calculation if we can't determine position
-        const centerPosition = (pallet.position.x + pallet.size.width / 2) / cargoWidth;
-        normalizedPosition = (centerPosition * 2) - 1;
+      // Add base weight for non-KC30A aircraft, keep original weight for KC30A
+      let totalWeight = pallet.weight || 0;
+      if (currentAircraftId !== 'kc30a') {
+        // For non-KC30A aircraft, add base pallet weight
+        totalWeight += PALLET_BASE_WEIGHT;
       }
       
-      // Calculate weight moment for balance calculation
-      // The moment of each pallet is directly proportional to its weight
-      // This means a 10,000 lbs pallet has 2x the effect of a 5,000 lbs pallet
-      // and a 2,500 lbs pallet has 1/4 the effect of a 10,000 lbs pallet
-      
-      // Calculate moment (weight * position)
-      totalWeightMoment += palletWeight * normalizedPosition;
-      totalWeightInCargo += palletWeight;
+      return {
+        id: pallet.id.toString(),
+        weight: totalWeight,
+        position: positionNumber,
+        positionLabel: pallet.positionLabel || `P${positionNumber + 1}`,
+        type: pallet.containerType || 'pallet'
+      };
     });
     
-    // Calculate balance value (-100 to 100)
-    let balance = 0;
-    if (totalWeightInCargo > 0) {
-      // Normalize to -100 to 100 range and add dampening factor
-      balance = (totalWeightMoment / totalWeightInCargo) * 100;
+    // Get aircraft configuration and calculate advanced balance
+    const aircraftConfig = getAircraftConfig(currentAircraftId);
+    const balanceResult = calculateAdvancedBalance(cargoItems, aircraftConfig);
+    
+    // Update balance state with new advanced calculations
+    setBalanceValue(balanceResult.balance);
+    setBalanceCG(balanceResult.centerOfGravity);
+    setBalanceStatus(balanceResult.status);
+    
+    // Validate cargo load and show warnings for critical issues
+    const issues = validateCargoLoad(cargoItems, aircraftConfig);
+    const criticalIssues = issues.filter(issue => issue.type === 'error');
+    if (criticalIssues.length > 0) {
+      console.warn("Balance issues detected:", criticalIssues[0].message);
     }
     
-    setBalanceValue(balance);
+    // Check limits and set warning popup for the new balance engine results
+    const atLimit = (balanceResult.centerOfGravity <= aircraftConfig.forwardCGLimit + 1 || 
+                     balanceResult.centerOfGravity >= aircraftConfig.aftCGLimit - 1);
+    const beyondLimit = (balanceResult.centerOfGravity < aircraftConfig.forwardCGLimit || 
+                        balanceResult.centerOfGravity > aircraftConfig.aftCGLimit);
     
-    // Calculate Centre of Gravity value (18-88 degrees)
-    // Map from -100:100 to 18:88 (70 degree range) with 2 decimal precision
-    const cgExact = ((balance + 100) / 200) * 70 + 18;
-    
-    // Convert to fixed string with 2 decimal places to display consistently
-    const cgFixedString = cgExact.toFixed(2);
-    
-    // Parse back to number for calculations - this helps with boundary checking
-    const cg = parseFloat(cgFixedString);
-    
-    // Use the new CG value directly for limit checking BEFORE updating state
-    // This ensures we detect limits on the first pallet
-    const displayValue = cg.toFixed(2);
-    
-    // Check if the displayed value in the UI matches our target values
-    const atLimit = (displayValue === "88.00" || displayValue === "18.00");
-    const beyondLimit = (cg < 18 || cg > 88);
-    
-    // Check if CG value is at or beyond acceptable limits
-    
-    // Now set the state for display purposes
-    setBalanceCG(cg);
-    
-    // Check limits and set warning popup
     if (atLimit || beyondLimit) {
-      // Force warning popup for any at-limit or beyond-limit values
       // Show warning for CG value outside acceptable range
       setWarningPopup(true);
       
@@ -910,17 +867,6 @@ export default function LoadPlanningPage() {
     } else {
       // Within safe range
       setWarningPopup(false);
-    }
-    
-    // Determine balance status - using more gradual transitions
-    if (Math.abs(balance) < 20) {
-      setBalanceStatus('safe'); // Green center zone
-    } else if (Math.abs(balance) < 40) {
-      setBalanceStatus('moderate'); // Yellow-green zone
-    } else if (Math.abs(balance) < 60) {
-      setBalanceStatus('warning'); // Amber zone
-    } else {
-      setBalanceStatus('caution'); // Orange zone (instead of danger/red)
     }
   }, [pallets]);
   
