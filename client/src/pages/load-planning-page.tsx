@@ -808,89 +808,75 @@ export default function LoadPlanningPage() {
       return; // Skip calculation if we can't determine cargo area width
     }
     
-    // Calculate weight distribution based on horizontal position
-    let totalWeightMoment = 0;
-    let totalWeightInCargo = 0;
+    // NEW DYNAMIC BALANCE CALCULATION SYSTEM
+    // This system works for any aircraft with any number of pallet positions
+    // Left side of balance scale = Forward (FWD), Right side = Aft (AFT)
     
-    // Log balance calculation info
-    // Balance calculation based on cargo width and pallet configuration
+    let forwardWeight = 0;  // Total weight in forward positions
+    let aftWeight = 0;      // Total weight in aft positions
+    let totalCargoWeight = 0;
     
-    // Determine proper cell positioning based on the grid rather than pallet positions
-    // This ensures correct weight distribution calculations for the balance scale
+    // Determine the total number of cargo positions for this aircraft
+    const totalPositions = currentAircraftId === 'kc30a' ? (cargoType === 'pallets' ? 8 : 26) :
+                          currentAircraftId === 'c17' ? 18 :
+                          currentAircraftId === 'c130' ? 8 :
+                          3; // C-27J
+    
+    // Calculate the midpoint - positions before this are "forward", after are "aft"
+    const midpoint = totalPositions / 2;
+    
     cargoPallets.forEach(pallet => {
-      // Add base weight (136kg) to each pallet's entered weight
+      // Add base weight to each pallet's entered weight
       const palletWeight = (pallet.weight || 0) + PALLET_BASE_WEIGHT;
+      totalCargoWeight += palletWeight;
       
       // Extract position number from pallet label (e.g., 'P2' => 2)
-      let positionNumber = 0;
+      let positionNumber = 1; // Default to position 1 if can't parse
       if (pallet.positionLabel && pallet.positionLabel.startsWith('P')) {
-        positionNumber = parseInt(pallet.positionLabel.substring(1)) - 1; // 0-based index
+        positionNumber = parseInt(pallet.positionLabel.substring(1));
       }
       
-      // Calculate normalized position for balance based on position number, not pixel coordinates
-      let normalizedPosition = 0;
-      
-      // Aircraft specific handling for weight distribution 
-      if (currentAircraftId === 'kc30a') {
-        // For KC30-A: 13 columns, 2 rows - normalize position with 14 forward and 12 aft
-        const col = positionNumber % 13;
-        // First 7 positions in each row (14 total) are forward section
-        // Remaining 6 positions in each row (12 total) are aft section
-        const rowOffset = positionNumber < 13 ? 0 : 0.2; // Slight adjustment for aft row
-        normalizedPosition = (col - 6) / 6 + rowOffset; // -1 to 1 across columns with row adjustment
-      } else if (currentAircraftId === 'c27j') {
-        // For 3-position aircraft: -0.66 (left/P1), 0 (center/P2), 0.66 (right/P3)
-        normalizedPosition = (positionNumber - 1) * 0.66; // -0.66, 0, 0.66
-      } else if (currentAircraftId === 'c17') {
-        // For C-17: 9 columns, 2 rows - normalize position across columns 
-        const col = positionNumber % 9;
-        normalizedPosition = (col - 4) / 4; // -1 to 1 across columns
-      } else if (currentAircraftId === 'c130') {
-        // For C-130: 4 columns, 2 rows - normalize position across columns
-        const col = positionNumber % 4;
-        normalizedPosition = (col - 1.5) / 1.5; // -1 to 1 across columns
+      // Determine if this position is forward or aft
+      if (positionNumber <= midpoint) {
+        forwardWeight += palletWeight;
       } else {
-        // Fallback to old calculation if we can't determine position
-        const centerPosition = (pallet.position.x + pallet.size.width / 2) / cargoWidth;
-        normalizedPosition = (centerPosition * 2) - 1;
+        aftWeight += palletWeight;
       }
-      
-      // Calculate weight moment for balance calculation
-      // The moment of each pallet is directly proportional to its weight
-      // This means a 10,000 lbs pallet has 2x the effect of a 5,000 lbs pallet
-      // and a 2,500 lbs pallet has 1/4 the effect of a 10,000 lbs pallet
-      
-      // Calculate moment (weight * position)
-      totalWeightMoment += palletWeight * normalizedPosition;
-      totalWeightInCargo += palletWeight;
     });
     
-    // Calculate balance value (-100 to 100)
+    // Calculate balance based on weight distribution
+    // Positive values = aft heavy (right side of scale), Negative values = forward heavy (left side)
     let balance = 0;
-    if (totalWeightInCargo > 0) {
-      // For proper center of gravity calculation, we need to include aircraft empty weight
-      // Aircraft empty weight moments (approximate values for different aircraft)
-      const aircraftEmptyWeight = currentAircraftId === 'kc30a' ? 110000 : // kg
-                                   currentAircraftId === 'c17' ? 280000 : // lbs  
-                                   currentAircraftId === 'c130' ? 75000 : // lbs
-                                   28000; // C-27J lbs
+    
+    if (totalCargoWeight > 0) {
+      // Calculate the imbalance as a percentage
+      const weightDifference = aftWeight - forwardWeight;
       
-      // Empty aircraft CG position (normalized: 0 = center, -1 = forward, +1 = aft)
-      const aircraftEmptyCGPosition = 0; // Assume aircraft empty CG is at neutral position
+      // Normalize the balance to a -100 to +100 scale
+      // This makes heavier weights have proportionally more effect
+      balance = (weightDifference / totalCargoWeight) * 100;
       
-      // Calculate total moment including aircraft empty weight
-      const totalMoment = totalWeightMoment + (aircraftEmptyWeight * aircraftEmptyCGPosition);
-      const totalWeight = totalWeightInCargo + aircraftEmptyWeight;
+      // Apply position-based multiplier for more realistic physics
+      // Positions further from center have more leverage effect
+      let positionMultiplier = 1;
       
-      // Calculate weighted center of gravity position
-      balance = (totalMoment / totalWeight) * 100;
+      cargoPallets.forEach(pallet => {
+        const palletWeight = (pallet.weight || 0) + PALLET_BASE_WEIGHT;
+        let positionNumber = 1;
+        if (pallet.positionLabel && pallet.positionLabel.startsWith('P')) {
+          positionNumber = parseInt(pallet.positionLabel.substring(1));
+        }
+        
+        // Calculate distance from center - further positions have more leverage
+        const distanceFromCenter = Math.abs(positionNumber - (midpoint + 0.5));
+        const leverageEffect = 1 + (distanceFromCenter / midpoint) * 0.5; // Up to 50% more effect for edge positions
+        
+        // Apply leverage effect proportional to this pallet's weight contribution
+        const weightRatio = palletWeight / totalCargoWeight;
+        positionMultiplier += (leverageEffect - 1) * weightRatio;
+      });
       
-      // Apply scaling factor to make cargo weight changes more visible
-      // Heavier cargo should have proportionally more impact
-      const cargoWeightRatio = totalWeightInCargo / aircraftEmptyWeight;
-      const scalingFactor = 1 + (cargoWeightRatio * 2); // Amplify effect based on cargo weight
-      
-      balance = balance * scalingFactor;
+      balance = balance * positionMultiplier;
       
       // Clamp to reasonable range
       balance = Math.max(-100, Math.min(100, balance));
