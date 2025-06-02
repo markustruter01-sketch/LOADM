@@ -57,6 +57,7 @@ import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
 import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
 import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
+import WorkforcePage from "@/pages/instructors-portal/workforce";
 import PermissionsDashboard from "@/pages/permissions-dashboard";
 
 // Import route protection components (we'll adapt these)
@@ -124,6 +125,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
             <InstructorRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
             <InstructorRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
+            <InstructorRoute path="/instructors-portal/workforce" component={WorkforcePage} />
             <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
             <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
             <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />

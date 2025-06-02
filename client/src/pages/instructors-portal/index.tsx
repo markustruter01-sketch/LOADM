@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
-  HelpCircle
+  HelpCircle, Users
 } from "lucide-react";
 import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -284,6 +284,29 @@ export default function InstructorsPortal() {
               <Link href="/instructors-portal/quiz-submissions">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   View Quiz Submissions
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+
+          {/* Workforce Management Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Workforce</CardTitle>
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Squadron Personnel Management</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                View squadron personnel, track individual student progress, and review recent submissions by squadron members.
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/workforce">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Manage Workforce
                 </Button>
               </Link>
             </CardFooter>
