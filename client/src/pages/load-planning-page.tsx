@@ -81,12 +81,15 @@ export default function LoadPlanningPage() {
     
     // Safety and balance recommendations
     if (message.includes('balance') || message.includes('weight') || message.includes('optimize')) {
+      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
+      
       if (status === 'critical') {
-        return `⚠️ CRITICAL BALANCE ISSUE: Your current load is ${balance > 0 ? 'too aft' : 'too forward'}. I recommend redistributing cargo to positions closer to the center of gravity. Move heavy items ${balance > 0 ? 'forward' : 'aft'} to improve balance.`;
+        return `⚠️ CRITICAL BALANCE ISSUE: Your current load is ${balance > 0 ? 'too aft' : 'too forward'}. IMMEDIATE ACTION: Move heavy items to center positions (${centerPositions}) to achieve optimal center of gravity at ${optimalCG.toFixed(1)}%. This will provide maximum stability and performance.`;
       } else if (status === 'warning') {
-        return `⚡ Balance is approaching limits. Current status: ${balance > 0 ? 'slightly aft' : 'slightly forward'}. Consider redistributing some cargo for optimal balance.`;
+        return `⚡ Balance is approaching limits. Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%. OPTIMIZATION: Move cargo closer to center positions (${centerPositions}) for optimal CG at ${optimalCG.toFixed(1)}%. Even within limits, center loading provides better aircraft handling.`;
       } else {
-        return `✅ Your current balance is good! Total weight: ${totalWeight.toLocaleString()} lbs. For optimal performance, try to keep heavy items near the center positions.`;
+        return `✅ Balance is within limits (CG: ${balanceResult.centerOfGravity.toFixed(1)}%). OPTIMIZATION OPPORTUNITY: For maximum efficiency and handling, redistribute cargo to center positions (${centerPositions}). Target optimal CG: ${optimalCG.toFixed(1)}%. Center loading reduces structural stress and improves fuel efficiency.`;
       }
     }
     
@@ -95,15 +98,21 @@ export default function LoadPlanningPage() {
     }
     
     if (message.includes('heavy') || message.includes('distribution')) {
-      return `📦 HEAVY CARGO TIPS: Distribute heavy items evenly across the cargo floor. Use multiple positions rather than concentrating weight in one area. This helps with both balance and structural load distribution. Consider using ${config.name === 'C-17' ? 'center positions P4-P6 and P13-P15' : 'center positions P3-P4 and P7-P8'}.`;
+      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
+      return `📦 HEAVY CARGO OPTIMIZATION: Always prioritize center positions (${centerPositions}) for heavy items. This achieves optimal CG at ${optimalCG.toFixed(1)}% and minimizes structural stress. Distribute evenly across center positions rather than concentrating weight. Avoid forward/aft positions unless necessary for balance correction.`;
     }
     
     if (message.includes('center') || message.includes('cg')) {
-      return `⚖️ CENTER OF GRAVITY: Your current CG is at ${balanceResult.centerOfGravity.toFixed(1)}%. Ideal range is ${config.forwardLimit}% to ${config.aftLimit}%. Keep heavy items near the longitudinal center for best performance.`;
+      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
+      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      return `⚖️ CENTER OF GRAVITY OPTIMIZATION: Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%. Target optimal CG: ${optimalCG.toFixed(1)}%. Legal range: ${config.forwardLimit}%-${config.aftLimit}%. For best performance, place all cargo in center positions (${centerPositions}) to achieve optimal CG and minimize fuel consumption.`;
     }
     
     if (message.includes('positions') || message.includes('where')) {
-      return `📍 POSITION GUIDANCE: ${config.name} has ${config.positions} cargo positions. For balanced loading: use center positions first, then work outward. Forward positions affect nose-heavy tendency, aft positions affect tail-heavy tendency.`;
+      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
+      return `📍 OPTIMAL POSITION STRATEGY: ${config.name} has ${config.positions} positions. PRIORITY ORDER: 1) Center positions (${centerPositions}) for optimal CG at ${optimalCG.toFixed(1)}%. 2) Use forward/aft positions only for fine balance adjustment. Always start with center loading for maximum efficiency.`;
     }
     
     // Default helpful response
