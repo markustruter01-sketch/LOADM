@@ -69,7 +69,7 @@ import {
 import { Link } from "wouter";
 
 // A set of predefined squadrons for filtering
-const SQUADRONS = ["AMG", "33SQN", "35SQN", "36SQN", "37SQN"];
+const SQUADRONS = ["33 Squadron", "35 Squadron", "36 Squadron", "37 Squadron"];
 
 // Color constants for charts
 const COLORS = {
@@ -80,11 +80,10 @@ const COLORS = {
   warning: "#F59E0B",
   info: "#3B82F6",
   squadrons: {
-    "AMG": "#FF9500",
-    "33SQN": "#10B981",
-    "35SQN": "#3B82F6",
-    "36SQN": "#8B5CF6",
-    "37SQN": "#EC4899"
+    "33 Squadron": "#FF9500",
+    "35 Squadron": "#10B981",
+    "36 Squadron": "#3B82F6",
+    "37 Squadron": "#8B5CF6"
   },
   scoreRanges: {
     "0-49%": "#EF4444",

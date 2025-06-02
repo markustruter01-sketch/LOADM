@@ -520,7 +520,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Note: Quiz routes are now handled by the new quiz-new.ts module
 
-
+  // Quiz submissions endpoint for instructor analytics
+  app.get("/api/instructor/quiz-submissions", requireAuth, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get quiz submissions with proper joins
+      const submissions = await sql`
+        SELECT 
+          qs.id,
+          qs.quiz_id,
+          qs.user_id,
+          qs.submission_date,
+          qs.answers,
+          qs.score,
+          qs.squadron,
+          u.email,
+          u.first_name,
+          u.last_name,
+          q.title as quiz_title,
+          q.description as quiz_description
+        FROM quiz_submissions qs
+        LEFT JOIN users u ON qs.user_id = u.id
+        LEFT JOIN quizzes q ON qs.quiz_id = q.id
+        ORDER BY qs.submission_date DESC
+      `;
+      
+      // Format the response to match frontend expectations
+      const formattedSubmissions = submissions.map(submission => ({
+        id: submission.id,
+        quizId: submission.quiz_id,
+        userId: submission.user_id,
+        submissionDate: submission.submission_date,
+        answers: submission.answers,
+        score: submission.score,
+        squadron: submission.squadron,
+        username: submission.first_name && submission.last_name 
+          ? `${submission.first_name} ${submission.last_name}`
+          : submission.email?.split('@')[0] || `User ${submission.user_id}`,
+        email: submission.email || 'Unknown User',
+        quizTitle: submission.quiz_title || 'Unknown Quiz',
+        quizDescription: submission.quiz_description || ''
+      }));
+      
+      res.json(formattedSubmissions);
+    } catch (error) {
+      console.error('Quiz submissions API error:', error);
+      res.status(500).json({ error: 'Failed to fetch quiz submissions' });
+    }
+  });
 
   // STUDENT SUBMISSIONS (Quiz submissions now handled by quiz-new.ts module)
 
