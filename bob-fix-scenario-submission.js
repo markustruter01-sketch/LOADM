@@ -15,19 +15,17 @@ async function authenticate() {
     });
 
     if (!loginResponse.ok) {
-      const errorText = await loginResponse.text();
-      throw new Error(`Login failed: ${loginResponse.status} - ${errorText}`);
+      throw new Error(`Login failed: ${loginResponse.status}`);
     }
 
-    const loginResult = await loginResponse.text();
-    console.log('Login response:', loginResult);
+    const loginResult = await loginResponse.json();
+    console.log('✅ Login successful:', loginResult.message);
 
     const cookies = loginResponse.headers.get('set-cookie');
     if (!cookies) {
       throw new Error('No cookies received');
     }
 
-    console.log('Received cookies:', cookies);
     console.log('✅ Authenticated successfully');
     return cookies;
   } catch (error) {

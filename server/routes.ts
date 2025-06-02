@@ -634,17 +634,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
     try {
-      const { scenario_id, loadPlan, notes } = req.body;
+      const { scenarioId, answers, timeSpent, notes } = req.body;
       const user = (req as any).user;
       
-      if (!scenario_id || !loadPlan) {
-        return res.status(400).json({ error: 'Scenario ID and load plan required' });
+      if (!scenarioId || !answers) {
+        return res.status(400).json({ error: 'Scenario ID and answers required' });
       }
 
       const newSubmission = await db.insert(scenarioSubmissions).values({
-        scenario_id,
+        scenarioId,
         userId: user.id,
-        loadPlan,
+        answers,
         notes: notes || '',
         status: 'submitted'
       }).returning();
