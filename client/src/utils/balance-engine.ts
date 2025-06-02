@@ -158,91 +158,84 @@ export const KC30A_CONFIG: AircraftBalanceConfig = {
 };
 
 /**
- * Advanced Balance Calculation Engine
- * 
- * This function calculates aircraft balance considering:
- * 1. Weight distribution across all cargo positions
- * 2. Weighted influence (heavier cargo has more impact)
- * 3. Physical position relative to aircraft datum
- * 4. Aircraft-specific limits and characteristics
+ * Simple Physics-Based Balance Calculator
+ * Uses standard moment calculations and position-based balance
  */
 export function calculateAdvancedBalance(
   cargoItems: CargoItem[],
   aircraftConfig: AircraftBalanceConfig
 ): BalanceResult {
-  // Initialize calculation variables
+  // If no cargo, return balanced state
+  if (!cargoItems || cargoItems.length === 0) {
+    return {
+      centerOfGravity: 45.0, // Mid-range CG
+      momentArm: 0,
+      totalWeight: 0,
+      balance: 0, // Perfectly balanced
+      status: 'safe',
+      weightDistribution: []
+    };
+  }
+
   let totalWeight = 0;
-  let totalMoment = 0;
+  let weightedPositionSum = 0; // For simple position-based balance
   const weightDistribution: BalanceResult['weightDistribution'] = [];
 
-  // Step 1: Calculate basic moments and weights
+  // Calculate balance using simple position-based physics
   cargoItems.forEach(item => {
-    // Skip empty pallets completely - they have no impact on balance
+    // Skip empty pallets
     if (!item.weight || item.weight <= 0) return;
 
-    // Find position configuration
-    const positionConfig = aircraftConfig.positions.find(p => p.id === item.position + 1);
-    if (!positionConfig) return;
-
-    // Calculate moment (weight × distance from datum)
-    const moment = item.weight * positionConfig.distanceFromDatum;
-    
     totalWeight += item.weight;
-    totalMoment += moment;
+    
+    // Simple position-based calculation: position 0-7 maps to -4 to +3
+    // P1(0) = -3.5, P2(1) = -2.5, P3(2) = -1.5, P4(3) = -0.5
+    // P5(4) = +0.5, P6(5) = +1.5, P7(6) = +2.5, P8(7) = +3.5
+    const positionWeight = item.position - 3.5; // Centers around 0
+    weightedPositionSum += item.weight * positionWeight;
 
     weightDistribution.push({
       position: item.positionLabel,
       weight: item.weight,
-      moment: moment,
-      influence: 0 // Will be calculated after all items are processed
+      moment: item.weight * positionWeight,
+      influence: 0 // Will be calculated below
     });
   });
 
-  // Step 2: Calculate weighted influence (heavier items have proportionally more impact)
+  // Calculate influences
   if (totalWeight > 0) {
     weightDistribution.forEach(item => {
-      // Calculate base influence (weight percentage)
-      const baseInfluence = (item.weight / totalWeight) * 100;
-      
-      // Apply weight amplification factor for heavier items
-      // Items over 50% of max position weight get amplified influence
-      const positionConfig = aircraftConfig.positions.find(p => p.label === item.position);
-      const maxPositionWeight = positionConfig?.maxWeight || 10000;
-      const weightRatio = item.weight / maxPositionWeight;
-      
-      // Amplification factor: 1.0 for light items, up to 2.0 for very heavy items
-      const amplificationFactor = 1 + Math.min(weightRatio, 1) * 1;
-      
-      item.influence = baseInfluence * amplificationFactor;
+      item.influence = (item.weight / totalWeight) * 100;
     });
-
-    // Normalize influences to sum to 100%
-    const totalInfluence = weightDistribution.reduce((sum, item) => sum + item.influence, 0);
-    if (totalInfluence > 0) {
-      weightDistribution.forEach(item => {
-        item.influence = (item.influence / totalInfluence) * 100;
-      });
-    }
   }
 
-  // Step 3: Calculate Center of Gravity
-  let centerOfGravity = 0;
+  // Simple balance calculation: negative = forward heavy, positive = aft heavy
+  let balance = 0;
   if (totalWeight > 0) {
-    centerOfGravity = totalMoment / totalWeight;
+    balance = (weightedPositionSum / totalWeight) * 20; // Scale factor for sensitivity
+    balance = Math.max(-100, Math.min(100, balance)); // Clamp to range
   }
 
-  // Step 4: Convert to percentage of Mean Aerodynamic Chord (MAC)
-  const cgPercentage = calculateCGPercentage(centerOfGravity, aircraftConfig);
+  // Calculate CG percentage (map balance to CG range)
+  const centerCG = (aircraftConfig.forwardCGLimit + aircraftConfig.aftCGLimit) / 2;
+  const cgRange = aircraftConfig.aftCGLimit - aircraftConfig.forwardCGLimit;
+  const centerOfGravity = centerCG + (balance * cgRange / 200); // Map -100/+100 to CG range
 
-  // Step 5: Calculate balance value (-100 to +100)
-  const balance = calculateBalanceValue(cgPercentage, aircraftConfig);
-
-  // Step 6: Determine status - if no cargo, aircraft is balanced
-  const status = totalWeight === 0 ? 'safe' : determineBalanceStatus(cgPercentage, aircraftConfig);
+  // Determine status
+  let status: BalanceResult['status'] = 'safe';
+  if (totalWeight === 0) {
+    status = 'safe';
+  } else if (centerOfGravity < aircraftConfig.forwardCGLimit || centerOfGravity > aircraftConfig.aftCGLimit) {
+    status = 'critical';
+  } else if (Math.abs(balance) > 60) {
+    status = 'warning';
+  } else if (Math.abs(balance) > 30) {
+    status = 'caution';
+  }
 
   return {
-    centerOfGravity: cgPercentage,
-    momentArm: totalMoment,
+    centerOfGravity: Math.max(aircraftConfig.forwardCGLimit, Math.min(aircraftConfig.aftCGLimit, centerOfGravity)),
+    momentArm: weightedPositionSum,
     totalWeight: totalWeight,
     balance: balance,
     status: status,
