@@ -331,7 +331,9 @@ export default function LoadPlanningPage() {
         <div className="text-center text-lg font-semibold text-card-foreground mb-1">
           {position.weight > 0 ? position.weight.toLocaleString() : '0'}
         </div>
-        <div className="text-xs text-muted-foreground400 text-center">lbs</div>
+        <div className="text-xs text-muted-foreground400 text-center">
+          {aircraftId === 'kc30a' ? 'kg' : 'lbs'}
+        </div>
         
         {/* Cargo type display */}
         {position.cargoType !== 'General' && (
@@ -404,7 +406,10 @@ export default function LoadPlanningPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-card-foreground">{config.name} Load Planning</h1>
-            <p className="text-muted-foreground300">Max Payload: {config.maxWeight.toLocaleString()} lbs | Max Positions: {config.positions}</p>
+            <p className="text-muted-foreground300">
+              Max Payload: {aircraftId === 'kc30a' ? '34,000 kg' : `${config.maxWeight.toLocaleString()} lbs`} | 
+              Max Positions: {aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? '26' : '8') : config.positions}
+            </p>
           </div>
         </div>
 
@@ -420,11 +425,15 @@ export default function LoadPlanningPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <Label className="text-muted-foreground400">Current Load</Label>
-                <p className="text-2xl font-bold text-card-foreground">{balanceResult.totalWeight.toLocaleString()} lbs</p>
+                <p className="text-2xl font-bold text-card-foreground">
+                  {balanceResult.totalWeight.toLocaleString()} {aircraftId === 'kc30a' ? 'kg' : 'lbs'}
+                </p>
               </div>
               <div>
                 <Label className="text-muted-foreground400">Maximum Payload</Label>
-                <p className="text-2xl font-bold text-muted-foreground300">{config.maxWeight.toLocaleString()} lbs</p>
+                <p className="text-2xl font-bold text-muted-foreground300">
+                  {aircraftId === 'kc30a' ? '34,000 kg' : `${config.maxWeight.toLocaleString()} lbs`}
+                </p>
               </div>
               <div>
                 <Label className="text-muted-foreground400">Positions Filled</Label>
@@ -854,14 +863,19 @@ export default function LoadPlanningPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="weight">Weight (lbs)</Label>
+              <Label htmlFor="weight">
+                Weight ({aircraftId === 'kc30a' ? 'kg' : 'lbs'})
+              </Label>
               <Input
                 type="number"
                 min="0"
-                max="15000"
+                max={aircraftId === 'kc30a' ? 
+                  (kc30aCargoType === 'LD3' ? 1478 : 4400) : 
+                  9710
+                }
                 value={editWeight}
                 onChange={(e) => setEditWeight(parseInt(e.target.value) || 0)}
-                placeholder="Enter weight in pounds..."
+                placeholder={`Enter weight in ${aircraftId === 'kc30a' ? 'kilograms' : 'pounds'}...`}
                 className="bg-muted"
               />
             </div>
