@@ -174,15 +174,25 @@ app.put("/api/user/squadron", async (req, res) => {
     const sql = neon(process.env.DATABASE_URL!);
     
     // Update the squadron in the licenses table
-    await sql`
+    const updateResult = await sql`
       UPDATE licenses 
       SET squadron = ${squadron}
       FROM users 
       WHERE licenses.id = users.license_id 
       AND users.id = ${actualUserId}
     `;
+    console.log('✅ SQUADRON: Update executed, rows affected:', updateResult.length);
     
-    res.json({ success: true, squadron });
+    // Verify the update by fetching the current value
+    const verifyResult = await sql`
+      SELECT l.squadron 
+      FROM users u
+      LEFT JOIN licenses l ON u.license_id = l.id
+      WHERE u.id = ${actualUserId}
+    `;
+    console.log('✅ SQUADRON: Verified updated value:', verifyResult[0]?.squadron);
+    
+    res.json({ success: true, squadron: verifyResult[0]?.squadron });
   } catch (error) {
     console.error('Error updating user squadron:', error);
     res.status(500).json({ error: "Failed to update squadron assignment" });
