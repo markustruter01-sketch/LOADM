@@ -8,6 +8,9 @@ export interface CargoPosition {
   label: string;
   weight: number;
   position: number; // 0-based index from front to back
+  cargoType: string;
+  dgClass: string;
+  description: string;
 }
 
 export interface BalanceResult {

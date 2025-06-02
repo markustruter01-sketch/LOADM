@@ -9,6 +9,8 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   calculateBalance, 
   AIRCRAFT_CONFIGS, 
@@ -35,7 +37,10 @@ export default function LoadPlanningPage() {
       id: `P${i + 1}`,
       label: `P${i + 1}`,
       weight: 0,
-      position: i
+      position: i,
+      cargoType: 'General',
+      dgClass: '',
+      description: ''
     }))
   );
 
@@ -60,6 +65,12 @@ export default function LoadPlanningPage() {
       timestamp: new Date()
     }
   ]);
+
+  // Cargo edit dialog state
+  const [editingPosition, setEditingPosition] = useState<string | null>(null);
+  const [editCargoType, setEditCargoType] = useState('General');
+  const [editDgClass, setEditDgClass] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   // Recalculate balance whenever cargo changes
   useEffect(() => {
@@ -164,6 +175,30 @@ export default function LoadPlanningPage() {
           : pos
       )
     );
+  };
+
+  const openCargoEdit = (position: CargoPosition) => {
+    setEditingPosition(position.id);
+    setEditCargoType(position.cargoType);
+    setEditDgClass(position.dgClass);
+    setEditDescription(position.description);
+  };
+
+  const saveCargoEdit = () => {
+    if (!editingPosition) return;
+    
+    setCargoPositions(prev => 
+      prev.map(pos => 
+        pos.id === editingPosition 
+          ? { ...pos, cargoType: editCargoType, dgClass: editDgClass, description: editDescription }
+          : pos
+      )
+    );
+    
+    setEditingPosition(null);
+    setEditCargoType('General');
+    setEditDgClass('');
+    setEditDescription('');
   };
 
   const resetAllCargo = () => {
