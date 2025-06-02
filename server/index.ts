@@ -16,6 +16,11 @@ authCore.clearAllIsolatedSessions();
 app.use(cookieParser());
 app.use(express.json());
 
+// Mount isolated auth routes FIRST (before Vite middleware)
+app.use('/api/isolated-auth', isolatedAuthRoutes);
+app.use('/auth-isolated', isolatedAuthRoutes);
+app.use('/auth', isolatedAuthRoutes);
+
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
 import { phoneDirectory, chatMessages } from '../shared/schema';
@@ -32,8 +37,6 @@ app.get("/api/phone-directory", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch phone directory" });
   }
 });
-
-
 
 app.delete("/api/phone-directory/:id", async (req, res) => {
   try {
@@ -99,10 +102,6 @@ setInterval(async () => {
     console.error("Chat cleanup error:", error);
   }
 }, 24 * 60 * 60 * 1000); // Run every 24 hours
-
-// Mount isolated auth routes FIRST (before any other routing)
-app.use('/auth-isolated', isolatedAuthRoutes);
-app.use('/auth', isolatedAuthRoutes);
 
 // Register other routes (they'll handle their own auth)
 registerRoutes(app);
