@@ -189,7 +189,7 @@ export default function ModernScenarioPage() {
 
   const finishScenario = () => {
     setShowResults(false);
-    setLocation("/dashboard");
+    setLocation("/");
   };
 
   return (
@@ -341,10 +341,10 @@ export default function ModernScenarioPage() {
                   <SelectValue placeholder="Select your squadron" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="AMG">AMG</SelectItem>
-                  <SelectItem value="86WG">86WG</SelectItem>
-                  <SelectItem value="RAAF">RAAF</SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
+                  <SelectItem value="33">33 Squadron</SelectItem>
+                  <SelectItem value="35">35 Squadron</SelectItem>
+                  <SelectItem value="36">36 Squadron</SelectItem>
+                  <SelectItem value="37">37 Squadron</SelectItem>
                 </SelectContent>
               </Select>
             </div>
