@@ -1,109 +1,127 @@
 import { Helmet } from "react-helmet";
-import { Link, useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlaneIcon, ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plane, ArrowRight } from "lucide-react";
+import { useLocation } from "wouter";
 
-interface LoadPlanningSelectionPageProps {
-  hideHeader?: boolean;
-  params?: any;
+interface Aircraft {
+  id: string;
+  name: string;
+  description: string;
+  maxPayload: string;
+  positions: number;
+  image?: string;
 }
 
-export default function LoadPlanningSelectionPage({ hideHeader = false, params }: LoadPlanningSelectionPageProps) {
-  const [, navigate] = useLocation();
-  
-  const aircraftOptions = [
-    {
-      id: 'c27j',
-      name: 'Spartan C-27J',
-      description: 'Tactical transport aircraft with a maximum payload of 11,300 kg',
-      path: '/load-planning/c27j'
-    },
-    {
-      id: 'c17',
-      name: 'Globemaster C-17',
-      description: 'Strategic airlift aircraft with a maximum payload of 77,500 kg',
-      path: '/load-planning/c17'
-    },
-    {
-      id: 'c130',
-      name: 'Hercules C-130',
-      description: 'Versatile tactical airlifter with a maximum payload of 20,000 kg',
-      path: '/load-planning/c130'
-    },
-    {
-      id: 'kc30a',
-      name: 'Airbus KC30-A',
-      description: 'Multi-role tanker transport with a maximum payload of 45,000 kg',
-      path: '/load-planning/kc30a'
-    }
-  ];
-  
-  return (
-    <>
-      {!hideHeader && (
-        <Helmet>
-          <title>Airframe - LOADMworkflow</title>
-          <meta 
-            name="description" 
-            content="Select an aircraft for load planning simulation." 
-          />
-        </Helmet>
-      )}
+const aircraftList: Aircraft[] = [
+  {
+    id: "c130",
+    name: "C-130 Hercules",
+    description: "Medium tactical transport aircraft",
+    maxPayload: "42,000 lbs",
+    positions: 8
+  },
+  {
+    id: "c17",
+    name: "C-17 Globemaster",
+    description: "Strategic heavy-lift transport",
+    maxPayload: "170,900 lbs", 
+    positions: 18
+  },
+  {
+    id: "c27j",
+    name: "C-27J Spartan",
+    description: "Light tactical transport aircraft",
+    maxPayload: "25,000 lbs",
+    positions: 3
+  },
+  {
+    id: "kc30a",
+    name: "KC30-A Airbus",
+    description: "Multi-role tanker transport",
+    maxPayload: "75,000 lbs",
+    positions: 26
+  }
+];
 
-      <div className={hideHeader ? "" : "container mx-auto px-4 py-6 mb-16"}>
-        <div className={hideHeader ? "" : "max-w-4xl mx-auto"}>
-          {!hideHeader && (
-            <>
-              <div className="mb-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate('/')}
-                  className="p-2 -ml-2"
-                >
-                  <ArrowLeft className="h-5 w-5 mr-1" />
-                  Back to Home
-                </Button>
-              </div>
-              
-              <h1 className="text-3xl font-bold mb-2">Airframe</h1>
-              <p className="text-muted-foreground mb-8">
-                Select an aircraft type to begin load planning simulation
-              </p>
-            </>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {aircraftOptions.map((aircraft) => (
-              <Card 
-                key={aircraft.id} 
-                className="hover:border-primary transition-colors cursor-pointer"
-                onClick={() => navigate(aircraft.path)}
-              >
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center">
-                    <PlaneIcon className="h-5 w-5 mr-2 text-primary" />
-                    {aircraft.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm">
-                    {aircraft.description}
-                  </CardDescription>
-                </CardContent>
-                <CardFooter className="pt-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-primary text-primary hover:bg-primary hover:text-white"
-                  >
-                    Select
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+export default function LoadPlanningSelectionPage() {
+  const [, navigate] = useLocation();
+
+  const handleAircraftSelect = (aircraftId: string) => {
+    navigate(`/load-planning/${aircraftId}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+      <Helmet>
+        <title>Aircraft Selection - Load Planning | LOADMworkflow</title>
+        <meta name="description" content="Select aircraft for load planning operations" />
+      </Helmet>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Plane className="h-8 w-8 text-blue-400" />
+            <h1 className="text-4xl font-bold text-white">Load Planning</h1>
           </div>
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+            Select an aircraft to begin load planning operations. Each aircraft has unique 
+            cargo configurations and balance requirements.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {aircraftList.map((aircraft) => (
+            <Card 
+              key={aircraft.id}
+              className="bg-slate-800/50 border-slate-700 hover:bg-slate-700/50 transition-all duration-300 cursor-pointer group"
+              onClick={() => handleAircraftSelect(aircraft.id)}
+            >
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 p-4 bg-blue-600/20 rounded-full w-16 h-16 flex items-center justify-center">
+                  <Plane className="h-8 w-8 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                </div>
+                <CardTitle className="text-white text-xl">{aircraft.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-slate-300 text-sm text-center">
+                  {aircraft.description}
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Max Payload:</span>
+                    <span className="text-green-400 font-medium">{aircraft.maxPayload}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Cargo Positions:</span>
+                    <span className="text-blue-400 font-medium">{aircraft.positions}</span>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAircraftSelect(aircraft.id);
+                  }}
+                >
+                  Select Aircraft
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/home")}
+            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+          >
+            Back to Dashboard
+          </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

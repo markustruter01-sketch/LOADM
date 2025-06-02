@@ -10,7 +10,6 @@ import DocumentFormPage from "@/pages/document-form-page";
 import ModernScenarioPage from "@/pages/scenario-page-modern";
 import DocsListPage from "@/pages/docs-list-page";
 import ScenariosPage from "@/pages/scenarios-page";
-import LoadPlanningPage from "@/pages/load-planning-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import DocumentsPage from "@/pages/documents-page";
 import CargoManifestPage from "@/pages/cargo-manifest-page";
@@ -90,10 +89,6 @@ function AuthenticatedApp() {
             <Route path="/load-planning">
               {(params) => <LoadPlanningSelectionPage {...params} />}
             </Route>
-            <Route path="/load-planning/c27j" component={LoadPlanningPage} />
-            <Route path="/load-planning/c17" component={LoadPlanningPage} />
-            <Route path="/load-planning/c130" component={LoadPlanningPage} />
-            <Route path="/load-planning/kc30a" component={LoadPlanningPage} />
             <Route path="/documents" component={DocumentsPage} />
             <Route path="/cargo-manifest" component={CargoManifestPage} />
 
