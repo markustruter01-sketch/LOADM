@@ -141,7 +141,9 @@ export default function LoadPlanningPage() {
       
       if (dgNotInAft) {
         const aftRange = aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? 'P21-P26' : 'P7-P8') : (config.name === 'C-17' ? 'P15-P18' : 'P7-P8');
-        return `⚠️ DANGEROUS GOODS SAFETY WARNING: Dangerous goods detected but NOT positioned at aircraft aft! For emergency jettison capability, immediately move ALL dangerous goods to rear positions: ${aftRange}. This is critical for crew safety and emergency procedures.`;
+        const centerPositions = aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6') : (config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8');
+        const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
+        return `🔄 SAFETY & BALANCE OPTIMIZATION: Dangerous goods should be moved to aft positions (${aftRange}) for emergency jettison capability. Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%, target: ${optimalCG.toFixed(1)}%. For optimal balance, place heavy cargo in center positions (${centerPositions}) and maintain DG safety protocols.`;
       }
     }
     
@@ -633,62 +635,12 @@ export default function LoadPlanningPage() {
                   <div className="space-y-3">
                     {/* Upper Row (P1-P9) */}
                     <div className="grid grid-cols-9 gap-2">
-                      {cargoPositions.slice(0, 9).map((position) => (
-                        <div key={position.id} className="space-y-2">
-                          <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
-                            position.weight > 0 
-                              ? 'border-orange-500 bg-orange-500/20' 
-                              : 'border-gray-600 bg-gray-700/30'
-                          }`}>
-                            <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
-                              {position.label}
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max={15000}
-                              value={position.weight || ''}
-                              onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs h-8"
-                              placeholder="0"
-                            />
-                            <div className="text-xs text-muted-foreground400 text-center">lbs</div>
-                            {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                      {cargoPositions.slice(0, 9).map((position) => renderCargoPosition(position, 15000))}
                     </div>
                     
                     {/* Lower Row (P10-P18) */}
                     <div className="grid grid-cols-9 gap-2">
-                      {cargoPositions.slice(9, 18).map((position) => (
-                        <div key={position.id} className="space-y-2">
-                          <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
-                            position.weight > 0 
-                              ? 'border-orange-500 bg-orange-500/20' 
-                              : 'border-gray-600 bg-gray-700/30'
-                          }`}>
-                            <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
-                              {position.label}
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max={15000}
-                              value={position.weight || ''}
-                              onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs h-8"
-                              placeholder="0"
-                            />
-                            <div className="text-xs text-muted-foreground400 text-center">lbs</div>
-                            {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                      {cargoPositions.slice(9, 18).map((position) => renderCargoPosition(position, 15000))}
                     </div>
                   </div>
                   
