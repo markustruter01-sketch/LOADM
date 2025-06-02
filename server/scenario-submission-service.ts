@@ -66,22 +66,17 @@ export class ScenarioSubmissionService {
 
       console.log('✅ Scenario verified:', scenario[0].title);
 
-      // Create metadata object
-      const metadata = {
+      // Insert submission using existing database structure
+      const [submission] = await db.insert(scenarioSubmissions).values({
+        scenarioId,
+        userId,
+        answers,
+        status: 'submitted',
         studentName: studentName || '',
         studentId: studentId || '',
         squadron: squadron || 'AMG',
         timeSpent: timeSpent || 0,
         notes: notes || ''
-      };
-
-      // Insert submission into database
-      const [submission] = await db.insert(scenarioSubmissions).values({
-        scenarioId,
-        userId,
-        answers,
-        metadata,
-        status: 'submitted'
       }).returning();
 
       console.log('✅ Submission created successfully:', submission.id);
@@ -94,7 +89,13 @@ export class ScenarioSubmissionService {
         submissionDate: submission.submissionDate,
         status: submission.status,
         answers: submission.answers,
-        metadata: submission.metadata
+        studentInfo: {
+          studentName: studentName || '',
+          studentId: studentId || '',
+          squadron: squadron || 'AMG',
+          timeSpent: timeSpent || 0,
+          notes: notes || ''
+        }
       };
 
       res.status(201).json(response);
@@ -127,7 +128,7 @@ export class ScenarioSubmissionService {
         status: scenarioSubmissions.status,
         score: scenarioSubmissions.score,
         passed: scenarioSubmissions.passed,
-        metadata: scenarioSubmissions.metadata,
+        answers: scenarioSubmissions.answers,
         scenarioTitle: scenarios.title
       })
       .from(scenarioSubmissions)
@@ -167,7 +168,6 @@ export class ScenarioSubmissionService {
         status: scenarioSubmissions.status,
         score: scenarioSubmissions.score,
         passed: scenarioSubmissions.passed,
-        metadata: scenarioSubmissions.metadata,
         answers: scenarioSubmissions.answers,
         instructorFeedback: scenarioSubmissions.instructorFeedback,
         scenarioTitle: scenarios.title
