@@ -66,17 +66,22 @@ export class ScenarioSubmissionService {
 
       console.log('✅ Scenario verified:', scenario[0].title);
 
-      // Insert submission using Drizzle schema field names (they map to snake_case automatically)
+      // Insert submission using the updated schema with individual fields
       const [submission] = await db.insert(scenarioSubmissions).values({
         scenarioId,
         userId,
         answers,
-        status: 'submitted'
+        status: 'submitted',
+        studentName: studentName || '',
+        studentId: studentId || '',
+        squadron: squadron || 'AMG',
+        timeSpent: timeSpent || 0,
+        notes: notes || ''
       }).returning();
 
       console.log('✅ Submission created successfully:', submission.id);
 
-      // Return clean response using Drizzle schema field names
+      // Return clean response using the updated schema fields
       const response = {
         id: submission.id,
         scenarioId: submission.scenarioId,
@@ -84,13 +89,11 @@ export class ScenarioSubmissionService {
         submissionDate: submission.submissionDate,
         status: submission.status,
         answers: submission.answers,
-        metadata: {
-          studentName: studentName || '',
-          studentId: studentId || '',
-          squadron: squadron || 'AMG',
-          timeSpent: timeSpent || 0,
-          notes: notes || ''
-        }
+        studentName: submission.studentName,
+        studentId: submission.studentId,
+        squadron: submission.squadron,
+        timeSpent: submission.timeSpent,
+        notes: submission.notes
       };
 
       res.status(201).json(response);
