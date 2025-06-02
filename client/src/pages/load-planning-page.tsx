@@ -125,7 +125,13 @@ export default function LoadPlanningPage() {
     
     // Safety and balance recommendations
     if (message.includes('balance') || message.includes('weight') || message.includes('optimize')) {
-      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const getCenterPositions = () => {
+        if (aircraftId === 'kc30a') {
+          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
+        }
+        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      };
+      const centerPositions = getCenterPositions();
       const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
       
       if (status === 'critical') {
@@ -142,21 +148,39 @@ export default function LoadPlanningPage() {
     }
     
     if (message.includes('heavy') || message.includes('distribution')) {
-      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const getCenterPositions = () => {
+        if (aircraftId === 'kc30a') {
+          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
+        }
+        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      };
+      const centerPositions = getCenterPositions();
       const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
       return `📦 HEAVY CARGO OPTIMIZATION: Always prioritize center positions (${centerPositions}) for heavy items. This achieves optimal CG at ${optimalCG.toFixed(1)}% and minimizes structural stress. Distribute evenly across center positions rather than concentrating weight. Avoid forward/aft positions unless necessary for balance correction.`;
     }
     
     if (message.includes('center') || message.includes('cg')) {
       const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const getCenterPositions = () => {
+        if (aircraftId === 'kc30a') {
+          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
+        }
+        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      };
+      const centerPositions = getCenterPositions();
       return `⚖️ CENTER OF GRAVITY OPTIMIZATION: Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%. Target optimal CG: ${optimalCG.toFixed(1)}%. Legal range: ${config.forwardLimit}%-${config.aftLimit}%. For best performance, place all cargo in center positions (${centerPositions}) to achieve optimal CG and minimize fuel consumption.`;
     }
     
     if (message.includes('positions') || message.includes('where')) {
-      const centerPositions = config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      const getCenterPositions = () => {
+        if (aircraftId === 'kc30a') {
+          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
+        }
+        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
+      };
+      const centerPositions = getCenterPositions();
       const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-      return `📍 OPTIMAL POSITION STRATEGY: ${config.name} has ${config.positions} positions. PRIORITY ORDER: 1) Center positions (${centerPositions}) for optimal CG at ${optimalCG.toFixed(1)}%. 2) Use forward/aft positions only for fine balance adjustment. Always start with center loading for maximum efficiency.`;
+      return `📍 OPTIMAL POSITION STRATEGY: ${config.name} has ${aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? '26' : '8') : config.positions} positions. PRIORITY ORDER: 1) Center positions (${centerPositions}) for optimal CG at ${optimalCG.toFixed(1)}%. 2) Use forward/aft positions only for fine balance adjustment. Always start with center loading for maximum efficiency.`;
     }
     
     // Default helpful response
@@ -524,13 +548,26 @@ export default function LoadPlanningPage() {
         <Card className="bg-card mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-card-foreground">Cargo Bay Layout</CardTitle>
-            <Button 
-              variant="outline" 
-              onClick={resetAllCargo}
-              className="border-gray-600 text-muted-foreground300 hover:bg-gray-700"
-            >
-              Reset All
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const aiSection = document.querySelector('#ai-assistant-section');
+                  aiSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="border-orange-500 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                AI Assistant
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={resetAllCargo}
+                className="border-gray-600 text-muted-foreground300 hover:bg-gray-700"
+              >
+                Reset All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
@@ -798,7 +835,7 @@ export default function LoadPlanningPage() {
         </div>
 
         {/* AI Load Planning Assistant Section */}
-        <Card className="bg-card border-border">
+        <Card id="ai-assistant-section" className="bg-card border-border">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
