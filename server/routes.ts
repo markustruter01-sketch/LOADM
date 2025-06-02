@@ -632,29 +632,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
-    try {
-      const { scenarioId, answers, timeSpent, notes } = req.body;
-      const user = (req as any).user;
-      
-      if (!scenarioId || !answers) {
-        return res.status(400).json({ error: 'Scenario ID and answers required' });
-      }
-
-      const newSubmission = await db.insert(scenarioSubmissions).values({
-        scenarioId,
-        userId: user.id,
-        answers,
-        notes: notes || '',
-        status: 'submitted'
-      }).returning();
-
-      res.status(201).json(newSubmission[0]);
-    } catch (error) {
-      console.error('Error creating scenario submission:', error);
-      res.status(500).json({ error: 'Failed to create submission' });
-    }
-  });
+  // Import and mount modern scenario submission service
+  const { ScenarioSubmissionService } = await import('./scenario-submission-service');
+  
+  // Modern scenario submission endpoints
+  app.post("/api/scenario-submissions", requireAuth, ScenarioSubmissionService.createSubmission);
+  app.get("/api/scenario-submissions", requireAuth, ScenarioSubmissionService.getAllSubmissions);
+  app.get("/api/scenario-submissions/user", requireAuth, ScenarioSubmissionService.getUserSubmissions);
+  app.get("/api/scenario-submissions/:id", requireAuth, ScenarioSubmissionService.getSubmissionById);
 
   // Note: All quiz-related endpoints now handled by quiz-new.ts module
 

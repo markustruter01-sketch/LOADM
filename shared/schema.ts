@@ -146,7 +146,7 @@ export const insertScenarioSchema = createInsertSchema(scenarios).pick({
   passingThreshold: true,
 });
 
-// Scenario submission schema
+// Modern Scenario Submission Schema - Complete Rebuild
 export const scenarioSubmissions = pgTable("scenario_submissions", {
   id: serial("id").primaryKey(),
   scenarioId: integer("scenario_id")
@@ -157,25 +157,39 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
     .references(() => users.id, { onDelete: "cascade" }),
   submissionDate: timestamp("submission_date").defaultNow().notNull(),
   answers: json("answers").notNull().$type<Array<{questionId: string, answer: string, notes?: string}>>(),
+  metadata: json("metadata").default({}).$type<{
+    studentName?: string;
+    studentId?: string;
+    squadron?: string;
+    timeSpent?: number;
+    notes?: string;
+  }>(),
   score: integer("score"),
-  studentName: text("student_name").default(''),
-  studentId: text("student_id").default(''),
-  squadron: text("squadron").default(''),
+  status: text("status").default("submitted").notNull(), // submitted, reviewed, completed
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
   instructorFeedback: text("instructor_feedback"),
-  markedAnswers: json("marked_answers").default({}),
-  status: text("status").default("pending").notNull(),
   passed: boolean("passed").default(false),
 });
 
-export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions).pick({
+export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions, {
+  answers: z.array(z.object({
+    questionId: z.string(),
+    answer: z.string(),
+    notes: z.string().optional()
+  })),
+  metadata: z.object({
+    studentName: z.string().optional(),
+    studentId: z.string().optional(),
+    squadron: z.string().optional(),
+    timeSpent: z.number().optional(),
+    notes: z.string().optional()
+  }).optional()
+}).pick({
   scenarioId: true,
-  userId: true,
   answers: true,
+  metadata: true,
   score: true,
-  studentName: true,
-  studentId: true,
-  instructorFeedback: true,
-  markedAnswers: true,
   status: true,
 });
 
