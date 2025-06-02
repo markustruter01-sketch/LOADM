@@ -115,7 +115,7 @@ export default function LoadPlanningSelectionPage() {
         <div className="mt-12 text-center">
           <Button 
             variant="outline" 
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/")}
             className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-orange-400"
           >
             Back to Dashboard

@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Scale, Package, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Scale, Package, AlertTriangle, MessageCircle, Bot, Send } from "lucide-react";
 import { useLocation, useRoute } from "wouter";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   calculateBalance, 
   AIRCRAFT_CONFIGS, 
@@ -45,11 +46,90 @@ export default function LoadPlanningPage() {
     totalWeight: 0
   });
 
+  // Chatbot state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<Array<{
+    type: 'user' | 'bot';
+    message: string;
+    timestamp: Date;
+  }>>([
+    {
+      type: 'bot',
+      message: `Welcome to your ${config.name} Load Planning Assistant! I can help you optimize cargo placement and provide safety recommendations for dangerous goods positioning.`,
+      timestamp: new Date()
+    }
+  ]);
+
   // Recalculate balance whenever cargo changes
   useEffect(() => {
     const result = calculateBalance(cargoPositions, aircraftId);
     setBalanceResult(result);
   }, [cargoPositions, aircraftId]);
+
+  // AI Chatbot functions
+  const generateAIResponse = (userMessage: string): string => {
+    const message = userMessage.toLowerCase();
+    const totalWeight = balanceResult.totalWeight;
+    const balance = balanceResult.balance;
+    const status = balanceResult.status;
+    
+    // Analyze current load state
+    const loadedPositions = cargoPositions.filter(pos => pos.weight > 0);
+    const hasHeavyItems = loadedPositions.some(pos => pos.weight > 10000);
+    const hasDangerousGoods = message.includes('dg') || message.includes('dangerous') || message.includes('hazmat');
+    
+    // Safety and balance recommendations
+    if (message.includes('balance') || message.includes('weight') || message.includes('optimize')) {
+      if (status === 'critical') {
+        return `⚠️ CRITICAL BALANCE ISSUE: Your current load is ${balance > 0 ? 'too aft' : 'too forward'}. I recommend redistributing cargo to positions closer to the center of gravity. Move heavy items ${balance > 0 ? 'forward' : 'aft'} to improve balance.`;
+      } else if (status === 'warning') {
+        return `⚡ Balance is approaching limits. Current status: ${balance > 0 ? 'slightly aft' : 'slightly forward'}. Consider redistributing some cargo for optimal balance.`;
+      } else {
+        return `✅ Your current balance is good! Total weight: ${totalWeight.toLocaleString()} lbs. For optimal performance, try to keep heavy items near the center positions.`;
+      }
+    }
+    
+    if (hasDangerousGoods || message.includes('rear') || message.includes('emergency')) {
+      return `🔥 DANGEROUS GOODS SAFETY: Always place dangerous goods (DG) toward the rear of the aircraft. This allows for emergency jettison if needed. Rear positions like ${config.name === 'C-17' ? 'P15-P18' : 'P7-P8'} are ideal for DG cargo. Never place DG near crew areas or fuel systems.`;
+    }
+    
+    if (message.includes('heavy') || message.includes('distribution')) {
+      return `📦 HEAVY CARGO TIPS: Distribute heavy items evenly across the cargo floor. Use multiple positions rather than concentrating weight in one area. This helps with both balance and structural load distribution. Consider using ${config.name === 'C-17' ? 'center positions P4-P6 and P13-P15' : 'center positions P3-P4 and P7-P8'}.`;
+    }
+    
+    if (message.includes('center') || message.includes('cg')) {
+      return `⚖️ CENTER OF GRAVITY: Your current CG is at ${balanceResult.centerOfGravity.toFixed(1)}%. Ideal range is ${config.forwardLimit}% to ${config.aftLimit}%. Keep heavy items near the longitudinal center for best performance.`;
+    }
+    
+    if (message.includes('positions') || message.includes('where')) {
+      return `📍 POSITION GUIDANCE: ${config.name} has ${config.positions} cargo positions. For balanced loading: use center positions first, then work outward. Forward positions affect nose-heavy tendency, aft positions affect tail-heavy tendency.`;
+    }
+    
+    // Default helpful response
+    return `🚁 LOADMASTER ASSISTANT: I can help with cargo balance, dangerous goods placement, weight distribution, and safety recommendations. Try asking about "balance optimization", "dangerous goods safety", or "heavy cargo distribution". What specific guidance do you need?`;
+  };
+
+  const handleChatSubmit = () => {
+    if (!chatInput.trim()) return;
+    
+    // Add user message
+    const userMessage = {
+      type: 'user' as const,
+      message: chatInput,
+      timestamp: new Date()
+    };
+    
+    // Generate AI response
+    const aiResponse = {
+      type: 'bot' as const,
+      message: generateAIResponse(chatInput),
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage, aiResponse]);
+    setChatInput("");
+  };
 
   const updateCargoWeight = (positionId: string, weight: number) => {
     setCargoPositions(prev => 
@@ -420,6 +500,78 @@ export default function LoadPlanningPage() {
           </Button>
         </div>
       </div>
+
+      {/* AI Chatbot Button */}
+      <Button
+        onClick={() => setChatOpen(true)}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg z-50"
+        size="icon"
+      >
+        <Bot className="h-6 w-6" />
+      </Button>
+
+      {/* AI Chatbot Modal */}
+      {chatOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md h-96 bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-sm">Load Planning Assistant</CardTitle>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setChatOpen(false)}
+                  className="h-6 w-6 p-0"
+                >
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col h-full pb-4">
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
+                {chatMessages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                      msg.type === 'user' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {msg.message}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Chat Input */}
+              <div className="flex gap-2">
+                <Textarea
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Ask about balance, dangerous goods, or cargo placement..."
+                  className="flex-1 min-h-0 h-9 resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleChatSubmit();
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={handleChatSubmit}
+                  size="sm"
+                  className="h-9 w-9 p-0"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
