@@ -251,20 +251,20 @@ app.get("/api/workforce/squadron/:squadronId/users", requireInstructor, async (r
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
     
-    // Get users in the specified squadron
+    // Get users in the specified squadron (including all roles)
     const users = await sql`
       SELECT 
         u.id,
         u.email,
-        l.first_name,
-        l.last_name,
+        COALESCE(l.first_name, SPLIT_PART(u.email, '@', 1)) as first_name,
+        COALESCE(l.last_name, '') as last_name,
         l.squadron,
         l.license_type,
         u.last_login,
         u.created_at
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
-      WHERE l.squadron = ${squadronId} AND l.license_type = 'loadmaster'
+      WHERE l.squadron = ${squadronId}
       ORDER BY l.first_name, l.last_name
     `;
     
