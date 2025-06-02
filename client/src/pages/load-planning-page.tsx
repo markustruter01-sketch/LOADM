@@ -131,6 +131,22 @@ export default function LoadPlanningPage() {
     setChatInput("");
   };
 
+  const handleAnalyzeBalance = () => {
+    const analysisMessage = {
+      type: 'user' as const,
+      message: "Analyze my current load balance",
+      timestamp: new Date()
+    };
+    
+    const aiResponse = {
+      type: 'bot' as const,
+      message: generateAIResponse("analyze balance weight optimize"),
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, analysisMessage, aiResponse]);
+  };
+
   const updateCargoWeight = (positionId: string, weight: number) => {
     setCargoPositions(prev => 
       prev.map(pos => 
@@ -499,79 +515,76 @@ export default function LoadPlanningPage() {
             Back to Dashboard
           </Button>
         </div>
-      </div>
 
-      {/* AI Chatbot Button */}
-      <Button
-        onClick={() => setChatOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg z-50"
-        size="icon"
-      >
-        <Bot className="h-6 w-6" />
-      </Button>
-
-      {/* AI Chatbot Modal */}
-      {chatOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md h-96 bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-sm">Load Planning Assistant</CardTitle>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setChatOpen(false)}
-                  className="h-6 w-6 p-0"
-                >
-                  ✕
-                </Button>
+        {/* AI Load Planning Assistant Section */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Load Planning Assistant</CardTitle>
               </div>
-            </CardHeader>
-            <CardContent className="flex flex-col h-full pb-4">
-              {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
-                {chatMessages.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
-                      msg.type === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {msg.message}
-                    </div>
+              <Button 
+                onClick={handleAnalyzeBalance}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                size="sm"
+              >
+                <Scale className="h-4 w-4 mr-2" />
+                Analyse Balance
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Chat Messages */}
+            <div className="h-64 overflow-y-auto space-y-3 mb-4 p-3 bg-muted/30 rounded-lg">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                    msg.type === 'user' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-card text-card-foreground border border-border'
+                  }`}>
+                    {msg.message}
                   </div>
-                ))}
-              </div>
-              
-              {/* Chat Input */}
-              <div className="flex gap-2">
-                <Textarea
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Ask about balance, dangerous goods, or cargo placement..."
-                  className="flex-1 min-h-0 h-9 resize-none"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleChatSubmit();
-                    }
-                  }}
-                />
-                <Button 
-                  onClick={handleChatSubmit}
-                  size="sm"
-                  className="h-9 w-9 p-0"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              ))}
+            </div>
+            
+            {/* Chat Input */}
+            <div className="flex gap-2">
+              <Textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Ask about balance, dangerous goods, or cargo placement..."
+                className="flex-1 min-h-0 h-10 resize-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleChatSubmit();
+                  }
+                }}
+              />
+              <Button 
+                onClick={handleChatSubmit}
+                size="sm"
+                className="h-10 w-10 p-0 bg-primary hover:bg-primary/90"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-8 text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/")}
+            className="border-gray-600 text-muted-foreground300 hover:bg-gray-700"
+          >
+            Back to Dashboard
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
