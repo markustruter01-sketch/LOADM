@@ -103,9 +103,18 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
         // C-27J: 3 positions in line
         longitudinalPosition = cargo.position - 1;
       } else if (aircraftId === 'c17') {
-        // C-17: Assume 3x6 layout
-        const column = cargo.position % 6;
-        longitudinalPosition = column - 2.5;
+        // C-17: 2x9 layout - positions in same column have same longitudinal effect
+        // P1,P10 = column 0 (most forward) = -4
+        // P2,P11 = column 1 = -3
+        // P3,P12 = column 2 = -2
+        // P4,P13 = column 3 = -1
+        // P5,P14 = column 4 = 0 (center)
+        // P6,P15 = column 5 = +1
+        // P7,P16 = column 6 = +2
+        // P8,P17 = column 7 = +3
+        // P9,P18 = column 8 (most aft) = +4
+        const column = cargo.position % 9;
+        longitudinalPosition = column - 4;
       } else {
         // Default: single row layout
         longitudinalPosition = cargo.position - (config.positions - 1) / 2;
@@ -125,7 +134,7 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
     if (aircraftId === 'c27j') {
       maxPosition = 1;
     } else if (aircraftId === 'c17') {
-      maxPosition = 2.5;
+      maxPosition = 4; // C-17 has 9 columns, range -4 to +4
     } else if (aircraftId === 'kc30a') {
       maxPosition = (config.positions - 1) / 2;
     }
