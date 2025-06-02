@@ -1,7 +1,7 @@
 // ISOLATED LOGIN COMPONENT - Works independently
 import { useState } from 'react';
 import { useIsolatedAuth } from './auth-context';
-import { FileCheck, ClipboardList, Package2, UserCircle, Wrench, GraduationCap } from "lucide-react";
+import { FileCheck, ClipboardList, Package2, UserCircle, Wrench, GraduationCap, Key } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
 
 export function IsolatedLoginForm() {
@@ -10,6 +10,7 @@ export function IsolatedLoginForm() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,7 +165,7 @@ export function IsolatedLoginForm() {
               </div>
             )}
 
-            <div>
+            <div className="space-y-3">
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -172,9 +173,218 @@ export function IsolatedLoginForm() {
               >
                 {isSubmitting ? 'Signing in...' : 'Sign in'}
               </button>
+              
+              <button
+                type="button"
+                onClick={() => setShowPasswordReset(true)}
+                className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-border text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                <Key className="h-4 w-4" />
+                Reset Password
+              </button>
             </div>
 
+          </form>
+        </div>
+      </div>
+      
+      {/* Password Reset Modal */}
+      {showPasswordReset && (
+        <PasswordResetModal 
+          onClose={() => setShowPasswordReset(false)}
+          onSuccess={() => {
+            setShowPasswordReset(false);
+            setError('');
+            // Optionally clear the form or show success message
+          }}
+        />
+      )}
+    </div>
+  );
+}
 
+// Password Reset Modal Component
+function PasswordResetModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [email, setEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const validatePassword = (password: string) => {
+    if (password.length < 8) return 'Password must be at least 8 characters long';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+    if (!/[!@#$%^&*]/.test(password)) return 'Password must contain at least one special character (!@#$%^&*)';
+    return '';
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    setError('');
+    setSuccess('');
+    
+    // Validation
+    if (!email || !currentPassword || !newPassword || !confirmPassword) {
+      setError('All fields are required');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+    
+    const passwordValidation = validatePassword(newPassword);
+    if (passwordValidation) {
+      setError(passwordValidation);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/isolated-auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          currentPassword,
+          newPassword
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to reset password');
+      }
+      
+      setSuccess('Password updated successfully! You can now log in with your new password.');
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Password reset error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to reset password');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-semibold text-foreground">Reset Password</h3>
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 rounded-md">
+            <p className="text-blue-800 dark:text-blue-200 text-sm">
+              Enter your current password (default: Password1!) along with your new password to update your account.
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Current Password
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="Password1!"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="Enter new password"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="Confirm new password"
+                required
+              />
+            </div>
+            
+            {error && (
+              <div className="text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded">
+                {error}
+              </div>
+            )}
+            
+            {success && (
+              <div className="text-green-600 text-sm bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800/50 p-3 rounded">
+                {success}
+              </div>
+            )}
+            
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
           </form>
         </div>
       </div>

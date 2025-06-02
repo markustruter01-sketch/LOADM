@@ -172,6 +172,59 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
+// ISOLATED PASSWORD RESET - Reset password with current password verification
+router.post('/reset-password', async (req, res) => {
+  try {
+    console.log('🔐 PASSWORD RESET: Request received');
+    const { email, currentPassword, newPassword } = req.body;
+    
+    if (!email || !currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Email, current password, and new password are required' });
+    }
+    
+    // Authenticate user with current password
+    const user = await authCore.authenticateUser(email, currentPassword);
+    
+    if (!user) {
+      console.log(`❌ PASSWORD RESET: Authentication failed for ${email}`);
+      return res.status(401).json({ error: 'Invalid email or current password' });
+    }
+    
+    console.log(`✅ PASSWORD RESET: User authenticated for ${email}`);
+    
+    // Validate new password
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters long' });
+    }
+    
+    // Hash new password
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password in database
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const result = await sql`
+      UPDATE users 
+      SET hashed_password = ${hashedPassword}, is_first_login = false 
+      WHERE email = ${email}
+      RETURNING id, email
+    `;
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    console.log(`✅ PASSWORD RESET: Password updated successfully for ${email}`);
+    res.json({ success: true, message: 'Password reset successfully' });
+    
+  } catch (error) {
+    console.error('❌ PASSWORD RESET: Error:', error);
+    res.status(500).json({ error: 'Password reset failed' });
+  }
+});
+
 // ISOLATED CLEAR SESSIONS - For debugging
 router.post('/clear-sessions', (req, res) => {
   try {
