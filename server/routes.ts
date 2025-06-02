@@ -537,8 +537,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qs.score,
           qs.squadron,
           u.email,
-          u.first_name,
-          u.last_name,
           q.title as quiz_title,
           q.description as quiz_description
         FROM quiz_submissions qs
@@ -556,9 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         answers: submission.answers,
         score: submission.score,
         squadron: submission.squadron,
-        username: submission.first_name && submission.last_name 
-          ? `${submission.first_name} ${submission.last_name}`
-          : submission.email?.split('@')[0] || `User ${submission.user_id}`,
+        username: submission.email?.split('@')[0] || `User ${submission.user_id}`,
         email: submission.email || 'Unknown User',
         quizTitle: submission.quiz_title || 'Unknown Quiz',
         quizDescription: submission.quiz_description || ''
