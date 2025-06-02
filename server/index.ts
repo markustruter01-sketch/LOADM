@@ -105,8 +105,10 @@ setInterval(async () => {
 
 // User squadron management endpoints
 app.get("/api/user/squadron", async (req, res) => {
+  console.log('✅ SQUADRON: GET request received');
   try {
     const sessionId = (req as any).cookies?.sessionId;
+    console.log('✅ SQUADRON: Session ID:', sessionId?.substring(0, 20) + '...');
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
       return res.status(401).json({ error: 'Authentication required' });
