@@ -83,13 +83,35 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
   let totalWeight = 0;
   let weightedPositionSum = 0;
 
-  // Calculate weighted position sum
+  // Calculate weighted position sum using longitudinal positions
   cargoPositions.forEach(cargo => {
     if (cargo.weight > 0) {
       totalWeight += cargo.weight;
-      // Convert position to balance scale: front positions negative, rear positive
-      const normalizedPosition = cargo.position - (config.positions - 1) / 2;
-      weightedPositionSum += cargo.weight * normalizedPosition;
+      
+      // Get longitudinal position based on aircraft layout
+      let longitudinalPosition = 0;
+      
+      if (aircraftId === 'c130') {
+        // C-130: 2x4 layout - positions in same column have same longitudinal effect
+        // P1,P5 = column 0 (most forward) = -1.5
+        // P2,P6 = column 1 = -0.5
+        // P3,P7 = column 2 = +0.5  
+        // P4,P8 = column 3 (most aft) = +1.5
+        const column = cargo.position % 4;
+        longitudinalPosition = column - 1.5;
+      } else if (aircraftId === 'c27j') {
+        // C-27J: 3 positions in line
+        longitudinalPosition = cargo.position - 1;
+      } else if (aircraftId === 'c17') {
+        // C-17: Assume 3x6 layout
+        const column = cargo.position % 6;
+        longitudinalPosition = column - 2.5;
+      } else {
+        // Default: single row layout
+        longitudinalPosition = cargo.position - (config.positions - 1) / 2;
+      }
+      
+      weightedPositionSum += cargo.weight * longitudinalPosition;
     }
   });
 
@@ -97,8 +119,18 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
   let balance = 0;
   if (totalWeight > 0) {
     const avgPosition = weightedPositionSum / totalWeight;
-    // Scale to -100 to +100 range
-    balance = (avgPosition / ((config.positions - 1) / 2)) * 100;
+    
+    // Scale to -100 to +100 range based on aircraft layout
+    let maxPosition = 1.5; // Default for C-130
+    if (aircraftId === 'c27j') {
+      maxPosition = 1;
+    } else if (aircraftId === 'c17') {
+      maxPosition = 2.5;
+    } else if (aircraftId === 'kc30a') {
+      maxPosition = (config.positions - 1) / 2;
+    }
+    
+    balance = (avgPosition / maxPosition) * 100;
     balance = Math.max(-100, Math.min(100, balance));
   }
 
