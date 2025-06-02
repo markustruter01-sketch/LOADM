@@ -1,7 +1,0 @@
-node_modules/
-*.log
-reports/
-generated-tests/
-bob-learning-data.json
-metrics.log
-*.bob-backup
