@@ -61,8 +61,11 @@ export function clearAllIsolatedSessions(): void {
 export async function authenticateUser(email: string, password: string) {
   console.log(`🔐 AUTH: Login attempt for ${email}`);
   
+  // Normalize email to lowercase for case-insensitive comparison
+  const normalizedEmail = email.toLowerCase();
+  
   // Check superadmin first (guaranteed to work)
-  if (email === SUPERADMIN.email && password === SUPERADMIN.password) {
+  if (normalizedEmail === SUPERADMIN.email.toLowerCase() && password === SUPERADMIN.password) {
     console.log('✅ AUTH: Superadmin login SUCCESS');
     return {
       id: SUPERADMIN.id,
@@ -79,7 +82,8 @@ export async function authenticateUser(email: string, password: string) {
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
     
-    const users = await sql`SELECT * FROM users WHERE email = ${email}`;
+    // Use case-insensitive email matching with ILIKE
+    const users = await sql`SELECT * FROM users WHERE email ILIKE ${email}`;
     
     if (users.length === 0) {
       console.log(`❌ AUTH: User not found: ${email}`);

@@ -208,7 +208,7 @@ router.post('/reset-password', async (req, res) => {
     const result = await sql`
       UPDATE users 
       SET hashed_password = ${hashedPassword}, is_first_login = false 
-      WHERE email = ${email}
+      WHERE email ILIKE ${email}
       RETURNING id, email
     `;
     

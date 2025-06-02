@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 
 const BASE_URL = 'http://localhost:5000';
 const TEST_USER = {
-  email: 'Jasper.szemes@gmail.com',
+  email: 'jasper.szemes@gmail.com', // Testing case-insensitive login
   defaultPassword: 'Password1!',
   newPassword: 'NewSecurePass123!'
 };
