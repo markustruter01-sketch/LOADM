@@ -4,6 +4,15 @@ import { scenarioSubmissions, scenarios } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
+// Extend Request type to include user from auth middleware
+interface AuthRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    role: string;
+  };
+}
+
 // Modern submission schema
 const SubmissionSchema = z.object({
   scenarioId: z.number(),
@@ -22,7 +31,7 @@ const SubmissionSchema = z.object({
 export class ScenarioSubmissionService {
   
   // Create a new scenario submission
-  static async createSubmission(req: Request, res: Response) {
+  static async createSubmission(req: AuthRequest, res: Response) {
     console.log('🆕 NEW SCENARIO SUBMISSION SERVICE - Create request');
     
     try {
@@ -100,7 +109,7 @@ export class ScenarioSubmissionService {
   }
 
   // Get user's scenario submissions
-  static async getUserSubmissions(req: Request, res: Response) {
+  static async getUserSubmissions(req: AuthRequest, res: Response) {
     console.log('📋 NEW SCENARIO SUBMISSION SERVICE - Get user submissions');
     
     try {
@@ -139,7 +148,7 @@ export class ScenarioSubmissionService {
   }
 
   // Get all submissions (admin/instructor view)
-  static async getAllSubmissions(req: Request, res: Response) {
+  static async getAllSubmissions(req: AuthRequest, res: Response) {
     console.log('📊 NEW SCENARIO SUBMISSION SERVICE - Get all submissions');
     
     try {
@@ -180,7 +189,7 @@ export class ScenarioSubmissionService {
   }
 
   // Get specific submission by ID
-  static async getSubmissionById(req: Request, res: Response) {
+  static async getSubmissionById(req: AuthRequest, res: Response) {
     console.log('🔍 NEW SCENARIO SUBMISSION SERVICE - Get submission by ID');
     
     try {

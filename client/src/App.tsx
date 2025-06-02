@@ -7,7 +7,7 @@ import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
 
 // Import all your existing pages
 import DocumentFormPage from "@/pages/document-form-page";
-import ScenarioPage from "@/pages/scenario-page-new";
+import ModernScenarioPage from "@/pages/scenario-page-modern";
 import DocsListPage from "@/pages/docs-list-page";
 import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
@@ -83,7 +83,7 @@ function AuthenticatedApp() {
             <Route path="/documents-old" component={DocsListPage} />
             <Route path="/documents/:id" component={DocumentFormPage} />
             <Route path="/scenarios" component={ScenariosPage} />
-            <Route path="/scenarios/:id" component={ScenarioPage} />
+            <Route path="/scenarios/:id" component={ModernScenarioPage} />
             <Route path="/airframe">
               {(params) => <AirframeIntegratedPage {...params} />}
             </Route>
