@@ -294,11 +294,7 @@ function PasswordResetModal({ onClose, onSuccess }: { onClose: () => void; onSuc
             </button>
           </div>
           
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 rounded-md">
-            <p className="text-blue-800 dark:text-blue-200 text-sm">
-              Enter your current password (default: Password1!) along with your new password to update your account.
-            </p>
-          </div>
+
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
