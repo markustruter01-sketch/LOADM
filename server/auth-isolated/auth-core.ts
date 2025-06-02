@@ -59,21 +59,22 @@ export function clearAllIsolatedSessions(): void {
 }
 
 export async function authenticateUser(email: string, password: string) {
-  console.log(`✅ ISOLATED AUTH: Login attempt for ${email}`);
+  console.log(`🔐 AUTH: Login attempt for ${email}`);
   
   // Check superadmin first (guaranteed to work)
   if (email === SUPERADMIN.email && password === SUPERADMIN.password) {
-    console.log('✅ ISOLATED AUTH: Superadmin login SUCCESS');
+    console.log('✅ AUTH: Superadmin login SUCCESS');
     return {
       id: SUPERADMIN.id,
       email: SUPERADMIN.email,
       firstName: SUPERADMIN.firstName,
       lastName: SUPERADMIN.lastName,
-      role: SUPERADMIN.role
+      role: SUPERADMIN.role,
+      isFirstLogin: false
     };
   }
   
-  // Try database authentication as fallback
+  // Try database authentication for regular users
   try {
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
@@ -81,19 +82,27 @@ export async function authenticateUser(email: string, password: string) {
     const users = await sql`SELECT * FROM users WHERE email = ${email}`;
     
     if (users.length === 0) {
-      console.log(`✅ ISOLATED AUTH: User not found: ${email}`);
+      console.log(`❌ AUTH: User not found: ${email}`);
       return null;
     }
     
     const user = users[0];
-    const isValidPassword = await bcrypt.compare(password, user.hashed_password);
+    console.log(`🔍 AUTH: Found user ${email}, checking password...`);
     
-    if (!isValidPassword) {
-      console.log(`✅ ISOLATED AUTH: Invalid password for ${email}`);
+    if (!user.hashed_password) {
+      console.log(`❌ AUTH: No password set for user: ${email}`);
       return null;
     }
     
-    console.log(`✅ ISOLATED AUTH: Database login SUCCESS for ${email}`);
+    const isValidPassword = await bcrypt.compare(password, user.hashed_password);
+    
+    if (!isValidPassword) {
+      console.log(`❌ AUTH: Invalid password for ${email}`);
+      console.log(`🔍 AUTH DEBUG: Password length: ${password.length}, Has hash: ${!!user.hashed_password}`);
+      return null;
+    }
+    
+    console.log(`✅ AUTH: Database login SUCCESS for ${email}`);
     return {
       id: user.id,
       email: user.email,

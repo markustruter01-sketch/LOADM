@@ -23,13 +23,17 @@ router.post('/login', async (req, res) => {
     
     const sessionId = authCore.createIsolatedSession(user.id, user.email, user.role);
     
-    res.cookie('sessionId', sessionId, {
+    // Set cookie with better cross-device compatibility
+    const cookieOptions = {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production', // Use secure in production
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax',
-      path: '/'
-    });
+      sameSite: 'lax' as const,
+      path: '/',
+      domain: undefined // Let browser handle domain automatically
+    };
+    
+    res.cookie('sessionId', sessionId, cookieOptions);
     
     console.log(`✅ ISOLATED: Login SUCCESS for ${user.email}`);
     res.json({
