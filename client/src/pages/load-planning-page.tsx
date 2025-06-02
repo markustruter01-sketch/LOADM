@@ -68,6 +68,7 @@ export default function LoadPlanningPage() {
 
   // Cargo edit dialog state
   const [editingPosition, setEditingPosition] = useState<string | null>(null);
+  const [editWeight, setEditWeight] = useState(0);
   const [editCargoType, setEditCargoType] = useState('General');
   const [editDgClass, setEditDgClass] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -179,6 +180,7 @@ export default function LoadPlanningPage() {
 
   const openCargoEdit = (position: CargoPosition) => {
     setEditingPosition(position.id);
+    setEditWeight(position.weight);
     setEditCargoType(position.cargoType);
     setEditDgClass(position.dgClass);
     setEditDescription(position.description);
@@ -190,12 +192,13 @@ export default function LoadPlanningPage() {
     setCargoPositions(prev => 
       prev.map(pos => 
         pos.id === editingPosition 
-          ? { ...pos, cargoType: editCargoType, dgClass: editDgClass, description: editDescription }
+          ? { ...pos, weight: editWeight, cargoType: editCargoType, dgClass: editDgClass, description: editDescription }
           : pos
       )
     );
     
     setEditingPosition(null);
+    setEditWeight(0);
     setEditCargoType('General');
     setEditDgClass('');
     setEditDescription('');
@@ -211,33 +214,26 @@ export default function LoadPlanningPage() {
   const renderCargoPosition = (position: CargoPosition, maxWeight = 15000) => (
     <div key={position.id} className="space-y-2">
       <div 
-        className={`relative border-2 rounded-lg p-2 transition-all duration-300 cursor-pointer hover:border-primary ${
+        className={`relative border-2 rounded-lg p-3 transition-all duration-300 cursor-pointer hover:border-primary ${
           position.weight > 0 
             ? 'border-orange-500 bg-orange-500/20' 
             : 'border-gray-600 bg-gray-700/30'
         }`}
         onClick={() => openCargoEdit(position)}
       >
-        <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
+        <Label className="text-muted-foreground300 font-bold text-center block mb-2 text-sm">
           {position.label}
         </Label>
-        <Input
-          type="number"
-          min="0"
-          max={maxWeight}
-          value={position.weight || ''}
-          onChange={(e) => {
-            e.stopPropagation();
-            updateCargoWeight(position.id, parseInt(e.target.value) || 0);
-          }}
-          className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs h-8"
-          placeholder="0"
-        />
-        <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
+        
+        {/* Weight display */}
+        <div className="text-center text-lg font-semibold text-card-foreground mb-1">
+          {position.weight > 0 ? position.weight.toLocaleString() : '0'}
+        </div>
+        <div className="text-xs text-muted-foreground400 text-center">lbs</div>
         
         {/* Cargo type display */}
         {position.cargoType !== 'General' && (
-          <div className="text-xs text-center mt-1">
+          <div className="text-xs text-center mt-2">
             <Badge variant="secondary" className="text-xs px-1 py-0">
               {position.cargoType === 'DG' ? 'DG' : position.cargoType}
             </Badge>
@@ -262,6 +258,11 @@ export default function LoadPlanningPage() {
         {position.weight > 0 && (
           <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
         )}
+        
+        {/* Click indicator */}
+        <div className="absolute top-1 right-1 text-xs text-muted-foreground opacity-50">
+          ✏️
+        </div>
       </div>
     </div>
   );
@@ -644,6 +645,19 @@ export default function LoadPlanningPage() {
             <DialogTitle>Edit Cargo Details - {editingPosition}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="weight">Weight (lbs)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="15000"
+                value={editWeight}
+                onChange={(e) => setEditWeight(parseInt(e.target.value) || 0)}
+                placeholder="Enter weight in pounds..."
+                className="bg-muted"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="cargoType">Cargo Type</Label>
               <Select value={editCargoType} onValueChange={setEditCargoType}>
