@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 
 const BASE_URL = 'http://localhost:5000';
 const TEST_USER = {
-  email: 'jasper.szemes@gmail.com',
+  email: 'Jasper.szemes@gmail.com',
   defaultPassword: 'Password1!',
   newPassword: 'NewSecurePass123!'
 };
