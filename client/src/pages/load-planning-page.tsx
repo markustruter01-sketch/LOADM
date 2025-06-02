@@ -206,7 +206,13 @@ export default function LoadPlanningPage() {
 
   const resetAllCargo = () => {
     setCargoPositions(prev => 
-      prev.map(pos => ({ ...pos, weight: 0 }))
+      prev.map(pos => ({ 
+        ...pos, 
+        weight: 0, 
+        cargoType: 'General', 
+        dgClass: '', 
+        description: '' 
+      }))
     );
   };
 
