@@ -17,7 +17,7 @@ import { Scenario, ScenarioSubmission } from "@shared/schema";
 
 export default function ScenarioSubmissionsPage() {
   const [, setLocation] = useLocation();
-  const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date-desc");
 
@@ -43,11 +43,16 @@ export default function ScenarioSubmissionsPage() {
     }).format(date);
   };
 
+  // Calculate statistics
+  const totalSubmissions = submissions.length;
+  const pendingSubmissions = submissions.filter(sub => !sub.status || sub.status === 'pending').length;
+  const completedSubmissions = submissions.filter(sub => sub.status === 'pass' || sub.status === 'fail').length;
+
   // Apply filters and sorting
   const filteredSubmissions = submissions
     .filter(submission => {
       // Filter by squadron
-      if (selectedSquadron !== "AMG") {
+      if (selectedSquadron !== "all") {
         return submission.squadron === selectedSquadron;
       }
       return true;
@@ -93,6 +98,48 @@ export default function ScenarioSubmissionsPage() {
       </Helmet>
 
       <div className="space-y-6">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Total Submissions</p>
+                  <p className="text-2xl font-bold">{totalSubmissions}</p>
+                  <p className="text-xs text-muted-foreground">Student scenario submissions</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <XCircle className="h-4 w-4 text-yellow-500" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Pending Review</p>
+                  <p className="text-2xl font-bold">{pendingSubmissions}</p>
+                  <p className="text-xs text-muted-foreground">Submissions awaiting feedback</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <div className="ml-2">
+                  <p className="text-sm font-medium">Completed Reviews</p>
+                  <p className="text-2xl font-bold">{completedSubmissions}</p>
+                  <p className="text-xs text-muted-foreground">Submissions with instructor feedback</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Filters and sorting */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1">
@@ -116,11 +163,11 @@ export default function ScenarioSubmissionsPage() {
                 <SelectValue placeholder="Squadron" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="AMG">All Squadrons</SelectItem>
-                <SelectItem value="33SQN">33SQN</SelectItem>
-                <SelectItem value="35SQN">35SQN</SelectItem>
-                <SelectItem value="36SQN">36SQN</SelectItem>
-                <SelectItem value="37SQN">37SQN</SelectItem>
+                <SelectItem value="all">All Squadrons</SelectItem>
+                <SelectItem value="33 Squadron">33 Squadron</SelectItem>
+                <SelectItem value="35 Squadron">35 Squadron</SelectItem>
+                <SelectItem value="36 Squadron">36 Squadron</SelectItem>
+                <SelectItem value="37 Squadron">37 Squadron</SelectItem>
               </SelectContent>
             </Select>
             
@@ -159,7 +206,7 @@ export default function ScenarioSubmissionsPage() {
                           <h3 className="font-medium">{getScenarioTitle(submission.scenarioId)}</h3>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">{submission.squadron || 'AMG'}</Badge>
+                          <Badge variant="outline" className="text-xs">{submission.squadron || 'Unknown Squadron'}</Badge>
                           {submission.status && (
                             <Badge 
                               className={
