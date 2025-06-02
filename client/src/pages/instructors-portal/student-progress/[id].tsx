@@ -55,7 +55,6 @@ export default function SubmissionReview() {
   const [markedAnswers, setMarkedAnswers] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [manualPassFail, setManualPassFail] = useState<boolean | null>(null);
-  const [hasExplicitlyChosen, setHasExplicitlyChosen] = useState(false);
   
   // Fetch submission data
   const { data: submission, isLoading: isLoadingSubmission } = useQuery<ScenarioSubmission>({
@@ -246,8 +245,8 @@ export default function SubmissionReview() {
   const handleSaveReview = () => {
     if (isSubmitting) return;
     
-    // Validate that pass/fail decision has been explicitly made in this session
-    if (!hasExplicitlyChosen || manualPassFail === null) {
+    // Validate that pass/fail decision has been made
+    if (manualPassFail === null) {
       toast({
         title: "Action Required",
         description: "Please mark the submission as Pass or Fail before submitting your review.",
@@ -587,10 +586,7 @@ export default function SubmissionReview() {
                             className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors ${
                               manualPassFail === true ? 'bg-green-100 dark:bg-green-900' : 'hover:bg-muted-foreground/10'
                             }`}
-                            onClick={() => {
-                              setManualPassFail(true);
-                              setHasExplicitlyChosen(true);
-                            }}
+                            onClick={() => setManualPassFail(true)}
                           >
                             <div className={`w-6 h-6 rounded-full ${
                               manualPassFail === true ? 'bg-green-500' : 'border-2 border-muted-foreground'
@@ -608,10 +604,7 @@ export default function SubmissionReview() {
                             className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors ${
                               manualPassFail === false ? 'bg-red-100 dark:bg-red-900' : 'hover:bg-muted-foreground/10'
                             }`}
-                            onClick={() => {
-                              setManualPassFail(false);
-                              setHasExplicitlyChosen(true);
-                            }}
+                            onClick={() => setManualPassFail(false)}
                           >
                             <div className={`w-6 h-6 rounded-full ${
                               manualPassFail === false ? 'bg-red-500' : 'border-2 border-muted-foreground'
