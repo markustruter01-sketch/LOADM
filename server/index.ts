@@ -245,6 +245,8 @@ app.get("/api/workforce/squadrons", requireInstructor, async (req, res) => {
 });
 
 app.get("/api/workforce/squadron/:squadronId/users", requireInstructor, async (req, res) => {
+  console.log('✅ WORKFORCE: GET squadron users request received');
+  console.log('✅ WORKFORCE: Squadron ID:', req.params.squadronId);
   try {
     const { squadronId } = req.params;
     
@@ -267,6 +269,9 @@ app.get("/api/workforce/squadron/:squadronId/users", requireInstructor, async (r
       WHERE l.squadron = ${squadronId}
       ORDER BY l.first_name, l.last_name
     `;
+    
+    console.log('✅ WORKFORCE: Query executed, found users:', users.length);
+    console.log('✅ WORKFORCE: Users data:', JSON.stringify(users, null, 2));
     
     res.json(users);
   } catch (error) {
