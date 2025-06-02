@@ -52,7 +52,7 @@ export default function LoadPlanningSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Helmet>
         <title>Aircraft Selection - Load Planning | LOADMworkflow</title>
         <meta name="description" content="Select aircraft for load planning operations" />
@@ -78,8 +78,8 @@ export default function LoadPlanningSelectionPage() {
               onClick={() => handleAircraftSelect(aircraft.id)}
             >
               <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-4 bg-blue-600/20 rounded-full w-16 h-16 flex items-center justify-center">
-                  <Plane className="h-8 w-8 text-orange-400 group-hover:text-blue-300 transition-colors" />
+                <div className="mx-auto mb-4 p-4 bg-orange-500/20 rounded-full w-16 h-16 flex items-center justify-center">
+                  <Plane className="h-8 w-8 text-orange-400 group-hover:text-orange-300 transition-colors" />
                 </div>
                 <CardTitle className="text-white text-xl">{aircraft.name}</CardTitle>
               </CardHeader>
@@ -98,7 +98,7 @@ export default function LoadPlanningSelectionPage() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAircraftSelect(aircraft.id);
@@ -116,7 +116,7 @@ export default function LoadPlanningSelectionPage() {
           <Button 
             variant="outline" 
             onClick={() => navigate("/home")}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-orange-400"
           >
             Back to Dashboard
           </Button>
