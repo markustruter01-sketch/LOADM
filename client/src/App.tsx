@@ -117,8 +117,8 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
             <InstructorRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
             <InstructorRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
-            <InstructorRoute path="/instructors-portal/submissions" component={StudentProgress} />
-            <InstructorRoute path="/instructors-portal/submissions/:id" component={SubmissionReview} />
+            <InstructorRoute path="/instructors-portal/student-progress" component={StudentProgress} />
+            <InstructorRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
             <InstructorRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
             <InstructorRoute path="/instructors-portal/quiz-management" component={QuizList} />
             <InstructorRoute path="/instructors-portal/quizzes" component={QuizList} />
