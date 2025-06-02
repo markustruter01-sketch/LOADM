@@ -92,7 +92,7 @@ export default function WorkforcePage() {
                 <SelectValue placeholder="Select a squadron to view personnel" />
               </SelectTrigger>
               <SelectContent>
-                {squadrons?.map((squadron: string) => (
+                {squadrons.map((squadron: string) => (
                   <SelectItem key={squadron} value={squadron}>
                     {squadron}
                   </SelectItem>
@@ -258,103 +258,3 @@ export default function WorkforcePage() {
   );
 }
 
-interface UserCardProps {
-  user: User;
-  isExpanded: boolean;
-  onToggle: () => void;
-  submissions: any;
-  getSubmissionIcon: (type: string) => JSX.Element;
-  getSubmissionBadgeColor: (passed: boolean) => string;
-}
-
-function UserCard({ user, isExpanded, onToggle, submissions, getSubmissionIcon, getSubmissionBadgeColor }: UserCardProps) {
-  const { data: userSubmissions, isLoading: submissionsLoading } = submissions;
-
-  return (
-    <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <Card className="border border-border/50 hover:border-border transition-colors">
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  <User className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">
-                    {user.first_name} {user.last_name}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Badge variant="outline">{user.license_type}</Badge>
-                {user.last_login ? (
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Last Login</p>
-                    <p className="text-xs">{format(new Date(user.last_login), 'MMM dd, yyyy')}</p>
-                  </div>
-                ) : (
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Never logged in</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent>
-          <CardContent className="pt-0">
-            <div className="border-t border-border/50 pt-4">
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Recent Submissions (Last 5)
-              </h4>
-              
-              {submissionsLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                  <span className="ml-2 text-sm text-muted-foreground">Loading submissions...</span>
-                </div>
-              ) : userSubmissions && userSubmissions.length > 0 ? (
-                <div className="space-y-3">
-                  {userSubmissions.map((submission: Submission) => (
-                    <div key={submission.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        {getSubmissionIcon(submission.type)}
-                        <div>
-                          <p className="font-medium">{submission.title}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{submission.type}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {submission.score !== null && (
-                          <span className="text-sm font-medium">{submission.score}%</span>
-                        )}
-                        <Badge className={getSubmissionBadgeColor(submission.passed)}>
-                          {submission.passed ? 'Passed' : 'Failed'}
-                        </Badge>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(submission.submission_date), 'MMM dd, yyyy')}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">No submissions found</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
-  );
-}
