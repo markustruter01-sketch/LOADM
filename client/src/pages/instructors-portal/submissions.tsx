@@ -1,19 +1,35 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { 
-  CheckCircle2, XCircle, Search, FileText, Eye
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import InstructorLayout from "../../components/InstructorLayout";
+import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Scenario, ScenarioSubmission } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, FileText, Search, User } from "lucide-react";
+import { format } from 'date-fns';
 
 export default function ScenarioSubmissionsPage() {
   const [, setLocation] = useLocation();
