@@ -83,7 +83,7 @@ export default function LoadPlanningPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Helmet>
         <title>{config.name} Load Planning | LOADMworkflow</title>
         <meta name="description" content={`Load planning for ${config.name}`} />
@@ -95,43 +95,43 @@ export default function LoadPlanningPage() {
           <Button 
             variant="outline" 
             onClick={() => navigate("/load-planning")}
-            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-orange-400"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-white">{config.name} Load Planning</h1>
-            <p className="text-slate-300">Max Payload: {config.maxWeight.toLocaleString()} lbs | Max Positions: {config.positions}</p>
+            <p className="text-gray-300">Max Payload: {config.maxWeight.toLocaleString()} lbs | Max Positions: {config.positions}</p>
           </div>
         </div>
 
         {/* Load Summary */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-6">
+        <Card className="bg-gray-800/50 border-gray-700 mb-6">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Package className="h-5 w-5" />
+              <Package className="h-5 w-5 text-orange-400" />
               Load Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <Label className="text-slate-400">Current Load</Label>
+                <Label className="text-gray-400">Current Load</Label>
                 <p className="text-2xl font-bold text-white">{balanceResult.totalWeight.toLocaleString()} lbs</p>
               </div>
               <div>
-                <Label className="text-slate-400">Maximum Payload</Label>
-                <p className="text-2xl font-bold text-slate-300">{config.maxWeight.toLocaleString()} lbs</p>
+                <Label className="text-gray-400">Maximum Payload</Label>
+                <p className="text-2xl font-bold text-gray-300">{config.maxWeight.toLocaleString()} lbs</p>
               </div>
               <div>
-                <Label className="text-slate-400">Positions Filled</Label>
+                <Label className="text-gray-400">Positions Filled</Label>
                 <p className="text-2xl font-bold text-blue-400">
                   {cargoPositions.filter(p => p.weight > 0).length} of {config.positions}
                 </p>
               </div>
               <div>
-                <Label className="text-slate-400">Center of Gravity</Label>
+                <Label className="text-gray-400">Center of Gravity</Label>
                 <p className="text-2xl font-bold text-green-400">{balanceResult.centerOfGravity.toFixed(1)}%</p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function LoadPlanningPage() {
         </Card>
 
         {/* Balance Display */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-6">
+        <Card className="bg-gray-800/50 border-gray-700 mb-6">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Scale className="h-5 w-5" />
@@ -164,17 +164,17 @@ export default function LoadPlanningPage() {
 
               {/* Balance Bar */}
               <div className="relative">
-                <div className="flex justify-between text-sm text-slate-400 mb-2">
+                <div className="flex justify-between text-sm text-gray-400 mb-2">
                   <span>Heavy Forward</span>
                   <span>Center</span>
                   <span>Heavy Aft</span>
                 </div>
-                <div className="relative h-8 bg-slate-700 rounded-lg overflow-hidden">
+                <div className="relative h-8 bg-gray-700 rounded-lg overflow-hidden">
                   {/* Background gradient */}
                   <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-green-500 to-red-500 opacity-30"></div>
                   
                   {/* Center line */}
-                  <div className="absolute left-1/2 top-0 w-0.5 h-full bg-white/50 transform -translate-x-0.5"></div>
+                  <div className="absolute left-1/2 top-0 w-0.5 h-full bg-white/50 transform -trangray-x-0.5"></div>
                   
                   {/* Balance indicator */}
                   <div 
@@ -182,7 +182,7 @@ export default function LoadPlanningPage() {
                     style={{ left: `calc(${getBalanceBarPosition()}% - 4px)` }}
                   ></div>
                 </div>
-                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>-100</span>
                   <span>0</span>
                   <span>+100</span>
@@ -198,13 +198,13 @@ export default function LoadPlanningPage() {
         </Card>
 
         {/* Cargo Positions */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-6">
+        <Card className="bg-gray-800/50 border-gray-700 mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-white">Cargo Bay Layout</CardTitle>
             <Button 
               variant="outline" 
               onClick={resetAllCargo}
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              className="border-gray-600 text-gray-300 hover:bg-gray-700"
             >
               Reset All
             </Button>
@@ -212,19 +212,19 @@ export default function LoadPlanningPage() {
           <CardContent>
             <div className="space-y-6">
               {/* Aircraft Direction Indicator */}
-              <div className="flex items-center justify-center gap-4 text-slate-400 text-sm">
+              <div className="flex items-center justify-center gap-4 text-gray-400 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-slate-400"></div>
+                  <div className="w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-400"></div>
                   <span>NOSE (Forward)</span>
                 </div>
-                <div className="flex-1 border-t border-dashed border-slate-600"></div>
+                <div className="flex-1 border-t border-dashed border-gray-600"></div>
                 <span>TAIL (Aft)</span>
-                <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-slate-400"></div>
+                <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-400"></div>
               </div>
 
               {/* C-130 Cargo Bay Layout (2 rows x 4 columns) */}
               {aircraftId === 'c130' && (
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
+                <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-600">
                   <div className="space-y-3">
                     {/* Upper Row (P1-P4) */}
                     <div className="grid grid-cols-4 gap-3">
@@ -233,9 +233,9 @@ export default function LoadPlanningPage() {
                           <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
                             position.weight > 0 
                               ? 'border-blue-500 bg-blue-500/20' 
-                              : 'border-slate-600 bg-slate-700/30'
+                              : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-slate-300 font-bold text-center block mb-2">
+                            <Label className="text-gray-300 font-bold text-center block mb-2">
                               {position.label}
                             </Label>
                             <Input
@@ -244,10 +244,10 @@ export default function LoadPlanningPage() {
                               max={10000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-slate-800 border-slate-600 text-white text-center text-sm"
+                              className="bg-gray-800 border-gray-600 text-white text-center text-sm"
                               placeholder="0"
                             />
-                            <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
+                            <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
                             {/* Weight visualization bar */}
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
@@ -264,9 +264,9 @@ export default function LoadPlanningPage() {
                           <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
                             position.weight > 0 
                               ? 'border-blue-500 bg-blue-500/20' 
-                              : 'border-slate-600 bg-slate-700/30'
+                              : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-slate-300 font-bold text-center block mb-2">
+                            <Label className="text-gray-300 font-bold text-center block mb-2">
                               {position.label}
                             </Label>
                             <Input
@@ -275,10 +275,10 @@ export default function LoadPlanningPage() {
                               max={10000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-slate-800 border-slate-600 text-white text-center text-sm"
+                              className="bg-gray-800 border-gray-600 text-white text-center text-sm"
                               placeholder="0"
                             />
-                            <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
+                            <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
                             {/* Weight visualization bar */}
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
@@ -290,7 +290,7 @@ export default function LoadPlanningPage() {
                   </div>
                   
                   {/* Cargo Bay Labels */}
-                  <div className="flex justify-between text-xs text-slate-500 mt-4">
+                  <div className="flex justify-between text-xs text-gray-500 mt-4">
                     <span>Forward Cargo Bay</span>
                     <span>Aft Cargo Bay</span>
                   </div>
@@ -299,7 +299,7 @@ export default function LoadPlanningPage() {
 
               {/* C-17 Cargo Bay Layout (2 rows x 9 columns) */}
               {aircraftId === 'c17' && (
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
+                <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-600">
                   <div className="space-y-3">
                     {/* Upper Row (P1-P9) */}
                     <div className="grid grid-cols-9 gap-2">
@@ -308,9 +308,9 @@ export default function LoadPlanningPage() {
                           <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
                             position.weight > 0 
                               ? 'border-blue-500 bg-blue-500/20' 
-                              : 'border-slate-600 bg-slate-700/30'
+                              : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-slate-300 font-bold text-center block mb-1 text-xs">
+                            <Label className="text-gray-300 font-bold text-center block mb-1 text-xs">
                               {position.label}
                             </Label>
                             <Input
@@ -319,10 +319,10 @@ export default function LoadPlanningPage() {
                               max={15000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-slate-800 border-slate-600 text-white text-center text-xs h-8"
+                              className="bg-gray-800 border-gray-600 text-white text-center text-xs h-8"
                               placeholder="0"
                             />
-                            <div className="text-xs text-slate-400 text-center">lbs</div>
+                            <div className="text-xs text-gray-400 text-center">lbs</div>
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
@@ -338,9 +338,9 @@ export default function LoadPlanningPage() {
                           <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
                             position.weight > 0 
                               ? 'border-blue-500 bg-blue-500/20' 
-                              : 'border-slate-600 bg-slate-700/30'
+                              : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-slate-300 font-bold text-center block mb-1 text-xs">
+                            <Label className="text-gray-300 font-bold text-center block mb-1 text-xs">
                               {position.label}
                             </Label>
                             <Input
@@ -349,10 +349,10 @@ export default function LoadPlanningPage() {
                               max={15000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-slate-800 border-slate-600 text-white text-center text-xs h-8"
+                              className="bg-gray-800 border-gray-600 text-white text-center text-xs h-8"
                               placeholder="0"
                             />
-                            <div className="text-xs text-slate-400 text-center">lbs</div>
+                            <div className="text-xs text-gray-400 text-center">lbs</div>
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
@@ -363,7 +363,7 @@ export default function LoadPlanningPage() {
                   </div>
                   
                   {/* Cargo Bay Labels */}
-                  <div className="flex justify-between text-xs text-slate-500 mt-4">
+                  <div className="flex justify-between text-xs text-gray-500 mt-4">
                     <span>Forward Cargo Bay</span>
                     <span>Aft Cargo Bay</span>
                   </div>
@@ -372,7 +372,7 @@ export default function LoadPlanningPage() {
 
               {/* Other Aircraft Layouts (C-27J, KC-30A) */}
               {aircraftId !== 'c130' && aircraftId !== 'c17' && (
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
+                <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-600">
                   <div className={`grid gap-3 ${
                     aircraftId === 'c27j' ? 'grid-cols-3' : 'grid-cols-6'
                   }`}>
@@ -381,9 +381,9 @@ export default function LoadPlanningPage() {
                         <div className={`relative border-2 rounded-lg p-3 transition-all duration-300 ${
                           position.weight > 0 
                             ? 'border-blue-500 bg-blue-500/20' 
-                            : 'border-slate-600 bg-slate-700/30'
+                            : 'border-gray-600 bg-gray-700/30'
                         }`}>
-                          <Label className="text-slate-300 font-bold text-center block mb-2 text-sm">
+                          <Label className="text-gray-300 font-bold text-center block mb-2 text-sm">
                             {position.label}
                           </Label>
                           <Input
@@ -392,10 +392,10 @@ export default function LoadPlanningPage() {
                             max={15000}
                             value={position.weight || ''}
                             onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                            className="bg-slate-800 border-slate-600 text-white text-center text-xs"
+                            className="bg-gray-800 border-gray-600 text-white text-center text-xs"
                             placeholder="0"
                           />
-                          <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
+                          <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
                           {position.weight > 0 && (
                             <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
                           )}
@@ -414,7 +414,7 @@ export default function LoadPlanningPage() {
           <Button 
             variant="outline" 
             onClick={() => navigate("/home")}
-            className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            className="border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             Back to Dashboard
           </Button>
