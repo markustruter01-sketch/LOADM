@@ -202,20 +202,38 @@ export class ScenarioSubmissionService {
 
       console.log('✅ Getting submission:', submissionId);
 
-      const [submission] = await db.select()
+      const [result] = await db.select({
+        id: scenarioSubmissions.id,
+        scenarioId: scenarioSubmissions.scenarioId,
+        userId: scenarioSubmissions.userId,
+        submissionDate: scenarioSubmissions.submissionDate,
+        answers: scenarioSubmissions.answers,
+        score: scenarioSubmissions.score,
+        studentName: scenarioSubmissions.studentName,
+        studentId: scenarioSubmissions.studentId,
+        squadron: scenarioSubmissions.squadron,
+        instructorFeedback: scenarioSubmissions.instructorFeedback,
+        markedAnswers: scenarioSubmissions.markedAnswers,
+        status: scenarioSubmissions.status,
+        passed: scenarioSubmissions.passed,
+        timeSpent: scenarioSubmissions.timeSpent,
+        notes: scenarioSubmissions.notes,
+        scenarioTitle: scenarios.title,
+        scenarioQuestions: scenarios.questions
+      })
         .from(scenarioSubmissions)
         .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
         .where(eq(scenarioSubmissions.id, submissionId))
         .limit(1);
 
-      if (!submission) {
+      if (!result) {
         console.log('❌ Submission not found:', submissionId);
         return res.status(404).json({ error: 'Submission not found' });
       }
 
       console.log('✅ Submission found');
 
-      res.json(submission);
+      res.json(result);
 
     } catch (error) {
       console.error('❌ Failed to get submission:', error);
