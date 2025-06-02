@@ -292,7 +292,7 @@ export default function StudentProgress() {
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Link href={`/instructors-portal/submissions/${submission.id}`}>
+                              <Link href={`/instructors-portal/student-progress/${submission.id}`}>
                                 <Button variant="outline" size="sm">
                                   Review
                                 </Button>
