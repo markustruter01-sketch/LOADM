@@ -65,11 +65,18 @@ export default function ScenarioPage() {
   
   const submitMutation = useMutation({
     mutationFn: async () => {
+      console.log('🔥 SCENARIO SUBMIT: Starting submission process');
+      console.log('🔥 SCENARIO SUBMIT: User:', user);
+      console.log('🔥 SCENARIO SUBMIT: Student name:', studentName);
+      console.log('🔥 SCENARIO SUBMIT: Student ID:', studentId);
+      
       if (!user) {
+        console.error('🔥 SCENARIO SUBMIT: User not authenticated');
         throw new Error("User not authenticated");
       }
       
       if (!studentName || !studentId) {
+        console.error('🔥 SCENARIO SUBMIT: Missing student info');
         throw new Error("Student name and ID are required");
       }
       
@@ -160,7 +167,15 @@ export default function ScenarioPage() {
   };
   
   const submitAnswers = () => {
+    console.log('🔥 SUBMIT BUTTON CLICKED');
+    console.log('🔥 User state:', user);
+    console.log('🔥 Student name:', studentName);
+    console.log('🔥 Student ID:', studentId);
+    console.log('🔥 Answers:', answers);
+    console.log('🔥 Questions:', questions.length);
+    
     if (!user) {
+      console.log('🔥 No user - redirecting to auth');
       toast({
         title: "Authentication required",
         description: "Please login to submit your answers",
@@ -172,8 +187,10 @@ export default function ScenarioPage() {
     
     // Check if all questions have answers
     const allAnswered = questions.every(q => answers[q.id]);
+    console.log('🔥 All answered check:', allAnswered);
     
     if (!allAnswered) {
+      console.log('🔥 Not all questions answered');
       toast({
         title: "Incomplete",
         description: "Please answer all questions before submitting",
@@ -182,6 +199,7 @@ export default function ScenarioPage() {
       return;
     }
     
+    console.log('🔥 Opening squadron dialog');
     // Show squadron selection dialog instead of submitting directly
     setShowSquadronDialog(true);
   };
