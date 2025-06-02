@@ -878,9 +878,6 @@ export default function LoadPlanningPage() {
       
       balance = balance * positionMultiplier;
       
-      // Amplify the overall effect by 50% to make weight changes more impactful
-      balance = balance * 1.5;
-      
       // Clamp to reasonable range
       balance = Math.max(-100, Math.min(100, balance));
     }
