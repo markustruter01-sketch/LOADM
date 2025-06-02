@@ -95,43 +95,43 @@ export default function LoadPlanningPage() {
           <Button 
             variant="outline" 
             onClick={() => navigate("/load-planning")}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-orange-400"
+            className="border-gray-600 text-muted-foreground300 hover:bg-gray-700 hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">{config.name} Load Planning</h1>
-            <p className="text-gray-300">Max Payload: {config.maxWeight.toLocaleString()} lbs | Max Positions: {config.positions}</p>
+            <h1 className="text-3xl font-bold text-card-foreground">{config.name} Load Planning</h1>
+            <p className="text-muted-foreground300">Max Payload: {config.maxWeight.toLocaleString()} lbs | Max Positions: {config.positions}</p>
           </div>
         </div>
 
         {/* Load Summary */}
         <Card className="bg-card mb-6">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Package className="h-5 w-5 text-orange-400" />
+            <CardTitle className="text-card-foreground flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" />
               Load Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <Label className="text-gray-400">Current Load</Label>
-                <p className="text-2xl font-bold text-white">{balanceResult.totalWeight.toLocaleString()} lbs</p>
+                <Label className="text-muted-foreground400">Current Load</Label>
+                <p className="text-2xl font-bold text-card-foreground">{balanceResult.totalWeight.toLocaleString()} lbs</p>
               </div>
               <div>
-                <Label className="text-gray-400">Maximum Payload</Label>
-                <p className="text-2xl font-bold text-gray-300">{config.maxWeight.toLocaleString()} lbs</p>
+                <Label className="text-muted-foreground400">Maximum Payload</Label>
+                <p className="text-2xl font-bold text-muted-foreground300">{config.maxWeight.toLocaleString()} lbs</p>
               </div>
               <div>
-                <Label className="text-gray-400">Positions Filled</Label>
+                <Label className="text-muted-foreground400">Positions Filled</Label>
                 <p className="text-2xl font-bold text-blue-400">
                   {cargoPositions.filter(p => p.weight > 0).length} of {config.positions}
                 </p>
               </div>
               <div>
-                <Label className="text-gray-400">Center of Gravity</Label>
+                <Label className="text-muted-foreground400">Center of Gravity</Label>
                 <p className="text-2xl font-bold text-green-400">{balanceResult.centerOfGravity.toFixed(1)}%</p>
               </div>
             </div>
@@ -141,8 +141,8 @@ export default function LoadPlanningPage() {
         {/* Balance Display */}
         <Card className="bg-card mb-6">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Scale className="h-5 w-5 text-orange-400" />
+            <CardTitle className="text-card-foreground flex items-center gap-2">
+              <Scale className="h-5 w-5 text-primary" />
               Balance Scale
               <Badge className={getStatusColor(balanceResult.status)}>
                 {balanceResult.status.toUpperCase()}
@@ -164,7 +164,7 @@ export default function LoadPlanningPage() {
 
               {/* Balance Bar */}
               <div className="relative">
-                <div className="flex justify-between text-sm text-gray-400 mb-2">
+                <div className="flex justify-between text-sm text-muted-foreground400 mb-2">
                   <span>Heavy Forward</span>
                   <span>Center</span>
                   <span>Heavy Aft</span>
@@ -182,13 +182,13 @@ export default function LoadPlanningPage() {
                     style={{ left: `calc(${getBalanceBarPosition()}% - 4px)` }}
                   ></div>
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-muted-foreground500 mt-1">
                   <span>-100</span>
                   <span>0</span>
                   <span>+100</span>
                 </div>
                 <div className="text-center mt-2">
-                  <span className="text-lg font-bold text-white">
+                  <span className="text-lg font-bold text-card-foreground">
                     Balance: {balanceResult.balance.toFixed(1)}
                   </span>
                 </div>
@@ -200,11 +200,11 @@ export default function LoadPlanningPage() {
         {/* Cargo Positions */}
         <Card className="bg-card mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Cargo Bay Layout</CardTitle>
+            <CardTitle className="text-card-foreground">Cargo Bay Layout</CardTitle>
             <Button 
               variant="outline" 
               onClick={resetAllCargo}
-              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+              className="border-gray-600 text-muted-foreground300 hover:bg-gray-700"
             >
               Reset All
             </Button>
@@ -212,7 +212,7 @@ export default function LoadPlanningPage() {
           <CardContent>
             <div className="space-y-6">
               {/* Aircraft Direction Indicator */}
-              <div className="flex items-center justify-center gap-4 text-gray-400 text-sm">
+              <div className="flex items-center justify-center gap-4 text-muted-foreground400 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-400"></div>
                   <span>NOSE (Forward)</span>
@@ -235,7 +235,7 @@ export default function LoadPlanningPage() {
                               ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-gray-300 font-bold text-center block mb-2">
+                            <Label className="text-muted-foreground300 font-bold text-center block mb-2">
                               {position.label}
                             </Label>
                             <Input
@@ -244,10 +244,10 @@ export default function LoadPlanningPage() {
                               max={10000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-white text-center text-sm"
+                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-sm"
                               placeholder="0"
                             />
-                            <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
+                            <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
                             {/* Weight visualization bar */}
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
@@ -266,7 +266,7 @@ export default function LoadPlanningPage() {
                               ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-gray-300 font-bold text-center block mb-2">
+                            <Label className="text-muted-foreground300 font-bold text-center block mb-2">
                               {position.label}
                             </Label>
                             <Input
@@ -275,10 +275,10 @@ export default function LoadPlanningPage() {
                               max={10000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-white text-center text-sm"
+                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-sm"
                               placeholder="0"
                             />
-                            <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
+                            <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
                             {/* Weight visualization bar */}
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
@@ -290,7 +290,7 @@ export default function LoadPlanningPage() {
                   </div>
                   
                   {/* Cargo Bay Labels */}
-                  <div className="flex justify-between text-xs text-gray-500 mt-4">
+                  <div className="flex justify-between text-xs text-muted-foreground500 mt-4">
                     <span>Forward Cargo Bay</span>
                     <span>Aft Cargo Bay</span>
                   </div>
@@ -310,7 +310,7 @@ export default function LoadPlanningPage() {
                               ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-gray-300 font-bold text-center block mb-1 text-xs">
+                            <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
                               {position.label}
                             </Label>
                             <Input
@@ -319,10 +319,10 @@ export default function LoadPlanningPage() {
                               max={15000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-white text-center text-xs h-8"
+                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs h-8"
                               placeholder="0"
                             />
-                            <div className="text-xs text-gray-400 text-center">lbs</div>
+                            <div className="text-xs text-muted-foreground400 text-center">lbs</div>
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
@@ -340,7 +340,7 @@ export default function LoadPlanningPage() {
                               ? 'border-orange-500 bg-orange-500/20' 
                               : 'border-gray-600 bg-gray-700/30'
                           }`}>
-                            <Label className="text-gray-300 font-bold text-center block mb-1 text-xs">
+                            <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
                               {position.label}
                             </Label>
                             <Input
@@ -349,10 +349,10 @@ export default function LoadPlanningPage() {
                               max={15000}
                               value={position.weight || ''}
                               onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-white text-center text-xs h-8"
+                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs h-8"
                               placeholder="0"
                             />
-                            <div className="text-xs text-gray-400 text-center">lbs</div>
+                            <div className="text-xs text-muted-foreground400 text-center">lbs</div>
                             {position.weight > 0 && (
                               <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                             )}
@@ -363,7 +363,7 @@ export default function LoadPlanningPage() {
                   </div>
                   
                   {/* Cargo Bay Labels */}
-                  <div className="flex justify-between text-xs text-gray-500 mt-4">
+                  <div className="flex justify-between text-xs text-muted-foreground500 mt-4">
                     <span>Forward Cargo Bay</span>
                     <span>Aft Cargo Bay</span>
                   </div>
@@ -383,7 +383,7 @@ export default function LoadPlanningPage() {
                             ? 'border-orange-500 bg-orange-500/20' 
                             : 'border-gray-600 bg-gray-700/30'
                         }`}>
-                          <Label className="text-gray-300 font-bold text-center block mb-2 text-sm">
+                          <Label className="text-muted-foreground300 font-bold text-center block mb-2 text-sm">
                             {position.label}
                           </Label>
                           <Input
@@ -392,10 +392,10 @@ export default function LoadPlanningPage() {
                             max={15000}
                             value={position.weight || ''}
                             onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                            className="bg-gray-800 border-gray-600 text-white text-center text-xs"
+                            className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs"
                             placeholder="0"
                           />
-                          <div className="text-xs text-gray-400 text-center mt-1">lbs</div>
+                          <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
                           {position.weight > 0 && (
                             <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
                           )}
@@ -414,7 +414,7 @@ export default function LoadPlanningPage() {
           <Button 
             variant="outline" 
             onClick={() => navigate("/home")}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            className="border-gray-600 text-muted-foreground300 hover:bg-gray-700"
           >
             Back to Dashboard
           </Button>
