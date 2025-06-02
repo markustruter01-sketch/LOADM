@@ -39,18 +39,10 @@ export default function WorkforcePage() {
   });
 
   // Fetch users for selected squadron
-  const { data: users, isLoading: usersLoading } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: [`/api/workforce/squadron/${selectedSquadron}/users`],
     enabled: !!selectedSquadron
   });
-
-  // Function to fetch user submissions
-  const getUserSubmissions = (userId: number) => {
-    return useQuery({
-      queryKey: ['/api/workforce/user', userId, 'submissions'],
-      enabled: expandedUsers.has(userId)
-    });
-  };
 
   const toggleUserExpansion = (userId: number) => {
     const newExpanded = new Set(expandedUsers);
@@ -123,18 +115,34 @@ export default function WorkforcePage() {
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 <p className="mt-2 text-muted-foreground">Loading personnel...</p>
               </div>
-            ) : users && users.length > 0 ? (
+            ) : users.length > 0 ? (
               <div className="space-y-4">
                 {users.map((user: User) => (
-                  <UserCard 
-                    key={user.id} 
-                    user={user} 
-                    isExpanded={expandedUsers.has(user.id)}
-                    onToggle={() => toggleUserExpansion(user.id)}
-                    submissions={getUserSubmissions(user.id)}
-                    getSubmissionIcon={getSubmissionIcon}
-                    getSubmissionBadgeColor={getSubmissionBadgeColor}
-                  />
+                  <div key={user.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <User className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <h3 className="font-medium">
+                            {user.first_name && user.last_name 
+                              ? `${user.first_name} ${user.last_name}`
+                              : user.first_name || user.email.split('@')[0]
+                            }
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{user.license_type}</Badge>
+                        <Badge variant="secondary">{user.squadron}</Badge>
+                      </div>
+                    </div>
+                    {user.last_login && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Last login: {format(new Date(user.last_login), 'PPp')}
+                      </p>
+                    )}
+                  </div>
                 ))}
               </div>
             ) : (
