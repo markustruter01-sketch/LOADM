@@ -120,7 +120,7 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
   if (totalWeight > 0) {
     const avgPosition = weightedPositionSum / totalWeight;
     
-    // Scale to -100 to +100 range based on aircraft layout
+    // Scale to -100 to +100 range based on aircraft layout and weight
     let maxPosition = 1.5; // Default for C-130
     if (aircraftId === 'c27j') {
       maxPosition = 1;
@@ -130,7 +130,12 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
       maxPosition = (config.positions - 1) / 2;
     }
     
-    balance = (avgPosition / maxPosition) * 100;
+    // Weight scaling factor - balance effect should be proportional to total weight
+    // At maximum aircraft capacity (42,000 lbs for C-130), full position effect
+    // At light loads (under 1,000 lbs), minimal effect
+    const weightFactor = Math.min(1, totalWeight / (config.maxWeight * 0.25)); // Scale up to 25% of max weight
+    
+    balance = (avgPosition / maxPosition) * 100 * weightFactor;
     balance = Math.max(-100, Math.min(100, balance));
   }
 
