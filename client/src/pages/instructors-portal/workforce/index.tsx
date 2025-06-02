@@ -40,7 +40,7 @@ export default function WorkforcePage() {
 
   // Fetch users for selected squadron
   const { data: users, isLoading: usersLoading } = useQuery({
-    queryKey: ['/api/workforce/squadron', selectedSquadron, 'users'],
+    queryKey: [`/api/workforce/squadron/${selectedSquadron}/users`],
     enabled: !!selectedSquadron
   });
 
