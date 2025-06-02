@@ -122,6 +122,28 @@ export default function LoadPlanningPage() {
     const loadedPositions = cargoPositions.filter(pos => pos.weight > 0);
     const hasHeavyItems = loadedPositions.some(pos => pos.weight > 10000);
     const hasDangerousGoods = message.includes('dg') || message.includes('dangerous') || message.includes('hazmat');
+    const actualDangerousGoods = cargoPositions.some(pos => pos.cargoType === 'DG');
+    
+    // Check if DG is placed but not in aft positions
+    if (actualDangerousGoods) {
+      const dangerousPositions = cargoPositions.filter(pos => pos.cargoType === 'DG');
+      const getAftPositions = () => {
+        if (aircraftId === 'kc30a') {
+          return kc30aCargoType === 'LD3' ? ['P21', 'P22', 'P23', 'P24', 'P25', 'P26'] : ['P7', 'P8'];
+        } else if (config.name === 'C-17') {
+          return ['P15', 'P16', 'P17', 'P18'];
+        } else {
+          return ['P7', 'P8'];
+        }
+      };
+      const aftPositions = getAftPositions();
+      const dgNotInAft = dangerousPositions.some(pos => !aftPositions.includes(pos.id));
+      
+      if (dgNotInAft) {
+        const aftRange = aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? 'P21-P26' : 'P7-P8') : (config.name === 'C-17' ? 'P15-P18' : 'P7-P8');
+        return `⚠️ DANGEROUS GOODS SAFETY WARNING: Dangerous goods detected but NOT positioned at aircraft aft! For emergency jettison capability, immediately move ALL dangerous goods to rear positions: ${aftRange}. This is critical for crew safety and emergency procedures.`;
+      }
+    }
     
     // Safety and balance recommendations
     if (message.includes('balance') || message.includes('weight') || message.includes('optimize')) {
@@ -823,16 +845,7 @@ export default function LoadPlanningPage() {
           </CardContent>
         </Card>
 
-        {/* Navigation */}
-        <div className="text-center">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/home")}
-            className="border-gray-600 text-muted-foreground300 hover:bg-gray-700"
-          >
-            Back to Dashboard
-          </Button>
-        </div>
+
 
         {/* AI Load Planning Assistant Section */}
         <Card id="ai-assistant-section" className="bg-card border-border">

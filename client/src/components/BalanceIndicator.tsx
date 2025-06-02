@@ -64,7 +64,7 @@ export default function BalanceIndicator({
       <div ref={balanceScaleRef} className="h-8 relative mb-1 rounded-md">
         {/* Container for the gradient background with overflow hidden */}
         <div className="absolute inset-0 overflow-hidden" style={{ 
-          background: 'linear-gradient(to right, #ea580c 0%, #f59e0b 20%, #84cc16 40%, #22c55e 50%, #84cc16 60%, #f59e0b 80%, #ea580c 100%)'
+          background: 'linear-gradient(to right, #dc2626 0%, #ea580c 15%, #f59e0b 30%, #84cc16 45%, #22c55e 50%, #84cc16 55%, #f59e0b 70%, #ea580c 85%, #dc2626 100%)'
         }}></div>
         
         {/* Indicator needle - light blue/teal needle, extending equally past top and bottom */}
