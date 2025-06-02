@@ -52,7 +52,7 @@ export default function LoadPlanningSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>Aircraft Selection - Load Planning | LOADMworkflow</title>
         <meta name="description" content="Select aircraft for load planning operations" />
@@ -64,7 +64,7 @@ export default function LoadPlanningSelectionPage() {
             <Plane className="h-8 w-8 text-orange-400" />
             <h1 className="text-4xl font-bold text-white">Load Planning</h1>
           </div>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Select an aircraft to begin load planning operations. Each aircraft has unique 
             cargo configurations and balance requirements.
           </p>
@@ -74,31 +74,31 @@ export default function LoadPlanningSelectionPage() {
           {aircraftList.map((aircraft) => (
             <Card 
               key={aircraft.id}
-              className="bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer group"
+              className="bg-card hover:bg-card/90 transition-all duration-300 cursor-pointer group"
               onClick={() => handleAircraftSelect(aircraft.id)}
             >
               <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-4 bg-orange-500/20 rounded-full w-16 h-16 flex items-center justify-center">
-                  <Plane className="h-8 w-8 text-orange-400 group-hover:text-orange-300 transition-colors" />
+                <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-16 h-16 flex items-center justify-center">
+                  <Plane className="h-8 w-8 text-primary group-hover:text-primary/80 transition-colors" />
                 </div>
-                <CardTitle className="text-white text-xl">{aircraft.name}</CardTitle>
+                <CardTitle className="text-card-foreground text-xl">{aircraft.name}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-gray-300 text-sm text-center">
+                <p className="text-muted-foreground text-sm text-center">
                   {aircraft.description}
                 </p>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-gray-400">
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Max Payload:</span>
                     <span className="text-green-400 font-medium">{aircraft.maxPayload}</span>
                   </div>
-                  <div className="flex justify-between text-gray-400">
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Cargo Positions:</span>
-                    <span className="text-orange-400 font-medium">{aircraft.positions}</span>
+                    <span className="text-primary font-medium">{aircraft.positions}</span>
                   </div>
                 </div>
                 <Button 
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleAircraftSelect(aircraft.id);

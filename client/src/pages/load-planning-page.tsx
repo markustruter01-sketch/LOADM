@@ -83,7 +83,7 @@ export default function LoadPlanningPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-background">
       <Helmet>
         <title>{config.name} Load Planning | LOADMworkflow</title>
         <meta name="description" content={`Load planning for ${config.name}`} />
@@ -107,7 +107,7 @@ export default function LoadPlanningPage() {
         </div>
 
         {/* Load Summary */}
-        <Card className="bg-gray-800/50 border-gray-700 mb-6">
+        <Card className="bg-card mb-6">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Package className="h-5 w-5 text-orange-400" />
@@ -139,7 +139,7 @@ export default function LoadPlanningPage() {
         </Card>
 
         {/* Balance Display */}
-        <Card className="bg-gray-800/50 border-gray-700 mb-6">
+        <Card className="bg-card mb-6">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Scale className="h-5 w-5 text-orange-400" />
@@ -198,7 +198,7 @@ export default function LoadPlanningPage() {
         </Card>
 
         {/* Cargo Positions */}
-        <Card className="bg-gray-800/50 border-gray-700 mb-6">
+        <Card className="bg-card mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-white">Cargo Bay Layout</CardTitle>
             <Button 
