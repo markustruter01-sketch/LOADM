@@ -207,6 +207,65 @@ export default function LoadPlanningPage() {
     );
   };
 
+  // Reusable cargo position component
+  const renderCargoPosition = (position: CargoPosition, maxWeight = 15000) => (
+    <div key={position.id} className="space-y-2">
+      <div 
+        className={`relative border-2 rounded-lg p-2 transition-all duration-300 cursor-pointer hover:border-primary ${
+          position.weight > 0 
+            ? 'border-orange-500 bg-orange-500/20' 
+            : 'border-gray-600 bg-gray-700/30'
+        }`}
+        onClick={() => openCargoEdit(position)}
+      >
+        <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
+          {position.label}
+        </Label>
+        <Input
+          type="number"
+          min="0"
+          max={maxWeight}
+          value={position.weight || ''}
+          onChange={(e) => {
+            e.stopPropagation();
+            updateCargoWeight(position.id, parseInt(e.target.value) || 0);
+          }}
+          className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs h-8"
+          placeholder="0"
+        />
+        <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
+        
+        {/* Cargo type display */}
+        {position.cargoType !== 'General' && (
+          <div className="text-xs text-center mt-1">
+            <Badge variant="secondary" className="text-xs px-1 py-0">
+              {position.cargoType === 'DG' ? 'DG' : position.cargoType}
+            </Badge>
+          </div>
+        )}
+        
+        {position.dgClass && (
+          <div className="text-xs text-center mt-1">
+            <Badge variant="destructive" className="text-xs px-1 py-0">
+              Class {position.dgClass}
+            </Badge>
+          </div>
+        )}
+        
+        {position.description && (
+          <div className="text-xs text-center mt-1 text-muted-foreground truncate" title={position.description}>
+            {position.description}
+          </div>
+        )}
+        
+        {/* Weight visualization */}
+        {position.weight > 0 && (
+          <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
+        )}
+      </div>
+    </div>
+  );
+
   const getStatusColor = (status: BalanceResult['status']) => {
     switch (status) {
       case 'safe': return 'bg-green-500';
@@ -368,64 +427,12 @@ export default function LoadPlanningPage() {
                   <div className="space-y-3">
                     {/* Upper Row (P1-P4) */}
                     <div className="grid grid-cols-4 gap-3">
-                      {cargoPositions.slice(0, 4).map((position) => (
-                        <div key={position.id} className="space-y-2">
-                          <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
-                            position.weight > 0 
-                              ? 'border-orange-500 bg-orange-500/20' 
-                              : 'border-gray-600 bg-gray-700/30'
-                          }`}>
-                            <Label className="text-muted-foreground300 font-bold text-center block mb-2">
-                              {position.label}
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max={10000}
-                              value={position.weight || ''}
-                              onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-sm"
-                              placeholder="0"
-                            />
-                            <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
-                            {/* Weight visualization bar */}
-                            {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                      {cargoPositions.slice(0, 4).map((position) => renderCargoPosition(position, 10000))}
                     </div>
                     
                     {/* Lower Row (P5-P8) */}
                     <div className="grid grid-cols-4 gap-3">
-                      {cargoPositions.slice(4, 8).map((position) => (
-                        <div key={position.id} className="space-y-2">
-                          <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
-                            position.weight > 0 
-                              ? 'border-orange-500 bg-orange-500/20' 
-                              : 'border-gray-600 bg-gray-700/30'
-                          }`}>
-                            <Label className="text-muted-foreground300 font-bold text-center block mb-2">
-                              {position.label}
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max={10000}
-                              value={position.weight || ''}
-                              onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                              className="bg-gray-800 border-gray-600 text-card-foreground text-center text-sm"
-                              placeholder="0"
-                            />
-                            <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
-                            {/* Weight visualization bar */}
-                            {position.weight > 0 && (
-                              <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                      {cargoPositions.slice(4, 8).map((position) => renderCargoPosition(position, 10000))}
                     </div>
                   </div>
                   
@@ -629,6 +636,79 @@ export default function LoadPlanningPage() {
           </Button>
         </div>
       </div>
+
+      {/* Cargo Edit Dialog */}
+      <Dialog open={editingPosition !== null} onOpenChange={(open) => !open && setEditingPosition(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle>Edit Cargo Details - {editingPosition}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="cargoType">Cargo Type</Label>
+              <Select value={editCargoType} onValueChange={setEditCargoType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cargo type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="General">General Cargo</SelectItem>
+                  <SelectItem value="Mechanical">Mechanical Parts</SelectItem>
+                  <SelectItem value="Perishable">Perishable Goods</SelectItem>
+                  <SelectItem value="Passenger Bags">Passenger Bags</SelectItem>
+                  <SelectItem value="Military Equipment">Military Equipment</SelectItem>
+                  <SelectItem value="Medical Supplies">Medical Supplies</SelectItem>
+                  <SelectItem value="Electronics">Electronics</SelectItem>
+                  <SelectItem value="Ammunition">Ammunition</SelectItem>
+                  <SelectItem value="Fuel/Oil">Fuel/Oil</SelectItem>
+                  <SelectItem value="Vehicle">Vehicle</SelectItem>
+                  <SelectItem value="DG">Dangerous Goods</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editCargoType === 'DG' && (
+              <div className="space-y-2">
+                <Label htmlFor="dgClass">Dangerous Goods Class</Label>
+                <Select value={editDgClass} onValueChange={setEditDgClass}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select DG class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Class 1 - Explosives</SelectItem>
+                    <SelectItem value="2">Class 2 - Gases</SelectItem>
+                    <SelectItem value="3">Class 3 - Flammable Liquids</SelectItem>
+                    <SelectItem value="4">Class 4 - Flammable Solids</SelectItem>
+                    <SelectItem value="5">Class 5 - Oxidizers</SelectItem>
+                    <SelectItem value="6">Class 6 - Toxic Substances</SelectItem>
+                    <SelectItem value="7">Class 7 - Radioactive</SelectItem>
+                    <SelectItem value="8">Class 8 - Corrosives</SelectItem>
+                    <SelectItem value="9">Class 9 - Miscellaneous</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Input
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Enter cargo description..."
+                className="bg-muted"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setEditingPosition(null)}>
+                Cancel
+              </Button>
+              <Button onClick={saveCargoEdit} className="bg-primary hover:bg-primary/90">
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
