@@ -244,7 +244,7 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
         dt.title,
         'document' as type
       FROM document_submissions d
-      JOIN document_templates dt ON d.document_id = dt.id
+      JOIN documents dt ON d.document_id = dt.id
       WHERE d.user_id = ${userId}
       
       ORDER BY submission_date DESC
