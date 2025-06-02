@@ -2,7 +2,7 @@ import { Switch, Route } from "wouter";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createOfflineQueryClient } from "@/lib/queryClient";
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
-import { IsolatedLoginForm } from './auth-isolated/login-component';
+import { RedesignedLogin } from './auth-isolated/redesigned-login';
 import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
 
 // Import all your existing pages
@@ -159,7 +159,7 @@ function AppContent() {
   }
 
   if (!user) {
-    return <IsolatedLoginForm />;
+    return <RedesignedLogin />;
   }
 
   // Check if user needs to change password on first login
