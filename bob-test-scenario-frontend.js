@@ -9,12 +9,12 @@ async function testScenarioSubmissionComplete() {
     
     // First, authenticate to get a real session
     console.log('\n🔐 Authenticating...');
-    const loginResponse = await fetch('http://localhost:5000/api/isolated/login', {
+    const loginResponse = await fetch('http://localhost:5000/auth-isolated/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: 'markustruter01@gmail.com',
-        password: 'admin123'
+        password: 'Skating69!'
       })
     });
     
