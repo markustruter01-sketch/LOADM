@@ -199,6 +199,68 @@ app.put("/api/user/squadron", async (req, res) => {
   }
 });
 
+app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req, res) => {
+  console.log('✅ WORKFORCE: GET user submissions request received');
+  console.log('✅ WORKFORCE: User ID:', req.params.userId);
+  try {
+    const { userId } = req.params;
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Get user submissions from multiple sources
+    const submissions = await sql`
+      SELECT 
+        s.id,
+        s.submission_date,
+        s.score,
+        s.passed,
+        sc.title,
+        'scenario' as type
+      FROM scenario_submissions s
+      JOIN scenarios sc ON s.scenario_id = sc.id
+      WHERE s.user_id = ${userId}
+      
+      UNION ALL
+      
+      SELECT 
+        q.id,
+        q.submission_date,
+        q.score,
+        q.passed,
+        qz.title,
+        'quiz' as type
+      FROM quiz_submissions q
+      JOIN quizzes qz ON q.quiz_id = qz.id
+      WHERE q.user_id = ${userId}
+      
+      UNION ALL
+      
+      SELECT 
+        d.id,
+        d.submission_date,
+        NULL as score,
+        TRUE as passed,
+        dt.title,
+        'document' as type
+      FROM document_submissions d
+      JOIN document_templates dt ON d.document_id = dt.id
+      WHERE d.user_id = ${userId}
+      
+      ORDER BY submission_date DESC
+      LIMIT 10
+    `;
+    
+    console.log('✅ WORKFORCE: Submissions query executed, found:', submissions.length);
+    console.log('✅ WORKFORCE: Submissions data:', JSON.stringify(submissions, null, 2));
+    
+    res.json(submissions);
+  } catch (error) {
+    console.error('Error fetching user submissions:', error);
+    res.status(500).json({ error: "Failed to fetch user submissions" });
+  }
+});
+
 // Workforce Management Routes - bypassing middleware issues
 import { licenses, users } from '../shared/schema';
 
