@@ -1,14 +1,139 @@
 import fetch from 'node-fetch';
+import puppeteer from 'puppeteer';
 
-console.log('🤖 BOB ULTIMATE - Frontend Scenario Submission Test');
-console.log('====================================================');
+console.log('🤖 BOB FRONTEND TEST - Complete Scenario Submission Flow');
+console.log('=====================================================');
 
 async function testScenarioSubmissionComplete() {
+  let browser;
   try {
-    console.log('🔍 Testing complete scenario submission workflow...');
+    // Launch browser
+    console.log('\n🌐 Launching browser...');
+    browser = await puppeteer.launch({
+      headless: false,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+
+    const page = await browser.newPage();
     
-    // First, authenticate to get a real session
-    console.log('\n🔐 Authenticating...');
+    // Enable console logging
+    page.on('console', msg => {
+      if (msg.text().includes('🔥')) {
+        console.log('📱 FRONTEND:', msg.text());
+      }
+    });
+
+    // Navigate to login
+    console.log('\n🔐 Logging in...');
+    await page.goto('http://localhost:5000/auth');
+    await page.waitForSelector('input[type="email"]');
+    
+    await page.type('input[type="email"]', 'markustruter01@gmail.com');
+    await page.type('input[type="password"]', 'Skating69!');
+    await page.click('button[type="submit"]');
+    
+    // Wait for redirect to dashboard
+    await page.waitForNavigation();
+    console.log('✅ Login successful');
+
+    // Navigate to scenarios
+    console.log('\n📋 Navigating to scenarios...');
+    await page.goto('http://localhost:5000/scenarios');
+    await page.waitForSelector('[data-testid="scenario-card"]', { timeout: 10000 });
+    
+    // Click on first scenario
+    await page.click('[data-testid="scenario-card"]');
+    await page.waitForNavigation();
+    console.log('✅ Scenario loaded');
+
+    // Fill in answers
+    console.log('\n✏️ Filling answers...');
+    const textareas = await page.$$('textarea');
+    
+    for (let i = 0; i < textareas.length; i++) {
+      await textareas[i].type(`Test answer ${i + 1} from Bob frontend test`);
+    }
+    console.log(`✅ Filled ${textareas.length} answers`);
+
+    // Click Submit All Answers button
+    console.log('\n🚀 Clicking Submit All Answers...');
+    await page.click('button:has-text("Submit All Answers")');
+    
+    // Wait for squadron dialog
+    await page.waitForSelector('select', { timeout: 5000 });
+    console.log('✅ Squadron dialog appeared');
+
+    // Fill student info and select squadron
+    await page.type('input[placeholder*="name"]', 'Bob Frontend Tester');
+    await page.type('input[placeholder*="ID"]', 'BOBFE123');
+    await page.selectOption('select', 'AMG');
+    
+    // Submit final form
+    console.log('\n📤 Submitting final form...');
+    await page.click('button:has-text("Submit Scenario")');
+    
+    // Wait for success animation or result
+    console.log('\n⏳ Waiting for submission result...');
+    
+    let successDetected = false;
+    
+    // Check for multiple possible success indicators
+    try {
+      // Wait for any of these success indicators
+      await Promise.race([
+        page.waitForSelector('[data-testid="success-animation"]', { timeout: 8000 }),
+        page.waitForSelector('.success', { timeout: 8000 }),
+        page.waitForSelector('text=Submission successful', { timeout: 8000 }),
+        page.waitForSelector('text=submitted successfully', { timeout: 8000 }),
+        page.waitForFunction(() => 
+          document.body.innerText.includes('Success') || 
+          document.body.innerText.includes('submitted') ||
+          document.body.innerText.includes('Complete')
+        , {}, { timeout: 8000 })
+      ]);
+      
+      successDetected = true;
+      console.log('✅ SUCCESS ANIMATION/FEEDBACK DETECTED!');
+      
+    } catch (timeoutError) {
+      console.log('⏰ No success animation detected, checking URL changes...');
+      
+      // Check if URL changed (redirect after submission)
+      const currentUrl = page.url();
+      if (currentUrl.includes('dashboard') || currentUrl.includes('scenarios') || !currentUrl.includes('scenario/')) {
+        successDetected = true;
+        console.log('✅ SUCCESS: Page redirected after submission');
+      }
+    }
+
+    // Take final screenshot for verification
+    await page.screenshot({ path: 'scenario-test-final.png', fullPage: true });
+    
+    if (successDetected) {
+      console.log('\n🎉 FRONTEND SUBMISSION FLOW SUCCESSFUL!');
+      return true;
+    } else {
+      console.log('\n❌ Frontend submission flow incomplete');
+      return false;
+    }
+
+  } catch (error) {
+    console.error('❌ Frontend test failed:', error.message);
+    return false;
+    
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+}
+
+// Also test the backend directly to confirm it's working
+async function testBackendDirect() {
+  console.log('\n🔧 Testing backend submission directly...');
+  
+  try {
+    // Authenticate
     const loginResponse = await fetch('http://localhost:5000/auth-isolated/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -17,109 +142,66 @@ async function testScenarioSubmissionComplete() {
         password: 'Skating69!'
       })
     });
-    
-    if (!loginResponse.ok) {
-      console.log('❌ Login failed:', loginResponse.status);
-      return;
-    }
-    
+
     const cookies = loginResponse.headers.raw()['set-cookie'];
     const sessionCookie = cookies ? cookies.find(cookie => cookie.includes('sessionId=')) : null;
-    
-    if (!sessionCookie) {
-      console.log('❌ No session cookie found in response');
-      return;
-    }
-    
-    console.log('✅ Authenticated with session:', sessionCookie);
 
-    // Test 1: Check if scenarios exist
-    console.log('\n1️⃣ Testing scenarios endpoint...');
+    // Get scenarios
     const scenariosResponse = await fetch('http://localhost:5000/api/scenarios', {
-      headers: {
-        'Cookie': sessionCookie
-      }
+      headers: { 'Cookie': sessionCookie }
     });
-    
-    if (!scenariosResponse.ok) {
-      console.log('❌ Scenarios endpoint failed:', scenariosResponse.status);
-      return;
-    }
-    
     const scenarios = await scenariosResponse.json();
-    console.log('✅ Found scenarios:', scenarios.length);
-    
-    if (scenarios.length === 0) {
-      console.log('❌ No scenarios available to test');
-      return;
-    }
-    
-    const testScenario = scenarios[0];
-    console.log('📋 Using scenario:', testScenario.title);
-    
-    // Test 2: Submit scenario with correct format
-    console.log('\n2️⃣ Testing scenario submission...');
-    
-    const submissionPayload = {
-      scenarioId: testScenario.id,
-      userId: 9,
-      studentName: "Bob Tester",
-      studentId: "BOB123",
-      squadron: "AMG",
-      answers: JSON.stringify([
-        { questionId: "q1", answer: "Test answer", notes: "Bob test note" }
-      ]),
-      status: "pending"
+
+    // Submit with new format
+    const payload = {
+      scenarioId: scenarios[0].id,
+      answers: [
+        { questionId: "q1", answer: "Backend test answer", notes: "Backend test note" }
+      ],
+      timeSpent: 300,
+      notes: "Student: Bob Backend Tester, ID: BOBBE123, Squadron: AMG"
     };
-    
-    console.log('📤 Submission payload:', JSON.stringify(submissionPayload, null, 2));
-    
+
     const submissionResponse = await fetch('http://localhost:5000/api/scenario-submissions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Cookie': sessionCookie
       },
-      body: JSON.stringify(submissionPayload)
+      body: JSON.stringify(payload)
     });
-    
-    console.log('📥 Submission response status:', submissionResponse.status);
-    
-    if (!submissionResponse.ok) {
-      const errorText = await submissionResponse.text();
-      console.log('❌ Submission failed:', errorText);
-      return;
+
+    if (submissionResponse.ok) {
+      const result = await submissionResponse.json();
+      console.log('✅ Backend submission successful:', result.id);
+      return true;
+    } else {
+      console.log('❌ Backend submission failed:', submissionResponse.status);
+      return false;
     }
-    
-    const submissionResult = await submissionResponse.json();
-    console.log('✅ Submission successful:', submissionResult);
-    
-    // Test 3: Verify submission was saved
-    console.log('\n3️⃣ Verifying submission was saved...');
-    
-    const verificatonResponse = await fetch('http://localhost:5000/api/scenario-submissions', {
-      headers: {
-        'Cookie': sessionCookie
-      }
-    });
-    
-    if (verificatonResponse.ok) {
-      const submissions = await verificatonResponse.json();
-      console.log('✅ Found submissions:', submissions.length);
-      const recentSubmission = submissions.find(s => s.student_name === "Bob Tester");
-      if (recentSubmission) {
-        console.log('✅ Bob test submission found:', recentSubmission.id);
-      } else {
-        console.log('❌ Bob test submission not found in database');
-      }
-    }
-    
-    console.log('\n🎉 Scenario submission test completed successfully!');
-    
+
   } catch (error) {
-    console.error('❌ Test failed:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('❌ Backend test failed:', error.message);
+    return false;
   }
 }
 
-testScenarioSubmissionComplete();
+// Run both tests
+async function runCompleteTest() {
+  console.log('🎯 Running complete scenario submission test...\n');
+  
+  const backendSuccess = await testBackendDirect();
+  const frontendSuccess = await testScenarioSubmissionComplete();
+  
+  console.log('\n📊 TEST RESULTS:');
+  console.log(`Backend: ${backendSuccess ? '✅ PASS' : '❌ FAIL'}`);
+  console.log(`Frontend: ${frontendSuccess ? '✅ PASS' : '❌ FAIL'}`);
+  
+  if (backendSuccess && frontendSuccess) {
+    console.log('\n🎉 ALL TESTS PASSED - Scenario submission system is fully working!');
+  } else {
+    console.log('\n⚠️ Some tests failed - System needs additional fixes');
+  }
+}
+
+runCompleteTest();

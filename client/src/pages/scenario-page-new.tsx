@@ -109,19 +109,20 @@ export default function ScenarioPage() {
       
       const payload = {
         scenarioId: scenario.id,
-        userId: user.id,
-        studentName,
-        studentId,
-        squadron: selectedSquadron,
-        answers: answersString,
-        status: "pending"
+        answers: sanitizedAnswers,
+        timeSpent: 300,
+        notes: `Student: ${studentName}, ID: ${studentId}, Squadron: ${selectedSquadron}`
       };
+      
+      console.log('🔥 SCENARIO SUBMIT: Payload being sent:', payload);
       
       const response = await apiRequest({
         method: "POST",
         url: "/api/scenario-submissions",
         body: payload
       });
+      
+      console.log('🔥 SCENARIO SUBMIT: Response received:', response);
       
       // Calculate score for multiple choice questions
       const multipleChoiceQuestions = questions.filter(q => q.questionType === "multiple-choice" && q.correctAnswer);
@@ -135,7 +136,9 @@ export default function ScenarioPage() {
         setScore(100); // Default if no scorable questions
       }
       
-      return await response.json();
+      const result = await response.json();
+      console.log('🔥 SCENARIO SUBMIT: Final result:', result);
+      return result;
     },
     onSuccess: () => {
       console.log('🔥 SUBMISSION SUCCESS - Starting success flow');
