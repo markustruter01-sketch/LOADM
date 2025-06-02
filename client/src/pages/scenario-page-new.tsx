@@ -138,9 +138,12 @@ export default function ScenarioPage() {
       return await response.json();
     },
     onSuccess: () => {
+      console.log('🔥 SUBMISSION SUCCESS - Starting success flow');
       queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
+      console.log('🔥 Setting showSubmissionSuccess to true');
       // Show the success animation before showing results
       setShowSubmissionSuccess(true);
+      console.log('🔥 Success animation should now be visible');
       // Results will be shown after animation completes
     },
     onError: (error: Error) => {
