@@ -868,8 +868,32 @@ export default function LoadPlanningPage() {
     // Calculate balance value (-100 to 100)
     let balance = 0;
     if (totalWeightInCargo > 0) {
-      // Normalize to -100 to 100 range and add dampening factor
-      balance = (totalWeightMoment / totalWeightInCargo) * 100;
+      // For proper center of gravity calculation, we need to include aircraft empty weight
+      // Aircraft empty weight moments (approximate values for different aircraft)
+      const aircraftEmptyWeight = currentAircraftId === 'kc30a' ? 110000 : // kg
+                                   currentAircraftId === 'c17' ? 280000 : // lbs  
+                                   currentAircraftId === 'c130' ? 75000 : // lbs
+                                   28000; // C-27J lbs
+      
+      // Empty aircraft CG position (normalized: 0 = center, -1 = forward, +1 = aft)
+      const aircraftEmptyCGPosition = 0; // Assume aircraft empty CG is at neutral position
+      
+      // Calculate total moment including aircraft empty weight
+      const totalMoment = totalWeightMoment + (aircraftEmptyWeight * aircraftEmptyCGPosition);
+      const totalWeight = totalWeightInCargo + aircraftEmptyWeight;
+      
+      // Calculate weighted center of gravity position
+      balance = (totalMoment / totalWeight) * 100;
+      
+      // Apply scaling factor to make cargo weight changes more visible
+      // Heavier cargo should have proportionally more impact
+      const cargoWeightRatio = totalWeightInCargo / aircraftEmptyWeight;
+      const scalingFactor = 1 + (cargoWeightRatio * 2); // Amplify effect based on cargo weight
+      
+      balance = balance * scalingFactor;
+      
+      // Clamp to reasonable range
+      balance = Math.max(-100, Math.min(100, balance));
     }
     
     setBalanceValue(balance);
