@@ -200,7 +200,7 @@ export default function LoadPlanningPage() {
         {/* Cargo Positions */}
         <Card className="bg-slate-800/50 border-slate-700 mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Cargo Positions</CardTitle>
+            <CardTitle className="text-white">Cargo Bay Layout</CardTitle>
             <Button 
               variant="outline" 
               onClick={resetAllCargo}
@@ -210,29 +210,130 @@ export default function LoadPlanningPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {cargoPositions.map((position) => (
-                <div key={position.id} className="space-y-2">
-                  <Label className="text-slate-300 font-medium">{position.label}</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      min="0"
-                      max={config.maxWeight}
-                      value={position.weight || ''}
-                      onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                      className="bg-slate-700 border-slate-600 text-white pr-12"
-                      placeholder="0"
-                    />
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-sm">
-                      lbs
-                    </span>
-                  </div>
-                  {position.weight > 0 && (
-                    <div className="h-2 bg-blue-500 rounded-sm opacity-60"></div>
-                  )}
+            <div className="space-y-6">
+              {/* Aircraft Direction Indicator */}
+              <div className="flex items-center justify-center gap-4 text-slate-400 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-slate-400"></div>
+                  <span>NOSE (Forward)</span>
                 </div>
-              ))}
+                <div className="flex-1 border-t border-dashed border-slate-600"></div>
+                <span>TAIL (Aft)</span>
+                <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-slate-400"></div>
+              </div>
+
+              {/* C-130 Cargo Bay Layout (2 rows x 4 columns) */}
+              {aircraftId === 'c130' && (
+                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
+                  <div className="space-y-3">
+                    {/* Upper Row (P1-P4) */}
+                    <div className="grid grid-cols-4 gap-3">
+                      {cargoPositions.slice(0, 4).map((position) => (
+                        <div key={position.id} className="space-y-2">
+                          <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
+                            position.weight > 0 
+                              ? 'border-blue-500 bg-blue-500/20' 
+                              : 'border-slate-600 bg-slate-700/30'
+                          }`}>
+                            <Label className="text-slate-300 font-bold text-center block mb-2">
+                              {position.label}
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max={10000}
+                              value={position.weight || ''}
+                              onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
+                              className="bg-slate-800 border-slate-600 text-white text-center text-sm"
+                              placeholder="0"
+                            />
+                            <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
+                            {/* Weight visualization bar */}
+                            {position.weight > 0 && (
+                              <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Lower Row (P5-P8) */}
+                    <div className="grid grid-cols-4 gap-3">
+                      {cargoPositions.slice(4, 8).map((position) => (
+                        <div key={position.id} className="space-y-2">
+                          <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
+                            position.weight > 0 
+                              ? 'border-blue-500 bg-blue-500/20' 
+                              : 'border-slate-600 bg-slate-700/30'
+                          }`}>
+                            <Label className="text-slate-300 font-bold text-center block mb-2">
+                              {position.label}
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max={10000}
+                              value={position.weight || ''}
+                              onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
+                              className="bg-slate-800 border-slate-600 text-white text-center text-sm"
+                              placeholder="0"
+                            />
+                            <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
+                            {/* Weight visualization bar */}
+                            {position.weight > 0 && (
+                              <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Cargo Bay Labels */}
+                  <div className="flex justify-between text-xs text-slate-500 mt-4">
+                    <span>Forward Cargo Bay</span>
+                    <span>Aft Cargo Bay</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Other Aircraft Layouts */}
+              {aircraftId !== 'c130' && (
+                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
+                  <div className={`grid gap-3 ${
+                    aircraftId === 'c27j' ? 'grid-cols-3' : 
+                    aircraftId === 'c17' ? 'grid-cols-6' : 
+                    'grid-cols-6'
+                  }`}>
+                    {cargoPositions.map((position) => (
+                      <div key={position.id} className="space-y-2">
+                        <div className={`relative border-2 rounded-lg p-3 transition-all duration-300 ${
+                          position.weight > 0 
+                            ? 'border-blue-500 bg-blue-500/20' 
+                            : 'border-slate-600 bg-slate-700/30'
+                        }`}>
+                          <Label className="text-slate-300 font-bold text-center block mb-2 text-sm">
+                            {position.label}
+                          </Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max={15000}
+                            value={position.weight || ''}
+                            onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
+                            className="bg-slate-800 border-slate-600 text-white text-center text-xs"
+                            placeholder="0"
+                          />
+                          <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
+                          {position.weight > 0 && (
+                            <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
