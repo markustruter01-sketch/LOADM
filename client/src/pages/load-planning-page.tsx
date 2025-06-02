@@ -524,38 +524,39 @@ export default function LoadPlanningPage() {
                 </div>
               )}
 
-              {/* Other Aircraft Layouts (C-27J, KC-30A) */}
-              {aircraftId !== 'c130' && aircraftId !== 'c17' && (
+              {/* KC30-A Cargo Bay Layout (2 rows x 13 columns) */}
+              {aircraftId === 'kc30a' && (
                 <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-600">
-                  <div className={`grid gap-3 ${
-                    aircraftId === 'c27j' ? 'grid-cols-3' : 'grid-cols-6'
-                  }`}>
-                    {cargoPositions.map((position) => (
-                      <div key={position.id} className="space-y-2">
-                        <div className={`relative border-2 rounded-lg p-3 transition-all duration-300 ${
-                          position.weight > 0 
-                            ? 'border-orange-500 bg-orange-500/20' 
-                            : 'border-gray-600 bg-gray-700/30'
-                        }`}>
-                          <Label className="text-muted-foreground300 font-bold text-center block mb-2 text-sm">
-                            {position.label}
-                          </Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max={15000}
-                            value={position.weight || ''}
-                            onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                            className="bg-gray-800 border-gray-600 text-card-foreground text-center text-xs"
-                            placeholder="0"
-                          />
-                          <div className="text-xs text-muted-foreground400 text-center mt-1">lbs</div>
-                          {position.weight > 0 && (
-                            <div className="absolute inset-1 border border-orange-400 rounded-md opacity-30 pointer-events-none"></div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    {/* Upper Row (P1-P13) */}
+                    <div className="grid grid-cols-13 gap-2">
+                      {cargoPositions.slice(0, 13).map((position) => renderCargoPosition(position, 6800))}
+                    </div>
+                    
+                    {/* Lower Row (P14-P26) */}
+                    <div className="grid grid-cols-13 gap-2">
+                      {cargoPositions.slice(13, 26).map((position) => renderCargoPosition(position, 6800))}
+                    </div>
+                  </div>
+                  
+                  {/* Cargo Bay Labels */}
+                  <div className="flex justify-between text-xs text-muted-foreground500 mt-4">
+                    <span>Forward Cargo Bay</span>
+                    <span>Aft Cargo Bay</span>
+                  </div>
+                </div>
+              )}
+
+              {/* C-27J Cargo Bay Layout (1 row x 3 columns) */}
+              {aircraftId === 'c27j' && (
+                <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-600">
+                  <div className="grid grid-cols-3 gap-3">
+                    {cargoPositions.map((position) => renderCargoPosition(position, 8000))}
+                  </div>
+                  
+                  {/* Cargo Bay Labels */}
+                  <div className="flex justify-center text-xs text-muted-foreground500 mt-4">
+                    <span>Main Cargo Bay</span>
                   </div>
                 </div>
               )}
