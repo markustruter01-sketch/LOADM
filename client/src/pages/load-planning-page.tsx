@@ -197,6 +197,16 @@ export default function LoadPlanningPage() {
   };
 
   const updateCargoWeight = (positionId: string, weight: number) => {
+    // Pallet weight validation: Max 10,000 lbs total (including 290 lbs tare)
+    const PALLET_TARE_WEIGHT = 290; // lbs
+    const MAX_TOTAL_WEIGHT = 10000; // lbs
+    const MAX_CARGO_WEIGHT = MAX_TOTAL_WEIGHT - PALLET_TARE_WEIGHT; // 9,710 lbs
+    
+    if (weight > MAX_CARGO_WEIGHT) {
+      alert(`Maximum pallet weight reached!\n\nTotal weight limit: ${MAX_TOTAL_WEIGHT.toLocaleString()} lbs\nPallet tare weight: ${PALLET_TARE_WEIGHT} lbs\nMaximum cargo weight: ${MAX_CARGO_WEIGHT.toLocaleString()} lbs\n\nPlease enter a value of ${MAX_CARGO_WEIGHT.toLocaleString()} lbs or less.`);
+      return;
+    }
+    
     setCargoPositions(prev => 
       prev.map(pos => 
         pos.id === positionId 
@@ -216,6 +226,16 @@ export default function LoadPlanningPage() {
 
   const saveCargoEdit = () => {
     if (!editingPosition) return;
+    
+    // Pallet weight validation: Max 10,000 lbs total (including 290 lbs tare)
+    const PALLET_TARE_WEIGHT = 290; // lbs
+    const MAX_TOTAL_WEIGHT = 10000; // lbs
+    const MAX_CARGO_WEIGHT = MAX_TOTAL_WEIGHT - PALLET_TARE_WEIGHT; // 9,710 lbs
+    
+    if (editWeight > MAX_CARGO_WEIGHT) {
+      alert(`Maximum pallet weight reached!\n\nTotal weight limit: ${MAX_TOTAL_WEIGHT.toLocaleString()} lbs\nPallet tare weight: ${PALLET_TARE_WEIGHT} lbs\nMaximum cargo weight: ${MAX_CARGO_WEIGHT.toLocaleString()} lbs\n\nPlease enter a value of ${MAX_CARGO_WEIGHT.toLocaleString()} lbs or less.`);
+      return;
+    }
     
     setCargoPositions(prev => 
       prev.map(pos => 
