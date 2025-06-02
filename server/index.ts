@@ -215,6 +215,7 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
         s.submission_date,
         s.score,
         s.passed,
+        s.status,
         sc.title,
         'scenario' as type
       FROM scenario_submissions s
@@ -228,6 +229,7 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
         q.submission_date,
         q.score,
         q.passed,
+        q.status,
         qz.title,
         'quiz' as type
       FROM quiz_submissions q
@@ -241,6 +243,7 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
         d.submission_date,
         NULL as score,
         TRUE as passed,
+        'completed' as status,
         dt.title,
         'document' as type
       FROM document_submissions d

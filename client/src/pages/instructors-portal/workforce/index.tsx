@@ -24,6 +24,7 @@ interface Submission {
   submission_date: string;
   score: number | null;
   passed: boolean;
+  status: string;
   title: string;
   type: 'scenario' | 'quiz' | 'document';
 }
@@ -70,8 +71,45 @@ export default function WorkforcePage() {
     }
   };
 
-  const getSubmissionBadgeColor = (passed: boolean) => {
-    return passed ? "bg-green-500/20 text-green-400 border-green-500/50" : "bg-red-500/20 text-red-400 border-red-500/50";
+  const getSubmissionBadgeColor = (status: string, passed: boolean) => {
+    switch (status) {
+      case 'pending':
+        return "bg-yellow-500/20 text-yellow-700 border-yellow-300";
+      case 'submitted':
+        return "bg-blue-500/20 text-blue-700 border-blue-300";
+      case 'reviewed':
+        return passed 
+          ? "bg-green-500/20 text-green-700 border-green-300" 
+          : "bg-red-500/20 text-red-700 border-red-300";
+      default:
+        return "bg-gray-500/20 text-gray-700 border-gray-300";
+    }
+  };
+
+  const getSubmissionStatusText = (status: string, passed: boolean) => {
+    switch (status) {
+      case 'pending':
+        return 'Pending Review';
+      case 'submitted':
+        return 'Submitted';
+      case 'reviewed':
+        return passed ? 'Passed' : 'Failed';
+      default:
+        return status || 'Unknown';
+    }
+  };
+
+  const getSubmissionStatusIcon = (status: string, passed: boolean) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-3 w-3 mr-1" />;
+      case 'submitted':
+        return <Clock className="h-3 w-3 mr-1" />;
+      case 'reviewed':
+        return passed ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />;
+      default:
+        return <Clock className="h-3 w-3 mr-1" />;
+    }
   };
 
   return (
@@ -231,12 +269,9 @@ export default function WorkforcePage() {
                                 {submission.score}%
                               </Badge>
                             )}
-                            <Badge className={`${getSubmissionBadgeColor(submission.passed)}`}>
-                              {submission.passed ? (
-                                <><CheckCircle className="h-3 w-3 mr-1" /> Passed</>
-                              ) : (
-                                <><XCircle className="h-3 w-3 mr-1" /> Failed</>
-                              )}
+                            <Badge className={`${getSubmissionBadgeColor(submission.status, submission.passed)}`}>
+                              {getSubmissionStatusIcon(submission.status, submission.passed)}
+                              {getSubmissionStatusText(submission.status, submission.passed)}
                             </Badge>
                           </div>
                         </div>
