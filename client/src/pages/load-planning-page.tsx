@@ -209,10 +209,16 @@ export default function LoadPlanningPage() {
           maxTotalWeight: 1588, // kg for LD3
           unit: 'kg'
         };
+      } else if (aircraftId === 'kc30a' && kc30aCargoType === 'Pallets') {
+        return {
+          tareWeight: 132, // kg for KC30A pallets (290 lbs converted)
+          maxTotalWeight: 4536, // kg for KC30A pallets (10,000 lbs converted)
+          unit: 'kg'
+        };
       } else {
         return {
-          tareWeight: 290, // lbs for pallets
-          maxTotalWeight: 10000, // lbs for pallets
+          tareWeight: 290, // lbs for other aircraft pallets
+          maxTotalWeight: 10000, // lbs for other aircraft pallets
           unit: 'lbs'
         };
       }
@@ -261,10 +267,16 @@ export default function LoadPlanningPage() {
           maxTotalWeight: 1588, // kg for LD3
           unit: 'kg'
         };
+      } else if (aircraftId === 'kc30a' && kc30aCargoType === 'Pallets') {
+        return {
+          tareWeight: 132, // kg for KC30A pallets (290 lbs converted)
+          maxTotalWeight: 4536, // kg for KC30A pallets (10,000 lbs converted)
+          unit: 'kg'
+        };
       } else {
         return {
-          tareWeight: 290, // lbs for pallets
-          maxTotalWeight: 10000, // lbs for pallets
+          tareWeight: 290, // lbs for other aircraft pallets
+          maxTotalWeight: 10000, // lbs for other aircraft pallets
           unit: 'lbs'
         };
       }
@@ -870,7 +882,7 @@ export default function LoadPlanningPage() {
                 type="number"
                 min="0"
                 max={aircraftId === 'kc30a' ? 
-                  (kc30aCargoType === 'LD3' ? 1478 : 4400) : 
+                  (kc30aCargoType === 'LD3' ? 1478 : 4404) : 
                   9710
                 }
                 value={editWeight}
