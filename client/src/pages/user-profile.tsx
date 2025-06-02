@@ -5,16 +5,53 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Calendar, Shield, Mail, Key, Settings, Award, TrendingUp, Clock, Target, BookOpen, Users, AlertTriangle, CheckCircle, XCircle, Hourglass, Flame, Zap } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { useQuery } from "@tanstack/react-query";
 
 export default function UserProfile() {
   const { user, logout } = useIsolatedAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user profile data including submissions and progress
   const { data: profileData, isLoading } = useQuery({
     queryKey: ['/api/profile'],
     enabled: !!user
+  });
+
+  // Fetch user's current squadron
+  const { data: userSquadron } = useQuery({
+    queryKey: ['/api/user/squadron'],
+    enabled: !!user
+  });
+
+  // Squadron update mutation
+  const updateSquadronMutation = useMutation({
+    mutationFn: async (squadron: string) => {
+      return apiRequest('/api/user/squadron', {
+        method: 'PUT',
+        body: JSON.stringify({ squadron })
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Squadron Updated",
+        description: "Your squadron assignment has been successfully updated."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/squadron'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update squadron assignment. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   if (!user) {
@@ -142,17 +179,29 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        <Card className={`${gamification.streakData.streakAtRisk ? 'border-orange-200' : ''}`}>
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Weekly Streak</p>
-                <div className="flex items-center space-x-1">
-                  <p className="text-2xl font-bold">{stats.currentStreak}</p>
-                  <Flame className="w-5 h-5 text-orange-500" />
-                </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Squadron Assignment</p>
+                <Select 
+                  value={userSquadron?.squadron || ""} 
+                  onValueChange={(value) => updateSquadronMutation.mutate(value)}
+                  disabled={updateSquadronMutation.isPending}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select squadron..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="33SQN">33 Squadron</SelectItem>
+                    <SelectItem value="35SQN">35 Squadron</SelectItem>
+                    <SelectItem value="36SQN">36 Squadron</SelectItem>
+                    <SelectItem value="37SQN">37 Squadron</SelectItem>
+                    <SelectItem value="AMG">AMG</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Clock className="w-8 h-8 text-orange-600" />
+              <Users className="w-8 h-8 text-blue-600 ml-4" />
             </div>
           </CardContent>
         </Card>

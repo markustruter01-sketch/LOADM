@@ -247,6 +247,84 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
+// User squadron management endpoints
+app.get("/api/user/squadron", requireAuth, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const result = await sql`
+      SELECT l.squadron 
+      FROM users u
+      LEFT JOIN licenses l ON u.license_id = l.id
+      WHERE u.id = ${userId}
+    `;
+    
+    res.json({ squadron: result[0]?.squadron || null });
+  } catch (error) {
+    console.error('Error fetching user squadron:', error);
+    res.status(500).json({ error: "Failed to fetch squadron information" });
+  }
+});
+
+app.put("/api/user/squadron", requireAuth, async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { squadron } = req.body;
+    
+    if (!squadron || !['33SQN', '35SQN', '36SQN', '37SQN', 'AMG'].includes(squadron)) {
+      return res.status(400).json({ error: "Invalid squadron selection" });
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Update the squadron in the licenses table
+    await sql`
+      UPDATE licenses 
+      SET squadron = ${squadron}
+      FROM users 
+      WHERE licenses.id = users.license_id 
+      AND users.id = ${userId}
+    `;
+    
+    res.json({ success: true, squadron });
+  } catch (error) {
+    console.error('Error updating user squadron:', error);
+    res.status(500).json({ error: "Failed to update squadron assignment" });
+  }
+});
+
+// Authentication middleware for API routes
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const sessionId = (req as any).cookies?.sessionId;
+  
+  if (!sessionId || !sessionId.startsWith('isolated_')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const session = authCore.getIsolatedSession(sessionId);
+  if (!session) {
+    return res.status(401).json({ error: 'Invalid session' });
+  }
+  
+  // Handle hardcoded superadmin case
+  let actualUserId = session.userId;
+  if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+    actualUserId = 9;
+  }
+  
+  (req as any).user = {
+    id: actualUserId,
+    email: session.email,
+    role: session.role
+  };
+  
+  next();
+}
+
 // Register other routes (they'll handle their own auth)
 registerRoutes(app);
 
