@@ -54,18 +54,18 @@ export const C130_CONFIG: AircraftBalanceConfig = {
   totalLength: 97.75, // feet
   cargoCompartmentStart: 45, // feet from nose
   cargoCompartmentLength: 40, // feet
-  forwardCGLimit: 15, // percentage
-  aftCGLimit: 35, // percentage
+  forwardCGLimit: 25, // percentage
+  aftCGLimit: 65, // percentage
   maxWeight: 42000, // lbs
   positions: [
-    { id: 1, label: 'P1', distanceFromDatum: 48, maxWeight: 10000 },
-    { id: 2, label: 'P2', distanceFromDatum: 56, maxWeight: 10000 },
-    { id: 3, label: 'P3', distanceFromDatum: 64, maxWeight: 10000 },
-    { id: 4, label: 'P4', distanceFromDatum: 72, maxWeight: 10000 },
-    { id: 5, label: 'P5', distanceFromDatum: 80, maxWeight: 10000 },
-    { id: 6, label: 'P6', distanceFromDatum: 88, maxWeight: 10000 },
-    { id: 7, label: 'P7', distanceFromDatum: 96, maxWeight: 10000 },
-    { id: 8, label: 'P8', distanceFromDatum: 104, maxWeight: 10000 }
+    { id: 1, label: 'P1', distanceFromDatum: 40, maxWeight: 10000 }, // Forward positions
+    { id: 2, label: 'P2', distanceFromDatum: 48, maxWeight: 10000 },
+    { id: 3, label: 'P3', distanceFromDatum: 56, maxWeight: 10000 },
+    { id: 4, label: 'P4', distanceFromDatum: 64, maxWeight: 10000 }, // Center balanced position
+    { id: 5, label: 'P5', distanceFromDatum: 72, maxWeight: 10000 }, // Center balanced position
+    { id: 6, label: 'P6', distanceFromDatum: 80, maxWeight: 10000 },
+    { id: 7, label: 'P7', distanceFromDatum: 88, maxWeight: 10000 },
+    { id: 8, label: 'P8', distanceFromDatum: 96, maxWeight: 10000 }  // Aft positions
   ]
 };
 
@@ -177,7 +177,8 @@ export function calculateAdvancedBalance(
 
   // Step 1: Calculate basic moments and weights
   cargoItems.forEach(item => {
-    if (item.weight <= 0) return;
+    // Skip empty pallets completely - they have no impact on balance
+    if (!item.weight || item.weight <= 0) return;
 
     // Find position configuration
     const positionConfig = aircraftConfig.positions.find(p => p.id === item.position + 1);
@@ -236,8 +237,8 @@ export function calculateAdvancedBalance(
   // Step 5: Calculate balance value (-100 to +100)
   const balance = calculateBalanceValue(cgPercentage, aircraftConfig);
 
-  // Step 6: Determine status
-  const status = determineBalanceStatus(cgPercentage, aircraftConfig);
+  // Step 6: Determine status - if no cargo, aircraft is balanced
+  const status = totalWeight === 0 ? 'safe' : determineBalanceStatus(cgPercentage, aircraftConfig);
 
   return {
     centerOfGravity: cgPercentage,
@@ -253,33 +254,40 @@ export function calculateAdvancedBalance(
  * Convert CG position to percentage of Mean Aerodynamic Chord
  */
 function calculateCGPercentage(cgPosition: number, config: AircraftBalanceConfig): number {
-  // For C-130, convert physical position to percentage
-  // Aircraft datum is typically at the nose, CG limits are % of MAC
-  const macStart = config.cargoCompartmentStart;
-  const macLength = config.cargoCompartmentLength;
+  // Calculate the center point of the cargo compartment
+  const centerPoint = config.cargoCompartmentStart + (config.cargoCompartmentLength / 2);
   
-  // Calculate relative position within cargo compartment
-  const relativePosition = (cgPosition - macStart) / macLength;
+  // If no cargo (cgPosition = 0), return center percentage
+  if (cgPosition === 0) {
+    return (config.forwardCGLimit + config.aftCGLimit) / 2;
+  }
   
-  // Convert to percentage (0-100)
-  return Math.max(0, Math.min(100, relativePosition * 100));
+  // Calculate relative position within the allowable CG range
+  const forwardLimit = config.cargoCompartmentStart;
+  const aftLimit = config.cargoCompartmentStart + config.cargoCompartmentLength;
+  
+  // Map physical position to CG percentage range
+  const relativePosition = (cgPosition - forwardLimit) / (aftLimit - forwardLimit);
+  const cgPercentage = config.forwardCGLimit + (relativePosition * (config.aftCGLimit - config.forwardCGLimit));
+  
+  return Math.max(config.forwardCGLimit, Math.min(config.aftCGLimit, cgPercentage));
 }
 
 /**
  * Calculate balance value from -100 (nose heavy) to +100 (tail heavy)
  */
 function calculateBalanceValue(cgPercentage: number, config: AircraftBalanceConfig): number {
-  // Ideal CG is typically around 25% for most aircraft
+  // Calculate the ideal center CG percentage
   const idealCG = (config.forwardCGLimit + config.aftCGLimit) / 2;
   
-  // Calculate deviation from ideal
+  // If at ideal center, balance is 0
+  if (Math.abs(cgPercentage - idealCG) < 0.1) return 0;
+  
+  // Calculate deviation from center
   const deviation = cgPercentage - idealCG;
+  const maxDeviation = (config.aftCGLimit - config.forwardCGLimit) / 2;
   
   // Scale to -100 to +100 range
-  const maxDeviation = Math.max(idealCG - config.forwardCGLimit, config.aftCGLimit - idealCG);
-  
-  if (maxDeviation === 0) return 0;
-  
   return Math.max(-100, Math.min(100, (deviation / maxDeviation) * 100));
 }
 
