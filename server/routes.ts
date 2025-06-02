@@ -780,4 +780,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to submit scenario" });
     }
   });
+
+  // Workforce Management Routes
+  app.get("/api/workforce/squadrons", requireInstructor, async (req, res) => {
+    try {
+      const squadrons = ['33SQN', '35SQN', '36SQN', '37SQN', 'AMG'];
+      res.json(squadrons);
+    } catch (error) {
+      console.error('Error fetching squadrons:', error);
+      res.status(500).json({ error: "Failed to fetch squadrons" });
+    }
+  });
+
+  app.get("/api/workforce/squadron/:squadronId/users", requireInstructor, async (req, res) => {
+    try {
+      const { squadronId } = req.params;
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get users in the specified squadron
+      const users = await sql`
+        SELECT 
+          u.id,
+          u.email,
+          l.first_name,
+          l.last_name,
+          l.squadron,
+          l.license_type,
+          u.last_login,
+          u.created_at
+        FROM users u
+        LEFT JOIN licenses l ON u.license_id = l.id
+        WHERE l.squadron = ${squadronId} AND l.license_type = 'loadmaster'
+        ORDER BY l.first_name, l.last_name
+      `;
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching squadron users:', error);
+      res.status(500).json({ error: "Failed to fetch squadron users" });
+    }
+  });
+
+  app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get latest 5 submissions for the user (scenarios, quizzes, documents)
+      const [scenarioSubs, quizSubs, documentSubs] = await Promise.all([
+        sql`
+          SELECT 
+            ss.id,
+            ss.submission_date,
+            ss.score,
+            ss.passed,
+            s.title,
+            'scenario' as type
+          FROM scenario_submissions ss
+          JOIN scenarios s ON ss.scenario_id = s.id
+          WHERE ss.user_id = ${userId}
+          ORDER BY ss.submission_date DESC
+          LIMIT 5
+        `,
+        sql`
+          SELECT 
+            qs.id,
+            qs.submission_date,
+            qs.score,
+            CASE WHEN qs.score >= 70 THEN true ELSE false END as passed,
+            q.title,
+            'quiz' as type
+          FROM quiz_submissions qs
+          JOIN quizzes q ON qs.quiz_id = q.id
+          WHERE qs.user_id = ${userId}
+          ORDER BY qs.submission_date DESC
+          LIMIT 5
+        `,
+        sql`
+          SELECT 
+            ds.id,
+            ds.submission_date,
+            null as score,
+            true as passed,
+            d.title,
+            'document' as type
+          FROM document_submissions ds
+          JOIN documents d ON ds.document_id = d.id
+          WHERE ds.user_id = ${userId}
+          ORDER BY ds.submission_date DESC
+          LIMIT 5
+        `
+      ]);
+      
+      // Combine and sort all submissions
+      const allSubmissions = [
+        ...scenarioSubs,
+        ...quizSubs,
+        ...documentSubs
+      ].sort((a, b) => new Date(b.submission_date).getTime() - new Date(a.submission_date).getTime())
+       .slice(0, 5);
+      
+      res.json(allSubmissions);
+    } catch (error) {
+      console.error('Error fetching user submissions:', error);
+      res.status(500).json({ error: "Failed to fetch user submissions" });
+    }
+  });
 }
