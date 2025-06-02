@@ -33,9 +33,10 @@ export default function UserProfile() {
   const updateSquadronMutation = useMutation({
     mutationFn: async (squadron: string) => {
       console.log('🔄 FRONTEND: Squadron update triggered for:', squadron);
-      const result = await apiRequest('/api/user/squadron', {
+      const result = await apiRequest({
+        url: '/api/user/squadron',
         method: 'PUT',
-        body: JSON.stringify({ squadron })
+        body: { squadron }
       });
       console.log('✅ FRONTEND: Squadron update result:', result);
       return result;
