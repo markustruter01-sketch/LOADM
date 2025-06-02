@@ -569,52 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // STUDENT SUBMISSIONS (Quiz submissions now handled by quiz-new.ts module)
 
-  app.get("/api/scenario-submissions", requireAuth, async (req, res) => {
-    try {
-      const user = (req as any).user;
-      const { neon } = await import('@neondatabase/serverless');
-      const sql = neon(process.env.DATABASE_URL!);
-      
-      let submissions;
-      if (user.role === 'instructor' || user.role === 'superadmin') {
-        // Instructors can see all submissions with full user details
-        submissions = await sql`
-          SELECT 
-            ss.*,
-            u.email,
-            u.id as user_id,
-            s.title as scenario_title,
-            l.first_name,
-            l.last_name,
-            l.squadron,
-            l.license_type
-          FROM scenario_submissions ss
-          LEFT JOIN users u ON ss.user_id = u.id
-          LEFT JOIN licenses l ON u.license_id = l.id
-          LEFT JOIN scenarios s ON ss.scenario_id = s.id
-          ORDER BY ss.submission_date DESC
-        `;
-      } else {
-        // Students can only see their own submissions
-        submissions = await sql`
-          SELECT 
-            ss.*,
-            u.email,
-            s.title as scenario_title
-          FROM scenario_submissions ss
-          LEFT JOIN users u ON ss.user_id = u.id
-          LEFT JOIN scenarios s ON ss.scenario_id = s.id
-          WHERE ss.user_id = ${user.id}
-          ORDER BY ss.submission_date DESC
-        `;
-      }
-      
-      res.json(submissions);
-    } catch (error) {
-      console.error('Scenario submissions API error:', error);
-      res.status(500).json({ error: 'Failed to fetch scenario submissions' });
-    }
-  });
+  // Note: Scenario submission routes now handled by ScenarioSubmissionService below
 
   // DOCUMENT SUBMISSIONS
   app.get("/api/document-submissions", requireAuth, async (req, res) => {
