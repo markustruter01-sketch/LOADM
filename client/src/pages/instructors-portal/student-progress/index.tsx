@@ -34,7 +34,7 @@ import { format } from 'date-fns';
 export default function StudentProgress() {
   const [searchTerm, setSearchTerm] = useState("");
   const [scenarioFilter, setScenarioFilter] = useState<number | "all">("all");
-  const [squadronFilter, setSquadronFilter] = useState<string>("AMG");
+  const [squadronFilter, setSquadronFilter] = useState<string>("all");
   
   // Fetch all scenario submissions
   const { data: submissions, isLoading: isLoadingSubmissions } = useQuery<ScenarioSubmission[]>({
@@ -47,8 +47,38 @@ export default function StudentProgress() {
     queryKey: ["/api/scenarios"],
   });
   
-  // We need to use raw submissions data directly to ensure proper rendering
+  // Apply filters to submissions
   let filteredSubmissions = submissions;
+  
+  if (submissions) {
+    filteredSubmissions = submissions.filter(submission => {
+      // Squadron filter
+      if (squadronFilter !== "all") {
+        if (submission.squadron !== squadronFilter) return false;
+      }
+      
+      // Scenario filter
+      if (scenarioFilter !== "all") {
+        if (submission.scenarioId !== scenarioFilter) return false;
+      }
+      
+      // Search term filter (search in student name, ID, or email)
+      if (searchTerm.trim()) {
+        const searchLower = searchTerm.toLowerCase();
+        const studentName = submission.studentName?.toLowerCase() || '';
+        const studentId = submission.studentId?.toLowerCase() || '';
+        const userId = submission.userId?.toString() || '';
+        
+        if (!studentName.includes(searchLower) && 
+            !studentId.includes(searchLower) && 
+            !userId.includes(searchLower)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }
   
   // Log the raw data to help debugging
   // Process submissions data for display
@@ -127,6 +157,7 @@ export default function StudentProgress() {
                       <SelectValue placeholder="Select squadron" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">All Squadrons</SelectItem>
                       <SelectItem value="AMG">AMG</SelectItem>
                       <SelectItem value="33SQN">33SQN</SelectItem>
                       <SelectItem value="35SQN">35SQN</SelectItem>
@@ -210,8 +241,16 @@ export default function StudentProgress() {
                                   <User className="h-4 w-4 text-muted-foreground" />
                                 </div>
                                 <div>
-                                  <div className="font-medium">{submission.studentName}</div>
-                                  <div className="text-sm text-muted-foreground">ID: {submission.studentId}</div>
+                                  <div className="font-medium">
+                                    {submission.first_name && submission.last_name 
+                                      ? `${submission.first_name} ${submission.last_name}`
+                                      : submission.studentName || submission.email || `User ${submission.userId || submission.user_id}`
+                                    }
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {submission.email && `${submission.email} • `}
+                                    ID: {submission.studentId || submission.userId || submission.user_id}
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>

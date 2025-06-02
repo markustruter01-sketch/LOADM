@@ -577,14 +577,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let submissions;
       if (user.role === 'instructor' || user.role === 'superadmin') {
-        // Instructors can see all submissions
+        // Instructors can see all submissions with full user details
         submissions = await sql`
           SELECT 
             ss.*,
             u.email,
-            s.title as scenario_title
+            u.id as user_id,
+            s.title as scenario_title,
+            l.first_name,
+            l.last_name,
+            l.squadron,
+            l.license_type
           FROM scenario_submissions ss
           LEFT JOIN users u ON ss.user_id = u.id
+          LEFT JOIN licenses l ON u.license_id = l.id
           LEFT JOIN scenarios s ON ss.scenario_id = s.id
           ORDER BY ss.submission_date DESC
         `;
