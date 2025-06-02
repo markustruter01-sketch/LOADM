@@ -112,7 +112,7 @@ export function RedesignedLogin() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
-                    placeholder="jasper.szemes@gmail.com"
+                    placeholder="name@email.com"
                     required
                   />
                 </div>
