@@ -98,6 +98,10 @@ export default function SubmissionReview() {
   
   // Parse answers from submission - new improved approach
   const answers: AnswerResponse[] = [];
+  console.log('🔍 DEBUG: Raw submission data:', submission);
+  console.log('🔍 DEBUG: submission.answers:', submission?.answers);
+  console.log('🔍 DEBUG: typeof submission.answers:', typeof submission?.answers);
+  
   try {
     if (submission?.answers) {
       // Direct approach to handle the string format we're receiving from the server
