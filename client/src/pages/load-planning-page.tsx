@@ -297,27 +297,31 @@ export default function LoadPlanningPage() {
                 </div>
               )}
 
-              {/* C-27J Cargo Bay Layout (3 positions in line) */}
-              {aircraftId === 'c27j' && (
+              {/* Other Aircraft Layouts */}
+              {aircraftId !== 'c130' && (
                 <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
-                  <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+                  <div className={`grid gap-3 ${
+                    aircraftId === 'c27j' ? 'grid-cols-3' : 
+                    aircraftId === 'c17' ? 'grid-cols-6' : 
+                    'grid-cols-6'
+                  }`}>
                     {cargoPositions.map((position) => (
                       <div key={position.id} className="space-y-2">
-                        <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 ${
+                        <div className={`relative border-2 rounded-lg p-3 transition-all duration-300 ${
                           position.weight > 0 
                             ? 'border-blue-500 bg-blue-500/20' 
                             : 'border-slate-600 bg-slate-700/30'
                         }`}>
-                          <Label className="text-slate-300 font-bold text-center block mb-2">
+                          <Label className="text-slate-300 font-bold text-center block mb-2 text-sm">
                             {position.label}
                           </Label>
                           <Input
                             type="number"
                             min="0"
-                            max={8000}
+                            max={15000}
                             value={position.weight || ''}
                             onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                            className="bg-slate-800 border-slate-600 text-white text-center text-sm"
+                            className="bg-slate-800 border-slate-600 text-white text-center text-xs"
                             placeholder="0"
                           />
                           <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
@@ -327,90 +331,6 @@ export default function LoadPlanningPage() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-500 mt-4">
-                    <span>Forward Cargo</span>
-                    <span>Aft Cargo</span>
-                  </div>
-                </div>
-              )}
-
-              {/* C-17 Cargo Bay Layout (3 rows x 6 columns) */}
-              {aircraftId === 'c17' && (
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
-                  <div className="space-y-2">
-                    {Array.from({ length: 3 }, (_, row) => (
-                      <div key={row} className="grid grid-cols-6 gap-2">
-                        {cargoPositions.slice(row * 6, (row + 1) * 6).map((position) => (
-                          <div key={position.id} className="space-y-1">
-                            <div className={`relative border-2 rounded-lg p-3 transition-all duration-300 ${
-                              position.weight > 0 
-                                ? 'border-blue-500 bg-blue-500/20' 
-                                : 'border-slate-600 bg-slate-700/30'
-                            }`}>
-                              <Label className="text-slate-300 font-bold text-center block mb-1 text-xs">
-                                {position.label}
-                              </Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                max={15000}
-                                value={position.weight || ''}
-                                onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                                className="bg-slate-800 border-slate-600 text-white text-center text-xs h-8"
-                                placeholder="0"
-                              />
-                              <div className="text-xs text-slate-400 text-center mt-1">lbs</div>
-                              {position.weight > 0 && (
-                                <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-500 mt-4">
-                    <span>Forward Cargo Bay</span>
-                    <span>Aft Cargo Bay</span>
-                  </div>
-                </div>
-              )}
-
-              {/* KC30A Cargo Bay Layout (flexible grid) */}
-              {aircraftId === 'kc30a' && (
-                <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-600">
-                  <div className="grid grid-cols-7 gap-2">
-                    {cargoPositions.map((position) => (
-                      <div key={position.id} className="space-y-1">
-                        <div className={`relative border-2 rounded-lg p-2 transition-all duration-300 ${
-                          position.weight > 0 
-                            ? 'border-blue-500 bg-blue-500/20' 
-                            : 'border-slate-600 bg-slate-700/30'
-                        }`}>
-                          <Label className="text-slate-300 font-bold text-center block mb-1 text-xs">
-                            {position.id.startsWith('LD') ? position.id : `LD${position.position + 1}`}
-                          </Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            max={3000}
-                            value={position.weight || ''}
-                            onChange={(e) => updateCargoWeight(position.id, parseInt(e.target.value) || 0)}
-                            className="bg-slate-800 border-slate-600 text-white text-center text-xs h-6"
-                            placeholder="0"
-                          />
-                          <div className="text-xs text-slate-400 text-center mt-1">kg</div>
-                          {position.weight > 0 && (
-                            <div className="absolute inset-1 border border-blue-400 rounded-md opacity-30 pointer-events-none"></div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-500 mt-4">
-                    <span>Forward Cargo Deck</span>
-                    <span>Aft Cargo Deck</span>
                   </div>
                 </div>
               )}
