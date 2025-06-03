@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioQuestion } from "@shared/schema";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -29,6 +29,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function ModernScenarioPage() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +44,7 @@ export default function ModernScenarioPage() {
   // State management
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [notesOpen, setNotesOpen] = useState<Record<string, boolean>>({});
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -280,18 +286,36 @@ export default function ModernScenarioPage() {
                     />
                   )}
 
-                  {/* Notes section */}
+                  {/* Collapsible Notes section */}
                   <div className="mt-4">
-                    <Label htmlFor={`notes-${question.id}`} className="text-sm text-muted-foreground">
-                      Additional Notes (Optional)
-                    </Label>
-                    <Textarea
-                      id={`notes-${question.id}`}
-                      placeholder="Add any additional notes..."
-                      value={notes[question.id] || ""}
-                      onChange={(e) => setNotes(prev => ({ ...prev, [question.id]: e.target.value }))}
-                      className="mt-1 min-h-[60px]"
-                    />
+                    <Collapsible 
+                      open={notesOpen[question.id] || false} 
+                      onOpenChange={(open) => setNotesOpen(prev => ({ ...prev, [question.id]: open }))}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground p-0 h-auto"
+                        >
+                          {notesOpen[question.id] ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                          Additional Notes (Optional)
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2">
+                        <Textarea
+                          id={`notes-${question.id}`}
+                          placeholder="Add any additional notes..."
+                          value={notes[question.id] || ""}
+                          onChange={(e) => setNotes(prev => ({ ...prev, [question.id]: e.target.value }))}
+                          className="min-h-[60px]"
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
                 </div>
               ))}
