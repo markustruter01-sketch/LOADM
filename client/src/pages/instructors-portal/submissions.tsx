@@ -54,8 +54,8 @@ export default function ScenarioSubmissionsPage() {
   
   if (submissions) {
     filteredSubmissions = submissions.filter(submission => {
-      // Squadron filter
-      if (squadronFilter !== "all") {
+      // Squadron filter - "AMG" shows all submissions, "all" shows all, specific squadrons filter by exact match
+      if (squadronFilter !== "all" && squadronFilter !== "AMG") {
         if (submission.squadron !== squadronFilter) return false;
       }
       
