@@ -151,9 +151,17 @@ export default function InstructorsPortal() {
           <h3 className="text-xl font-semibold mb-4 text-foreground">Squadron Performance Overview</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {['All Units', '33 Squadron', '35 Squadron', '36 Squadron', '37 Squadron'].map(squadron => {
-              const squadronSubmissions = scenarioSubmissions?.filter(sub => 
-                squadron === 'All Units' ? true : sub.squadron === squadron
-              ) || [];
+              const squadronSubmissions = scenarioSubmissions?.filter(sub => {
+                if (squadron === 'All Units') return true;
+                
+                // Handle different squadron formats: "33 Squadron", "33", "33SQN", etc.
+                const squadronNumber = squadron.split(' ')[0]; // Extract "33" from "33 Squadron"
+                const userSquadron = sub.squadron || '';
+                
+                return userSquadron.includes(squadronNumber) || 
+                       userSquadron === squadron ||
+                       userSquadron === squadronNumber;
+              }) || [];
               const squadronPassed = squadronSubmissions.filter(sub => sub.passed === true).length;
               const squadronPassRate = squadronSubmissions.length > 0 ? Math.round((squadronPassed / squadronSubmissions.length) * 100) : 0;
               

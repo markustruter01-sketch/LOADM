@@ -318,11 +318,19 @@ export default function AdvancedAnalytics() {
       ? (passedSubmissions.length / scorableSubmissions.length) * 100 
       : 0;
     
-    // Get breakdown by squadron
+    // Get breakdown by squadron with normalized formatting
     const squadronCounts: Record<string, number> = {};
     submissions.forEach(sub => {
       // Get squadron - directly from sub.squadron or from studentId
-      const squadron = sub.squadron || sub.squadronFromId || "AMG";
+      let squadron = sub.squadron || sub.squadronFromId || "AMG";
+      
+      // Normalize squadron format - convert "33" to "33 Squadron", "33SQN" to "33 Squadron", etc.
+      if (squadron.match(/^\d+$/)) {
+        squadron = `${squadron} Squadron`;
+      } else if (squadron.match(/^\d+SQN$/)) {
+        squadron = `${squadron.replace('SQN', '')} Squadron`;
+      }
+      
       squadronCounts[squadron] = (squadronCounts[squadron] || 0) + 1;
     });
     
@@ -374,7 +382,14 @@ export default function AdvancedAnalytics() {
     const squadronData: Record<string, { scores: number[], passed: number, total: number }> = {};
     
     submissions.forEach(sub => {
-      const squadron = sub.squadron || sub.squadronFromId || "AMG";
+      let squadron = sub.squadron || sub.squadronFromId || "AMG";
+      
+      // Normalize squadron format - convert "33" to "33 Squadron", "33SQN" to "33 Squadron", etc.
+      if (squadron.match(/^\d+$/)) {
+        squadron = `${squadron} Squadron`;
+      } else if (squadron.match(/^\d+SQN$/)) {
+        squadron = `${squadron.replace('SQN', '')} Squadron`;
+      }
       
       if (!squadronData[squadron]) {
         squadronData[squadron] = {
