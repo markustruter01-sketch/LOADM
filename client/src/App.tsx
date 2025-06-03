@@ -104,9 +104,6 @@ function AuthenticatedApp() {
             <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
             <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
             <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
-            <Route path="/training-modules">
-              {(params) => <TrainingModulesPage {...params} />}
-            </Route>
             <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
             <ProtectedRoute path="/admin" component={AdminDashboard} />
             <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />

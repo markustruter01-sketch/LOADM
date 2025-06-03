@@ -14,8 +14,8 @@ export default function AirframeIntegratedPage() {
   const [activeTab, setActiveTab] = useState("load-planning");
 
   // These components are rendered differently for wouter routing
-  const LoadPlanningContent = () => <LoadPlanningSelectionPage hideHeader={true} />;
-  const TrainingModulesContent = () => <TrainingModulesPage hideHeader={true} />;
+  const LoadPlanningContent = () => <LoadPlanningSelectionPage />;
+  const TrainingModulesContent = () => <TrainingModulesPage />;
 
   return (
     <>

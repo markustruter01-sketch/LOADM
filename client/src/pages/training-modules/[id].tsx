@@ -664,7 +664,7 @@ export default function ModuleDetailPage() {
             variant="ghost" 
             size="sm" 
             className="mb-6"
-            onClick={() => navigate('/training-modules')}
+            onClick={() => navigate('/airframe')}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Modules
