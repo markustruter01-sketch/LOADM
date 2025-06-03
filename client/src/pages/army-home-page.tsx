@@ -104,7 +104,7 @@ export default function ArmyHomePage() {
                   </Card>
                 </Link>
                 
-                <Link href="/training-modules" className="block">
+                <Link href="/airframe?tab=training-modules" className="block">
                   <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden">
                     <div className="absolute top-1 right-1">
                       <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>

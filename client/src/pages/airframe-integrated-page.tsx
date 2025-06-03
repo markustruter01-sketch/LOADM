@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,19 @@ import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import TrainingModulesPage from "@/pages/training-modules";
 
 export default function AirframeIntegratedPage() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("load-planning");
+
+  // Check if we should open training modules tab based on URL hash or query
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+    
+    // Check for training modules in URL parameters or hash
+    if (urlParams.get('tab') === 'training-modules' || hash === '#training-modules') {
+      setActiveTab("training-modules");
+    }
+  }, [location]);
 
   // These components are rendered differently for wouter routing
   const LoadPlanningContent = () => <LoadPlanningSelectionPage />;
