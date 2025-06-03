@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Scenario, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Search, User } from "lucide-react";
+import { ArrowLeft, FileText, Search, User, RefreshCw } from "lucide-react";
 import { format } from 'date-fns';
 
 export default function ScenarioSubmissionsPage() {
@@ -47,7 +48,7 @@ export default function ScenarioSubmissionsPage() {
     queryKey: ["/api/scenarios"],
   });
   
-  // Apply filters to submissions
+  // Apply filters and sorting to submissions
   let filteredSubmissions = submissions;
   
   if (submissions) {
@@ -78,7 +79,27 @@ export default function ScenarioSubmissionsPage() {
       
       return true;
     });
+
+    // Sort submissions: Pending first, then by submission date (newest first)
+    filteredSubmissions = filteredSubmissions.sort((a, b) => {
+      // First priority: Pending status
+      const aIsPending = a.status === "pending" || !a.instructorFeedback;
+      const bIsPending = b.status === "pending" || !b.instructorFeedback;
+      
+      if (aIsPending && !bIsPending) return -1;
+      if (!aIsPending && bIsPending) return 1;
+      
+      // Second priority: Submission date (newest first)
+      const aDate = new Date(a.submissionDate).getTime();
+      const bDate = new Date(b.submissionDate).getTime();
+      return bDate - aDate;
+    });
   }
+
+  // Refresh function
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
+  };
   
   // Calculate statistics
   const totalSubmissions = submissions?.length || 0;
@@ -197,6 +218,20 @@ export default function ScenarioSubmissionsPage() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Refresh Button */}
+            <div className="flex justify-end mb-4">
+              <Button 
+                onClick={handleRefresh} 
+                variant="outline" 
+                size="sm"
+                disabled={isLoadingSubmissions}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoadingSubmissions ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
             
             {/* Submissions Table */}
             <Card>
