@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -7,15 +7,33 @@ import { ArrowLeft } from "lucide-react";
 
 // Import the existing pages with their hideHeader prop support
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
-import TrainingModulesPage from "@/pages/training-modules";
 
 export default function AirframeIntegratedPage() {
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("load-planning");
 
+  // Check URL parameters to set initial tab
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab === 'training-modules') {
+      setActiveTab('training-modules');
+    }
+  }, []);
+
   // These components are rendered differently for wouter routing
-  const LoadPlanningContent = () => <LoadPlanningSelectionPage hideHeader={true} />;
-  const TrainingModulesContent = () => <TrainingModulesPage hideHeader={true} />;
+  const LoadPlanningContent = () => <LoadPlanningSelectionPage />;
+  const TrainingModulesContent = () => (
+    <div className="py-8">
+      <h2 className="text-2xl font-bold mb-4">Training Modules</h2>
+      <p className="text-muted-foreground mb-6">
+        Aircraft-specific training modules and course materials will be available here.
+      </p>
+      <div className="bg-muted/50 border border-dashed rounded-lg p-8 text-center">
+        <p className="text-muted-foreground">Training modules content coming soon...</p>
+      </div>
+    </div>
+  );
 
   return (
     <>

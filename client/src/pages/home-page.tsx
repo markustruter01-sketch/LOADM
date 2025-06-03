@@ -103,14 +103,14 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <ClipboardList className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Quiz Scenarios</h3>
+                    <h3 className="text-lg font-medium mb-2">Quizzes and Scenarios</h3>
                     <p className="text-sm text-center text-muted-foreground">
                       Interactive quizzes and assessments for training
                     </p>
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/training-modules")}>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors relative overflow-hidden" onClick={handleCardClick("/airframe?tab=training-modules")}>
                   <div className="absolute top-1 right-1">
                     <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">New</span>
                   </div>
