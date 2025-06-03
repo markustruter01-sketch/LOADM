@@ -388,43 +388,81 @@ export default function UserProfile() {
                 </TabsList>
                 
                 <TabsContent value="all" className="space-y-4 mt-4">
-                  {submissions.slice(0, 10).map((submission: any) => (
-                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
-                        }`} />
-                        <div>
+                  {activityLoading ? (
+                    <div className="text-center py-8">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="mt-2 text-muted-foreground">Loading activity history...</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Display recent training submissions from activity history */}
+                      {activityHistory && activityHistory.length > 0 ? (
+                        activityHistory.slice(0, 5).map((activity: any) => (
+                          <div key={`activity-${activity.id}`} className="flex items-center justify-between p-3 rounded-lg border">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-3 h-3 rounded-full bg-blue-500" />
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <p className="text-sm font-medium">{activity.activity_title}</p>
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                    Training
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(activity.completion_date).toLocaleDateString()} at {new Date(activity.completion_date).toLocaleTimeString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                Completed
+                              </Badge>
+                            </div>
+                          </div>
+                        ))
+                      ) : null}
+                      
+                      {/* Display assessment submissions */}
+                      {submissions.slice(0, 3).map((submission: any) => (
+                        <div key={`submission-${submission.id}`} className="flex items-center justify-between p-3 rounded-lg border">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-3 h-3 rounded-full ${
+                              submission.passed === true ? 'bg-green-500' : 
+                              submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                            }`} />
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <p className="text-sm font-medium">{submission.title}</p>
+                                <Badge variant="outline" className="text-xs">
+                                  Assessment
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(submission.submissionDate).toLocaleDateString()} at {new Date(submission.submissionDate).toLocaleTimeString()}
+                              </p>
+                            </div>
+                          </div>
                           <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium">{submission.title}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {submission.type}
+                            {submission.score > 0 && (
+                              <span className="text-sm font-medium">{submission.score}%</span>
+                            )}
+                            <Badge variant={
+                              submission.passed === true ? 'default' : 
+                              submission.passed === false ? 'destructive' : 'secondary'
+                            }>
+                              {submission.passed === true ? 'Pass' : 
+                               submission.passed === false ? 'Fail' : 'Pending Review'}
                             </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(submission.submissionDate).toLocaleDateString()} at {new Date(submission.submissionDate).toLocaleTimeString()}
-                          </p>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {submission.score > 0 && (
-                          <span className="text-sm font-medium">{submission.score}%</span>
-                        )}
-                        <Badge variant={
-                          submission.passed === true ? 'default' : 
-                          submission.passed === false ? 'destructive' : 'secondary'
-                        }>
-                          {submission.passed === true ? 'Pass' : 
-                           submission.passed === false ? 'Fail' : 'Pending Review'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {submissions.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No submissions yet. Start training to see your progress here!
-                    </p>
+                      ))}
+                      
+                      {(!activityHistory || activityHistory.length === 0) && submissions.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          No submissions yet. Start training to see your progress here!
+                        </p>
+                      )}
+                    </>
                   )}
                 </TabsContent>
 
