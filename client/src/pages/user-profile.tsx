@@ -29,6 +29,12 @@ export default function UserProfile() {
     enabled: !!user
   });
 
+  // Fetch user activity history (including training submissions)
+  const { data: activityHistory, isLoading: activityLoading } = useQuery({
+    queryKey: ['/api/user/activity-history'],
+    enabled: !!user
+  });
+
   // Squadron update mutation
   const updateSquadronMutation = useMutation({
     mutationFn: async (squadron: string) => {
