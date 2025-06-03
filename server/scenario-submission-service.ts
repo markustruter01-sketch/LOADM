@@ -206,25 +206,16 @@ export class ScenarioSubmissionService {
         submissionType: scenarioSubmissions.submissionType,
         squadron: scenarioSubmissions.squadron,
         studentName: scenarioSubmissions.studentName,
-        studentId: scenarioSubmissions.studentId,
-        userSquadron: users.squadron
+        studentId: scenarioSubmissions.studentId
       })
       .from(scenarioSubmissions)
       .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
-      .leftJoin(users, eq(scenarioSubmissions.userId, users.id))
       .where(eq(scenarioSubmissions.submissionType, 'assessment')); // ONLY ASSESSMENT SUBMISSIONS
 
-      // Enhance submissions with proper squadron data
-      const enhancedSubmissions = submissions.map(sub => ({
-        ...sub,
-        // Use user squadron if submission squadron is empty, otherwise use submission squadron
-        squadron: (sub.squadron && sub.squadron.trim() !== '') ? sub.squadron : (sub.userSquadron || 'AMG')
-      }));
+      console.log('✅ Retrieved all submissions:', submissions.length);
+      console.log('✅ Squadron data - sample:', submissions.slice(0, 3).map(s => ({ id: s.id, squadron: s.squadron })));
 
-      console.log('✅ Retrieved all submissions:', enhancedSubmissions.length);
-      console.log('✅ Squadron data enhanced - sample:', enhancedSubmissions.slice(0, 3).map(s => ({ id: s.id, squadron: s.squadron, userSquadron: s.userSquadron })));
-
-      res.json(enhancedSubmissions);
+      res.json(submissions);
 
     } catch (error) {
       console.error('❌ Failed to get all submissions:', error);

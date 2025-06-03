@@ -154,13 +154,16 @@ export default function InstructorsPortal() {
               const squadronSubmissions = scenarioSubmissions?.filter(sub => {
                 if (squadron === 'All Units') return true;
                 
-                // Handle different squadron formats: "33 Squadron", "33", "33SQN", etc.
+                // Handle different squadron formats: "33 Squadron", "33", "33SQN", "37SQN", etc.
                 const squadronNumber = squadron.split(' ')[0]; // Extract "33" from "33 Squadron"
-                const userSquadron = sub.squadron || '';
+                const userSquadron = (sub.squadron || '').toString();
                 
+                // Comprehensive squadron matching
                 return userSquadron.includes(squadronNumber) || 
                        userSquadron === squadron ||
-                       userSquadron === squadronNumber;
+                       userSquadron === squadronNumber ||
+                       userSquadron === `${squadronNumber}SQN` ||
+                       userSquadron.startsWith(squadronNumber);
               }) || [];
               const squadronPassed = squadronSubmissions.filter(sub => sub.passed === true).length;
               const squadronPassRate = squadronSubmissions.length > 0 ? Math.round((squadronPassed / squadronSubmissions.length) * 100) : 0;
