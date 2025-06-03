@@ -360,9 +360,9 @@ export class ScenarioSubmissionService {
         ORDER BY completion_date DESC
       `);
 
-      console.log('✅ Found activities:', activities.length);
+      console.log('✅ Found activities:', activities.rows?.length || 0);
 
-      res.json(activities);
+      res.json(activities.rows || []);
 
     } catch (error) {
       console.error('❌ Failed to get activity history:', error);

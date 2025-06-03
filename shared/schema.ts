@@ -74,7 +74,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-  isFirstLogin: true,
 });
 
 export const insertLicenseSchema = createInsertSchema(licenses).omit({

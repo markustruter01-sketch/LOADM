@@ -45,6 +45,7 @@ export default function ModernScenarioPage() {
   const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [selectedSquadron, setSelectedSquadron] = useState("");
+  const [submissionType, setSubmissionType] = useState<"training" | "assessment">("assessment");
   const [score, setScore] = useState(0);
 
   // Fetch scenario data
@@ -86,7 +87,8 @@ export default function ModernScenarioPage() {
         studentId: studentId.trim(),
         squadron: selectedSquadron,
         timeSpent: 300,
-        notes: `Scenario submission from ${studentName}`
+        notes: `Scenario submission from ${studentName}`,
+        submissionType: submissionType
       };
 
       console.log('📤 MODERN SUBMISSION - Sending payload:', payload);
@@ -113,9 +115,25 @@ export default function ModernScenarioPage() {
       console.log('✅ MODERN SUBMISSION - Success');
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       console.log('🎉 MODERN SUBMISSION - Triggering success animation');
-      queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
+      
+      if (submissionType === 'training') {
+        // Training submissions only invalidate user activity history
+        queryClient.invalidateQueries({ queryKey: ["/api/user/activity-history"] });
+        toast({
+          title: "Training Complete",
+          description: response.message || "Training scenario completed successfully. Results saved to your activity history.",
+        });
+      } else {
+        // Assessment submissions invalidate instructor portal data
+        queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
+        toast({
+          title: "Assessment Submitted",
+          description: "Your assessment has been submitted for instructor review.",
+        });
+      }
+      
       setShowSubmissionDialog(false);
       setShowSuccessAnimation(true);
     },
@@ -347,6 +365,30 @@ export default function ModernScenarioPage() {
                   <SelectItem value="37">37 Squadron</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div>
+              <Label>Submission Type</Label>
+              <RadioGroup value={submissionType} onValueChange={(value: "training" | "assessment") => setSubmissionType(value)} className="mt-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="training" id="training" />
+                  <Label htmlFor="training" className="cursor-pointer">
+                    <div>
+                      <div className="font-medium">Training</div>
+                      <div className="text-sm text-muted-foreground">Practice mode - results stay private</div>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="assessment" id="assessment" />
+                  <Label htmlFor="assessment" className="cursor-pointer">
+                    <div>
+                      <div className="font-medium">Assessment</div>
+                      <div className="text-sm text-muted-foreground">Evaluation mode - submitted for instructor review</div>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
 
