@@ -83,17 +83,23 @@ export default function ScenarioSubmissionsPage() {
 
     // Sort submissions: Pending first (absolute priority), then by submission date (newest first)
     filteredSubmissions = filteredSubmissions.sort((a, b) => {
-      // Precise pending status determination
-      // A submission is pending ONLY if status is "submitted" 
-      // Status "reviewed" means it has been reviewed regardless of feedback content
-      const aIsPending = a.status === "submitted";
-      const bIsPending = b.status === "submitted";
+      // Create numeric priorities for absolute sorting
+      const getPriority = (submission: any) => {
+        if (submission.status === "submitted") return 0; // Highest priority
+        if (submission.status === "pending") return 1;   // Second priority  
+        if (submission.status === "reviewed") return 2;  // Lowest priority
+        return 3; // Any other status
+      };
       
-      // Absolute priority: All pending submissions come first
-      if (aIsPending && !bIsPending) return -1;
-      if (!aIsPending && bIsPending) return 1;
+      const aPriority = getPriority(a);
+      const bPriority = getPriority(b);
       
-      // Within same status group: Sort by submission date (newest first)
+      // First sort by priority
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      
+      // Within same priority group: Sort by submission date (newest first)
       const aDate = new Date(a.submissionDate).getTime();
       const bDate = new Date(b.submissionDate).getTime();
       return bDate - aDate;
@@ -114,7 +120,7 @@ export default function ScenarioSubmissionsPage() {
   
   // Calculate statistics
   const totalSubmissions = submissions?.length || 0;
-  const pendingReviews = submissions?.filter(sub => sub.status === "submitted").length || 0;
+  const pendingReviews = submissions?.filter(sub => sub.status === "submitted" || sub.status === "pending").length || 0;
   const completedReviews = submissions?.filter(sub => sub.status === "reviewed").length || 0;
   
   return (
