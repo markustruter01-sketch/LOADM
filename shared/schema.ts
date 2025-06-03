@@ -168,6 +168,7 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
   squadron: text("squadron"),
   timeSpent: integer("time_spent"),
   notes: text("notes"),
+  submissionType: text("submission_type").default("assessment").notNull(), // "training" or "assessment"
 });
 
 export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions, {
@@ -186,6 +187,7 @@ export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmiss
   notes: true,
   score: true,
   status: true,
+  submissionType: true,
 });
 
 // Quiz schema

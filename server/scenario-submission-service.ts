@@ -25,7 +25,8 @@ const SubmissionSchema = z.object({
   studentId: z.string().optional(),
   squadron: z.string().optional(),
   timeSpent: z.number().optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  submissionType: z.enum(['training', 'assessment']).default('assessment')
 });
 
 export class ScenarioSubmissionService {
