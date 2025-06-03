@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from './db';
-import { scenarioSubmissions, scenarios } from '@shared/schema';
+import { scenarioSubmissions, scenarios, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -203,15 +203,28 @@ export class ScenarioSubmissionService {
         answers: scenarioSubmissions.answers,
         instructorFeedback: scenarioSubmissions.instructorFeedback,
         scenarioTitle: scenarios.title,
-        submissionType: scenarioSubmissions.submissionType
+        submissionType: scenarioSubmissions.submissionType,
+        squadron: scenarioSubmissions.squadron,
+        studentName: scenarioSubmissions.studentName,
+        studentId: scenarioSubmissions.studentId,
+        userSquadron: users.squadron
       })
       .from(scenarioSubmissions)
       .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
+      .leftJoin(users, eq(scenarioSubmissions.userId, users.id))
       .where(eq(scenarioSubmissions.submissionType, 'assessment')); // ONLY ASSESSMENT SUBMISSIONS
 
-      console.log('✅ Retrieved all submissions:', submissions.length);
+      // Enhance submissions with proper squadron data
+      const enhancedSubmissions = submissions.map(sub => ({
+        ...sub,
+        // Use user squadron if submission squadron is empty, otherwise use submission squadron
+        squadron: (sub.squadron && sub.squadron.trim() !== '') ? sub.squadron : (sub.userSquadron || 'AMG')
+      }));
 
-      res.json(submissions);
+      console.log('✅ Retrieved all submissions:', enhancedSubmissions.length);
+      console.log('✅ Squadron data enhanced - sample:', enhancedSubmissions.slice(0, 3).map(s => ({ id: s.id, squadron: s.squadron, userSquadron: s.userSquadron })));
+
+      res.json(enhancedSubmissions);
 
     } catch (error) {
       console.error('❌ Failed to get all submissions:', error);
