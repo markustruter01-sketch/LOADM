@@ -36,9 +36,10 @@ export default function ScenarioSubmissionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [scenarioFilter, setScenarioFilter] = useState<number | "all">("all");
   const [squadronFilter, setSquadronFilter] = useState<string>("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Fetch all scenario submissions
-  const { data: submissions, isLoading: isLoadingSubmissions } = useQuery<ScenarioSubmission[]>({
+  const { data: submissions, isLoading: isLoadingSubmissions, refetch } = useQuery<ScenarioSubmission[]>({
     queryKey: ["/api/scenario-submissions"],
     refetchInterval: 10000, // Refetch every 10 seconds
   });
@@ -80,16 +81,17 @@ export default function ScenarioSubmissionsPage() {
       return true;
     });
 
-    // Sort submissions: Pending first, then by submission date (newest first)
+    // Sort submissions: Pending first (absolute priority), then by submission date (newest first)
     filteredSubmissions = filteredSubmissions.sort((a, b) => {
-      // First priority: Pending status
-      const aIsPending = a.status === "pending" || !a.instructorFeedback;
-      const bIsPending = b.status === "pending" || !b.instructorFeedback;
+      // Determine pending status more accurately
+      const aIsPending = a.status === "pending" || a.status === "Pending Review" || !a.instructorFeedback || a.instructorFeedback.trim() === "";
+      const bIsPending = b.status === "pending" || b.status === "Pending Review" || !b.instructorFeedback || b.instructorFeedback.trim() === "";
       
+      // Absolute priority: All pending submissions come first
       if (aIsPending && !bIsPending) return -1;
       if (!aIsPending && bIsPending) return 1;
       
-      // Second priority: Submission date (newest first)
+      // Within same status group: Sort by submission date (newest first)
       const aDate = new Date(a.submissionDate).getTime();
       const bDate = new Date(b.submissionDate).getTime();
       return bDate - aDate;
@@ -97,8 +99,15 @@ export default function ScenarioSubmissionsPage() {
   }
 
   // Refresh function
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('Failed to refresh submissions:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
   
   // Calculate statistics
@@ -225,11 +234,11 @@ export default function ScenarioSubmissionsPage() {
                 onClick={handleRefresh} 
                 variant="outline" 
                 size="sm"
-                disabled={isLoadingSubmissions}
+                disabled={isLoadingSubmissions || isRefreshing}
                 className="flex items-center gap-2"
               >
-                <RefreshCw className={`h-4 w-4 ${isLoadingSubmissions ? 'animate-spin' : ''}`} />
-                Refresh
+                <RefreshCw className={`h-4 w-4 ${(isLoadingSubmissions || isRefreshing) ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
             </div>
             
