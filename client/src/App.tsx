@@ -16,7 +16,8 @@ import DocumentsPage from "@/pages/documents-page";
 import CargoManifestPage from "@/pages/cargo-manifest-page";
 import UserProfile from "@/pages/user-profile";
 import ToolsPage from "@/pages/tools-page";
-
+import TrainingModulesPage from "@/pages/training-modules";
+import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
 import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
@@ -103,7 +104,10 @@ function AuthenticatedApp() {
             <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
             <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
             <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
-
+            <Route path="/training-modules">
+              {(params) => <TrainingModulesPage {...params} />}
+            </Route>
+            <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
             <ProtectedRoute path="/admin" component={AdminDashboard} />
             <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
             <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
