@@ -83,9 +83,23 @@ export default function ScenarioSubmissionsPage() {
 
     // Sort submissions: Pending first (absolute priority), then by submission date (newest first)
     filteredSubmissions = filteredSubmissions.sort((a, b) => {
-      // Determine pending status more accurately
-      const aIsPending = a.status === "pending" || a.status === "Pending Review" || !a.instructorFeedback || a.instructorFeedback.trim() === "";
-      const bIsPending = b.status === "pending" || b.status === "Pending Review" || !b.instructorFeedback || b.instructorFeedback.trim() === "";
+      // Debug logging for first few items
+      if (filteredSubmissions.indexOf(a) < 5) {
+        console.log(`Sorting debug - Item ${a.id}: status="${a.status}", feedback="${a.instructorFeedback}", date="${a.submissionDate}"`);
+      }
+      
+      // More precise pending status determination
+      // A submission is pending if: status is "submitted" OR it has no instructor feedback
+      const aIsPending = (a.status === "submitted") || 
+                        (!a.instructorFeedback || a.instructorFeedback === null || a.instructorFeedback === "");
+      
+      const bIsPending = (b.status === "submitted") || 
+                        (!b.instructorFeedback || b.instructorFeedback === null || b.instructorFeedback === "");
+      
+      // Debug the comparison
+      if (filteredSubmissions.indexOf(a) < 3 && filteredSubmissions.indexOf(b) < 3) {
+        console.log(`Comparing: ${a.id}(pending:${aIsPending}) vs ${b.id}(pending:${bIsPending})`);
+      }
       
       // Absolute priority: All pending submissions come first
       if (aIsPending && !bIsPending) return -1;
