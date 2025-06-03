@@ -55,8 +55,8 @@ export class ScenarioSubmissionService {
         });
       }
 
-      const { scenarioId, answers, studentName, studentId, squadron, timeSpent, notes } = validationResult.data;
-      console.log('✅ Validated submission data:', { scenarioId, answerCount: answers.length });
+      const { scenarioId, answers, studentName, studentId, squadron, timeSpent, notes, submissionType } = validationResult.data;
+      console.log('✅ Validated submission data:', { scenarioId, answerCount: answers.length, submissionType });
 
       // Verify scenario exists
       const scenario = await db.select().from(scenarios).where(eq(scenarios.id, scenarioId)).limit(1);
@@ -67,37 +67,71 @@ export class ScenarioSubmissionService {
 
       console.log('✅ Scenario verified:', scenario[0].title);
 
-      // Insert submission using the updated schema with individual fields
-      const [submission] = await db.insert(scenarioSubmissions).values({
-        scenarioId,
-        userId,
-        answers,
-        status: 'submitted',
-        studentName: studentName || '',
-        studentId: studentId || '',
-        squadron: squadron || 'AMG',
-        timeSpent: timeSpent || 0,
-        notes: notes || ''
-      }).returning();
+      if (submissionType === 'training') {
+        // For training submissions, store only in activity history - NOT in instructor portal
+        console.log('📚 TRAINING SUBMISSION - Storing in activity history only');
+        
+        // Use proper SQL query with parameterized values
+        const activityDetails = JSON.stringify({
+          scenarioId,
+          answers,
+          squadron: squadron || 'AMG',
+          notes: notes || ''
+        });
 
-      console.log('✅ Submission created successfully:', submission.id);
+        await db.execute(`
+          INSERT INTO user_activity_history 
+          (user_id, activity_type, activity_title, activity_description, completion_date, time_spent, details)
+          VALUES (${userId}, 'training_scenario', '${scenario[0].title.replace("'", "''")}', 'Training scenario completed', NOW(), ${timeSpent || 0}, '${activityDetails.replace("'", "''")}')
+        `);
 
-      // Return clean response using the updated schema fields
-      const response = {
-        id: submission.id,
-        scenarioId: submission.scenarioId,
-        userId: submission.userId,
-        submissionDate: submission.submissionDate,
-        status: submission.status,
-        answers: submission.answers,
-        studentName: submission.studentName,
-        studentId: submission.studentId,
-        squadron: submission.squadron,
-        timeSpent: submission.timeSpent,
-        notes: submission.notes
-      };
+        console.log('✅ Training submission stored in activity history');
 
-      res.status(201).json(response);
+        // Return response for training submission
+        res.status(201).json({
+          type: 'training',
+          message: 'Training submission completed successfully',
+          scenarioTitle: scenario[0].title,
+          completionDate: new Date().toISOString()
+        });
+
+      } else {
+        // For assessment submissions, store in instructor portal as before
+        console.log('📝 ASSESSMENT SUBMISSION - Storing for instructor review');
+        
+        const [submission] = await db.insert(scenarioSubmissions).values({
+          scenarioId,
+          userId,
+          answers,
+          status: 'submitted',
+          studentName: studentName || '',
+          studentId: studentId || '',
+          squadron: squadron || 'AMG',
+          timeSpent: timeSpent || 0,
+          notes: notes || '',
+          submissionType: 'assessment'
+        }).returning();
+
+        console.log('✅ Assessment submission created successfully:', submission.id);
+
+        // Return clean response using the updated schema fields
+        const response = {
+          id: submission.id,
+          scenarioId: submission.scenarioId,
+          userId: submission.userId,
+          submissionDate: submission.submissionDate,
+          status: submission.status,
+          answers: submission.answers,
+          studentName: submission.studentName,
+          studentId: submission.studentId,
+          squadron: submission.squadron,
+          timeSpent: submission.timeSpent,
+          notes: submission.notes,
+          submissionType: submission.submissionType
+        };
+
+        res.status(201).json(response);
+      }
 
     } catch (error) {
       console.error('❌ Submission creation failed:', error);
@@ -147,17 +181,16 @@ export class ScenarioSubmissionService {
     }
   }
 
-  // Get all submissions (admin/instructor view)
+  // Get all submissions (admin/instructor view) - ONLY ASSESSMENT SUBMISSIONS
   static async getAllSubmissions(req: AuthRequest, res: Response) {
-    console.log('📊 NEW SCENARIO SUBMISSION SERVICE - Get all submissions');
+    console.log('📊 NEW SCENARIO SUBMISSION SERVICE - Get all submissions (ASSESSMENT ONLY)');
     
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      // For now, allow all authenticated users to see all submissions
-      // In production, you might want to check for admin/instructor roles
+      // Only show assessment submissions in instructor portal - filter out training
       
       const submissions = await db.select({
         id: scenarioSubmissions.id,
@@ -169,10 +202,12 @@ export class ScenarioSubmissionService {
         passed: scenarioSubmissions.passed,
         answers: scenarioSubmissions.answers,
         instructorFeedback: scenarioSubmissions.instructorFeedback,
-        scenarioTitle: scenarios.title
+        scenarioTitle: scenarios.title,
+        submissionType: scenarioSubmissions.submissionType
       })
       .from(scenarioSubmissions)
-      .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id));
+      .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
+      .where(eq(scenarioSubmissions.submissionType, 'assessment')); // ONLY ASSESSMENT SUBMISSIONS
 
       console.log('✅ Retrieved all submissions:', submissions.length);
 
@@ -292,6 +327,47 @@ export class ScenarioSubmissionService {
       console.error('❌ Failed to update submission:', error);
       res.status(500).json({ 
         error: 'Failed to update submission',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Get user's activity history (training submissions)
+  static async getUserActivityHistory(req: AuthRequest, res: Response) {
+    console.log('📋 NEW SCENARIO SUBMISSION SERVICE - Get user activity history');
+    
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const userId = req.user.id;
+      console.log('✅ Getting activity history for user:', userId);
+
+      const activities = await db.execute(`
+        SELECT 
+          id,
+          activity_type,
+          activity_title,
+          activity_description,
+          score,
+          passed,
+          completion_date,
+          time_spent,
+          details
+        FROM user_activity_history 
+        WHERE user_id = ${userId} 
+        ORDER BY completion_date DESC
+      `);
+
+      console.log('✅ Found activities:', activities.length);
+
+      res.json(activities);
+
+    } catch (error) {
+      console.error('❌ Failed to get activity history:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrieve activity history',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
