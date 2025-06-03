@@ -83,23 +83,11 @@ export default function ScenarioSubmissionsPage() {
 
     // Sort submissions: Pending first (absolute priority), then by submission date (newest first)
     filteredSubmissions = filteredSubmissions.sort((a, b) => {
-      // Debug logging for first few items
-      if (filteredSubmissions.indexOf(a) < 5) {
-        console.log(`Sorting debug - Item ${a.id}: status="${a.status}", feedback="${a.instructorFeedback}", date="${a.submissionDate}"`);
-      }
-      
-      // More precise pending status determination
-      // A submission is pending if: status is "submitted" OR it has no instructor feedback
-      const aIsPending = (a.status === "submitted") || 
-                        (!a.instructorFeedback || a.instructorFeedback === null || a.instructorFeedback === "");
-      
-      const bIsPending = (b.status === "submitted") || 
-                        (!b.instructorFeedback || b.instructorFeedback === null || b.instructorFeedback === "");
-      
-      // Debug the comparison
-      if (filteredSubmissions.indexOf(a) < 3 && filteredSubmissions.indexOf(b) < 3) {
-        console.log(`Comparing: ${a.id}(pending:${aIsPending}) vs ${b.id}(pending:${bIsPending})`);
-      }
+      // Precise pending status determination
+      // A submission is pending ONLY if status is "submitted" 
+      // Status "reviewed" means it has been reviewed regardless of feedback content
+      const aIsPending = a.status === "submitted";
+      const bIsPending = b.status === "submitted";
       
       // Absolute priority: All pending submissions come first
       if (aIsPending && !bIsPending) return -1;
@@ -126,7 +114,7 @@ export default function ScenarioSubmissionsPage() {
   
   // Calculate statistics
   const totalSubmissions = submissions?.length || 0;
-  const pendingReviews = submissions?.filter(sub => sub.status === "pending").length || 0;
+  const pendingReviews = submissions?.filter(sub => sub.status === "submitted").length || 0;
   const completedReviews = submissions?.filter(sub => sub.status === "reviewed").length || 0;
   
   return (
