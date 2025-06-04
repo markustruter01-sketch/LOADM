@@ -134,6 +134,49 @@ router.get('/user', async (req, res) => {
   }
 });
 
+// ISOLATED COMPLETE ONBOARDING - Works independently
+router.post('/complete-onboarding', async (req, res) => {
+  try {
+    console.log('✅ ISOLATED: Complete onboarding request');
+    const sessionId = req.cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      console.log('✅ ISOLATED: No valid session for onboarding completion');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    
+    if (!session) {
+      console.log('✅ ISOLATED: Invalid session for onboarding completion');
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Update user's onboarding status in database
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const result = await sql`
+      UPDATE users 
+      SET has_completed_onboarding = true
+      WHERE id = ${session.userId}
+      RETURNING id, email
+    `;
+    
+    if (result.length === 0) {
+      console.log('✅ ISOLATED: User not found for onboarding completion');
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    console.log(`✅ ISOLATED: Onboarding completed for ${session.email}`);
+    res.json({ success: true });
+    
+  } catch (error) {
+    console.error('✅ ISOLATED: Complete onboarding error:', error);
+    res.status(500).json({ error: 'Failed to complete onboarding' });
+  }
+});
+
 // ISOLATED PASSWORD CHANGE - For first-time login
 router.post('/change-password', async (req, res) => {
   try {

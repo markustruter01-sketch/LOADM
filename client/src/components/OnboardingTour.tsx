@@ -109,47 +109,55 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
       return;
     }
 
-    const rect = targetElement.getBoundingClientRect();
-    const tooltipRect = tooltipRef.current?.getBoundingClientRect();
-    
-    // Scroll element into view
+    // Scroll element into view first
     targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     
-    let top = 0;
-    let left = 0;
+    // Wait for scroll to complete before calculating positions
+    setTimeout(() => {
+      const rect = targetElement.getBoundingClientRect();
+      const tooltipRect = tooltipRef.current?.getBoundingClientRect();
+      
+      let top = 0;
+      let left = 0;
 
-    switch (currentTourStep.position) {
-      case 'top':
-        top = rect.top - (tooltipRect?.height || 200) - 20;
-        left = rect.left + rect.width / 2 - (tooltipRect?.width || 300) / 2;
-        break;
-      case 'bottom':
-        top = rect.bottom + 20;
-        left = rect.left + rect.width / 2 - (tooltipRect?.width || 300) / 2;
-        break;
-      case 'left':
-        top = rect.top + rect.height / 2 - (tooltipRect?.height || 200) / 2;
-        left = rect.left - (tooltipRect?.width || 300) - 20;
-        break;
-      case 'right':
-        top = rect.top + rect.height / 2 - (tooltipRect?.height || 200) / 2;
-        left = rect.right + 20;
-        break;
-      default:
-        top = window.innerHeight / 2 - (tooltipRect?.height || 200) / 2;
-        left = window.innerWidth / 2 - (tooltipRect?.width || 300) / 2;
-    }
+      switch (currentTourStep.position) {
+        case 'top':
+          top = rect.top - (tooltipRect?.height || 200) - 20;
+          left = rect.left + rect.width / 2 - (tooltipRect?.width || 300) / 2;
+          break;
+        case 'bottom':
+          top = rect.bottom + 20;
+          left = rect.left + rect.width / 2 - (tooltipRect?.width || 300) / 2;
+          break;
+        case 'left':
+          top = rect.top + rect.height / 2 - (tooltipRect?.height || 200) / 2;
+          left = rect.left - (tooltipRect?.width || 300) - 20;
+          break;
+        case 'right':
+          top = rect.top + rect.height / 2 - (tooltipRect?.height || 200) / 2;
+          left = rect.right + 20;
+          break;
+        default:
+          top = window.innerHeight / 2 - (tooltipRect?.height || 200) / 2;
+          left = window.innerWidth / 2 - (tooltipRect?.width || 300) / 2;
+      }
 
-    // Ensure tooltip stays within viewport
-    top = Math.max(20, Math.min(top, window.innerHeight - (tooltipRect?.height || 200) - 20));
-    left = Math.max(20, Math.min(left, window.innerWidth - (tooltipRect?.width || 300) - 20));
+      // Ensure tooltip stays within viewport
+      top = Math.max(20, Math.min(top, window.innerHeight - (tooltipRect?.height || 200) - 20));
+      left = Math.max(20, Math.min(left, window.innerWidth - (tooltipRect?.width || 300) - 20));
 
-    setTooltipPosition({ top, left });
+      setTooltipPosition({ top, left });
 
-    // Create spotlight effect
-    setOverlayStyle({
-      clipPath: `polygon(0% 0%, 0% 100%, ${rect.left - 10}px 100%, ${rect.left - 10}px ${rect.top - 10}px, ${rect.right + 10}px ${rect.top - 10}px, ${rect.right + 10}px ${rect.bottom + 10}px, ${rect.left - 10}px ${rect.bottom + 10}px, ${rect.left - 10}px 100%, 100% 100%, 100% 0%)`
-    });
+      // Create accurate circular spotlight effect
+      const spotlightRadius = Math.max(rect.width, rect.height) / 2 + 30;
+      const spotlightX = rect.left + rect.width / 2;
+      const spotlightY = rect.top + rect.height / 2;
+      
+      setOverlayStyle({
+        clipPath: `circle(${spotlightRadius}px at ${spotlightX}px ${spotlightY}px)`,
+        opacity: 0.85
+      });
+    }, 300);
   };
 
   useEffect(() => {
@@ -183,25 +191,49 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
 
   const handleComplete = async () => {
     try {
-      await apiRequest('/api/users/complete-onboarding', {
-        method: 'POST'
+      // Use isolated auth endpoint instead of regular API
+      const response = await fetch('/auth-isolated/complete-onboarding', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-      onComplete();
+      
+      if (response.ok) {
+        console.log('✅ TOUR: Onboarding completed successfully');
+        onComplete();
+      } else {
+        console.error('❌ TOUR: Failed to complete onboarding');
+        onComplete(); // Complete anyway to avoid endless loop
+      }
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      onComplete(); // Complete anyway
+      onComplete(); // Complete anyway to avoid endless loop
     }
   };
 
   const handleSkip = async () => {
     try {
-      await apiRequest('/api/users/complete-onboarding', {
-        method: 'POST'
+      // Use isolated auth endpoint instead of regular API
+      const response = await fetch('/auth-isolated/complete-onboarding', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
-      onSkip();
+      
+      if (response.ok) {
+        console.log('✅ TOUR: Onboarding skipped successfully');
+        onSkip();
+      } else {
+        console.error('❌ TOUR: Failed to skip onboarding');
+        onSkip(); // Skip anyway to avoid endless loop
+      }
     } catch (error) {
       console.error('Error skipping onboarding:', error);
-      onSkip(); // Skip anyway
+      onSkip(); // Skip anyway to avoid endless loop
     }
   };
 
