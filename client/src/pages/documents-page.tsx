@@ -65,6 +65,22 @@ export default function DocumentsPage() {
       size: "145 KB"
     },
     {
+      filename: "DG Checklist.pdf",
+      title: "Dangerous Goods Checklist",
+      description: "Comprehensive checklist for non-radioactive dangerous goods shipments with verification procedures",
+      category: "Operational Procedures",
+      lastModified: "2024-06-04",
+      size: "86 KB"
+    },
+    {
+      filename: "Passenger and Cargo Manifest.pdf",
+      title: "Passenger/Crew and Cargo Manifest",
+      description: "Official form for listing all personnel and cargo in transport operations",
+      category: "Forms",
+      lastModified: "2024-06-04",
+      size: "145 KB"
+    },
+    {
       filename: "D.G.-Acceptance-ChecklistDry-2018-729x1024.jpg",
       title: "Dangerous Goods Acceptance Checklist",
       description: "Standard checklist for dangerous goods acceptance procedures",
