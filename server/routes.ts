@@ -954,7 +954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error sending load plan email:', error);
       res.status(500).json({ 
         error: 'Failed to send email', 
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
   });
