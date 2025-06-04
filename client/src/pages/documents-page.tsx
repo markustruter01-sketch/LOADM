@@ -206,61 +206,73 @@ export default function DocumentsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <DocumentCard
                   document={{
-                    id: "1",
+                    id: 1,
                     title: "Load Planning Form",
                     description: "Complete detailed load planning documentation for cargo aircraft operations.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
+                    lastUpdated: new Date(),
+                    type: "Form",
+                    fields: {},
+                    createdAt: new Date()
                   }}
                 />
                 
                 <DocumentCard
                   document={{
-                    id: "2",
+                    id: 2,
                     title: "Passenger/Crew and Cargo Manifest",
                     description: "Generate and complete detailed cargo manifests for all shipments.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
+                    lastUpdated: new Date(),
+                    type: "Form",
+                    fields: {},
+                    createdAt: new Date()
                   }}
                 />
                 
                 <DocumentCard
                   document={{
-                    id: "3",
+                    id: 3,
                     title: "Dangerous Goods Declaration",
                     description: "Complete DG documentation for hazardous materials transportation.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
+                    lastUpdated: new Date(),
+                    type: "Form",
+                    fields: {},
+                    createdAt: new Date()
                   }}
                 />
                 
                 <DocumentCard
                   document={{
-                    id: "4",
+                    id: 4,
                     title: "Weight & Balance Sheet",
                     description: "Calculate and document aircraft weight distribution and balance.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
+                    lastUpdated: new Date(),
+                    type: "Form",
+                    fields: {},
+                    createdAt: new Date()
                   }}
                 />
                 
                 <DocumentCard
                   document={{
-                    id: "5",
+                    id: 5,
                     title: "Special Handling Form",
                     description: "Document special handling requirements for unusual cargo types or sensitive items.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
+                    lastUpdated: new Date(),
+                    type: "Form",
+                    fields: {},
+                    createdAt: new Date()
                   }}
                 />
                 
                 <DocumentCard
                   document={{
-                    id: "6",
+                    id: 6,
                     title: "Aircraft Tie-Down Diagram",
                     description: "Detailed cargo restraint planning diagram with tie-down points and calculations.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
+                    lastUpdated: new Date(),
+                    type: "Form",
+                    fields: {},
+                    createdAt: new Date()
                   }}
                 />
               </div>
