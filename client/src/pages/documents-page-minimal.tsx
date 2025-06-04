@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { Loader2, FileText, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Download, Share, Mail } from "lucide-react";
+import { Loader2, FileText, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Download, Share, Mail, ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
 import EnhancedDocumentCard from "@/components/EnhancedDocumentCard";
 import { Button } from "@/components/ui/button";
@@ -374,23 +374,116 @@ export default function DocumentsPage() {
                   {/* PDF Document Viewer */}
                   <div className="min-h-[600px] bg-white rounded-lg border">
                     {activePdf ? (
-                      <div className="w-full h-[600px] rounded-lg">
-                        {/* Primary approach: Direct PDF stream */}
+                      <div className="w-full h-[600px] rounded-lg relative">
+                        {/* NUCLEAR SOLUTION: Multiple PDF viewing approaches */}
+                        
+                        {/* Approach 1: Direct link to open PDF in new tab/window */}
+                        <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg p-2">
+                          <button
+                            onClick={() => window.open(`/pdf-stream/${activePdf.id}`, '_blank')}
+                            className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            <External className="w-4 h-4" />
+                            <span>Open in New Tab</span>
+                          </button>
+                        </div>
+
+                        {/* Approach 2: Download link */}
+                        <div className="absolute top-4 right-32 z-10 bg-white rounded-lg shadow-lg p-2">
+                          <a
+                            href={`/pdf-stream/${activePdf.id}`}
+                            download={`${activePdf.title}.pdf`}
+                            className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download</span>
+                          </a>
+                        </div>
+
+                        {/* Approach 3: Embedded iframe with multiple fallbacks */}
                         <iframe
-                          src={`/pdf-stream/${activePdf.id}`}
+                          src={`/pdf-stream/${activePdf.id}#view=FitH&toolbar=1&navpanes=1&scrollbar=1`}
                           className="w-full h-full rounded-lg border-0"
                           title={activePdf.title}
-                          onLoad={() => console.log('PDF VIEWER DEBUG: PDF stream iframe loaded successfully')}
+                          onLoad={(e) => {
+                            console.log('PDF VIEWER DEBUG: PDF iframe loaded');
+                            // Check if PDF loaded successfully
+                            setTimeout(() => {
+                              const iframe = e.target as HTMLIFrameElement;
+                              try {
+                                // If we can access the iframe content, PDF loaded successfully
+                                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                                if (!iframeDoc || iframeDoc.title.includes('Error')) {
+                                  console.log('PDF VIEWER DEBUG: PDF failed to load in iframe, trying object fallback');
+                                  // Hide iframe and show object fallback
+                                  iframe.style.display = 'none';
+                                  const objectElement = iframe.nextElementSibling as HTMLObjectElement;
+                                  if (objectElement) {
+                                    objectElement.style.display = 'block';
+                                  }
+                                }
+                              } catch (e) {
+                                // Cross-origin error means PDF might have loaded successfully
+                                console.log('PDF VIEWER DEBUG: Cross-origin access - PDF likely loaded successfully');
+                              }
+                            }, 1000);
+                          }}
                           onError={(e) => {
-                            console.error('PDF VIEWER DEBUG: PDF stream iframe error:', e);
-                            // Fallback to data URI approach
+                            console.error('PDF VIEWER DEBUG: PDF iframe error, trying object fallback');
                             const iframe = e.target as HTMLIFrameElement;
-                            if (activePdf.pdfData) {
-                              console.log('PDF VIEWER DEBUG: Trying fallback data URI approach');
-                              iframe.src = `data:application/pdf;base64,${activePdf.pdfData}`;
+                            iframe.style.display = 'none';
+                            const objectElement = iframe.nextElementSibling as HTMLObjectElement;
+                            if (objectElement) {
+                              objectElement.style.display = 'block';
                             }
                           }}
                         />
+
+                        {/* Approach 4: Object element fallback */}
+                        <object
+                          data={`/pdf-stream/${activePdf.id}`}
+                          type="application/pdf"
+                          className="w-full h-full rounded-lg border-0"
+                          style={{ display: 'none' }}
+                          onError={(e) => {
+                            console.error('PDF VIEWER DEBUG: Object element also failed, showing manual options');
+                            const object = e.target as HTMLObjectElement;
+                            object.style.display = 'none';
+                            const fallbackDiv = object.nextElementSibling as HTMLDivElement;
+                            if (fallbackDiv) {
+                              fallbackDiv.style.display = 'flex';
+                            }
+                          }}
+                        >
+                          <p>Your browser cannot display PDF files.</p>
+                        </object>
+
+                        {/* Approach 5: Final fallback with manual options */}
+                        <div 
+                          className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-lg"
+                          style={{ display: 'none' }}
+                        >
+                          <FileText className="w-16 h-16 text-gray-400 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Viewer Not Supported</h3>
+                          <p className="text-gray-500 mb-6 text-center">Your browser cannot display PDFs inline. Please use the options below:</p>
+                          <div className="flex space-x-4">
+                            <button
+                              onClick={() => window.open(`/pdf-stream/${activePdf.id}`, '_blank')}
+                              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              <span>Open in New Tab</span>
+                            </button>
+                            <a
+                              href={`/pdf-stream/${activePdf.id}`}
+                              download={`${activePdf.title}.pdf`}
+                              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>Download PDF</span>
+                            </a>
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center h-[600px]">
