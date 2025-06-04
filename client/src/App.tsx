@@ -58,6 +58,7 @@ import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
 import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
 import WorkforcePage from "@/pages/instructors-portal/workforce";
 import PermissionsDashboard from "@/pages/permissions-dashboard";
+import PdfViewerPage from "@/pages/pdf-viewer-page";
 
 // Import route protection components (we'll adapt these)
 import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
@@ -89,6 +90,7 @@ function AuthenticatedApp() {
             </Route>
 
             <Route path="/documents" component={DocumentsPage} />
+            <Route path="/documents/pdf/:filename" component={PdfViewerPage} />
 
             <Route path="/tools" component={ToolsPage} />
             <Route path="/tools/restraint-calculator" component={RestraintCalculatorPage} />

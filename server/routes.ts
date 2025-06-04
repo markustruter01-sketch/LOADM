@@ -1,5 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
+import path from "path";
 import { z } from "zod";
 import { eq, desc, and } from "drizzle-orm";
 import { db } from "./db";
@@ -79,6 +81,16 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Static file serving for PDFs
+  app.use('/pdfs', express.static(path.join(process.cwd(), 'attached_assets'), {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+      }
+    }
+  }));
+  
   // Mount new quiz routes
   app.use('/api/quizzes', quizRoutes);
   console.log('✅ Quiz routes module mounted successfully');
