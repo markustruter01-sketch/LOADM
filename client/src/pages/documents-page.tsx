@@ -4,7 +4,6 @@ import { Document } from "@shared/schema";
 import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight, ArrowLeft, Mail, Download, Share } from "lucide-react";
 import { useLocation } from "wouter";
 import EnhancedDocumentCard from "@/components/EnhancedDocumentCard";
-import { CargoManifestForm } from "@/components/CargoManifestForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,30 +35,30 @@ export default function DocumentsPage() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   
-  // State for inline form functionality
-  const [activeForm, setActiveForm] = useState<{ id: string; title: string } | null>(null);
+  // State for inline PDF viewer functionality
+  const [activePdf, setActivePdf] = useState<{ id: string; title: string } | null>(null);
   
   // Documents state
   const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
 
-  // Handle opening forms inline
+  // Handle opening PDF documents inline
   const handleOpenForm = (documentId: string, documentTitle: string) => {
-    setActiveForm({ id: documentId, title: documentTitle });
+    setActivePdf({ id: documentId, title: documentTitle });
     
-    // Scroll to form after a brief delay to ensure DOM updates
+    // Scroll to PDF viewer after a brief delay to ensure DOM updates
     setTimeout(() => {
-      const formElement = document.getElementById('inline-form-section');
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const pdfElement = document.getElementById('inline-pdf-section');
+      if (pdfElement) {
+        pdfElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 100);
   };
 
-  // Handle closing forms
-  const handleCloseForm = () => {
-    setActiveForm(null);
+  // Handle closing PDF viewer
+  const handleClosePdf = () => {
+    setActivePdf(null);
   };
 
   // Universal PDF generation function for all save buttons
@@ -504,30 +503,34 @@ export default function DocumentsPage() {
                       </Button>
                     </div>
                     
-                    {/* Form Content Based on Document ID */}
-                    {activeForm.id === "2" && activeForm.title === "Passenger/Crew and Cargo Manifest" && (
-                      <CargoManifestForm />
-                    )}
-                    
-                    {/* Coming Soon form for other documents */}
-                    {activeForm.id !== "2" && (
-                      <div className="min-h-[500px] bg-white rounded-lg border p-8 flex items-center justify-center">
-                        <div className="text-center">
-                          <h2 className="text-4xl font-bold text-red-600 mb-4">COMING SOON</h2>
-                          <p className="text-lg text-muted-foreground mb-6">
-                            {activeForm.title} form interface is under development
-                          </p>
-                          <div className="text-sm text-muted-foreground">
-                            <p>In the meantime, please use:</p>
-                            <ul className="mt-2 space-y-1">
-                              <li>• Email button to send document template</li>
-                              <li>• Save button to download document</li>
-                              <li>• Share button for AirDrop/native sharing</li>
-                            </ul>
-                          </div>
+                    {/* PDF Document Viewer */}
+                    <div className="min-h-[500px] bg-white rounded-lg border p-8 flex items-center justify-center">
+                      <div className="text-center">
+                        <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-700 mb-4">PDF Document Ready</h2>
+                        <p className="text-lg text-muted-foreground mb-6">
+                          This area will display the stored PDF template for {activePdf?.title}
+                        </p>
+                        <div className="text-sm text-muted-foreground">
+                          <p>Available actions:</p>
+                          <ul className="mt-2 space-y-1">
+                            <li>• Download PDF document</li>
+                            <li>• Share via email or native sharing</li>
+                            <li>• Print document directly</li>
+                          </ul>
+                        </div>
+                        <div className="flex justify-center space-x-4 mt-6">
+                          <Button variant="outline">
+                            <Download className="w-4 h-4 mr-2" />
+                            Download PDF
+                          </Button>
+                          <Button variant="outline">
+                            <Share className="w-4 h-4 mr-2" />
+                            Share
+                          </Button>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
