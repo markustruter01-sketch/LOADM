@@ -13,42 +13,6 @@ const app = express();
 // Clear all sessions on startup
 authCore.clearAllIsolatedSessions();
 
-// NUCLEAR FIX: PDF streaming endpoint BEFORE all middleware to bypass Vite
-import { db } from './db';
-import { phoneDirectory, chatMessages, pdfDocuments } from '../shared/schema';
-import { eq, sql, gte, desc } from 'drizzle-orm';
-
-app.get("/pdf-stream/:id", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    console.log("NUCLEAR: PDF stream request for ID:", id);
-    
-    const [pdfDoc] = await db.select().from(pdfDocuments).where(eq(pdfDocuments.id, id));
-    
-    if (!pdfDoc || !pdfDoc.pdfData) {
-      console.error("NUCLEAR: PDF document not found or no data");
-      return res.status(404).send("PDF document not found");
-    }
-    
-    // Convert base64 to binary
-    const pdfBuffer = Buffer.from(pdfDoc.pdfData, 'base64');
-    console.log("NUCLEAR: Streaming PDF buffer size:", pdfBuffer.length);
-    
-    // Set appropriate headers for PDF streaming
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${pdfDoc.title}.pdf"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.setHeader('Accept-Ranges', 'bytes');
-    
-    console.log("NUCLEAR: PDF headers set, sending buffer");
-    res.end(pdfBuffer);
-  } catch (error) {
-    console.error("NUCLEAR: PDF stream error:", error);
-    res.status(500).send("Failed to stream PDF document");
-  }
-});
-
 app.use(cookieParser());
 app.use(express.json());
 
@@ -58,6 +22,9 @@ app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
+import { db } from './db';
+import { phoneDirectory, chatMessages } from '../shared/schema';
+import { eq, sql, gte } from 'drizzle-orm';
 
 app.get("/api/phone-directory", async (req, res) => {
   try {
@@ -80,46 +47,6 @@ app.delete("/api/phone-directory/:id", async (req, res) => {
   } catch (error) {
     console.error("NUCLEAR: Error deleting phone directory entry:", error);
     res.status(500).json({ message: "Failed to delete phone directory entry" });
-  }
-});
-
-// NUCLEAR FIX: PDF Documents endpoint - bypassing all middleware
-app.get("/api/pdf-documents", async (req, res) => {
-  try {
-    console.log("NUCLEAR: PDF documents GET request received");
-    const pdfDocs = await db.select().from(pdfDocuments).orderBy(desc(pdfDocuments.createdAt));
-    console.log("NUCLEAR: PDF documents data:", pdfDocs.map(doc => ({ id: doc.id, title: doc.title, type: doc.type })));
-    res.json(pdfDocs);
-  } catch (error) {
-    console.error("NUCLEAR: PDF documents fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch PDF documents" });
-  }
-});
-
-// Individual PDF document endpoint
-app.get("/api/pdf-documents/:id", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    console.log("NUCLEAR: Individual PDF document request for ID:", id);
-    
-    const [pdfDoc] = await db.select().from(pdfDocuments).where(eq(pdfDocuments.id, id));
-    
-    if (!pdfDoc) {
-      return res.status(404).json({ error: "PDF document not found" });
-    }
-    
-    console.log("NUCLEAR: PDF document found:", { 
-      id: pdfDoc.id, 
-      title: pdfDoc.title,
-      hasPdfData: !!pdfDoc.pdfData,
-      pdfDataLength: pdfDoc.pdfData?.length || 0,
-      pdfDataStart: pdfDoc.pdfData?.substring(0, 30) || 'No data'
-    });
-    
-    res.json(pdfDoc);
-  } catch (error) {
-    console.error("NUCLEAR: Individual PDF document fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch PDF document" });
   }
 });
 

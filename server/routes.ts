@@ -11,7 +11,6 @@ import {
   documentSubmissions, 
   scenarioSubmissions,
   phoneDirectory,
-  pdfDocuments,
   chatMessages
 } from "@shared/schema";
 import quizRoutes from './routes/quiz-new';
@@ -789,19 +788,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching user submissions:', error);
       res.status(500).json({ error: "Failed to fetch user submissions" });
-    }
-  });
-
-  // PDF Documents routes
-  app.get("/api/pdf-documents", requireAuth, async (req: Request, res: Response) => {
-    try {
-      console.log("NUCLEAR: PDF documents GET request received");
-      const pdfDocs = await db.select().from(pdfDocuments).orderBy(desc(pdfDocuments.uploadedAt));
-      console.log("NUCLEAR: PDF documents data:", pdfDocs.map(doc => ({ id: doc.id, title: doc.title, type: doc.type })));
-      res.json(pdfDocs);
-    } catch (error) {
-      console.error("PDF documents fetch error:", error);
-      res.status(500).json({ error: "Failed to fetch PDF documents" });
     }
   });
 

@@ -90,22 +90,7 @@ export const insertLicenseSessionSchema = createInsertSchema(licenseSessions).pi
   userAgent: true,
 });
 
-// PDF Document Templates table - For storing PDF templates
-export const pdfDocuments = pgTable("pdf_documents", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
-  type: text("type").notNull(), // "form", "checklist", "diagram", etc.
-  category: text("category").notNull(), // "operational", "safety", "technical", etc.
-  pdfData: text("pdf_data").notNull(), // Base64 encoded PDF data
-  fileName: text("file_name").notNull(),
-  fileSize: integer("file_size").notNull(),
-  contentType: text("content_type").default("application/pdf"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Document schema (keeping for backward compatibility)
+// Document schema
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -122,15 +107,6 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   type: true,
   fields: true,
 });
-
-export const insertPdfDocumentSchema = createInsertSchema(pdfDocuments).omit({
-  id: true,
-  uploadedAt: true,
-  lastUpdated: true,
-});
-
-export type InsertPdfDocument = z.infer<typeof insertPdfDocumentSchema>;
-export type PdfDocument = typeof pdfDocuments.$inferSelect;
 
 // Document submission schema
 export const documentSubmissions = pgTable("document_submissions", {
@@ -279,8 +255,6 @@ export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pic
 
 export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
 export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
-
-
 
 // Chat Messages schema
 export const chatMessages = pgTable("chat_messages", {
