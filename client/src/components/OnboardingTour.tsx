@@ -148,14 +148,16 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
 
       setTooltipPosition({ top, left });
 
-      // Create accurate circular spotlight effect
+      // Create proper inverted spotlight effect using radial gradient mask
       const spotlightRadius = Math.max(rect.width, rect.height) / 2 + 30;
       const spotlightX = rect.left + rect.width / 2;
       const spotlightY = rect.top + rect.height / 2;
       
       setOverlayStyle({
-        clipPath: `circle(${spotlightRadius}px at ${spotlightX}px ${spotlightY}px)`,
-        opacity: 0.85
+        opacity: 0.75,
+        background: `radial-gradient(circle ${spotlightRadius}px at ${spotlightX}px ${spotlightY}px, transparent 0%, transparent 100%, rgba(0,0,0,1) 100%)`,
+        mask: `radial-gradient(circle ${spotlightRadius}px at ${spotlightX}px ${spotlightY}px, transparent 0%, transparent 100%, black 100%)`,
+        WebkitMask: `radial-gradient(circle ${spotlightRadius}px at ${spotlightX}px ${spotlightY}px, transparent 0%, transparent 100%, black 100%)`
       });
     }, 300);
   };
@@ -241,9 +243,9 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Overlay with spotlight effect */}
+      {/* Overlay with inverted spotlight effect */}
       <div 
-        className="absolute inset-0 bg-black bg-opacity-60 transition-all duration-300"
+        className="absolute inset-0 bg-black transition-all duration-300"
         style={overlayStyle}
       />
       
