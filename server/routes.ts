@@ -803,6 +803,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete onboarding tour
+  app.post("/api/users/complete-onboarding", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      
+      await db.update(users)
+        .set({ hasCompletedOnboarding: true })
+        .where(eq(users.id, userId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      res.status(500).json({ error: "Failed to complete onboarding" });
+    }
+  });
+
   const httpServer = createServer();
   httpServer.on("request", app);
   return httpServer;

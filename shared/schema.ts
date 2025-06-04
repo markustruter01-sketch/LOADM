@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   hashedPassword: text("hashed_password").notNull(),
   isFirstLogin: boolean("is_first_login").default(true).notNull(),
+  hasCompletedOnboarding: boolean("has_completed_onboarding").default(false).notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
   licenseId: integer("license_id").references(() => licenses.id, { onDelete: "cascade" }),

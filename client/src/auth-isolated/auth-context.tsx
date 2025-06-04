@@ -10,6 +10,7 @@ interface User {
   lastName?: string;
   role: string;
   isFirstLogin?: boolean;
+  hasCompletedOnboarding?: boolean;
 }
 
 interface IsolatedAuthContextType {

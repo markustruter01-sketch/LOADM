@@ -4,6 +4,7 @@ import { createOfflineQueryClient } from "@/lib/queryClient";
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { RedesignedLogin } from './auth-isolated/redesigned-login';
 import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
+import OnboardingTour from '@/components/OnboardingTour';
 
 // Import all your existing pages
 import DocumentFormPage from "@/pages/document-form-page";
