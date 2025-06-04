@@ -1,7 +1,8 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import DocumentCard from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ interface DirectoryEntry {
 
 export default function DocumentsPage() {
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   
   // Documents state
   const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
@@ -166,6 +168,18 @@ export default function DocumentsPage() {
 
       <div className="container mx-auto px-4 py-6 mb-16">
         <div className="max-w-6xl mx-auto">
+          {/* Back Button */}
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="p-2 -ml-2"
+            >
+              <ArrowLeft className="h-5 w-5 mr-1" />
+              Back to Home
+            </Button>
+          </div>
+          
           {/* Header Section */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">Documents & Directory</h1>

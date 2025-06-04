@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
-  HelpCircle, Users
+  HelpCircle, Users, ArrowLeft
 } from "lucide-react";
 import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +69,18 @@ export default function InstructorsPortal() {
       </Helmet>
 
       <div className="container mx-auto px-4 py-8 mb-16">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation('/')}
+            className="p-2 -ml-2"
+          >
+            <ArrowLeft className="h-5 w-5 mr-1" />
+            Back to Dashboard
+          </Button>
+        </div>
+        
         <div className="mb-8 max-w-3xl">
           <h2 className="text-3xl font-bold mb-2 text-foreground">Instructors Portal</h2>
           <p className="text-muted-foreground">

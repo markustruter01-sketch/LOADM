@@ -321,18 +321,7 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
 
       <div className={hideHeader ? "" : "container mx-auto px-4 py-8 mb-16"}>
         <div className={hideHeader ? "" : "max-w-6xl mx-auto"}>
-          {/* Back Button - only show if not embedded */}
-          {!hideHeader && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="mb-6"
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          )}
+
           
           {/* Header Section - only show if not embedded */}
           {!hideHeader && (
