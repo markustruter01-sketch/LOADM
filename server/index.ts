@@ -75,7 +75,14 @@ app.get("/api/pdf-documents/:id", async (req, res) => {
       return res.status(404).json({ error: "PDF document not found" });
     }
     
-    console.log("NUCLEAR: PDF document found:", { id: pdfDoc.id, title: pdfDoc.title });
+    console.log("NUCLEAR: PDF document found:", { 
+      id: pdfDoc.id, 
+      title: pdfDoc.title,
+      hasPdfData: !!pdfDoc.pdfData,
+      pdfDataLength: pdfDoc.pdfData?.length || 0,
+      pdfDataStart: pdfDoc.pdfData?.substring(0, 30) || 'No data'
+    });
+    
     res.json(pdfDoc);
   } catch (error) {
     console.error("NUCLEAR: Individual PDF document fetch error:", error);

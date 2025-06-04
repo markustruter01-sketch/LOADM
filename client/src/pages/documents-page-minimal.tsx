@@ -35,7 +35,7 @@ export default function DocumentsPage() {
   const [, navigate] = useLocation();
   
   // State for inline PDF viewer functionality
-  const [activePdf, setActivePdf] = useState<{ id: string; title: string } | null>(null);
+  const [activePdf, setActivePdf] = useState<{ id: string; title: string; pdfData: string } | null>(null);
   
   // Phone Directory state
   const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
@@ -75,15 +75,51 @@ export default function DocumentsPage() {
 
   // Handle opening PDF documents inline
   const handleOpenForm = async (documentId: string, documentTitle: string) => {
+    console.log('PDF VIEWER DEBUG: Opening PDF document', { documentId, documentTitle });
+    
     try {
-      // Fetch the full PDF document data from the API
+      console.log('PDF VIEWER DEBUG: Fetching PDF data from API...');
       const response = await fetch(`/api/pdf-documents/${documentId}`);
+      console.log('PDF VIEWER DEBUG: API response status:', response.status);
+      
       if (response.ok) {
         const pdfDoc = await response.json();
+        console.log('PDF VIEWER DEBUG: PDF document received:', {
+          id: pdfDoc.id,
+          title: pdfDoc.title,
+          hasPdfData: !!pdfDoc.pdfData,
+          pdfDataLength: pdfDoc.pdfData?.length || 0,
+          pdfDataStart: pdfDoc.pdfData?.substring(0, 50) || 'No data'
+        });
+        
+        // Validate PDF data
+        if (!pdfDoc.pdfData) {
+          console.error('PDF VIEWER DEBUG: No PDF data found in document');
+          alert('PDF document data is missing');
+          return;
+        }
+        
+        // Test if PDF data is valid base64
+        try {
+          const testDecode = atob(pdfDoc.pdfData.substring(0, 100));
+          console.log('PDF VIEWER DEBUG: PDF data appears to be valid base64');
+        } catch (e) {
+          console.error('PDF VIEWER DEBUG: PDF data is not valid base64:', e);
+          alert('PDF document data is corrupted');
+          return;
+        }
+        
         setActivePdf(pdfDoc);
+        console.log('PDF VIEWER DEBUG: PDF document set as active');
+      } else {
+        console.error('PDF VIEWER DEBUG: API request failed with status:', response.status);
+        const errorText = await response.text();
+        console.error('PDF VIEWER DEBUG: Error response:', errorText);
+        alert(`Failed to load PDF: ${response.status} ${errorText}`);
       }
     } catch (error) {
-      console.error('Error fetching PDF document:', error);
+      console.error('PDF VIEWER DEBUG: Error fetching PDF document:', error);
+      alert(`Error loading PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     
     setTimeout(() => {
@@ -337,11 +373,23 @@ export default function DocumentsPage() {
                   
                   {/* PDF Document Viewer */}
                   <div className="min-h-[600px] bg-white rounded-lg border">
-                    <iframe
-                      src={`data:application/pdf;base64,${activePdf.pdfData}`}
-                      className="w-full h-[600px] rounded-lg"
-                      title={activePdf.title}
-                    />
+                    {activePdf?.pdfData ? (
+                      <iframe
+                        src={`data:application/pdf;base64,${activePdf.pdfData}`}
+                        className="w-full h-[600px] rounded-lg"
+                        title={activePdf.title}
+                        onLoad={() => console.log('PDF VIEWER DEBUG: iframe loaded successfully')}
+                        onError={(e) => console.error('PDF VIEWER DEBUG: iframe error:', e)}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-[600px]">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading PDF...</h3>
+                          <p className="text-gray-500">Please wait while we load the document.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -479,7 +527,7 @@ export default function DocumentsPage() {
                               <ChevronRight className="w-4 h-4 flex-shrink-0 text-white" />
                             }
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="text-base font-semibold truncate text-orange-500">{entry.airbaseCode}</CardTitle>
+                              <CardTitle className="text-base font-semibold truncate text-white">{entry.airbaseCode}</CardTitle>
                               <p className="text-xs text-white truncate">{entry.airbaseName}</p>
                             </div>
                           </div>
