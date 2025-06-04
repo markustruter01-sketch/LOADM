@@ -87,8 +87,8 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
         <DialogHeader className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
-            <div className="flex items-center gap-2">
+            <DialogTitle className="text-lg font-semibold pr-4">{title}</DialogTitle>
+            <div className="flex items-center gap-3">
               <Button
                 onClick={handleDownload}
                 size="sm"
@@ -100,7 +100,7 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
               <Button
                 onClick={handleSend}
                 size="sm"
-                className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white mr-2"
               >
                 <Mail className="h-4 w-4" />
                 Send

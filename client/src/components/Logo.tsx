@@ -1,5 +1,5 @@
 import React from "react";
-import logoImage from "../assets/digital-dynamics-logo.png";
+import logoImage from "@assets/Digitial Dynamics Logo - PNG1.png";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
