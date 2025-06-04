@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { FileText, Search, Download, ExternalLink, Loader2 } from "lucide-react";
 import PDFDocumentCard from "@/components/PDFDocumentCard";
 import PDFViewer from "@/components/PDFViewer";
+import PhoneDirectory from "@/components/PhoneDirectory";
 import type { PDFDocument } from "@/types/pdf-document";
 
 export default function DocumentsNewPage() {
@@ -138,20 +139,11 @@ export default function DocumentsNewPage() {
         </TabsContent>
 
         <TabsContent value="directory">
-          <Card>
-            <CardHeader>
-              <CardTitle>Phone Directory</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Phone directory functionality will be available here.
-              </p>
-            </CardContent>
-          </Card>
+          <PhoneDirectory />
         </TabsContent>
       </Tabs>
 
-      {/* PDF Viewer Modal */}
+      {/* PDF Viewer Inline */}
       {selectedDocument && (
         <PDFViewer
           document={selectedDocument}

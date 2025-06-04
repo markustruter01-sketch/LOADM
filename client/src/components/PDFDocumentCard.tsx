@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, ExternalLink } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { PDFDocument, DocumentCardProps } from "@/types/pdf-document";
 
@@ -23,29 +23,7 @@ export default function PDFDocumentCard({ document, onOpenDocument }: DocumentCa
     }
   };
 
-  const handleOpenNewTab = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log('Opening PDF in new tab:', document.title);
-    
-    if (document.pdfData) {
-      const newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head><title>${document.title}</title></head>
-          <body style="margin:0;">
-            <iframe 
-              src="data:application/pdf;base64,${document.pdfData}" 
-              style="width:100%;height:100vh;border:none;"
-              title="${document.title}">
-            </iframe>
-          </body>
-          </html>
-        `);
-      }
-    }
-  };
+
 
   const formattedDate = document.lastUpdated 
     ? formatDistanceToNow(new Date(document.lastUpdated), { addSuffix: true })
@@ -94,16 +72,6 @@ export default function PDFDocumentCard({ document, onOpenDocument }: DocumentCa
             >
               <Download className="h-3 w-3 mr-1" />
               Download
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleOpenNewTab}
-              className="h-8 px-2"
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              Open
             </Button>
           </div>
         </div>
