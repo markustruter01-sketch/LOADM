@@ -1,9 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Document } from "@shared/schema";
-import { Loader2, FileText, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Download, Share, Mail } from "lucide-react";
-import { useLocation } from "wouter";
-import EnhancedDocumentCard from "@/components/EnhancedDocumentCard";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Download, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface Contact {
   id: string;
@@ -29,7 +25,6 @@ interface DirectoryEntry {
 }
 
 export default function DocumentsPage() {
-  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedDirectories, setExpandedDirectories] = useState<Set<number>>(new Set());
   const [isPhoneFormOpen, setIsPhoneFormOpen] = useState(false);
@@ -39,24 +34,12 @@ export default function DocumentsPage() {
     contacts: [{ id: "", name: "", phoneNumber: "", description: "" }]
   });
 
-  // Queries
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
-    queryKey: ["/api/pdf-documents"],
-  });
-
+  // Only keep phone directory query
   const { data: phoneDirectories = [], isLoading: directoriesLoading } = useQuery({
     queryKey: ["/api/phone-directory"],
   });
 
   const queryClient = useQueryClient();
-
-  console.log("SIMPLE: PDF documents data:", documents);
-
-  // Simple PDF handler - just opens in new tab
-  const handleOpenPDF = (doc: Document) => {
-    console.log("SIMPLE: Opening PDF in new tab for document:", doc.id);
-    window.open(`/pdf-stream/${doc.id}`, '_blank');
-  };
 
   // Phone directory handlers
   const toggleDirectoryExpansion = (id: number) => {
@@ -169,7 +152,7 @@ export default function DocumentsPage() {
     pdf.save('phone-directory.pdf');
   };
 
-  if (documentsLoading || directoriesLoading) {
+  if (directoriesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin" />
@@ -192,39 +175,14 @@ export default function DocumentsPage() {
 
         <Tabs defaultValue="documents" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="documents">PDF Documents</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="directory">Phone Directory</TabsTrigger>
           </TabsList>
 
           <TabsContent value="documents" className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {documents.map((doc: Document) => (
-                <Card key={doc.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      {doc.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={() => handleOpenPDF(doc)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Open PDF
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => window.open(`/pdf-stream/${doc.id}?download=true`, '_blank')}
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="text-center py-16">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Documents Section</h3>
+              <p className="text-gray-600">Document functionality will be implemented here</p>
             </div>
           </TabsContent>
 
