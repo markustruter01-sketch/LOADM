@@ -125,7 +125,7 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/load-planning")}>
+                <Card className="h-full bg-card hover:bg-card/80 cursor-pointer transition-colors" onClick={handleCardClick("/airframe")}>
                   <CardContent className="flex flex-col items-center justify-center p-6">
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Package2 className="h-8 w-8 text-primary" />

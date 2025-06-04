@@ -7,13 +7,15 @@ import { ArrowLeft } from "lucide-react";
 
 // Import the existing pages with their hideHeader prop support
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
+import LoadPlanningPage from "@/pages/load-planning-page";
 import TrainingModulesPage from "@/pages/training-modules";
 
 export default function AirframeIntegratedPage() {
   const [location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("load-planning");
+  const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
 
-  // Check if we should open training modules tab based on URL hash or query
+  // Check URL parameters for tab selection and aircraft
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const hash = window.location.hash;
@@ -22,10 +24,22 @@ export default function AirframeIntegratedPage() {
     if (urlParams.get('tab') === 'training-modules' || hash === '#training-modules') {
       setActiveTab("training-modules");
     }
+    
+    // Check for aircraft parameter
+    const aircraft = urlParams.get('aircraft');
+    if (aircraft) {
+      setSelectedAircraft(aircraft);
+      setActiveTab("load-planning");
+    }
   }, [location]);
 
   // These components are rendered differently for wouter routing
-  const LoadPlanningContent = () => <LoadPlanningSelectionPage />;
+  const LoadPlanningContent = () => {
+    if (selectedAircraft) {
+      return <LoadPlanningPage aircraftId={selectedAircraft} />;
+    }
+    return <LoadPlanningSelectionPage />;
+  };
   const TrainingModulesContent = () => <TrainingModulesPage />;
 
   return (

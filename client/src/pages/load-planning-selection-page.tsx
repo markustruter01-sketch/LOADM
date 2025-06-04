@@ -48,7 +48,7 @@ export default function LoadPlanningSelectionPage() {
   const [, navigate] = useLocation();
 
   const handleAircraftSelect = (aircraftId: string) => {
-    navigate(`/load-planning/${aircraftId}`);
+    navigate(`/airframe?aircraft=${aircraftId}&tab=load-planning`);
   };
 
   return (

@@ -88,10 +88,7 @@ function AuthenticatedApp() {
             <Route path="/airframe">
               {(params) => <AirframeIntegratedPage {...params} />}
             </Route>
-            <Route path="/load-planning">
-              {(params) => <LoadPlanningSelectionPage {...params} />}
-            </Route>
-            <Route path="/load-planning/:aircraftId" component={LoadPlanningPage} />
+
             <Route path="/documents" component={DocumentsPage} />
             <Route path="/cargo-manifest" component={CargoManifestPage} />
 
