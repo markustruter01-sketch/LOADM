@@ -1,12 +1,14 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
-import { useLocation } from "wouter";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft, FileText, Eye, Download } from "lucide-react";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -26,6 +28,15 @@ interface DirectoryEntry {
   updatedAt: string;
 }
 
+interface PdfDocument {
+  filename: string;
+  title: string;
+  description: string;
+  category: string;
+  lastModified: string;
+  size: string;
+}
+
 export default function DocumentsPage() {
   const [, setLocation] = useLocation();
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -42,6 +53,34 @@ export default function DocumentsPage() {
     phoneNumber: "",
     description: "",
   });
+
+  // Available PDF documents
+  const pdfDocuments: PdfDocument[] = [
+    {
+      filename: "25229.pdf",
+      title: "Load Planning Manual",
+      description: "Comprehensive guide for aircraft load planning procedures and calculations",
+      category: "Training Materials",
+      lastModified: "2024-05-15",
+      size: "145 KB"
+    },
+    {
+      filename: "D.G.-Acceptance-ChecklistDry-2018-729x1024.jpg",
+      title: "Dangerous Goods Acceptance Checklist",
+      description: "Standard checklist for dangerous goods acceptance procedures",
+      category: "Operational Procedures",
+      lastModified: "2024-03-20",
+      size: "892 KB"
+    },
+    {
+      filename: "DD-Form-2130-13-C-17-load-plan-w-cargo-pallet-positions-39.png",
+      title: "C-17 Load Plan Template",
+      description: "Official DD Form 2130 for C-17 cargo pallet positioning",
+      category: "Forms",
+      lastModified: "2024-04-10",
+      size: "2.1 MB"
+    }
+  ];
 
   const queryClient = useQueryClient();
 
@@ -193,8 +232,8 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Phone Directory | LOADM</title>
-        <meta name="description" content="Access airbase contact information" />
+        <title>Documents - LOADMworkflow</title>
+        <meta name="description" content="Access PDF documents and phone directory for airbase contact information" />
       </Helmet>
       
       <div className="container mx-auto px-4 py-8">
@@ -210,13 +249,83 @@ export default function DocumentsPage() {
         </div>
         
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Phone Directory</h1>
+          <h1 className="text-3xl font-bold text-foreground">Documents</h1>
           <p className="text-muted-foreground mt-2">
-            Access airbase contact information
+            Access PDF documents and contact information
           </p>
         </div>
-        
-        <div className="mt-6">
+
+        <Tabs defaultValue="pdfs" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="pdfs" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              PDF Documents
+            </TabsTrigger>
+            <TabsTrigger value="directory" className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Phone Directory
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pdfs" className="mt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">PDF Documents</h2>
+                  <p className="text-muted-foreground">Training materials, forms, and operational procedures</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pdfDocuments.map((doc) => (
+                  <Card key={doc.filename} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <FileText className="h-8 w-8 text-primary" />
+                        <Badge variant="secondary" className="text-xs">
+                          {doc.category}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg leading-tight">{doc.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        {doc.description}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                        <span>Size: {doc.size}</span>
+                        <span>Modified: {doc.lastModified}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link href={`/documents/pdf/${doc.filename}`} className="flex-1">
+                          <Button className="w-full" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View PDF
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = `/pdfs/${doc.filename}`;
+                            link.download = doc.filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="directory" className="mt-6">
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
