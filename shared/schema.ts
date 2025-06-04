@@ -278,6 +278,8 @@ export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pic
 export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
 export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
 
+
+
 // Chat Messages schema
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),

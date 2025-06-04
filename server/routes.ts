@@ -11,6 +11,7 @@ import {
   documentSubmissions, 
   scenarioSubmissions,
   phoneDirectory,
+  pdfDocuments,
   chatMessages
 } from "@shared/schema";
 import quizRoutes from './routes/quiz-new';

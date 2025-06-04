@@ -47,10 +47,20 @@ export default function DocumentsPage() {
     contacts: [] as Contact[]
   });
   
-  // Documents state
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
-    queryKey: ["/api/documents"],
+  // Documents state - fetch PDF documents instead
+  const { data: pdfDocuments = [], isLoading: documentsLoading } = useQuery({
+    queryKey: ["/api/pdf-documents"],
   });
+
+  // Transform PDF documents to match document card interface
+  const documents = pdfDocuments.map((pdf: any) => ({
+    id: pdf.id.toString(),
+    title: pdf.title,
+    description: pdf.description,
+    type: pdf.type,
+    lastUpdated: new Date(pdf.updated_at),
+    category: pdf.category
+  }));
 
   // Phone Directory data
   const { data: directories = [], isLoading: directoryLoading } = useQuery<DirectoryEntry[]>({
