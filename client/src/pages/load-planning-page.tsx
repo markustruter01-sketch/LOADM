@@ -103,6 +103,7 @@ export default function LoadPlanningPage() {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
   const [editWeight, setEditWeight] = useState(0);
   const [editCargoType, setEditCargoType] = useState('General');
   const [editDgClass, setEditDgClass] = useState('');
@@ -294,69 +295,118 @@ export default function LoadPlanningPage() {
       pdf.text(`Status: ${balanceResult.status.toUpperCase()}`, 20, 50);
       pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, 60);
 
-      // Try to capture screenshot of cargo bay
+      // Add cargo positions summary instead of screenshot to avoid CORS issues
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Cargo Positions:', 20, 80);
+      
+      let yPos = 90;
+      pdf.setFont('helvetica', 'normal');
+      let hasCargoItems = false;
+      
+      cargoPositions.forEach((position, index) => {
+        if (position.weight > 0) {
+          hasCargoItems = true;
+          const text = `Position ${position.id}: ${position.cargoType} - ${position.weight} ${aircraftId === 'kc30a' ? 'kg' : 'lbs'}`;
+          pdf.text(text, 25, yPos);
+          yPos += 8;
+        }
+      });
+      
+      if (!hasCargoItems) {
+        pdf.text('No cargo loaded', 25, yPos);
+        yPos += 8;
+      }
+
+      // Try to capture screenshot as enhancement (fallback gracefully)
       try {
         const canvas = await html2canvas(cargoBayElement, {
           backgroundColor: '#1f2937',
-          scale: 1.5,
-          useCORS: true,
+          scale: 1,
+          useCORS: false,
           allowTaint: true,
           logging: false,
-          width: cargoBayElement.scrollWidth,
-          height: cargoBayElement.scrollHeight
+          foreignObjectRendering: false
         });
 
-        // Add cargo bay screenshot
         const imgData = canvas.toDataURL('image/png');
-        const imgWidth = pageWidth - 40; // 20mm margin on each side
+        const imgWidth = pageWidth - 40;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
-        // Position image below header, ensure it fits on page
-        const yPosition = 70;
-        const maxHeight = pageHeight - yPosition - 20; // 20mm bottom margin
+        const yPosition = yPos + 10;
+        const maxHeight = pageHeight - yPosition - 20;
         const finalHeight = Math.min(imgHeight, maxHeight);
         const finalWidth = finalHeight === maxHeight ? (canvas.width * maxHeight) / canvas.height : imgWidth;
         
-        pdf.addImage(imgData, 'PNG', 20, yPosition, finalWidth, finalHeight);
+        if (finalHeight > 0 && finalWidth > 0) {
+          pdf.addImage(imgData, 'PNG', 20, yPosition, finalWidth, finalHeight);
+        }
       } catch (screenshotError) {
-        console.warn('Screenshot capture failed, proceeding without image:', screenshotError);
-        // Add a note that screenshot failed
-        pdf.setFontSize(12);
-        pdf.text('Note: Cargo bay layout screenshot could not be captured', 20, 80);
+        console.warn('Visual layout capture failed, using text summary only:', screenshotError);
       }
 
       const fileName = `${config.name}_LoadPlan_${new Date().toISOString().split('T')[0]}.pdf`;
 
       if (shouldEmail && emailAddress) {
-        // Convert PDF to base64 for email
-        const pdfBase64 = pdf.output('datauristring').split(',')[1];
-        
-        // Send email with PDF attachment
-        const response = await fetch('/api/send-load-plan-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: emailAddress,
-            fileName,
-            pdfData: pdfBase64,
-            aircraftName: config.name,
-            centerOfGravity: balanceResult.centerOfGravity.toFixed(1),
-            totalWeight: balanceResult.totalWeight.toLocaleString(),
-            status: balanceResult.status
-          }),
-        });
+        try {
+          setEmailSending(true);
+          
+          // Convert PDF to base64 for email
+          const pdfBase64 = pdf.output('datauristring').split(',')[1];
+          
+          // Create abort controller with timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            controller.abort();
+          }, 15000); // 15 second timeout
+          
+          // Send email with PDF attachment
+          const response = await fetch('/api/send-load-plan-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: emailAddress,
+              fileName,
+              pdfData: pdfBase64,
+              aircraftName: config.name,
+              centerOfGravity: balanceResult.centerOfGravity.toFixed(1),
+              totalWeight: balanceResult.totalWeight.toLocaleString(),
+              status: balanceResult.status
+            }),
+            signal: controller.signal
+          });
 
-        if (response.ok) {
-          const result = await response.json();
-          alert('Load plan PDF sent successfully!');
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const result = await response.json();
+            alert('Load plan PDF sent successfully!');
+            setShowEmailDialog(false);
+            setEmailAddress('');
+          } else {
+            const errorText = await response.text();
+            console.error('Email sending failed:', errorText);
+            
+            // Fall back to download
+            pdf.save(fileName);
+            alert('Email failed - PDF downloaded instead. Email service may need configuration.');
+            setShowEmailDialog(false);
+          }
+        } catch (emailError: any) {
+          console.error('Email request failed:', emailError);
+          
+          // Fall back to download
+          pdf.save(fileName);
+          if (emailError?.name === 'AbortError') {
+            alert('Email timeout - PDF downloaded instead. Please try again or check your connection.');
+          } else {
+            alert('Email service unavailable - PDF downloaded instead.');
+          }
           setShowEmailDialog(false);
-          setEmailAddress('');
-        } else {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          console.error('Email sending failed:', errorData);
-          alert(`Failed to send email: ${errorData.error || 'Please try downloading instead.'}`);
+        } finally {
+          setEmailSending(false);
         }
       } else {
         // Download PDF
