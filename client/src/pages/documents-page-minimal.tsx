@@ -283,67 +283,88 @@ export default function DocumentsPage() {
                   
                   {/* PDF Document Viewer */}
                   <div className="min-h-[600px] bg-white rounded-lg border">
-                    {activePdf?.pdfData && activePdf.pdfData !== 'sample_pdf_data_placeholder' ? (
-                      <div className="w-full h-[600px] flex flex-col">
-                        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-                          <span className="text-sm font-medium">PDF Viewer</span>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = `data:application/pdf;base64,${activePdf.pdfData}`;
-                                link.download = `${activePdf.title}.pdf`;
-                                link.click();
-                              }}
-                            >
-                              Download PDF
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                const newWindow = window.open();
-                                if (newWindow) {
-                                  newWindow.document.write(`
+                    <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-medium">PDF Viewer - {activePdf.title}</span>
+                        <div className="text-xs text-gray-500 mt-1">
+                          PDF Data: {activePdf.pdfData ? `${activePdf.pdfData.length} chars` : 'Missing'}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            console.log('Download clicked, PDF data length:', activePdf.pdfData?.length);
+                            if (activePdf.pdfData) {
+                              const link = document.createElement('a');
+                              link.href = `data:application/pdf;base64,${activePdf.pdfData}`;
+                              link.download = `${activePdf.title}.pdf`;
+                              link.click();
+                            }
+                          }}
+                        >
+                          Download PDF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            console.log('New tab clicked, PDF data length:', activePdf.pdfData?.length);
+                            if (activePdf.pdfData) {
+                              const newWindow = window.open();
+                              if (newWindow) {
+                                newWindow.document.write(`
+                                  <!DOCTYPE html>
+                                  <html>
+                                  <head><title>${activePdf.title}</title></head>
+                                  <body style="margin:0;">
                                     <iframe 
                                       src="data:application/pdf;base64,${activePdf.pdfData}" 
                                       style="width:100%;height:100vh;border:none;"
                                       title="${activePdf.title}">
                                     </iframe>
-                                  `);
-                                }
-                              }}
-                            >
-                              Open in New Tab
-                            </Button>
-                          </div>
-                        </div>
+                                  </body>
+                                  </html>
+                                `);
+                              }
+                            }
+                          }}
+                        >
+                          Open in New Tab
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {activePdf?.pdfData ? (
+                      <div className="h-[500px] w-full">
                         <iframe
                           src={`data:application/pdf;base64,${activePdf.pdfData}`}
-                          className="flex-1 w-full"
+                          className="w-full h-full"
                           title={`PDF: ${activePdf.title}`}
-                          style={{ border: 'none', minHeight: '500px' }}
-                          onError={() => {
-                            console.error('PDF iframe failed to load');
+                          style={{ border: 'none' }}
+                          onLoad={() => {
+                            console.log('PDF iframe loaded successfully');
+                          }}
+                          onError={(e) => {
+                            console.error('PDF iframe failed to load:', e);
                           }}
                         />
                       </div>
                     ) : (
-                      <div className="p-8 flex items-center justify-center h-full">
+                      <div className="p-8 flex items-center justify-center h-[500px]">
                         <div className="text-center">
                           <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <h2 className="text-2xl font-bold text-gray-700 mb-4">Loading PDF Document</h2>
+                          <h2 className="text-2xl font-bold text-red-600 mb-4">PDF Data Missing</h2>
                           <p className="text-lg text-muted-foreground mb-6">
-                            Preparing document: {activePdf?.title}
+                            Document: {activePdf?.title}
                           </p>
-                          <p className="text-sm text-gray-500">
-                            PDF Data Available: {activePdf?.pdfData ? 'Yes' : 'No'}
-                            {activePdf?.pdfData && (
-                              <><br />Data Length: {activePdf.pdfData.length} characters</>
-                            )}
-                          </p>
+                          <div className="text-sm text-gray-500 bg-gray-100 p-4 rounded">
+                            <div>ID: {activePdf?.id}</div>
+                            <div>Type: {activePdf?.type}</div>
+                            <div>PDF Data: {activePdf?.pdfData ? 'Present' : 'Missing'}</div>
+                            {activePdf?.pdfData && <div>Length: {activePdf.pdfData.length}</div>}
+                          </div>
                         </div>
                       </div>
                     )}
