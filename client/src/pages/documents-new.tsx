@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Search, Download, ExternalLink, Loader2 } from "lucide-react";
 import PDFDocumentCard from "@/components/PDFDocumentCard";
-import PDFViewerFixed from "@/components/PDFViewerFixed";
+import PDFViewerSimple from "@/components/PDFViewerSimple";
 import PhoneDirectory from "@/components/PhoneDirectory";
 import type { PDFDocument } from "@/types/pdf-document";
 
@@ -145,7 +145,7 @@ export default function DocumentsNewPage() {
 
       {/* PDF Viewer Modal */}
       {selectedDocument && (
-        <PDFViewerFixed
+        <PDFViewerSimple
           document={selectedDocument}
           onClose={handleCloseViewer}
         />
