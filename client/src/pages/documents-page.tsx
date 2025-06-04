@@ -189,7 +189,7 @@ export default function DocumentsPage() {
   console.log("Phone directory error:", directoryError);
 
   const createMutation = useMutation({
-    mutationFn: (data: typeof newEntry) => apiRequest("/api/phone-directory", {
+    mutationFn: (data: any) => apiRequest("/api/phone-directory", {
       method: "POST",
       body: JSON.stringify(data),
     }),
@@ -201,7 +201,7 @@ export default function DocumentsPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { id: number; entry: Omit<DirectoryEntry, 'id' | 'createdAt' | 'updatedAt'> }) =>
+    mutationFn: (data: { id: number; entry: any }) =>
       apiRequest(`/api/phone-directory/${data.id}`, {
         method: "PUT",
         body: JSON.stringify(data.entry),
@@ -493,12 +493,12 @@ export default function DocumentsPage() {
                   </div>
                 </div>
 
-                {/* Inline Form Display */}
-                {activeForm && (
-                  <div id="inline-form-section" className="mt-8 p-6 bg-card rounded-lg border shadow-lg">
+                {/* Inline PDF Display */}
+                {activePdf && (
+                  <div id="inline-pdf-section" className="mt-8 p-6 bg-card rounded-lg border shadow-lg">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-xl font-bold">{activeForm.title}</h3>
-                      <Button variant="ghost" size="sm" onClick={handleCloseForm}>
+                      <h3 className="text-xl font-bold">{activePdf.title}</h3>
+                      <Button variant="ghost" size="sm" onClick={handleClosePdf}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
