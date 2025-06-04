@@ -10,12 +10,13 @@ import {
   RotateCw,
   Download,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
-// Configure PDF.js worker
+// Configure PDF.js worker with multiple fallback options
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface PdfViewerProps {
@@ -31,11 +32,14 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
   const [rotation, setRotation] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const [pdfUrl, setPdfUrl] = useState<string>(() => `/pdfs/${encodeURIComponent(file)}`);
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     setLoading(false);
     setError(null);
+    setRetryCount(0);
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
@@ -43,6 +47,14 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
     setError('Failed to load PDF document');
     setLoading(false);
   }, []);
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setLoading(true);
+    setRetryCount(prev => prev + 1);
+    // Force cache bypass with timestamp
+    setPdfUrl(`/pdfs/${encodeURIComponent(file)}?v=${Date.now()}`);
+  }, [file]);
 
   const goToPrevPage = useCallback(() => {
     setPageNumber(prev => Math.max(1, prev - 1));
@@ -79,7 +91,16 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
         <CardContent className="flex flex-col items-center justify-center py-12">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading PDF</h3>
-          <p className="text-muted-foreground text-center">{error}</p>
+          <p className="text-muted-foreground text-center mb-4">{error}</p>
+          <Button 
+            onClick={handleRetry} 
+            variant="outline" 
+            size="sm"
+            disabled={retryCount >= 3}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {retryCount >= 3 ? 'Max retries reached' : `Retry (${retryCount}/3)`}
+          </Button>
         </CardContent>
       </Card>
     );
@@ -164,12 +185,27 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
           )}
           
           <Document
-            file={file}
+            file={{
+              url: pdfUrl,
+              httpHeaders: {
+                'Accept': 'application/pdf',
+                'Content-Type': 'application/pdf'
+              },
+              withCredentials: false
+            }}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             loading={null}
             error={null}
             className="flex justify-center"
+            options={{
+              cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+              cMapPacked: true,
+              standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+              disableWorker: false,
+              disableStream: false,
+              disableAutoFetch: false
+            }}
           >
             <Page
               pageNumber={pageNumber}
