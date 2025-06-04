@@ -284,12 +284,52 @@ export default function DocumentsPage() {
                   {/* PDF Document Viewer */}
                   <div className="min-h-[600px] bg-white rounded-lg border">
                     {activePdf?.pdfData && activePdf.pdfData !== 'sample_pdf_data_placeholder' ? (
-                      <iframe
-                        src={`data:application/pdf;base64,${activePdf.pdfData}`}
-                        className="w-full h-[600px] rounded-lg"
-                        title={`PDF: ${activePdf.title}`}
-                        style={{ border: 'none' }}
-                      />
+                      <div className="w-full h-[600px] flex flex-col">
+                        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+                          <span className="text-sm font-medium">PDF Viewer</span>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `data:application/pdf;base64,${activePdf.pdfData}`;
+                                link.download = `${activePdf.title}.pdf`;
+                                link.click();
+                              }}
+                            >
+                              Download PDF
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const newWindow = window.open();
+                                if (newWindow) {
+                                  newWindow.document.write(`
+                                    <iframe 
+                                      src="data:application/pdf;base64,${activePdf.pdfData}" 
+                                      style="width:100%;height:100vh;border:none;"
+                                      title="${activePdf.title}">
+                                    </iframe>
+                                  `);
+                                }
+                              }}
+                            >
+                              Open in New Tab
+                            </Button>
+                          </div>
+                        </div>
+                        <iframe
+                          src={`data:application/pdf;base64,${activePdf.pdfData}`}
+                          className="flex-1 w-full"
+                          title={`PDF: ${activePdf.title}`}
+                          style={{ border: 'none', minHeight: '500px' }}
+                          onError={() => {
+                            console.error('PDF iframe failed to load');
+                          }}
+                        />
+                      </div>
                     ) : (
                       <div className="p-8 flex items-center justify-center h-full">
                         <div className="text-center">
@@ -300,6 +340,9 @@ export default function DocumentsPage() {
                           </p>
                           <p className="text-sm text-gray-500">
                             PDF Data Available: {activePdf?.pdfData ? 'Yes' : 'No'}
+                            {activePdf?.pdfData && (
+                              <><br />Data Length: {activePdf.pdfData.length} characters</>
+                            )}
                           </p>
                         </div>
                       </div>

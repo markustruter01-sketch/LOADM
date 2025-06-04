@@ -55,8 +55,26 @@ app.get("/api/pdf-documents", async (req, res) => {
   try {
     console.log("NUCLEAR: PDF documents GET request received");
     const pdfDocs = await db.select().from(pdfDocuments).orderBy(desc(pdfDocuments.createdAt));
-    console.log("NUCLEAR: PDF documents data:", pdfDocs.map(doc => ({ id: doc.id, title: doc.title, type: doc.type })));
-    res.json(pdfDocs);
+    
+    // Transform data to include pdfData field for frontend compatibility
+    const transformedDocs = pdfDocs.map(doc => ({
+      id: doc.id.toString(),
+      title: doc.title,
+      type: doc.type,
+      description: doc.description || `${doc.title} - Australian Defence Force Document`,
+      lastUpdated: doc.updatedAt,
+      pdfData: doc.content // Map database 'content' field to frontend 'pdfData' field
+    }));
+    
+    console.log("NUCLEAR: PDF documents transformed:", transformedDocs.map(doc => ({ 
+      id: doc.id, 
+      title: doc.title, 
+      type: doc.type,
+      hasPdfData: !!doc.pdfData,
+      pdfDataLength: doc.pdfData ? doc.pdfData.length : 0
+    })));
+    
+    res.json(transformedDocs);
   } catch (error) {
     console.error("NUCLEAR: PDF documents fetch error:", error);
     res.status(500).json({ error: "Failed to fetch PDF documents" });
