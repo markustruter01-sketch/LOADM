@@ -90,7 +90,23 @@ export const insertLicenseSessionSchema = createInsertSchema(licenseSessions).pi
   userAgent: true,
 });
 
-// Document schema
+// PDF Document Templates table - For storing PDF templates
+export const pdfDocuments = pgTable("pdf_documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // "form", "checklist", "diagram", etc.
+  category: text("category").notNull(), // "operational", "safety", "technical", etc.
+  pdfData: text("pdf_data").notNull(), // Base64 encoded PDF data
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").default("application/pdf"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Document schema (keeping for backward compatibility)
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -106,6 +122,12 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   description: true,
   type: true,
   fields: true,
+});
+
+export const insertPdfDocumentSchema = createInsertSchema(pdfDocuments).omit({
+  id: true,
+  uploadedAt: true,
+  lastUpdated: true,
 });
 
 // Document submission schema
