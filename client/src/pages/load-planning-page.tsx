@@ -263,19 +263,15 @@ export default function LoadPlanningPage() {
       // Find the cargo bay layout element
       const cargoBayElement = document.querySelector('[data-cargo-bay]') as HTMLElement;
       if (!cargoBayElement) {
-        alert('Cargo bay layout not found');
+        console.error('Cargo bay element not found');
+        alert('Cargo bay layout not found. Please make sure the layout is visible.');
+        setIsExporting(false);
         return;
       }
 
-      // Capture screenshot of cargo bay
-      const canvas = await html2canvas(cargoBayElement, {
-        backgroundColor: '#1f2937', // gray-800
-        scale: 2,
-        useCORS: true,
-        allowTaint: false
-      });
+      console.log('Found cargo bay element:', cargoBayElement);
 
-      // Create PDF with horizontal orientation
+      // Create PDF with horizontal orientation first
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',
@@ -298,14 +294,36 @@ export default function LoadPlanningPage() {
       pdf.text(`Status: ${balanceResult.status.toUpperCase()}`, 20, 50);
       pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, 60);
 
-      // Add cargo bay screenshot
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = pageWidth - 40; // 20mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Position image below header
-      const yPosition = 70;
-      pdf.addImage(imgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+      // Try to capture screenshot of cargo bay
+      try {
+        const canvas = await html2canvas(cargoBayElement, {
+          backgroundColor: '#1f2937',
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: cargoBayElement.scrollWidth,
+          height: cargoBayElement.scrollHeight
+        });
+
+        // Add cargo bay screenshot
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - 40; // 20mm margin on each side
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Position image below header, ensure it fits on page
+        const yPosition = 70;
+        const maxHeight = pageHeight - yPosition - 20; // 20mm bottom margin
+        const finalHeight = Math.min(imgHeight, maxHeight);
+        const finalWidth = finalHeight === maxHeight ? (canvas.width * maxHeight) / canvas.height : imgWidth;
+        
+        pdf.addImage(imgData, 'PNG', 20, yPosition, finalWidth, finalHeight);
+      } catch (screenshotError) {
+        console.warn('Screenshot capture failed, proceeding without image:', screenshotError);
+        // Add a note that screenshot failed
+        pdf.setFontSize(12);
+        pdf.text('Note: Cargo bay layout screenshot could not be captured', 20, 80);
+      }
 
       const fileName = `${config.name}_LoadPlan_${new Date().toISOString().split('T')[0]}.pdf`;
 
@@ -331,11 +349,14 @@ export default function LoadPlanningPage() {
         });
 
         if (response.ok) {
+          const result = await response.json();
           alert('Load plan PDF sent successfully!');
           setShowEmailDialog(false);
           setEmailAddress('');
         } else {
-          alert('Failed to send email. Please try downloading instead.');
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('Email sending failed:', errorData);
+          alert(`Failed to send email: ${errorData.error || 'Please try downloading instead.'}`);
         }
       } else {
         // Download PDF

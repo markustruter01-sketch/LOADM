@@ -888,10 +888,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
+      // Check if SendGrid API key is properly configured
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(500).json({ error: 'Email service not configured' });
+      }
+
       // Create email content
       const emailContent = {
         to: email,
-        from: 'noreply@loadmworkflow.com',
+        from: 'loadmaster@loadmworkflow.com', // Use a verified sender
         subject: `Load Plan: ${aircraftName} - CG ${centerOfGravity}%`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
