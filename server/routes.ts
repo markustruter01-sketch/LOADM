@@ -81,6 +81,9 @@ function requireSuperAdmin(req: Request, res: Response, next: Function) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Increase payload limit for PDF uploads
+  app.use('/api/send-load-plan-email', express.json({ limit: '50mb' }));
+  app.use('/api/send-load-plan-email', express.urlencoded({ limit: '50mb', extended: true }));
   // Static file serving for PDFs
   app.use('/pdfs', express.static(path.join(process.cwd(), 'attached_assets'), {
     setHeaders: (res, path) => {
@@ -951,16 +954,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(process.env.SENDGRID_API_KEY);
       
-      await sgMail.send(emailContent);
+      const result = await sgMail.send(emailContent);
+      console.log('Email sent successfully to:', email);
       
       res.json({ success: true, message: 'Load plan PDF sent successfully' });
       
-    } catch (error) {
-      console.error('Error sending load plan email:', error);
-      res.status(500).json({ 
-        error: 'Failed to send email', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
-      });
+    } catch (error: any) {
+      console.error('SendGrid error details:', error.response?.body || error);
+      
+      if (error.code === 403 || error.response?.status === 403) {
+        res.status(500).json({ 
+          error: 'Email service authentication failed. SendGrid API key may be invalid or sender email not verified.' 
+        });
+      } else if (error.code === 400 || error.response?.status === 400) {
+        res.status(500).json({ 
+          error: 'Invalid email configuration. Please check sender email verification in SendGrid.' 
+        });
+      } else {
+        res.status(500).json({ 
+          error: 'Email service temporarily unavailable. Please download the PDF instead.' 
+        });
+      }
     }
   });
 

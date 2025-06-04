@@ -1279,11 +1279,11 @@ export default function LoadPlanningPage() {
               </Button>
               <Button 
                 onClick={handleSendEmail}
-                disabled={isExporting || !emailAddress.trim()}
+                disabled={isExporting || emailSending || !emailAddress.trim()}
                 className="bg-blue-500 hover:bg-blue-600 text-white"
               >
                 <Mail className="h-4 w-4 mr-2" />
-                {isExporting ? 'Sending...' : 'Send PDF'}
+                {emailSending ? 'Sending...' : isExporting ? 'Preparing...' : 'Send PDF'}
               </Button>
             </div>
           </div>
