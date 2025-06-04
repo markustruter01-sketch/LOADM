@@ -326,7 +326,7 @@ export default function DocumentsPage() {
           </TabsContent>
 
           <TabsContent value="directory" className="mt-6">
-          <div className="space-y-6">
+            <div className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold">Phone Directory</h2>
@@ -688,8 +688,9 @@ export default function DocumentsPage() {
                 )}
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
