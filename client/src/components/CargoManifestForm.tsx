@@ -81,7 +81,7 @@ export function CargoManifestForm() {
     window.print();
   };
 
-  // Handler for saving the form as PDF
+  // Handler for saving the form as PDF with improved formatting
   const handleSave = async () => {
     try {
       const formElement = document.querySelector('.print-document');
@@ -96,7 +96,9 @@ export function CargoManifestForm() {
       const canvas = await html2canvas(formElement as HTMLElement, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        width: formElement.clientWidth,
+        height: formElement.clientHeight
       });
 
       // Show action buttons again
@@ -107,20 +109,57 @@ export function CargoManifestForm() {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
+      // Page dimensions with margins
+      const pageWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const marginTop = 15;
+      const marginBottom = 20;
+      const marginLeft = 10;
+      const marginRight = 10;
+      const contentWidth = pageWidth - marginLeft - marginRight;
+      const contentHeight = pageHeight - marginTop - marginBottom;
+      
+      const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
-      let position = 0;
+      let position = marginTop;
+      let pageNumber = 1;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Add header and page number function
+      const addPageHeader = (pdf: jsPDF, pageNum: number) => {
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text('Australian Defence Force - Cargo Operations', marginLeft, 8);
+        pdf.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - marginRight - 30, 8);
+      };
 
+      const addPageFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text(`Page ${pageNum}`, pageWidth / 2 - 10, pageHeight - 8);
+        pdf.text('PASSENGER/CREW AND CARGO MANIFEST', marginLeft, pageHeight - 8);
+      };
+
+      // Calculate total pages needed
+      const totalPages = Math.ceil(imgHeight / contentHeight);
+
+      // Add first page
+      addPageHeader(pdf, pageNumber);
+      pdf.addImage(imgData, 'PNG', marginLeft, position, imgWidth, imgHeight);
+      addPageFooter(pdf, pageNumber, totalPages);
+      
+      heightLeft -= contentHeight;
+      pageNumber++;
+
+      // Add additional pages if needed
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+        position = marginTop - (imgHeight - heightLeft);
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        addPageHeader(pdf, pageNumber);
+        pdf.addImage(imgData, 'PNG', marginLeft, position, imgWidth, imgHeight);
+        addPageFooter(pdf, pageNumber, totalPages);
+        heightLeft -= contentHeight;
+        pageNumber++;
       }
 
       pdf.save(`Cargo_Manifest_${new Date().toISOString().split('T')[0]}.pdf`);
