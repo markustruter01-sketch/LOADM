@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import express from "express";
 import path from "path";
 import { z } from "zod";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gt, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { 
   licenses, 
@@ -817,6 +817,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error completing onboarding:', error);
       res.status(500).json({ error: "Failed to complete onboarding" });
+    }
+  });
+
+  // Dashboard statistics for Super Admin
+  app.get("/api/licensing/dashboard-stats", requireSuperAdmin, async (req, res) => {
+    try {
+      // Get total licenses
+      const totalLicensesResult = await db.select({ count: sql<number>`count(*)` }).from(licenses);
+      const totalLicenses = totalLicensesResult[0]?.count || 0;
+
+      // Get active licenses (not expired and is_active = true)
+      const activeLicensesResult = await db.select({ count: sql<number>`count(*)` })
+        .from(licenses)
+        .where(and(
+          eq(licenses.isActive, true),
+          gt(licenses.expiryDate, new Date())
+        ));
+      const activeLicenses = activeLicensesResult[0]?.count || 0;
+
+      // Get expired licenses
+      const expiredLicensesResult = await db.select({ count: sql<number>`count(*)` })
+        .from(licenses)
+        .where(lt(licenses.expiryDate, new Date()));
+      const expiredLicenses = expiredLicensesResult[0]?.count || 0;
+
+      // Get licenses expiring in next 30 days
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      
+      const expiringLicensesResult = await db.select({ count: sql<number>`count(*)` })
+        .from(licenses)
+        .where(and(
+          eq(licenses.isActive, true),
+          gt(licenses.expiryDate, new Date()),
+          lt(licenses.expiryDate, thirtyDaysFromNow)
+        ));
+      const expiringLicenses = expiringLicensesResult[0]?.count || 0;
+
+      // Get total users (represents active sessions in our system)
+      const activeSessionsResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const activeSessions = activeSessionsResult[0]?.count || 0;
+
+      // Calculate utilization rate (active licenses / total licenses)
+      const utilizationRate = totalLicenses > 0 ? Math.round((activeLicenses / totalLicenses) * 100) : 0;
+
+      const stats = {
+        totalLicenses,
+        activeLicenses,
+        expiredLicenses,
+        suspendedLicenses: 0, // We don't have suspended licenses in our schema
+        activeSessions,
+        expiringLicenses,
+        utilizationRate
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      res.status(500).json({ error: "Failed to fetch dashboard statistics" });
     }
   });
 
