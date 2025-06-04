@@ -1,0 +1,38 @@
+2
+chunk-6PJ6ZD5Z.js?v=42390f8a:2355 Uncaught RangeError: Invalid time value
+    at EnhancedDocumentCard (EnhancedDocumentCard.tsx:41:25)
+
+2
+chunk-6PJ6ZD5Z.js?v=42390f8a:2355 Uncaught RangeError: Invalid time value
+    at EnhancedDocumentCard (EnhancedDocumentCard.tsx:41:25)
+2
+chunk-RPCDYKBN.js?v=42390f8a:14032 The above error occurred in the <EnhancedDocumentCard> component:
+
+    at EnhancedDocumentCard (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/src/components/EnhancedDocumentCard.tsx:39:48)
+    at div
+    at div
+    at div
+    at https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=42390f8a:42:13
+    at Presence (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-YE5GEEUL.js?v=42390f8a:24:11)
+    at https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…orkspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=42390f8a:175:13
+    at _c5 (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=42390f8a:42:13
+    at Provider (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=42390f8a:38:15)
+    at https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=42390f8a:53:7
+    at div
+    at DocumentsPage (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/src/pages/documents-page-minimal.tsx:33:23)
+    at Route (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=42390f8a:323:16)
+    at Switch (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=42390f8a:379:17)
+    at main
+    at div
+    at QueryClientProvider (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=42390f8a:2805:3)
+    at AuthenticatedApp (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/src/App.tsx?v=Ff4kag2KqguVNdwO6cDjw:81:20)
+    at AppContent (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/src/App.tsx?v=Ff4kag2KqguVNdwO6cDjw:388:31)
+    at IsolatedAuthProvider (https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/src/auth-isolated/auth-context.tsx:20:40)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-RPCDYKBN.js?v=42390f8a:9129 Uncaught RangeError: Invalid time value
+    at EnhancedDocumentCard (EnhancedDocumentCard.tsx:41:25)

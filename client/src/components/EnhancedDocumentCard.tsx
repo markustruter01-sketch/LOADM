@@ -38,9 +38,11 @@ interface EnhancedDocumentCardProps {
 export default function EnhancedDocumentCard({ document, onOpenForm }: EnhancedDocumentCardProps) {
   const [, navigate] = useLocation();
   
-  const formattedDate = formatDistanceToNow(document.lastUpdated, {
-    addSuffix: true,
-  });
+  const formattedDate = document.lastUpdated 
+    ? formatDistanceToNow(new Date(document.lastUpdated), {
+        addSuffix: true,
+      })
+    : 'Recently';
 
   // Form route mapping
   const getFormRoute = (title: string): string => {
