@@ -1,9 +1,8 @@
-import { CargoManifestForm } from "@/components/CargoManifestForm";
 import DocumentMenu from "@/components/DocumentMenu";
 import { Helmet } from "react-helmet";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, FileText, Download, Share, Printer } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function DocumentsPage() {
@@ -87,7 +86,25 @@ export default function DocumentsPage() {
         <div className="max-w-4xl mx-auto bg-card p-6 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-6">Passenger/Crew and Cargo Manifest</h2>
           <p className="text-muted-foreground mb-4">Generate and complete detailed cargo manifests for all shipments.</p>
-          <CargoManifestForm />
+          <div className="min-h-[300px] bg-white rounded-lg border p-8 flex items-center justify-center">
+            <div className="text-center">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-700 mb-4">PDF Document Ready</h3>
+              <p className="text-muted-foreground mb-6">
+                This document will display the stored PDF template when available.
+              </p>
+              <div className="flex justify-center space-x-4">
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download PDF
+                </Button>
+                <Button variant="outline">
+                  <Share className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
