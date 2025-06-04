@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Download, Mail, FileText } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Download, Mail, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ export default function DocumentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedDirectories, setExpandedDirectories] = useState<Set<number>>(new Set());
   const [isPhoneFormOpen, setIsPhoneFormOpen] = useState(false);
+  const [viewingPDF, setViewingPDF] = useState<{ id: number; title: string } | null>(null);
   const [newEntry, setNewEntry] = useState({
     airbaseCode: "",
     airbaseName: "",
@@ -48,10 +49,13 @@ export default function DocumentsPage() {
   console.log("PDF Documents data:", pdfDocuments);
   console.log("PDF Documents length:", pdfDocuments.length);
 
-  // Simple PDF handler - opens PDF directly in new tab
+  // PDF handler - shows PDF in current window with viewer
   const handleOpenPDF = (documentId: number) => {
     console.log("Opening PDF document ID:", documentId);
-    window.open(`/pdf-stream/${documentId}`, '_blank');
+    const doc = pdfDocuments.find((d: any) => d.id === documentId);
+    if (doc) {
+      setViewingPDF({ id: documentId, title: doc.title });
+    }
   };
 
   // Phone directory handlers
@@ -174,7 +178,7 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <Helmet>
         <title>Documents & Directory | LOADMaster</title>
         <meta name="description" content="Access important documents and contact directory for military operations" />
