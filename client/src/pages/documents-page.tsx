@@ -1,14 +1,11 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Document } from "@shared/schema";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import DocumentCard from "@/components/DocumentCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -30,435 +27,553 @@ interface DirectoryEntry {
 }
 
 export default function DocumentsPage() {
-  const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
-  
-  // Documents state
-  const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
-    queryKey: ["/api/documents"],
-  });
-
-  // Phone Directory state
-  const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
+  const [, setLocation] = useLocation();
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
   const [expandedAirfields, setExpandedAirfields] = useState<Set<number>>(new Set());
-  const [newEntry, setNewEntry] = useState({
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [isAddingContact, setIsAddingContact] = useState<number | null>(null);
+  const [newEntryData, setNewEntryData] = useState({
     airbaseCode: "",
     airbaseName: "",
-    contacts: [] as Contact[]
+  });
+  const [newContactData, setNewContactData] = useState({
+    name: "",
+    phoneNumber: "",
+    description: "",
   });
 
-  // Helper function to toggle airfield expansion
-  const toggleAirfieldExpansion = (id: number) => {
-    const newExpanded = new Set(expandedAirfields);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedAirfields(newExpanded);
-  };
+  const queryClient = useQueryClient();
 
-  const { data: directories = [], isLoading: directoryLoading, error: directoryError } = useQuery<DirectoryEntry[]>({
+  const {
+    data: directories = [],
+    isLoading: directoryLoading,
+    error: directoryError,
+  } = useQuery({
     queryKey: ["/api/phone-directory"],
-    select: (data: any[]) => {
-      console.log("Phone directory raw data:", data);
-      return data.map(entry => ({
-        ...entry,
-        contacts: typeof entry.contacts === 'string' ? JSON.parse(entry.contacts) : entry.contacts
-      }));
-    }
   });
 
-  console.log("Phone directory directories:", directories);
-  console.log("Phone directory loading:", directoryLoading);
-  console.log("Phone directory error:", directoryError);
-
-  const createMutation = useMutation({
-    mutationFn: (data: typeof newEntry) => apiRequest("/api/phone-directory", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  const createDirectoryMutation = useMutation({
+    mutationFn: async (data: { airbaseCode: string; airbaseName: string }) => {
+      const response = await apiRequest("/api/phone-directory", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      });
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
       setIsAddingNew(false);
-      setNewEntry({ airbaseCode: "", airbaseName: "", contacts: [] });
+      setNewEntryData({ airbaseCode: "", airbaseName: "" });
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (data: { id: number; entry: Omit<DirectoryEntry, 'id' | 'createdAt' | 'updatedAt'> }) =>
-      apiRequest(`/api/phone-directory/${data.id}`, {
-        method: "PUT",
-        body: JSON.stringify(data.entry),
-      }),
+  const updateDirectoryMutation = useMutation({
+    mutationFn: async (data: DirectoryEntry) => {
+      const response = await apiRequest(`/api/phone-directory/${data.id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      });
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
       setEditingEntry(null);
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) =>
-      apiRequest(`/api/phone-directory/${id}`, {
+  const deleteDirectoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest(`/api/phone-directory/${id}`, {
         method: "DELETE",
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
     },
   });
 
-  const addContact = (entryData: typeof newEntry | DirectoryEntry, setData: any) => {
+  const addContactMutation = useMutation({
+    mutationFn: async ({ entryId, contact }: { entryId: number; contact: Contact }) => {
+      const entry = directories.find((d: DirectoryEntry) => d.id === entryId);
+      if (!entry) throw new Error("Directory entry not found");
+      
+      const updatedEntry = {
+        ...entry,
+        contacts: [...entry.contacts, contact],
+      };
+      
+      await apiRequest(`/api/phone-directory/${entryId}`, {
+        method: "PATCH",
+        body: JSON.stringify(updatedEntry),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+      setIsAddingContact(null);
+      setNewContactData({ name: "", phoneNumber: "", description: "" });
+    },
+  });
+
+  const updateContactMutation = useMutation({
+    mutationFn: async ({ entryId, contact }: { entryId: number; contact: Contact }) => {
+      const entry = directories.find((d: DirectoryEntry) => d.id === entryId);
+      if (!entry) throw new Error("Directory entry not found");
+      
+      const updatedEntry = {
+        ...entry,
+        contacts: entry.contacts.map((c: Contact) => 
+          c.id === contact.id ? contact : c
+        ),
+      };
+      
+      await apiRequest(`/api/phone-directory/${entryId}`, {
+        method: "PATCH",
+        body: JSON.stringify(updatedEntry),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+      setEditingContact(null);
+    },
+  });
+
+  const deleteContactMutation = useMutation({
+    mutationFn: async ({ entryId, contactId }: { entryId: number; contactId: string }) => {
+      const entry = directories.find((d: DirectoryEntry) => d.id === entryId);
+      if (!entry) throw new Error("Directory entry not found");
+      
+      const updatedEntry = {
+        ...entry,
+        contacts: entry.contacts.filter((contact: Contact) => contact.id !== contactId),
+      };
+      
+      await apiRequest(`/api/phone-directory/${entryId}`, {
+        method: "PATCH",
+        body: JSON.stringify(updatedEntry),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+    },
+  });
+
+  const handleToggleExpanded = (entryId: number) => {
+    const newExpanded = new Set(expandedAirfields);
+    if (newExpanded.has(entryId)) {
+      newExpanded.delete(entryId);
+    } else {
+      newExpanded.add(entryId);
+    }
+    setExpandedAirfields(newExpanded);
+  };
+
+  const handleAddContact = (entryId: number) => {
     const newContact: Contact = {
       id: Date.now().toString(),
-      name: "",
-      phoneNumber: "",
-      description: ""
+      name: newContactData.name,
+      phoneNumber: newContactData.phoneNumber,
+      description: newContactData.description,
     };
-    setData((prev: any) => ({
-      ...prev,
-      contacts: [...prev.contacts, newContact]
-    }));
+    
+    addContactMutation.mutate({ entryId, contact: newContact });
   };
 
-  const updateContact = (entryData: typeof newEntry | DirectoryEntry, setData: any, contactId: string, field: keyof Contact, value: string) => {
-    setData((prev: any) => ({
-      ...prev,
-      contacts: prev.contacts.map((contact: Contact) =>
-        contact.id === contactId ? { ...contact, [field]: value } : contact
-      )
-    }));
+  const handleUpdateContact = (entryId: number, contact: Contact) => {
+    updateContactMutation.mutate({ entryId, contact });
   };
 
-  const removeContact = (entryData: typeof newEntry | DirectoryEntry, setData: any, contactId: string) => {
-    setData((prev: any) => ({
-      ...prev,
-      contacts: prev.contacts.filter((contact: Contact) => contact.id !== contactId)
-    }));
-  };
-
-  const handleSaveNew = () => {
-    if (newEntry.airbaseCode && newEntry.airbaseName) {
-      createMutation.mutate(newEntry);
-    }
-  };
-
-  const handleSaveEdit = () => {
-    if (editingEntry) {
-      updateMutation.mutate({
-        id: editingEntry.id,
-        entry: {
-          airbaseCode: editingEntry.airbaseCode,
-          airbaseName: editingEntry.airbaseName,
-          contacts: editingEntry.contacts
-        }
-      });
-    }
+  const handleDeleteContact = (entryId: number, contactId: string) => {
+    deleteContactMutation.mutate({ entryId, contactId });
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
       <Helmet>
-        <title>Documents & Directory - LOADMworkflow</title>
-        <meta 
-          name="description" 
-          content="Browse document templates and manage airbase phone directory for loadmaster operations." 
-        />
+        <title>Phone Directory | LOADM</title>
+        <meta name="description" content="Access airbase contact information" />
       </Helmet>
-
-      <div className="container mx-auto px-4 py-6 mb-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Back Button */}
-          <div className="mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              className="p-2 -ml-2"
+      
+      <div className="absolute inset-0 bg-black/20" />
+      
+      <div className="relative z-10">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setLocation("/")}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
-              <ArrowLeft className="h-5 w-5 mr-1" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Home
             </Button>
           </div>
           
           {/* Header Section */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground">Documents & Directory</h1>
+            <h1 className="text-3xl font-bold text-foreground">Phone Directory</h1>
             <p className="text-muted-foreground mt-2">
-              Access document templates and airbase contact information
+              Access airbase contact information
             </p>
           </div>
-
-          {/* Tabs */}
-          <Tabs defaultValue="documents" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="documents" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Documents
-              </TabsTrigger>
-              <TabsTrigger value="directory" className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                Phone Directory
-              </TabsTrigger>
-            </TabsList>
-            
-            {/* Documents Tab */}
-            <TabsContent value="documents" className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <DocumentCard
-                  document={{
-                    id: "1",
-                    title: "Load Planning Form",
-                    description: "Complete detailed load planning documentation for cargo aircraft operations.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
-                  }}
-                />
-                
-                <DocumentCard
-                  document={{
-                    id: "2",
-                    title: "Passenger/Crew and Cargo Manifest",
-                    description: "Generate and complete detailed cargo manifests for all shipments.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
-                  }}
-                />
-                
-                <DocumentCard
-                  document={{
-                    id: "3",
-                    title: "Dangerous Goods Declaration",
-                    description: "Complete DG documentation for hazardous materials transportation.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
-                  }}
-                />
-                
-                <DocumentCard
-                  document={{
-                    id: "4",
-                    title: "Weight & Balance Sheet",
-                    description: "Calculate and document aircraft weight distribution and balance.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
-                  }}
-                />
-                
-                <DocumentCard
-                  document={{
-                    id: "5",
-                    title: "Special Handling Form",
-                    description: "Document special handling requirements for unusual cargo types or sensitive items.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
-                  }}
-                />
-                
-                <DocumentCard
-                  document={{
-                    id: "6",
-                    title: "Aircraft Tie-Down Diagram",
-                    description: "Detailed cargo restraint planning diagram with tie-down points and calculations.",
-                    lastUpdated: new Date().toISOString(),
-                    type: "Form"
-                  }}
-                />
+          
+          {/* Phone Directory Content */}
+          <div className="mt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">Phone Directory</h2>
+                  <p className="text-muted-foreground">Airbase contact information organized by location codes</p>
+                </div>
+                <Button onClick={() => setIsAddingNew(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Airbase
+                </Button>
               </div>
-            </TabsContent>
-            
-            {/* Phone Directory Tab */}
-            <TabsContent value="directory" className="mt-6">
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-2xl font-bold">Phone Directory</h2>
-                    <p className="text-muted-foreground">Airbase contact information organized by location codes</p>
-                  </div>
+
+              {directoryLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : directoryError ? (
+                <div className="text-center py-12">
+                  <p className="text-red-500">Error loading phone directory</p>
+                </div>
+              ) : directories.length === 0 ? (
+                <div className="text-center py-12">
+                  <Phone className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No airbases found</h3>
+                  <p className="text-muted-foreground mb-4">Add your first airbase directory to get started</p>
                   <Button onClick={() => setIsAddingNew(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Airbase
                   </Button>
                 </div>
-
-                {directoryLoading ? (
-                  <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : directoryError ? (
-                  <div className="text-center py-12">
-                    <p className="text-red-500">Error loading phone directory</p>
-                  </div>
-                ) : directories.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Phone className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium text-muted-foreground mb-2">No airbases found</h3>
-                    <p className="text-muted-foreground mb-4">Add your first airbase directory to get started</p>
-                    <Button onClick={() => setIsAddingNew(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Airbase
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {directories.map((entry) => {
-                      const isExpanded = expandedAirfields.has(entry.id);
-                      return (
-                        <Card key={entry.id} className="hover:shadow-lg transition-shadow">
-                          <CardHeader className="pb-3">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleAirfieldExpansion(entry.id)}
-                                    className="p-1 h-auto"
-                                  >
-                                    {isExpanded ? (
-                                      <ChevronDown className="w-4 h-4" />
-                                    ) : (
-                                      <ChevronRight className="w-4 h-4" />
-                                    )}
-                                  </Button>
-                                  <div>
-                                    <CardTitle className="text-lg">{entry.airbaseCode}</CardTitle>
-                                    <p className="text-sm text-muted-foreground">{entry.airbaseName}</p>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {directories.map((entry: DirectoryEntry) => {
+                    const isExpanded = expandedAirfields.has(entry.id);
+                    return (
+                      <Card key={entry.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
                                 <Button
-                                  variant="outline"
+                                  variant="ghost"
                                   size="sm"
-                                  onClick={() => setEditingEntry(entry)}
+                                  onClick={() => handleToggleExpanded(entry.id)}
+                                  className="p-1 h-6 w-6"
                                 >
-                                  <Edit2 className="w-4 h-4" />
+                                  {isExpanded ? (
+                                    <ChevronDown className="w-4 h-4" />
+                                  ) : (
+                                    <ChevronRight className="w-4 h-4" />
+                                  )}
                                 </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => deleteMutation.mutate(entry.id)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <CardTitle className="text-lg">
+                                  {entry.airbaseCode} - {entry.airbaseName}
+                                </CardTitle>
                               </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {entry.contacts.length} contact{entry.contacts.length !== 1 ? 's' : ''}
+                              </p>
                             </div>
-                          </CardHeader>
-                          {isExpanded && (
-                            <CardContent>
-                              <div className="space-y-3">
-                                {entry.contacts.map((contact) => (
-                                  <div key={contact.id} className="border-l-4 border-primary pl-4 py-2">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h4 className="font-medium">{contact.name}</h4>
-                                        <p className="text-sm text-muted-foreground">{contact.description}</p>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="font-mono text-sm">{contact.phoneNumber}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </CardContent>
-                          )}
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Add New Directory Entry Dialog */}
-                <Dialog open={isAddingNew} onOpenChange={setIsAddingNew}>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Add New Airbase Directory</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="airbaseCode">Airbase Code</Label>
-                          <Input
-                            id="airbaseCode"
-                            placeholder="e.g., BNE"
-                            value={newEntry.airbaseCode}
-                            onChange={(e) => setNewEntry(prev => ({ ...prev, airbaseCode: e.target.value.toUpperCase() }))}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="airbaseName">Airbase Name</Label>
-                          <Input
-                            id="airbaseName"
-                            placeholder="e.g., Brisbane"
-                            value={newEntry.airbaseName}
-                            onChange={(e) => setNewEntry(prev => ({ ...prev, airbaseName: e.target.value }))}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <Label>Contacts</Label>
-                          <Button
-                            type="button"
-                            onClick={() => addContact(newEntry, setNewEntry)}
-                            size="sm"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Contact
-                          </Button>
-                        </div>
-
-                        {newEntry.contacts.map((contact) => (
-                          <div key={contact.id} className="border rounded-lg p-4 space-y-3">
-                            <div className="flex justify-end">
+                            <div className="flex gap-2">
                               <Button
-                                type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                onClick={() => removeContact(newEntry, setNewEntry, contact.id)}
+                                onClick={() => setEditingEntry(entry)}
                               >
-                                <X className="w-4 h-4" />
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deleteDirectoryMutation.mutate(entry.id)}
+                                className="text-red-600 border-red-200 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <Label>Name</Label>
-                                <Input
-                                  placeholder="e.g., Control Tower"
-                                  value={contact.name}
-                                  onChange={(e) => updateContact(newEntry, setNewEntry, contact.id, 'name', e.target.value)}
-                                />
-                              </div>
-                              <div>
-                                <Label>Phone Number</Label>
-                                <Input
-                                  placeholder="e.g., +61-7-3000-1234"
-                                  value={contact.phoneNumber}
-                                  onChange={(e) => updateContact(newEntry, setNewEntry, contact.id, 'phoneNumber', e.target.value)}
-                                />
-                              </div>
-                              <div>
-                                <Label>Description</Label>
-                                <Input
-                                  placeholder="e.g., Air traffic control"
-                                  value={contact.description}
-                                  onChange={(e) => updateContact(newEntry, setNewEntry, contact.id, 'description', e.target.value)}
-                                />
-                              </div>
-                            </div>
                           </div>
-                        ))}
-                      </div>
+                        </CardHeader>
 
-                      <div className="flex justify-end gap-2 pt-4">
-                        <Button variant="outline" onClick={() => setIsAddingNew(false)}>
+                        {isExpanded && (
+                          <CardContent>
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <h4 className="font-medium">Contacts</h4>
+                                <Button
+                                  size="sm"
+                                  onClick={() => setIsAddingContact(entry.id)}
+                                >
+                                  <Plus className="w-3 h-3 mr-1" />
+                                  Add Contact
+                                </Button>
+                              </div>
+                              
+                              {entry.contacts.length === 0 ? (
+                                <p className="text-muted-foreground text-sm">No contacts available</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {entry.contacts.map((contact: Contact) => (
+                                    <div
+                                      key={contact.id}
+                                      className="flex justify-between items-start p-3 bg-muted/50 rounded-lg"
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium">{contact.name}</div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {contact.phoneNumber}
+                                        </div>
+                                        {contact.description && (
+                                          <div className="text-sm text-muted-foreground mt-1">
+                                            {contact.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => setEditingContact(contact)}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <Edit2 className="w-3 h-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleDeleteContact(entry.id, contact.id)}
+                                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {isAddingContact === entry.id && (
+                                <div className="border rounded-lg p-4 bg-background">
+                                  <h5 className="font-medium mb-3">Add New Contact</h5>
+                                  <div className="space-y-3">
+                                    <div>
+                                      <Label htmlFor="contact-name">Name</Label>
+                                      <Input
+                                        id="contact-name"
+                                        value={newContactData.name}
+                                        onChange={(e) =>
+                                          setNewContactData(prev => ({ ...prev, name: e.target.value }))
+                                        }
+                                        placeholder="Contact name"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="contact-phone">Phone Number</Label>
+                                      <Input
+                                        id="contact-phone"
+                                        value={newContactData.phoneNumber}
+                                        onChange={(e) =>
+                                          setNewContactData(prev => ({ ...prev, phoneNumber: e.target.value }))
+                                        }
+                                        placeholder="Phone number"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label htmlFor="contact-description">Description</Label>
+                                      <Input
+                                        id="contact-description"
+                                        value={newContactData.description}
+                                        onChange={(e) =>
+                                          setNewContactData(prev => ({ ...prev, description: e.target.value }))
+                                        }
+                                        placeholder="Role or department"
+                                      />
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        onClick={() => handleAddContact(entry.id)}
+                                        disabled={!newContactData.name || !newContactData.phoneNumber}
+                                      >
+                                        <Save className="w-4 h-4 mr-2" />
+                                        Save Contact
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                          setIsAddingContact(null);
+                                          setNewContactData({ name: "", phoneNumber: "", description: "" });
+                                        }}
+                                      >
+                                        <X className="w-4 h-4 mr-2" />
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add New Directory Dialog */}
+              <Dialog open={isAddingNew} onOpenChange={setIsAddingNew}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Airbase Directory</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="airbase-code">Airbase Code</Label>
+                      <Input
+                        id="airbase-code"
+                        value={newEntryData.airbaseCode}
+                        onChange={(e) =>
+                          setNewEntryData(prev => ({ ...prev, airbaseCode: e.target.value }))
+                        }
+                        placeholder="e.g., RAAF"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="airbase-name">Airbase Name</Label>
+                      <Input
+                        id="airbase-name"
+                        value={newEntryData.airbaseName}
+                        onChange={(e) =>
+                          setNewEntryData(prev => ({ ...prev, airbaseName: e.target.value }))
+                        }
+                        placeholder="e.g., RAAF Base Amberley"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsAddingNew(false);
+                          setNewEntryData({ airbaseCode: "", airbaseName: "" });
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => createDirectoryMutation.mutate(newEntryData)}
+                        disabled={!newEntryData.airbaseCode || !newEntryData.airbaseName}
+                      >
+                        Add Airbase
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Directory Dialog */}
+              <Dialog open={editingEntry !== null} onOpenChange={() => setEditingEntry(null)}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Airbase Directory</DialogTitle>
+                  </DialogHeader>
+                  {editingEntry && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-airbase-code">Airbase Code</Label>
+                        <Input
+                          id="edit-airbase-code"
+                          value={editingEntry.airbaseCode}
+                          onChange={(e) =>
+                            setEditingEntry(prev => prev ? ({ ...prev, airbaseCode: e.target.value }) : null)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-airbase-name">Airbase Name</Label>
+                        <Input
+                          id="edit-airbase-name"
+                          value={editingEntry.airbaseName}
+                          onChange={(e) =>
+                            setEditingEntry(prev => prev ? ({ ...prev, airbaseName: e.target.value }) : null)
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setEditingEntry(null)}>
                           Cancel
                         </Button>
-                        <Button onClick={handleSaveNew} disabled={createMutation.isPending}>
-                          {createMutation.isPending ? (
+                        <Button onClick={() => updateDirectoryMutation.mutate(editingEntry)}>
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Contact Dialog */}
+              <Dialog open={editingContact !== null} onOpenChange={() => setEditingContact(null)}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Contact</DialogTitle>
+                  </DialogHeader>
+                  {editingContact && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-contact-name">Name</Label>
+                        <Input
+                          id="edit-contact-name"
+                          value={editingContact.name}
+                          onChange={(e) =>
+                            setEditingContact(prev => prev ? ({ ...prev, name: e.target.value }) : null)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-contact-phone">Phone Number</Label>
+                        <Input
+                          id="edit-contact-phone"
+                          value={editingContact.phoneNumber}
+                          onChange={(e) =>
+                            setEditingContact(prev => prev ? ({ ...prev, phoneNumber: e.target.value }) : null)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-contact-description">Description</Label>
+                        <Input
+                          id="edit-contact-description"
+                          value={editingContact.description}
+                          onChange={(e) =>
+                            setEditingContact(prev => prev ? ({ ...prev, description: e.target.value }) : null)
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setEditingContact(null)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            const entryId = directories.find((d: DirectoryEntry) => 
+                              d.contacts.some((c: Contact) => c.id === editingContact.id)
+                            )?.id;
+                            if (entryId) {
+                              handleUpdateContact(entryId, editingContact);
+                            }
+                          }}
+                        >
+                          {updateContactMutation.isPending ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                               Saving...
@@ -466,119 +581,17 @@ export default function DocumentsPage() {
                           ) : (
                             <>
                               <Save className="w-4 h-4 mr-2" />
-                              Save Directory
+                              Save Changes
                             </>
                           )}
                         </Button>
                       </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-
-                {/* Edit Directory Entry Dialog */}
-                <Dialog open={!!editingEntry} onOpenChange={() => setEditingEntry(null)}>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Edit Airbase Directory</DialogTitle>
-                    </DialogHeader>
-                    {editingEntry && (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="editAirbaseCode">Airbase Code</Label>
-                            <Input
-                              id="editAirbaseCode"
-                              value={editingEntry.airbaseCode}
-                              onChange={(e) => setEditingEntry(prev => prev ? ({ ...prev, airbaseCode: e.target.value.toUpperCase() }) : null)}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="editAirbaseName">Airbase Name</Label>
-                            <Input
-                              id="editAirbaseName"
-                              value={editingEntry.airbaseName}
-                              onChange={(e) => setEditingEntry(prev => prev ? ({ ...prev, airbaseName: e.target.value }) : null)}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <Label>Contacts</Label>
-                            <Button
-                              type="button"
-                              onClick={() => addContact(editingEntry, setEditingEntry)}
-                              size="sm"
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Add Contact
-                            </Button>
-                          </div>
-
-                          {editingEntry.contacts.map((contact) => (
-                            <div key={contact.id} className="border rounded-lg p-4 space-y-3">
-                              <div className="flex justify-end">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeContact(editingEntry, setEditingEntry, contact.id)}
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                  <Label>Name</Label>
-                                  <Input
-                                    value={contact.name}
-                                    onChange={(e) => updateContact(editingEntry, setEditingEntry, contact.id, 'name', e.target.value)}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Phone Number</Label>
-                                  <Input
-                                    value={contact.phoneNumber}
-                                    onChange={(e) => updateContact(editingEntry, setEditingEntry, contact.id, 'phoneNumber', e.target.value)}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Description</Label>
-                                  <Input
-                                    value={contact.description}
-                                    onChange={(e) => updateContact(editingEntry, setEditingEntry, contact.id, 'description', e.target.value)}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-4">
-                          <Button variant="outline" onClick={() => setEditingEntry(null)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleSaveEdit} disabled={updateMutation.isPending}>
-                            {updateMutation.isPending ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Saving...
-                              </>
-                            ) : (
-                              <>
-                                <Save className="w-4 h-4 mr-2" />
-                                Save Changes
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </TabsContent>
-          </Tabs>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
         </div>
       </div>
     </div>

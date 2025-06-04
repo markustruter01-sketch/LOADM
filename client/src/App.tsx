@@ -13,7 +13,6 @@ import ScenariosPage from "@/pages/scenarios-page";
 import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
 import LoadPlanningPage from "@/pages/load-planning-page";
 import DocumentsPage from "@/pages/documents-page";
-import CargoManifestPage from "@/pages/cargo-manifest-page";
 import UserProfile from "@/pages/user-profile";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
@@ -90,7 +89,6 @@ function AuthenticatedApp() {
             </Route>
 
             <Route path="/documents" component={DocumentsPage} />
-            <Route path="/cargo-manifest" component={CargoManifestPage} />
 
             <Route path="/tools" component={ToolsPage} />
             <Route path="/tools/restraint-calculator" component={RestraintCalculatorPage} />
