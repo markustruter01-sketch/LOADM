@@ -33,7 +33,7 @@ const tourSteps: TourStep[] = [
     id: 'load-planning',
     title: 'Load Planning',
     description: 'Create and manage aircraft load plans. Select different aircraft types and calculate center of gravity for safe operations.',
-    targetSelector: '[data-tour="load-planning"], .load-planning-card',
+    targetSelector: '.load-planning',
     position: 'top',
     action: 'Click here to explore load planning'
   },
@@ -41,15 +41,23 @@ const tourSteps: TourStep[] = [
     id: 'documents',
     title: 'Documents & Resources',
     description: 'Access PDF documents, forms, and the phone directory for airbase contacts. View documents in popup modals.',
-    targetSelector: '[data-tour="documents"], .documents-card',
+    targetSelector: '.documents-section',
     position: 'top',
     action: 'Click here to view documents'
+  },
+  {
+    id: 'training',
+    title: 'Training Modules',
+    description: 'Complete structured learning modules and track your progress through various training scenarios.',
+    targetSelector: '.training-modules',
+    position: 'top',
+    action: 'Click here to start training'
   },
   {
     id: 'tools',
     title: 'Calculation Tools',
     description: 'Use specialized calculators for WAM, restraint calculations, fuel planning, and PSI calculations.',
-    targetSelector: '[data-tour="tools"], .tools-card',
+    targetSelector: '.tools-section',
     position: 'top',
     action: 'Click here to access tools'
   },
@@ -80,21 +88,32 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
   const calculatePosition = () => {
     if (!currentTourStep.targetSelector) {
       // Center position for welcome/complete steps
-      setTooltipPosition({ top: 50, left: 50 });
+      setTooltipPosition({ top: window.innerHeight / 2, left: window.innerWidth / 2 });
       setOverlayStyle({});
       return;
     }
 
-    const targetElement = document.querySelector(currentTourStep.targetSelector);
+    // Try multiple selectors to find the target element
+    const selectors = currentTourStep.targetSelector.split(', ');
+    let targetElement = null;
+    
+    for (const selector of selectors) {
+      targetElement = document.querySelector(selector.trim());
+      if (targetElement) break;
+    }
+
     if (!targetElement) {
       // Fallback to center if element not found
-      setTooltipPosition({ top: 50, left: 50 });
+      setTooltipPosition({ top: window.innerHeight / 2, left: window.innerWidth / 2 });
       setOverlayStyle({});
       return;
     }
 
     const rect = targetElement.getBoundingClientRect();
     const tooltipRect = tooltipRef.current?.getBoundingClientRect();
+    
+    // Scroll element into view
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     
     let top = 0;
     let left = 0;
@@ -135,9 +154,16 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
 
   useEffect(() => {
     if (isVisible) {
-      calculatePosition();
+      // Add a delay to ensure DOM elements are ready
+      const timer = setTimeout(() => {
+        calculatePosition();
+      }, 100);
+      
       window.addEventListener('resize', calculatePosition);
-      return () => window.removeEventListener('resize', calculatePosition);
+      return () => {
+        window.removeEventListener('resize', calculatePosition);
+        clearTimeout(timer);
+      };
     }
   }, [currentStep, isVisible]);
 

@@ -77,7 +77,7 @@ function AuthenticatedApp() {
   
   // Check if user needs onboarding after first login password change
   useEffect(() => {
-    if (user && !user.isFirstLogin && !user.hasCompletedOnboarding) {
+    if (user && !user.isFirstLogin && user.hasCompletedOnboarding === false) {
       setShowOnboarding(true);
     }
   }, [user]);
