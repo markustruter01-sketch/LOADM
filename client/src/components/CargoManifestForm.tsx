@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Save, ArrowLeft, Printer } from "lucide-react";
 import { Helmet } from "react-helmet";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Cargo manifest form that looks like the PDF template from 25229.pdf
 export function CargoManifestForm() {
@@ -79,19 +81,53 @@ export function CargoManifestForm() {
     window.print();
   };
 
-  // Handler for saving the form
-  const handleSave = () => {
-    const formContent = generateFormContent();
-    const blob = new Blob([formContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Cargo_Manifest_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  // Handler for saving the form as PDF
+  const handleSave = async () => {
+    try {
+      const formElement = document.querySelector('.print-document');
+      if (!formElement) return;
+
+      // Hide action buttons during capture
+      const actionButtons = document.querySelectorAll('.no-print');
+      actionButtons.forEach(button => {
+        (button as HTMLElement).style.display = 'none';
+      });
+
+      const canvas = await html2canvas(formElement as HTMLElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      // Show action buttons again
+      actionButtons.forEach(button => {
+        (button as HTMLElement).style.display = '';
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Cargo_Manifest_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
   };
 
   // Generate form content for saving

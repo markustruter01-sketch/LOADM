@@ -11,6 +11,7 @@ import {
   FileText,
   MoreHorizontal
 } from "lucide-react";
+import jsPDF from 'jspdf';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,19 +112,25 @@ Australian Defence Force - Cargo Operations
     window.open(mailtoLink, '_blank');
   };
 
-  // Handle download to device
+  // Handle download to device as PDF
   const handleDownload = () => {
+    const pdf = new jsPDF();
     const content = generateDocumentContent();
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
     
-    const link = window.document.createElement('a');
-    link.href = url;
-    link.download = `${document.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Split content into lines for PDF formatting
+    const lines = pdf.splitTextToSize(content, 180);
+    let y = 20;
+    
+    lines.forEach((line: string) => {
+      if (y > 280) { // Start new page if near bottom
+        pdf.addPage();
+        y = 20;
+      }
+      pdf.text(line, 15, y);
+      y += 7;
+    });
+    
+    pdf.save(`${document.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   // Handle native sharing (includes AirDrop on iOS/macOS)
