@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { PDFDocument, DocumentCardProps } from "@/types/pdf-document";
 
@@ -64,6 +64,15 @@ export default function PDFDocumentCard({ document, onOpenDocument }: DocumentCa
           </div>
           
           <div className="flex items-center gap-1">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleOpenDocument}
+              className="h-8 px-2"
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              Open
+            </Button>
             <Button
               variant="outline"
               size="sm"

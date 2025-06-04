@@ -163,30 +163,30 @@ export default function PhoneDirectory() {
                     </div>
                     
                     <div className="space-y-2 text-sm">
-                      <div className="font-medium text-gray-700">
+                      <div className="font-medium text-white">
                         {contact.position}
                       </div>
-                      <div className="text-gray-600">
+                      <div className="text-gray-200">
                         {contact.department}
                       </div>
                     </div>
                     
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline">
+                        <Phone className="h-4 w-4 text-gray-300" />
+                        <a href={`tel:${contact.phone}`} className="text-blue-400 hover:underline">
                           {contact.phone}
                         </a>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                        <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline">
+                        <Mail className="h-4 w-4 text-gray-300" />
+                        <a href={`mailto:${contact.email}`} className="text-blue-400 hover:underline">
                           {contact.email}
                         </a>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-600">{contact.airbaseName}</span>
+                        <MapPin className="h-4 w-4 text-gray-300" />
+                        <span className="text-gray-200">{contact.airbaseName}</span>
                       </div>
                     </div>
                   </div>
