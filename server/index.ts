@@ -63,7 +63,7 @@ app.get("/api/pdf-documents", async (req, res) => {
       type: doc.type,
       description: doc.description || `${doc.title} - Australian Defence Force Document`,
       lastUpdated: doc.updatedAt,
-      pdfData: doc.content // Map database 'content' field to frontend 'pdfData' field
+      pdfData: doc.pdfData // Use correct schema property name
     }));
     
     console.log("NUCLEAR: PDF documents transformed:", transformedDocs.map(doc => ({ 
