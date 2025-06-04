@@ -159,6 +159,7 @@ export default function DocumentsPage() {
   };
 
   // PDF generation for phone directory
+
   const generatePhoneDirectoryPDF = async () => {
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
