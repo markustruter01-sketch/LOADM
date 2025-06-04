@@ -78,7 +78,7 @@ router.post('/logout', (req, res) => {
 });
 
 // ISOLATED USER CHECK - Works independently
-router.get('/user', (req, res) => {
+router.get('/user', async (req, res) => {
   try {
     console.log('✅ ISOLATED: User check request');
     const sessionId = req.cookies?.sessionId;
@@ -95,11 +95,37 @@ router.get('/user', (req, res) => {
       return res.status(401).json({ error: 'Invalid session' });
     }
     
+    // Fetch user details from database including onboarding fields
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    const userResult = await sql`
+      SELECT 
+        id,
+        email,
+        is_first_login as "isFirstLogin",
+        has_completed_onboarding as "hasCompletedOnboarding"
+      FROM users 
+      WHERE id = ${session.userId}
+      LIMIT 1
+    `;
+    
+    if (userResult.length === 0) {
+      console.log('✅ ISOLATED: User not found in database');
+      return res.status(401).json({ error: 'User not found' });
+    }
+    
+    const user = userResult[0];
+    
     console.log(`✅ ISOLATED: User check SUCCESS for ${session.email}`);
+    console.log(`✅ ISOLATED: User onboarding status - isFirstLogin: ${user.isFirstLogin}, hasCompletedOnboarding: ${user.hasCompletedOnboarding}`);
+    
     res.json({
-      id: session.userId,
+      id: user.id,
       email: session.email,
-      role: session.role
+      role: session.role,
+      isFirstLogin: user.isFirstLogin,
+      hasCompletedOnboarding: user.hasCompletedOnboarding
     });
     
   } catch (error) {
