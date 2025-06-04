@@ -74,8 +74,10 @@ export default function DocumentsPage() {
   });
 
   // Handle opening PDF documents inline
-  const handleOpenForm = (documentId: string, documentTitle: string) => {
+  const handleOpenForm = (documentId: string, documentTitle: string, fullDocument?: any) => {
+    console.log('Opening PDF - documentId:', documentId, 'title:', documentTitle);
     const pdfDoc = (pdfDocuments as any[]).find(pdf => pdf.id.toString() === documentId);
+    console.log('Found PDF document from API:', pdfDoc);
     if (pdfDoc) {
       setActivePdf(pdfDoc);
       // Scroll to the PDF section
@@ -85,6 +87,8 @@ export default function DocumentsPage() {
           pdfSection.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+    } else {
+      console.error('PDF document not found in API data');
     }
   };
 

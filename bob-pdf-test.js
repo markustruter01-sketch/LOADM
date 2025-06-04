@@ -78,7 +78,9 @@ class BobPDFTester {
       
       // Check for iframe (actual PDF) vs placeholder content
       const iframe = await this.page.$('iframe[src*="data:application/pdf"]');
-      const placeholderText = await this.page.$('text=PDF Document Ready');
+      const placeholderElements = await this.page.$$eval('*', els => 
+        els.filter(el => el.textContent && el.textContent.includes('PDF Document Ready')).length
+      );
       
       if (iframe) {
         this.log('✅ ACTUAL PDF FOUND! PDF is displaying correctly', 'success');
@@ -91,7 +93,7 @@ class BobPDFTester {
         
         this.log(`PDF contains actual data: ${hasBase64PDF}`, hasBase64PDF ? 'success' : 'error');
         return hasBase64PDF;
-      } else if (placeholderText) {
+      } else if (placeholderElements > 0) {
         this.log('❌ PLACEHOLDER CONTENT STILL SHOWING', 'error');
         return false;
       } else {

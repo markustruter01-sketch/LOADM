@@ -32,7 +32,7 @@ interface DocumentData {
 
 interface EnhancedDocumentCardProps {
   document: DocumentData;
-  onOpenForm?: (documentId: string, documentTitle: string) => void;
+  onOpenForm?: (documentId: string, documentTitle: string, fullDocument?: any) => void;
 }
 
 export default function EnhancedDocumentCard({ document, onOpenForm }: EnhancedDocumentCardProps) {
@@ -91,7 +91,7 @@ Australian Defence Force - Cargo Operations
   const handleOpenForm = () => {
     // Instead of navigating, we'll use a callback to open the form inline
     if (onOpenForm) {
-      onOpenForm(document.id, document.title);
+      onOpenForm(document.id, document.title, document);
     }
   };
 
