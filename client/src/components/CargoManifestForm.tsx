@@ -151,11 +151,17 @@ export function CargoManifestForm() {
       heightLeft -= contentHeight;
       pageNumber++;
 
-      // Add additional pages if needed
+      // Add additional pages with better positioning for table breaks
       while (heightLeft >= 0) {
         position = marginTop - (imgHeight - heightLeft);
         pdf.addPage();
         addPageHeader(pdf, pageNumber);
+        
+        // Adjust positioning to avoid cutting through table rows
+        if (heightLeft < contentHeight * 0.1) {
+          position = marginTop - 10; // Add small buffer at top
+        }
+        
         pdf.addImage(imgData, 'PNG', marginLeft, position, imgWidth, imgHeight);
         addPageFooter(pdf, pageNumber, totalPages);
         heightLeft -= contentHeight;
