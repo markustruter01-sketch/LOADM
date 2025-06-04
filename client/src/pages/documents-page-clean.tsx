@@ -177,6 +177,39 @@ export default function DocumentsPage() {
     );
   }
 
+  // If viewing a PDF, show the PDF viewer
+  if (viewingPDF) {
+    return (
+      <div className="min-h-screen">
+        <Helmet>
+          <title>{viewingPDF.title} | LOADMaster</title>
+        </Helmet>
+        
+        <div className="bg-gray-800 p-4">
+          <div className="container mx-auto flex items-center gap-4">
+            <Button 
+              onClick={() => setViewingPDF(null)}
+              variant="ghost"
+              className="text-white hover:bg-gray-700"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Documents
+            </Button>
+            <h1 className="text-xl font-semibold text-white">{viewingPDF.title}</h1>
+          </div>
+        </div>
+        
+        <div className="h-[calc(100vh-80px)]">
+          <iframe
+            src={`/pdf-stream/${viewingPDF.id}`}
+            className="w-full h-full border-0"
+            title={viewingPDF.title}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Helmet>
