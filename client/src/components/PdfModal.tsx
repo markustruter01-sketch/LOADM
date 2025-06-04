@@ -42,11 +42,44 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
     document.body.removeChild(link);
   }, [pdfUrl, filename]);
 
-  const handleSend = useCallback(() => {
-    const subject = encodeURIComponent(`Document: ${title}`);
-    const body = encodeURIComponent(`Please find the attached document: ${filename}\n\nDocument can be accessed at: ${window.location.origin}${pdfUrl}`);
-    const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
-    window.open(mailtoUrl);
+  const handleSend = useCallback(async () => {
+    try {
+      // Try to use the Web Share API first (modern browsers)
+      if (navigator.share && navigator.canShare) {
+        const response = await fetch(pdfUrl);
+        const blob = await response.blob();
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        
+        const shareData = {
+          title: title,
+          text: `Document: ${title}`,
+          files: [file]
+        };
+        
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return;
+        }
+      }
+      
+      // Fallback to mailto with download link
+      const subject = encodeURIComponent(`Document: ${title}`);
+      const body = encodeURIComponent(
+        `Please find the document: ${title}\n\n` +
+        `Filename: ${filename}\n\n` +
+        `To access this document, please download it from: ${window.location.origin}${pdfUrl}\n\n` +
+        `Note: Right-click the link above and select "Save link as..." to download the PDF file.`
+      );
+      const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+      window.open(mailtoUrl);
+    } catch (error) {
+      console.error('Error sharing document:', error);
+      // Fallback to simple mailto
+      const subject = encodeURIComponent(`Document: ${title}`);
+      const body = encodeURIComponent(`Please find the attached document: ${filename}`);
+      const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+      window.open(mailtoUrl);
+    }
   }, [title, filename, pdfUrl]);
 
   return (
@@ -58,29 +91,19 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
             <div className="flex items-center gap-2">
               <Button
                 onClick={handleDownload}
-                variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Download className="h-4 w-4" />
                 Save
               </Button>
               <Button
                 onClick={handleSend}
-                variant="outline"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Mail className="h-4 w-4" />
                 Send
-              </Button>
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>

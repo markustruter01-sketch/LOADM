@@ -84,22 +84,6 @@ export default function DocumentsPage() {
       category: "Forms",
       lastModified: "2024-06-04",
       size: "145 KB"
-    },
-    {
-      filename: "D.G.-Acceptance-ChecklistDry-2018-729x1024.jpg",
-      title: "Dangerous Goods Acceptance Checklist",
-      description: "Standard checklist for dangerous goods acceptance procedures",
-      category: "Operational Procedures",
-      lastModified: "2024-03-20",
-      size: "892 KB"
-    },
-    {
-      filename: "DD-Form-2130-13-C-17-load-plan-w-cargo-pallet-positions-39.png",
-      title: "C-17 Load Plan Template",
-      description: "Official DD Form 2130 for C-17 cargo pallet positioning",
-      category: "Forms",
-      lastModified: "2024-04-10",
-      size: "2.1 MB"
     }
   ];
 
