@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import PdfModal from "@/components/PdfModal";
 
 interface Contact {
   id: string;
@@ -53,6 +54,10 @@ export default function DocumentsPage() {
     phoneNumber: "",
     description: "",
   });
+  
+  // PDF Modal state
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [selectedPdf, setSelectedPdf] = useState<PdfDocument | null>(null);
 
   // Available PDF documents
   const pdfDocuments: PdfDocument[] = [
@@ -99,6 +104,17 @@ export default function DocumentsPage() {
   ];
 
   const queryClient = useQueryClient();
+
+  // Handle PDF modal opening
+  const handleViewPdf = (pdf: PdfDocument) => {
+    setSelectedPdf(pdf);
+    setPdfModalOpen(true);
+  };
+
+  const handleClosePdfModal = () => {
+    setPdfModalOpen(false);
+    setSelectedPdf(null);
+  };
 
   const {
     data: directories = [],
@@ -313,12 +329,14 @@ export default function DocumentsPage() {
                         <span>Modified: {doc.lastModified}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Link href={`/documents/pdf/${doc.filename}`} className="flex-1">
-                          <Button className="w-full" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View PDF
-                          </Button>
-                        </Link>
+                        <Button 
+                          className="flex-1" 
+                          size="sm"
+                          onClick={() => handleViewPdf(doc)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View PDF
+                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
