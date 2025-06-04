@@ -291,7 +291,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await db.update(users)
         .set({ 
           hashedPassword,
-          isFirstLogin: false
+          isFirstLogin: false,
+          hasCompletedOnboarding: false
         })
         .where(eq(users.email, email));
 
