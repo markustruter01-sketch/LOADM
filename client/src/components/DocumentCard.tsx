@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
+import { Mail } from "lucide-react";
+import { openEmailWithDocument } from "@/lib/emailUtils";
 
 // Helper function to get the correct route for each document
 function getDocumentRoute(document: Document): string {
@@ -61,6 +63,11 @@ export default function DocumentCard({ document }: DocumentCardProps) {
     }
   };
 
+  const handleEmailDocument = () => {
+    // Use the enhanced email utility function
+    openEmailWithDocument(document);
+  };
+
   return (
     <div className="bg-card rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
       <div className="p-6">
@@ -79,12 +86,24 @@ export default function DocumentCard({ document }: DocumentCardProps) {
           <span className="text-xs text-muted-foreground">
             Last updated: {formattedDate}
           </span>
-          <Button 
-            onClick={handleDocumentClick}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
-          >
-            Open
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleEmailDocument}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Mail className="h-4 w-4" />
+              Send
+            </Button>
+            <Button 
+              onClick={handleDocumentClick}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
+              size="sm"
+            >
+              Open
+            </Button>
+          </div>
         </div>
       </div>
     </div>
