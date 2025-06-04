@@ -75,7 +75,17 @@ export default function DocumentsPage() {
 
   // Handle opening PDF documents inline
   const handleOpenForm = (documentId: string, documentTitle: string) => {
-    setActivePdf({ id: documentId, title: documentTitle });
+    const pdfDoc = (pdfDocuments as any[]).find(pdf => pdf.id.toString() === documentId);
+    if (pdfDoc) {
+      setActivePdf(pdfDoc);
+      // Scroll to the PDF section
+      setTimeout(() => {
+        const pdfSection = document.getElementById('inline-pdf-section');
+        if (pdfSection) {
+          pdfSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
   };
 
   // Handle closing PDF viewer
@@ -268,22 +278,28 @@ export default function DocumentsPage() {
                   </div>
                   
                   {/* PDF Document Viewer */}
-                  <div className="min-h-[500px] bg-white rounded-lg border p-8 flex items-center justify-center">
-                    <div className="text-center">
-                      <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <h2 className="text-2xl font-bold text-gray-700 mb-4">PDF Document Ready</h2>
-                      <p className="text-lg text-muted-foreground mb-6">
-                        This area will display the stored PDF template for {activePdf?.title}
-                      </p>
-                      <div className="text-sm text-muted-foreground">
-                        <p>Available actions:</p>
-                        <ul className="mt-2 space-y-1">
-                          <li>• Download PDF document</li>
-                          <li>• Share via email or native sharing</li>
-                          <li>• Print document directly</li>
-                        </ul>
+                  <div className="min-h-[600px] bg-white rounded-lg border">
+                    {activePdf?.pdfData && activePdf.pdfData !== 'sample_pdf_data_placeholder' ? (
+                      <iframe
+                        src={`data:application/pdf;base64,${activePdf.pdfData}`}
+                        className="w-full h-[600px] rounded-lg"
+                        title={`PDF: ${activePdf.title}`}
+                        style={{ border: 'none' }}
+                      />
+                    ) : (
+                      <div className="p-8 flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                          <h2 className="text-2xl font-bold text-gray-700 mb-4">Loading PDF Document</h2>
+                          <p className="text-lg text-muted-foreground mb-6">
+                            Preparing document: {activePdf?.title}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            PDF Data Available: {activePdf?.pdfData ? 'Yes' : 'No'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )}
