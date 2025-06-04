@@ -130,6 +130,9 @@ export const insertPdfDocumentSchema = createInsertSchema(pdfDocuments).omit({
   lastUpdated: true,
 });
 
+export type InsertPdfDocument = z.infer<typeof insertPdfDocumentSchema>;
+export type PdfDocument = typeof pdfDocuments.$inferSelect;
+
 // Document submission schema
 export const documentSubmissions = pgTable("document_submissions", {
   id: serial("id").primaryKey(),

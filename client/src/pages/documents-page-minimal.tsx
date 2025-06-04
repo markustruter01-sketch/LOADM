@@ -53,13 +53,13 @@ export default function DocumentsPage() {
   });
 
   // Transform PDF documents to match document card interface
-  const documents = pdfDocuments.map((pdf: any) => ({
+  const documents = (pdfDocuments as any[]).map((pdf: any) => ({
     id: pdf.id.toString(),
     title: pdf.title,
-    description: pdf.description,
-    type: pdf.type,
-    lastUpdated: new Date(pdf.updated_at),
-    category: pdf.category
+    description: pdf.description || 'PDF Document Template',
+    type: pdf.type || 'form',
+    lastUpdated: new Date(pdf.lastUpdated || pdf.uploadedAt),
+    category: pdf.category || 'operational'
   }));
 
   // Phone Directory data
