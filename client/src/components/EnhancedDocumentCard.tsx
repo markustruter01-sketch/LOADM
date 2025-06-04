@@ -32,17 +32,15 @@ interface DocumentData {
 
 interface EnhancedDocumentCardProps {
   document: DocumentData;
-  onOpenForm?: (documentId: string, documentTitle: string, fullDocument?: any) => void;
+  onOpenForm?: (documentId: string, documentTitle: string) => void;
 }
 
 export default function EnhancedDocumentCard({ document, onOpenForm }: EnhancedDocumentCardProps) {
   const [, navigate] = useLocation();
   
-  const formattedDate = document.lastUpdated 
-    ? formatDistanceToNow(new Date(document.lastUpdated), {
-        addSuffix: true,
-      })
-    : 'Recently';
+  const formattedDate = formatDistanceToNow(document.lastUpdated, {
+    addSuffix: true,
+  });
 
   // Form route mapping
   const getFormRoute = (title: string): string => {
@@ -93,7 +91,7 @@ Australian Defence Force - Cargo Operations
   const handleOpenForm = () => {
     // Instead of navigating, we'll use a callback to open the form inline
     if (onOpenForm) {
-      onOpenForm(document.id, document.title, document);
+      onOpenForm(document.id, document.title);
     }
   };
 

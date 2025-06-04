@@ -50,40 +50,16 @@ app.delete("/api/phone-directory/:id", async (req, res) => {
   }
 });
 
-// PDF Documents API using new service layer
+// NUCLEAR FIX: PDF Documents endpoint - bypassing all middleware
 app.get("/api/pdf-documents", async (req, res) => {
   try {
-    console.log("PDF API: Getting all documents");
-    const { pdfService } = await import("./pdf-service");
-    const documents = await pdfService.getAllDocuments();
-    
-    console.log(`PDF API: Returning ${documents.length} documents`);
-    res.json(documents);
+    console.log("NUCLEAR: PDF documents GET request received");
+    const pdfDocs = await db.select().from(pdfDocuments).orderBy(desc(pdfDocuments.createdAt));
+    console.log("NUCLEAR: PDF documents data:", pdfDocs.map(doc => ({ id: doc.id, title: doc.title, type: doc.type })));
+    res.json(pdfDocs);
   } catch (error) {
-    console.error("PDF API: Error:", error);
+    console.error("NUCLEAR: PDF documents fetch error:", error);
     res.status(500).json({ error: "Failed to fetch PDF documents" });
-  }
-});
-
-// Individual PDF document endpoint
-app.get("/api/pdf-documents/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log(`PDF API: Getting document ${id}`);
-    
-    const { pdfService } = await import("./pdf-service");
-    const document = await pdfService.getDocumentById(id);
-    
-    if (!document) {
-      console.log(`PDF API: Document ${id} not found`);
-      return res.status(404).json({ error: "Document not found" });
-    }
-    
-    console.log(`PDF API: Returning document ${id}`);
-    res.json(document);
-  } catch (error) {
-    console.error(`PDF API: Error fetching document ${req.params.id}:`, error);
-    res.status(500).json({ error: "Failed to fetch document" });
   }
 });
 
