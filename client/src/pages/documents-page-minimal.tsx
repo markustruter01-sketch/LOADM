@@ -389,46 +389,48 @@ export default function DocumentsPage() {
                 </Card>
               )}
 
-              {/* Directory Entries */}
+              {/* Directory Entries - Two Column Layout */}
               {directoryLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin" />
                   <span className="ml-2">Loading directory...</span>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {directories.map((entry) => (
                     <Card key={entry.id} className="border-gray-200">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <div 
-                            className="flex items-center space-x-2 cursor-pointer"
+                            className="flex items-center space-x-2 cursor-pointer flex-1"
                             onClick={() => toggleAirfieldExpansion(entry.id)}
                           >
                             {expandedAirfields.has(entry.id) ? 
-                              <ChevronDown className="w-4 h-4" /> : 
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronDown className="w-4 h-4 flex-shrink-0" /> : 
+                              <ChevronRight className="w-4 h-4 flex-shrink-0" />
                             }
-                            <div>
-                              <CardTitle className="text-lg">{entry.airbaseCode}</CardTitle>
-                              <p className="text-sm text-muted-foreground">{entry.airbaseName}</p>
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-base font-semibold truncate">{entry.airbaseCode}</CardTitle>
+                              <p className="text-xs text-muted-foreground truncate">{entry.airbaseName}</p>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-1 flex-shrink-0">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => setEditingEntry(entry)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3 h-3" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => deleteMutation.mutate(entry.id)}
                               disabled={deleteMutation.isPending}
+                              className="h-8 w-8 p-0"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
                         </div>
@@ -437,20 +439,20 @@ export default function DocumentsPage() {
                       {expandedAirfields.has(entry.id) && (
                         <CardContent className="pt-0">
                           <div className="space-y-2">
-                            <div className="flex items-center space-x-2 text-sm font-medium text-gray-600 border-b pb-1">
-                              <span className="flex-1">Name</span>
-                              <span className="flex-1">Phone</span>
-                              <span className="flex-1">Description</span>
+                            <div className="grid grid-cols-3 gap-2 text-xs font-medium text-gray-600 border-b pb-1">
+                              <span>Name</span>
+                              <span>Phone</span>
+                              <span>Description</span>
                             </div>
                             {entry.contacts.map((contact) => (
-                              <div key={contact.id} className="flex items-center space-x-2 text-sm py-1">
-                                <span className="flex-1">{contact.name}</span>
-                                <span className="flex-1 font-mono">{contact.phoneNumber}</span>
-                                <span className="flex-1 text-gray-600">{contact.description}</span>
+                              <div key={contact.id} className="grid grid-cols-3 gap-2 text-xs py-1">
+                                <span className="truncate">{contact.name}</span>
+                                <span className="font-mono truncate">{contact.phoneNumber}</span>
+                                <span className="text-gray-600 truncate">{contact.description}</span>
                               </div>
                             ))}
                             {entry.contacts.length === 0 && (
-                              <p className="text-sm text-gray-500 italic">No contacts added yet</p>
+                              <p className="text-xs text-gray-500 italic">No contacts added yet</p>
                             )}
                           </div>
                         </CardContent>
