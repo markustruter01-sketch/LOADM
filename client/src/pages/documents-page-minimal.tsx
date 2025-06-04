@@ -373,14 +373,25 @@ export default function DocumentsPage() {
                   
                   {/* PDF Document Viewer */}
                   <div className="min-h-[600px] bg-white rounded-lg border">
-                    {activePdf?.pdfData ? (
-                      <iframe
-                        src={`data:application/pdf;base64,${activePdf.pdfData}`}
-                        className="w-full h-[600px] rounded-lg"
-                        title={activePdf.title}
-                        onLoad={() => console.log('PDF VIEWER DEBUG: iframe loaded successfully')}
-                        onError={(e) => console.error('PDF VIEWER DEBUG: iframe error:', e)}
-                      />
+                    {activePdf ? (
+                      <div className="w-full h-[600px] rounded-lg">
+                        {/* Primary approach: Direct PDF stream */}
+                        <iframe
+                          src={`/pdf-stream/${activePdf.id}`}
+                          className="w-full h-full rounded-lg border-0"
+                          title={activePdf.title}
+                          onLoad={() => console.log('PDF VIEWER DEBUG: PDF stream iframe loaded successfully')}
+                          onError={(e) => {
+                            console.error('PDF VIEWER DEBUG: PDF stream iframe error:', e);
+                            // Fallback to data URI approach
+                            const iframe = e.target as HTMLIFrameElement;
+                            if (activePdf.pdfData) {
+                              console.log('PDF VIEWER DEBUG: Trying fallback data URI approach');
+                              iframe.src = `data:application/pdf;base64,${activePdf.pdfData}`;
+                            }
+                          }}
+                        />
+                      </div>
                     ) : (
                       <div className="flex items-center justify-center h-[600px]">
                         <div className="text-center">

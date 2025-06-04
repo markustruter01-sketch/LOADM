@@ -13,6 +13,42 @@ const app = express();
 // Clear all sessions on startup
 authCore.clearAllIsolatedSessions();
 
+// NUCLEAR FIX: PDF streaming endpoint BEFORE all middleware to bypass Vite
+import { db } from './db';
+import { phoneDirectory, chatMessages, pdfDocuments } from '../shared/schema';
+import { eq, sql, gte, desc } from 'drizzle-orm';
+
+app.get("/pdf-stream/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    console.log("NUCLEAR: PDF stream request for ID:", id);
+    
+    const [pdfDoc] = await db.select().from(pdfDocuments).where(eq(pdfDocuments.id, id));
+    
+    if (!pdfDoc || !pdfDoc.pdfData) {
+      console.error("NUCLEAR: PDF document not found or no data");
+      return res.status(404).send("PDF document not found");
+    }
+    
+    // Convert base64 to binary
+    const pdfBuffer = Buffer.from(pdfDoc.pdfData, 'base64');
+    console.log("NUCLEAR: Streaming PDF buffer size:", pdfBuffer.length);
+    
+    // Set appropriate headers for PDF streaming
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${pdfDoc.title}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Accept-Ranges', 'bytes');
+    
+    console.log("NUCLEAR: PDF headers set, sending buffer");
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("NUCLEAR: PDF stream error:", error);
+    res.status(500).send("Failed to stream PDF document");
+  }
+});
+
 app.use(cookieParser());
 app.use(express.json());
 
@@ -87,6 +123,38 @@ app.get("/api/pdf-documents/:id", async (req, res) => {
   } catch (error) {
     console.error("NUCLEAR: Individual PDF document fetch error:", error);
     res.status(500).json({ error: "Failed to fetch PDF document" });
+  }
+});
+
+// NUCLEAR FIX: Direct PDF stream endpoint - bypassing all middleware for proper streaming
+app.get("/pdf-stream/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    console.log("NUCLEAR: PDF stream request for ID:", id);
+    
+    const [pdfDoc] = await db.select().from(pdfDocuments).where(eq(pdfDocuments.id, id));
+    
+    if (!pdfDoc || !pdfDoc.pdfData) {
+      console.error("NUCLEAR: PDF document not found or no data");
+      return res.status(404).send("PDF document not found");
+    }
+    
+    // Convert base64 to binary
+    const pdfBuffer = Buffer.from(pdfDoc.pdfData, 'base64');
+    console.log("NUCLEAR: Streaming PDF buffer size:", pdfBuffer.length);
+    
+    // Set appropriate headers for PDF streaming
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${pdfDoc.title}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Accept-Ranges', 'bytes');
+    
+    console.log("NUCLEAR: PDF headers set, sending buffer");
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("NUCLEAR: PDF stream error:", error);
+    res.status(500).send("Failed to stream PDF document");
   }
 });
 

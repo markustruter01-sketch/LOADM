@@ -1,0 +1,43 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+auth-context.tsx:36 ✅ ISOLATED CLIENT: Checking auth status...
+auth-context.tsx:38 
+            
+            
+           GET https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev/auth-isolated/user 401 (Unauthorized)
+checkAuthStatus @ auth-context.tsx:38
+(anonymous) @ auth-context.tsx:32
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=42390f8a:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=42390f8a:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=42390f8a:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=42390f8a:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=42390f8a:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=42390f8a:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=42390f8a:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=42390f8a:19328
+workLoop @ chunk-RPCDYKBN.js?v=42390f8a:197
+flushWork @ chunk-RPCDYKBN.js?v=42390f8a:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=42390f8a:384Understand this error
+auth-context.tsx:52 ✅ ISOLATED CLIENT: No authentication found
+manifest.json:1 Manifest: Line: 1, column: 1, Syntax error.Understand this error
+redesigned-login.tsx:24 🔐 REDESIGNED LOGIN: Attempting login for markustruter01@gmail.com
+auth-context.tsx:64 ✅ ISOLATED CLIENT: Login attempt for markustruter01@gmail.com
+auth-context.tsx:76 ✅ ISOLATED CLIENT: Response status: 200
+auth-context.tsx:77 ✅ ISOLATED CLIENT: Response headers: application/json; charset=utf-8
+auth-context.tsx:81 ✅ ISOLATED CLIENT: Raw response: {"id":9,"email":"markustruter01@gmail.com","firstName":"Marcus","lastName":"Truter","role":"superadmin","isFirstLogin":false}
+auth-context.tsx:85 ✅ ISOLATED CLIENT: Login SUCCESS
+redesigned-login.tsx:30 ✅ REDESIGNED LOGIN: Login successful
+Header.tsx:60 Header user data: {id: 9, email: 'markustruter01@gmail.com', firstName: 'Marcus', lastName: 'Truter', role: 'superadmin', …}
+The FetchEvent for "https://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev:24678/" resulted in a network error response: the promise was resolved with an error response object.
+Promise.then
+(anonymous) @ service-worker.js:92Understand this warning
+client:536 WebSocket connection to 'wss://46964af9-bf0d-46cd-84c7-e19697f9daab-00-17jq3m1pxsynh.worf.replit.dev:24678/?token=_gIKo-M60qgs' failed: 
+setupWebSocket @ client:536
+(anonymous) @ client:531Understand this error
+client:560 [vite] server connection lost. Polling for restart...
+documents-page-minimal.tsx:78 PDF VIEWER DEBUG: Opening PDF document {documentId: '2', documentTitle: 'Dangerous Goods Checklist'}
+documents-page-minimal.tsx:81 PDF VIEWER DEBUG: Fetching PDF data from API...
+documents-page-minimal.tsx:83 PDF VIEWER DEBUG: API response status: 200
+documents-page-minimal.tsx:87 PDF VIEWER DEBUG: PDF document received: {id: 2, title: 'Dangerous Goods Checklist', hasPdfData: true, pdfDataLength: 16000, pdfDataStart: 'JVBERi0xLjUKJeLjz9MKMSAwIG9iago8PAovVHlwZSAvUGFnZX'}
+documents-page-minimal.tsx:105 PDF VIEWER DEBUG: PDF data appears to be valid base64
+documents-page-minimal.tsx:113 PDF VIEWER DEBUG: PDF document set as active
+documents-page-minimal.tsx:381 PDF VIEWER DEBUG: iframe loaded successfully
