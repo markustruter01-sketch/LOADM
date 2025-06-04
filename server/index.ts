@@ -63,6 +63,26 @@ app.get("/api/pdf-documents", async (req, res) => {
   }
 });
 
+// Individual PDF document endpoint
+app.get("/api/pdf-documents/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    console.log("NUCLEAR: Individual PDF document request for ID:", id);
+    
+    const [pdfDoc] = await db.select().from(pdfDocuments).where(eq(pdfDocuments.id, id));
+    
+    if (!pdfDoc) {
+      return res.status(404).json({ error: "PDF document not found" });
+    }
+    
+    console.log("NUCLEAR: PDF document found:", { id: pdfDoc.id, title: pdfDoc.title });
+    res.json(pdfDoc);
+  } catch (error) {
+    console.error("NUCLEAR: Individual PDF document fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch PDF document" });
+  }
+});
+
 // Chat message endpoints - bypassing auth middleware
 app.get("/api/chat-messages", async (req, res) => {
   try {

@@ -74,13 +74,70 @@ export default function DocumentsPage() {
   });
 
   // Handle opening PDF documents inline
-  const handleOpenForm = (documentId: string, documentTitle: string) => {
-    setActivePdf({ id: documentId, title: documentTitle });
+  const handleOpenForm = async (documentId: string, documentTitle: string) => {
+    try {
+      // Fetch the full PDF document data from the API
+      const response = await fetch(`/api/pdf-documents/${documentId}`);
+      if (response.ok) {
+        const pdfDoc = await response.json();
+        setActivePdf(pdfDoc);
+      }
+    } catch (error) {
+      console.error('Error fetching PDF document:', error);
+    }
+    
+    setTimeout(() => {
+      const element = document.getElementById('inline-pdf-section');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Handle closing PDF viewer
   const handleClosePdf = () => {
     setActivePdf(null);
+  };
+
+  // Handle PDF actions
+  const handlePrintPdf = (pdf: any) => {
+    if (pdf?.pdfData) {
+      const pdfBlob = new Blob([Uint8Array.from(atob(pdf.pdfData), c => c.charCodeAt(0))], {
+        type: 'application/pdf'
+      });
+      const url = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(url);
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    }
+  };
+
+  const handleSavePdf = (pdf: any) => {
+    if (pdf?.pdfData) {
+      const pdfBlob = new Blob([Uint8Array.from(atob(pdf.pdfData), c => c.charCodeAt(0))], {
+        type: 'application/pdf'
+      });
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${pdf.title.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const handleEmailPdf = (pdf: any) => {
+    if (pdf?.pdfData) {
+      const subject = encodeURIComponent(`${pdf.title} - Military Document`);
+      const body = encodeURIComponent(`Please find attached the ${pdf.title} document.`);
+      const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
+      window.open(mailtoUrl);
+    }
   };
 
   // Phone Directory mutations
@@ -262,28 +319,29 @@ export default function DocumentsPage() {
                 <div id="inline-pdf-section" className="mt-8 p-6 bg-card rounded-lg border shadow-lg">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-bold">{activePdf.title}</h3>
-                    <Button variant="ghost" size="sm" onClick={handleClosePdf}>
-                      ✕
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => handlePrintPdf(activePdf)}>
+                        Print
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleSavePdf(activePdf)}>
+                        Save
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleEmailPdf(activePdf)}>
+                        Email
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={handleClosePdf}>
+                        ✕
+                      </Button>
+                    </div>
                   </div>
                   
                   {/* PDF Document Viewer */}
-                  <div className="min-h-[500px] bg-white rounded-lg border p-8 flex items-center justify-center">
-                    <div className="text-center">
-                      <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <h2 className="text-2xl font-bold text-gray-700 mb-4">PDF Document Ready</h2>
-                      <p className="text-lg text-muted-foreground mb-6">
-                        This area will display the stored PDF template for {activePdf?.title}
-                      </p>
-                      <div className="text-sm text-muted-foreground">
-                        <p>Available actions:</p>
-                        <ul className="mt-2 space-y-1">
-                          <li>• Download PDF document</li>
-                          <li>• Share via email or native sharing</li>
-                          <li>• Print document directly</li>
-                        </ul>
-                      </div>
-                    </div>
+                  <div className="min-h-[600px] bg-white rounded-lg border">
+                    <iframe
+                      src={`data:application/pdf;base64,${activePdf.pdfData}`}
+                      className="w-full h-[600px] rounded-lg"
+                      title={activePdf.title}
+                    />
                   </div>
                 </div>
               )}
@@ -409,7 +467,7 @@ export default function DocumentsPage() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {directories.map((entry) => (
-                    <Card key={entry.id} className="border-gray-200">
+                    <Card key={entry.id} className="border-gray-200 bg-gray-800">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <div 
@@ -417,12 +475,12 @@ export default function DocumentsPage() {
                             onClick={() => toggleAirfieldExpansion(entry.id)}
                           >
                             {expandedAirfields.has(entry.id) ? 
-                              <ChevronDown className="w-4 h-4 flex-shrink-0" /> : 
-                              <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                              <ChevronDown className="w-4 h-4 flex-shrink-0 text-white" /> : 
+                              <ChevronRight className="w-4 h-4 flex-shrink-0 text-white" />
                             }
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="text-base font-semibold truncate">{entry.airbaseCode}</CardTitle>
-                              <p className="text-xs text-muted-foreground truncate">{entry.airbaseName}</p>
+                              <CardTitle className="text-base font-semibold truncate text-orange-500">{entry.airbaseCode}</CardTitle>
+                              <p className="text-xs text-white truncate">{entry.airbaseName}</p>
                             </div>
                           </div>
                           <div className="flex space-x-1 flex-shrink-0">
@@ -450,20 +508,20 @@ export default function DocumentsPage() {
                       {expandedAirfields.has(entry.id) && (
                         <CardContent className="pt-0">
                           <div className="space-y-2">
-                            <div className="grid grid-cols-3 gap-2 text-xs font-medium text-gray-600 border-b pb-1">
+                            <div className="grid grid-cols-3 gap-2 text-xs font-medium text-white border-b border-gray-600 pb-1">
                               <span>Name</span>
                               <span>Phone</span>
                               <span>Description</span>
                             </div>
                             {entry.contacts.map((contact) => (
                               <div key={contact.id} className="grid grid-cols-3 gap-2 text-xs py-1">
-                                <span className="truncate">{contact.name}</span>
-                                <span className="font-mono truncate">{contact.phoneNumber}</span>
-                                <span className="text-gray-600 truncate">{contact.description}</span>
+                                <span className="truncate text-white">{contact.name}</span>
+                                <span className="font-mono truncate text-white">{contact.phoneNumber}</span>
+                                <span className="text-white truncate">{contact.description}</span>
                               </div>
                             ))}
                             {entry.contacts.length === 0 && (
-                              <p className="text-xs text-gray-500 italic">No contacts added yet</p>
+                              <p className="text-xs text-gray-400 italic">No contacts added yet</p>
                             )}
                           </div>
                         </CardContent>
