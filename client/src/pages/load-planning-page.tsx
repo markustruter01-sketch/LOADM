@@ -745,7 +745,7 @@ export default function LoadPlanningPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+            <div className="space-y-6" data-cargo-bay>
               {/* Aircraft Direction Indicator */}
               <div className="flex items-center justify-center gap-4 text-muted-foreground400 text-sm">
                 <div className="flex items-center gap-2">
@@ -1149,6 +1149,70 @@ export default function LoadPlanningPage() {
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
                 Understood
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email PDF Dialog */}
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent className="bg-gray-800 border-gray-600 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-400">
+              <Mail className="h-5 w-5" />
+              Email Load Plan PDF
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-card-foreground">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+                placeholder="Enter email address"
+                className="bg-gray-700 border-gray-600 text-card-foreground mt-2"
+              />
+            </div>
+            
+            <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-600">
+              <div className="text-sm text-muted-foreground space-y-1">
+                <div className="flex justify-between">
+                  <span>Aircraft:</span>
+                  <span className="text-card-foreground">{config.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Center of Gravity:</span>
+                  <span className="text-card-foreground">{balanceResult.centerOfGravity.toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total Weight:</span>
+                  <span className="text-card-foreground">{balanceResult.totalWeight.toLocaleString()} {aircraftId === 'kc30a' ? 'kg' : 'lbs'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="text-card-foreground">{balanceResult.status.toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowEmailDialog(false)}
+                disabled={isExporting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSendEmail}
+                disabled={isExporting || !emailAddress.trim()}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                {isExporting ? 'Sending...' : 'Send PDF'}
               </Button>
             </div>
           </div>

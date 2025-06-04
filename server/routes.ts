@@ -879,6 +879,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Load Plan PDF Email Route
+  app.post('/api/send-load-plan-email', async (req: Request, res: Response) => {
+    try {
+      const { email, fileName, pdfData, aircraftName, centerOfGravity, totalWeight, status } = req.body;
+
+      if (!email || !fileName || !pdfData) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Create email content
+      const emailContent = {
+        to: email,
+        from: 'noreply@loadmworkflow.com',
+        subject: `Load Plan: ${aircraftName} - CG ${centerOfGravity}%`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1f2937;">Aircraft Load Plan</h2>
+            
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #374151; margin-top: 0;">Load Plan Summary</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Aircraft:</td>
+                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${aircraftName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Center of Gravity:</td>
+                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${centerOfGravity}%</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Total Weight:</td>
+                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${totalWeight}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Status:</td>
+                  <td style="padding: 8px 0; font-weight: bold; color: ${status === 'safe' ? '#059669' : status === 'caution' ? '#d97706' : '#dc2626'};">${status.toUpperCase()}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Generated:</td>
+                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${new Date().toLocaleString()}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <p style="color: #6b7280;">The detailed load plan is attached as a PDF document.</p>
+            
+            <div style="background-color: #eff6ff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+              <p style="margin: 0; color: #1e40af; font-size: 14px;">
+                <strong>LOADMworkflow</strong> - Advanced Military Logistics Platform
+              </p>
+            </div>
+          </div>
+        `,
+        attachments: [
+          {
+            content: pdfData,
+            filename: fileName,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          }
+        ]
+      };
+
+      // Send email using SendGrid
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      
+      await sgMail.send(emailContent);
+      
+      res.json({ success: true, message: 'Load plan PDF sent successfully' });
+      
+    } catch (error) {
+      console.error('Error sending load plan email:', error);
+      res.status(500).json({ 
+        error: 'Failed to send email', 
+        details: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer();
   httpServer.on("request", app);
   return httpServer;
