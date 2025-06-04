@@ -100,10 +100,9 @@ export const pdfDocuments = pgTable("pdf_documents", {
   pdfData: text("pdf_data").notNull(), // Base64 encoded PDF data
   fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(),
-  mimeType: text("mime_type").default("application/pdf"),
-  uploadedAt: timestamp("uploaded_at").defaultNow(),
-  lastUpdated: timestamp("last_updated").defaultNow(),
-  isActive: boolean("is_active").default(true),
+  contentType: text("content_type").default("application/pdf"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Document schema (keeping for backward compatibility)

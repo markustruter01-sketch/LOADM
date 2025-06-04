@@ -50,6 +50,19 @@ app.delete("/api/phone-directory/:id", async (req, res) => {
   }
 });
 
+// NUCLEAR FIX: PDF Documents endpoint - bypassing all middleware
+app.get("/api/pdf-documents", async (req, res) => {
+  try {
+    console.log("NUCLEAR: PDF documents GET request received");
+    const pdfDocs = await db.select().from(pdfDocuments).orderBy(desc(pdfDocuments.createdAt));
+    console.log("NUCLEAR: PDF documents data:", pdfDocs.map(doc => ({ id: doc.id, title: doc.title, type: doc.type })));
+    res.json(pdfDocs);
+  } catch (error) {
+    console.error("NUCLEAR: PDF documents fetch error:", error);
+    res.status(500).json({ error: "Failed to fetch PDF documents" });
+  }
+});
+
 // Chat message endpoints - bypassing auth middleware
 app.get("/api/chat-messages", async (req, res) => {
   try {
