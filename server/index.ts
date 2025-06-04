@@ -23,8 +23,8 @@ app.use('/auth', isolatedAuthRoutes);
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
-import { phoneDirectory, chatMessages } from '../shared/schema';
-import { eq, sql, gte } from 'drizzle-orm';
+import { phoneDirectory, chatMessages, pdfDocuments } from '../shared/schema';
+import { eq, sql, gte, desc } from 'drizzle-orm';
 
 app.get("/api/phone-directory", async (req, res) => {
   try {
