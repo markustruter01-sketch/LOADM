@@ -1,6 +1,7 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createOfflineQueryClient } from "@/lib/queryClient";
+import { useState, useEffect } from 'react';
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { RedesignedLogin } from './auth-isolated/redesigned-login';
 import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
@@ -71,7 +72,24 @@ import { ChatSystem } from "@/components/chat-system";
 const queryClient = createOfflineQueryClient();
 
 function AuthenticatedApp() {
-  const { user } = useIsolatedAuth();
+  const { user, refreshUser } = useIsolatedAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Check if user needs onboarding after first login password change
+  useEffect(() => {
+    if (user && !user.isFirstLogin && !user.hasCompletedOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
+
+  const handleOnboardingComplete = async () => {
+    setShowOnboarding(false);
+    await refreshUser();
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
+  };
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -138,6 +156,12 @@ function AuthenticatedApp() {
         </main>
         <BottomNav />
         <ChatSystem />
+        
+        <OnboardingTour 
+          isVisible={showOnboarding}
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
       </div>
     </QueryClientProvider>
   );

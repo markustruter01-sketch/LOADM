@@ -65,7 +65,7 @@ export default function BottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full border-t border-border bg-card shadow-lg z-50">
+    <div className="fixed bottom-0 left-0 w-full border-t border-border bg-card shadow-lg z-50 bottom-nav">
       <div className="grid grid-cols-6 h-16">
         {allNavItems.map((item) => (
           <div key={item.href} className="flex justify-center">
