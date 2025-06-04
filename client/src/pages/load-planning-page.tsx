@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Scale, Package, AlertTriangle, MessageCircle, Bot, Send } from "lucide-react";
+import { ArrowLeft, Scale, Package, AlertTriangle, MessageCircle, Bot, Send, Download, Mail, FileText } from "lucide-react";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useLocation, useRoute } from "wouter";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +98,11 @@ export default function LoadPlanningPage() {
 
   // Cargo edit dialog state
   const [editingPosition, setEditingPosition] = useState<string | null>(null);
+
+  // PDF export state
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const [editWeight, setEditWeight] = useState(0);
   const [editCargoType, setEditCargoType] = useState('General');
   const [editDgClass, setEditDgClass] = useState('');
@@ -246,6 +253,116 @@ export default function LoadPlanningPage() {
     };
     
     setChatMessages(prev => [...prev, analysisMessage, aiResponse]);
+  };
+
+  // PDF Export Functions
+  const generateLoadPlanPDF = async (shouldEmail: boolean = false) => {
+    setIsExporting(true);
+    
+    try {
+      // Find the cargo bay layout element
+      const cargoBayElement = document.querySelector('[data-cargo-bay]') as HTMLElement;
+      if (!cargoBayElement) {
+        alert('Cargo bay layout not found');
+        return;
+      }
+
+      // Capture screenshot of cargo bay
+      const canvas = await html2canvas(cargoBayElement, {
+        backgroundColor: '#1f2937', // gray-800
+        scale: 2,
+        useCORS: true,
+        allowTaint: false
+      });
+
+      // Create PDF with horizontal orientation
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Calculate dimensions for horizontal layout
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // Add header with CG information
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${config.name} Load Plan`, 20, 20);
+      
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(`Center of Gravity: ${balanceResult.centerOfGravity.toFixed(1)}%`, 20, 30);
+      pdf.text(`Total Weight: ${balanceResult.totalWeight.toLocaleString()} ${aircraftId === 'kc30a' ? 'kg' : 'lbs'}`, 20, 40);
+      pdf.text(`Status: ${balanceResult.status.toUpperCase()}`, 20, 50);
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, 60);
+
+      // Add cargo bay screenshot
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = pageWidth - 40; // 20mm margin on each side
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Position image below header
+      const yPosition = 70;
+      pdf.addImage(imgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+
+      const fileName = `${config.name}_LoadPlan_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      if (shouldEmail && emailAddress) {
+        // Convert PDF to base64 for email
+        const pdfBase64 = pdf.output('datauristring').split(',')[1];
+        
+        // Send email with PDF attachment
+        const response = await fetch('/api/send-load-plan-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: emailAddress,
+            fileName,
+            pdfData: pdfBase64,
+            aircraftName: config.name,
+            centerOfGravity: balanceResult.centerOfGravity.toFixed(1),
+            totalWeight: balanceResult.totalWeight.toLocaleString(),
+            status: balanceResult.status
+          }),
+        });
+
+        if (response.ok) {
+          alert('Load plan PDF sent successfully!');
+          setShowEmailDialog(false);
+          setEmailAddress('');
+        } else {
+          alert('Failed to send email. Please try downloading instead.');
+        }
+      } else {
+        // Download PDF
+        pdf.save(fileName);
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    generateLoadPlanPDF(false);
+  };
+
+  const handleEmailPDF = () => {
+    setShowEmailDialog(true);
+  };
+
+  const handleSendEmail = () => {
+    if (!emailAddress.trim()) {
+      alert('Please enter an email address');
+      return;
+    }
+    generateLoadPlanPDF(true);
   };
 
   const updateCargoWeight = (positionId: string, weight: number) => {
@@ -563,6 +680,40 @@ export default function LoadPlanningPage() {
                     Balance: {balanceResult.balance.toFixed(1)}
                   </span>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PDF Export Section */}
+        <Card className="bg-card mb-4">
+          <CardHeader>
+            <CardTitle className="text-card-foreground flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Export Load Plan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button 
+                onClick={handleDownloadPDF}
+                disabled={isExporting}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? 'Generating...' : 'Download PDF'}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleEmailPDF}
+                disabled={isExporting}
+                className="border-blue-500 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email PDF
+              </Button>
+              <div className="text-sm text-muted-foreground flex items-center">
+                Exports cargo bay layout with CG: {balanceResult.centerOfGravity.toFixed(1)}%
               </div>
             </div>
           </CardContent>
