@@ -726,6 +726,16 @@ export default function DocumentsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* PDF Modal */}
+      {selectedPdf && (
+        <PdfModal
+          isOpen={pdfModalOpen}
+          onClose={handleClosePdfModal}
+          filename={selectedPdf.filename}
+          title={selectedPdf.title}
+        />
+      )}
     </div>
   );
 }
