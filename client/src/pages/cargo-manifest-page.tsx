@@ -1,4 +1,4 @@
-import DocumentMenu from "@/components/DocumentMenu";
+
 import { Helmet } from "react-helmet";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -75,8 +75,7 @@ export default function DocumentsPage() {
           </Button>
         </div>
         
-        {/* Document menu showing all available document forms */}
-        <DocumentMenu />
+        {/* Document menu removed - functionality moved to documents page */}
       </div>
       
       {/* Document forms */}
