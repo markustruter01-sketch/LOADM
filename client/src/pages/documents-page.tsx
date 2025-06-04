@@ -62,14 +62,6 @@ export default function DocumentsPage() {
   // Available PDF documents
   const pdfDocuments: PdfDocument[] = [
     {
-      filename: "25229.pdf",
-      title: "Load Planning Manual",
-      description: "Comprehensive guide for aircraft load planning procedures and calculations",
-      category: "Training Materials",
-      lastModified: "2024-05-15",
-      size: "145 KB"
-    },
-    {
       filename: "DG Checklist.pdf",
       title: "Dangerous Goods Checklist",
       description: "Comprehensive checklist for non-radioactive dangerous goods shipments with verification procedures",
@@ -380,22 +372,20 @@ export default function DocumentsPage() {
                   const isExpanded = expandedAirfields.has(entry.id);
                   return (
                     <Card key={entry.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
+                      <CardHeader 
+                        className="pb-3 cursor-pointer"
+                        onClick={() => handleToggleExpanded(entry.id)}
+                      >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleToggleExpanded(entry.id)}
-                                className="p-1 h-6 w-6"
-                              >
+                              <div className="p-1 h-6 w-6 flex items-center justify-center">
                                 {isExpanded ? (
                                   <ChevronDown className="w-4 h-4" />
                                 ) : (
                                   <ChevronRight className="w-4 h-4" />
                                 )}
-                              </Button>
+                              </div>
                               <CardTitle className="text-lg">
                                 {entry.airbaseCode} - {entry.airbaseName}
                               </CardTitle>
@@ -404,7 +394,7 @@ export default function DocumentsPage() {
                               {entry.contacts.length} contact{entry.contacts.length !== 1 ? 's' : ''}
                             </p>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                             <Button
                               variant="outline"
                               size="sm"
