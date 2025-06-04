@@ -4,6 +4,7 @@ import { Document } from "@shared/schema";
 import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight, ArrowLeft, Mail, Download, Share } from "lucide-react";
 import { useLocation } from "wouter";
 import EnhancedDocumentCard from "@/components/EnhancedDocumentCard";
+import { CargoManifestForm } from "@/components/CargoManifestForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,10 +34,23 @@ export default function DocumentsPage() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   
+  // State for inline form functionality
+  const [activeForm, setActiveForm] = useState<{ id: string; title: string } | null>(null);
+  
   // Documents state
   const { data: documents = [], isLoading: documentsLoading } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
+
+  // Handle opening forms inline
+  const handleOpenForm = (documentId: string, documentTitle: string) => {
+    setActiveForm({ id: documentId, title: documentTitle });
+  };
+
+  // Handle closing forms
+  const handleCloseForm = () => {
+    setActiveForm(null);
+  };
 
   // Phone Directory state
   const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
