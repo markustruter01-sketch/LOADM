@@ -243,6 +243,7 @@ export default function DocumentsPage() {
                         category: "Critical",
                         lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                     
                     <EnhancedDocumentCard
@@ -254,6 +255,7 @@ export default function DocumentsPage() {
                         category: "Required",
                         lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                     
                     <EnhancedDocumentCard
@@ -265,6 +267,7 @@ export default function DocumentsPage() {
                         category: "Critical",
                         lastUpdated: new Date(Date.now() - 3 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                   </div>
                 </div>
@@ -282,6 +285,7 @@ export default function DocumentsPage() {
                         category: "Compliance",
                         lastUpdated: new Date(Date.now() - 6 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                     
                     <EnhancedDocumentCard
@@ -293,6 +297,7 @@ export default function DocumentsPage() {
                         category: "Standard",
                         lastUpdated: new Date(Date.now() - 12 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                     
                     <EnhancedDocumentCard
@@ -304,6 +309,7 @@ export default function DocumentsPage() {
                         category: "Compliance",
                         lastUpdated: new Date(Date.now() - 8 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                   </div>
                 </div>
@@ -321,6 +327,7 @@ export default function DocumentsPage() {
                         category: "Technical",
                         lastUpdated: new Date(Date.now() - 18 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                     
                     <EnhancedDocumentCard
@@ -332,6 +339,7 @@ export default function DocumentsPage() {
                         category: "Safety",
                         lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                     
                     <EnhancedDocumentCard
@@ -343,6 +351,7 @@ export default function DocumentsPage() {
                         category: "Technical",
                         lastUpdated: new Date(Date.now() - 24 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                   </div>
                 </div>
@@ -360,6 +369,7 @@ export default function DocumentsPage() {
                         category: "Administrative",
                         lastUpdated: new Date(Date.now() - 36 * 60 * 60 * 1000)
                       }}
+                      onOpenForm={handleOpenForm}
                     />
                   </div>
                 </div>
@@ -382,6 +392,39 @@ export default function DocumentsPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Inline Form Display */}
+                {activeForm && (
+                  <div className="mt-8 p-6 bg-card rounded-lg border shadow-lg">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-bold">{activeForm.title}</h3>
+                      <Button variant="ghost" size="sm" onClick={handleCloseForm}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Form Content Based on Document ID */}
+                    {activeForm.id === "2" && activeForm.title === "Passenger/Crew and Cargo Manifest" && (
+                      <CargoManifestForm />
+                    )}
+                    
+                    {/* Placeholder for other forms */}
+                    {activeForm.id !== "2" && (
+                      <div className="space-y-4">
+                        <p className="text-muted-foreground">
+                          This form is being prepared. Please use the Email, Save, or Share buttons above to access the document template.
+                        </p>
+                        <div className="p-4 bg-muted/50 rounded border-dashed border-2">
+                          <p className="text-sm text-center text-muted-foreground">
+                            Form interface for "{activeForm.title}" will be available soon.
+                            <br />
+                            Use the action buttons on the document card for immediate access.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </TabsContent>
             
