@@ -45,6 +45,14 @@ export default function DocumentsPage() {
   // Handle opening forms inline
   const handleOpenForm = (documentId: string, documentTitle: string) => {
     setActiveForm({ id: documentId, title: documentTitle });
+    
+    // Scroll to form after a brief delay to ensure DOM updates
+    setTimeout(() => {
+      const formElement = document.getElementById('inline-form-section');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Handle closing forms
@@ -395,7 +403,7 @@ export default function DocumentsPage() {
 
                 {/* Inline Form Display */}
                 {activeForm && (
-                  <div className="mt-8 p-6 bg-card rounded-lg border shadow-lg">
+                  <div id="inline-form-section" className="mt-8 p-6 bg-card rounded-lg border shadow-lg">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-xl font-bold">{activeForm.title}</h3>
                       <Button variant="ghost" size="sm" onClick={handleCloseForm}>
@@ -408,18 +416,22 @@ export default function DocumentsPage() {
                       <CargoManifestForm />
                     )}
                     
-                    {/* Placeholder for other forms */}
+                    {/* Coming Soon form for other documents */}
                     {activeForm.id !== "2" && (
-                      <div className="space-y-4">
-                        <p className="text-muted-foreground">
-                          This form is being prepared. Please use the Email, Save, or Share buttons above to access the document template.
-                        </p>
-                        <div className="p-4 bg-muted/50 rounded border-dashed border-2">
-                          <p className="text-sm text-center text-muted-foreground">
-                            Form interface for "{activeForm.title}" will be available soon.
-                            <br />
-                            Use the action buttons on the document card for immediate access.
+                      <div className="min-h-[500px] bg-white rounded-lg border p-8 flex items-center justify-center">
+                        <div className="text-center">
+                          <h2 className="text-4xl font-bold text-red-600 mb-4">COMING SOON</h2>
+                          <p className="text-lg text-muted-foreground mb-6">
+                            {activeForm.title} form interface is under development
                           </p>
+                          <div className="text-sm text-muted-foreground">
+                            <p>In the meantime, please use:</p>
+                            <ul className="mt-2 space-y-1">
+                              <li>• Email button to send document template</li>
+                              <li>• Save button to download document</li>
+                              <li>• Share button for AirDrop/native sharing</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     )}
