@@ -64,8 +64,18 @@ export default function DocumentCard({ document }: DocumentCardProps) {
   };
 
   const handleEmailDocument = () => {
-    // Use the enhanced email utility function
-    openEmailWithDocument(document);
+    // Create simple email content without complex utility
+    const subject = encodeURIComponent(`${document.title} - LOADMworkflow Document`);
+    const body = encodeURIComponent(
+      `Hello,\n\nPlease find the ${document.title} document information:\n\n` +
+      `Description: ${document.description}\n\n` +
+      `This document can be accessed through the LOADMworkflow system.\n\n` +
+      `Best regards`
+    );
+    
+    // Open default email client
+    const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+    window.open(mailtoLink, '_blank');
   };
 
   return (
