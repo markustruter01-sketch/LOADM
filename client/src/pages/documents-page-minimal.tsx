@@ -58,7 +58,7 @@ export default function DocumentsPage() {
     title: pdf.title,
     description: pdf.description || 'PDF Document Template',
     type: pdf.type || 'form',
-    lastUpdated: new Date(pdf.lastUpdated || pdf.uploadedAt),
+    lastUpdated: new Date(pdf.updatedAt || pdf.createdAt),
     category: pdf.category || 'operational'
   }));
 
