@@ -79,6 +79,66 @@ export function CargoManifestForm() {
     window.print();
   };
 
+  // Handler for saving the form
+  const handleSave = () => {
+    const formContent = generateFormContent();
+    const blob = new Blob([formContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Cargo_Manifest_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Generate form content for saving
+  const generateFormContent = () => {
+    return `PASSENGER / CREW AND CARGO MANIFEST
+Generated: ${new Date().toLocaleDateString()}
+
+FLIGHT INFORMATION:
+Crew Name: ${formData.crewName}
+Flight Manager Info: ${formData.flightManagerInfo}
+Ordering Unit: ${formData.orderingUnit}
+Incident: ${formData.incident}
+Project Number: ${formData.projectNumber}
+Carrier: ${formData.carrier}
+
+DEPARTURE & ARRIVAL:
+Departure: ${formData.departure}
+ETD: ${formData.etd}
+Arrival: ${formData.arrival}
+ETA: ${formData.eta}
+
+CONTACT INFORMATION:
+Report To: ${formData.reportTo}
+If Delayed, Contact: ${formData.delayedContact}
+
+PASSENGER/CARGO MANIFEST:
+${formData.passengers.map((passenger, index) => {
+  if (passenger.name.trim()) {
+    return `${index + 1}. ${passenger.name} | ${passenger.gender} | Passenger Weight: ${passenger.passengerWeight} | Cargo Weight: ${passenger.cargoWeight} | Position: ${passenger.position} | Home Unit: ${passenger.homeUnit}`;
+  }
+  return '';
+}).filter(line => line).join('\n')}
+
+TOTALS:
+Passenger Count: ${formData.passengerCount}
+Total Passenger Weight: ${formData.passengerWeight}
+Total Cargo Weight: ${formData.cargoWeight}
+Total Weight: ${formData.totalWeight}
+
+CERTIFICATION:
+Signature: ${formData.signature}
+Date: ${formData.date}
+
+Australian Defence Force - Cargo Operations
+`;
+  };
+
   return (
     <>
       <Helmet>
@@ -406,6 +466,7 @@ export function CargoManifestForm() {
           </Button>
           <Button 
             className="bg-primary hover:bg-primary/90 text-white"
+            onClick={handleSave}
           >
             <Save className="mr-2 h-4 w-4" />
             Save Form
