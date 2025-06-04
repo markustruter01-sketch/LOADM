@@ -45,6 +45,9 @@ export default function DocumentsPage() {
 
   const queryClient = useQueryClient();
 
+  console.log("PDF Documents data:", pdfDocuments);
+  console.log("PDF Documents length:", pdfDocuments.length);
+
   // Simple PDF handler - opens PDF directly in new tab
   const handleOpenPDF = (documentId: number) => {
     console.log("Opening PDF document ID:", documentId);
