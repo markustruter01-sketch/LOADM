@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Document } from "@shared/schema";
 import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, FileText, ChevronDown, ChevronRight, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import DocumentCard from "@/components/DocumentCard";
+import TestDocumentCard from "@/components/TestDocumentCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -204,76 +204,40 @@ export default function DocumentsPage() {
             {/* Documents Tab */}
             <TabsContent value="documents" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <DocumentCard
-                  document={{
-                    id: 1,
-                    title: "Load Planning Form",
-                    description: "Complete detailed load planning documentation for cargo aircraft operations.",
-                    lastUpdated: new Date(),
-                    type: "Form",
-                    fields: {},
-                    createdAt: new Date()
-                  }}
+                <TestDocumentCard
+                  title="Load Planning Form"
+                  description="Complete detailed load planning documentation for cargo aircraft operations."
+                  type="Form"
                 />
                 
-                <DocumentCard
-                  document={{
-                    id: 2,
-                    title: "Passenger/Crew and Cargo Manifest",
-                    description: "Generate and complete detailed cargo manifests for all shipments.",
-                    lastUpdated: new Date(),
-                    type: "Form",
-                    fields: {},
-                    createdAt: new Date()
-                  }}
+                <TestDocumentCard
+                  title="Passenger/Crew and Cargo Manifest"
+                  description="Generate and complete detailed cargo manifests for all shipments."
+                  type="Form"
                 />
                 
-                <DocumentCard
-                  document={{
-                    id: 3,
-                    title: "Dangerous Goods Declaration",
-                    description: "Complete DG documentation for hazardous materials transportation.",
-                    lastUpdated: new Date(),
-                    type: "Form",
-                    fields: {},
-                    createdAt: new Date()
-                  }}
+                <TestDocumentCard
+                  title="Dangerous Goods Declaration"
+                  description="Complete DG documentation for hazardous materials transportation."
+                  type="Form"
                 />
                 
-                <DocumentCard
-                  document={{
-                    id: 4,
-                    title: "Weight & Balance Sheet",
-                    description: "Calculate and document aircraft weight distribution and balance.",
-                    lastUpdated: new Date(),
-                    type: "Form",
-                    fields: {},
-                    createdAt: new Date()
-                  }}
+                <TestDocumentCard
+                  title="Weight & Balance Sheet"
+                  description="Calculate and document aircraft weight distribution and balance."
+                  type="Form"
                 />
                 
-                <DocumentCard
-                  document={{
-                    id: 5,
-                    title: "Special Handling Form",
-                    description: "Document special handling requirements for unusual cargo types or sensitive items.",
-                    lastUpdated: new Date(),
-                    type: "Form",
-                    fields: {},
-                    createdAt: new Date()
-                  }}
+                <TestDocumentCard
+                  title="Special Handling Form"
+                  description="Document special handling requirements for unusual cargo types or sensitive items."
+                  type="Form"
                 />
                 
-                <DocumentCard
-                  document={{
-                    id: 6,
-                    title: "Aircraft Tie-Down Diagram",
-                    description: "Detailed cargo restraint planning diagram with tie-down points and calculations.",
-                    lastUpdated: new Date(),
-                    type: "Form",
-                    fields: {},
-                    createdAt: new Date()
-                  }}
+                <TestDocumentCard
+                  title="Aircraft Tie-Down Diagram"
+                  description="Detailed cargo restraint planning diagram with tie-down points and calculations."
+                  type="Form"
                 />
               </div>
             </TabsContent>
