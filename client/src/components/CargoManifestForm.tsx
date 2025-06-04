@@ -358,10 +358,10 @@ Australian Defence Force - Cargo Operations
         </div>
 
         {/* Passenger Table */}
-        <div className="overflow-x-auto mb-6">
-          <table className="w-full border-collapse border border-gray-300 text-black">
-            <thead>
-              <tr className="bg-gray-100">
+        <div className="overflow-x-auto mb-6" style={{ pageBreakInside: 'avoid' }}>
+          <table className="w-full border-collapse border border-gray-300 text-black" style={{ pageBreakInside: 'auto' }}>
+            <thead style={{ display: 'table-header-group' }}>
+              <tr className="bg-gray-100" style={{ pageBreakInside: 'avoid', pageBreakAfter: 'avoid' }}>
                 <th className="border border-gray-300 px-2 py-1 text-sm text-left" style={{ width: "25px" }}>No.</th>
                 <th className="border border-gray-300 px-2 py-1 text-sm text-left">
                   Passenger / Cargo Name
@@ -379,7 +379,7 @@ Australian Defence Force - Cargo Operations
             </thead>
             <tbody>
               {formData.passengers.map((passenger, index) => (
-                <tr key={index}>
+                <tr key={index} style={{ pageBreakInside: 'avoid', pageBreakAfter: 'auto' }}>
                   <td className="border border-gray-300 px-2 py-1 text-sm text-center">{index + 1}</td>
                   <td className="border border-gray-300 px-0 py-0">
                     <Input 

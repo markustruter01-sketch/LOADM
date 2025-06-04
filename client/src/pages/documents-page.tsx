@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Contact {
   id: string;
@@ -58,6 +60,97 @@ export default function DocumentsPage() {
   // Handle closing forms
   const handleCloseForm = () => {
     setActiveForm(null);
+  };
+
+  // Universal PDF generation function for all save buttons
+  const handlePDFSave = async (documentTitle: string = 'Document') => {
+    try {
+      const formElement = document.querySelector('.print-document') || document.querySelector('[data-pdf-content]');
+      if (!formElement) {
+        alert('No content available to save as PDF');
+        return;
+      }
+
+      // Hide action buttons during capture
+      const actionButtons = document.querySelectorAll('.no-print');
+      actionButtons.forEach(button => {
+        (button as HTMLElement).style.display = 'none';
+      });
+
+      const canvas = await html2canvas(formElement as HTMLElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        width: formElement.clientWidth,
+        height: formElement.clientHeight
+      });
+
+      // Show action buttons again
+      actionButtons.forEach(button => {
+        (button as HTMLElement).style.display = '';
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Page dimensions with margins
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const marginTop = 15;
+      const marginBottom = 20;
+      const marginLeft = 10;
+      const marginRight = 10;
+      const contentWidth = pageWidth - marginLeft - marginRight;
+      const contentHeight = pageHeight - marginTop - marginBottom;
+      
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = marginTop;
+      let pageNumber = 1;
+
+      // Add header and footer functions
+      const addPageHeader = (pdf: jsPDF, pageNum: number) => {
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text('Australian Defence Force - Cargo Operations', marginLeft, 8);
+        pdf.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - marginRight - 30, 8);
+      };
+
+      const addPageFooter = (pdf: jsPDF, pageNum: number, totalPages: number) => {
+        pdf.setFontSize(8);
+        pdf.setTextColor(100);
+        pdf.text(`Page ${pageNum}`, pageWidth / 2 - 10, pageHeight - 8);
+        pdf.text(documentTitle.toUpperCase(), marginLeft, pageHeight - 8);
+      };
+
+      // Calculate total pages
+      const totalPages = Math.ceil(imgHeight / contentHeight);
+
+      // Add first page
+      addPageHeader(pdf, pageNumber);
+      pdf.addImage(imgData, 'PNG', marginLeft, position, imgWidth, imgHeight);
+      addPageFooter(pdf, pageNumber, totalPages);
+      
+      heightLeft -= contentHeight;
+      pageNumber++;
+
+      // Add additional pages
+      while (heightLeft >= 0) {
+        position = marginTop - (imgHeight - heightLeft);
+        pdf.addPage();
+        addPageHeader(pdf, pageNumber);
+        pdf.addImage(imgData, 'PNG', marginLeft, position, imgWidth, imgHeight);
+        addPageFooter(pdf, pageNumber, totalPages);
+        heightLeft -= contentHeight;
+        pageNumber++;
+      }
+
+      pdf.save(`${documentTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
   };
 
   // Phone Directory state
