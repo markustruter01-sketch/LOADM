@@ -30,8 +30,12 @@ app.get("/api/phone-directory", async (req, res) => {
   try {
     console.log("NUCLEAR: Phone directory GET request received");
     const directories = await db.select().from(phoneDirectory);
-    console.log("NUCLEAR: Phone directory data:", directories);
-    res.json(directories);
+    // Sort alphabetically by airbase name
+    const sortedDirectories = directories.sort((a, b) => 
+      a.airbaseName.localeCompare(b.airbaseName, 'en', { sensitivity: 'base' })
+    );
+    console.log("NUCLEAR: Sorted phone directory data:", sortedDirectories.slice(0, 3).map(d => d.airbaseName));
+    res.json(sortedDirectories);
   } catch (error) {
     console.error("NUCLEAR: Error fetching phone directory:", error);
     res.status(500).json({ message: "Failed to fetch phone directory" });
