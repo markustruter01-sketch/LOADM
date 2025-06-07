@@ -318,31 +318,67 @@ export default function LoadPlanningPage() {
         yPos += 8;
       }
 
-      // Try to capture screenshot as enhancement (fallback gracefully)
-      try {
-        const canvas = await html2canvas(cargoBayElement, {
-          backgroundColor: '#1f2937',
-          scale: 1,
-          useCORS: false,
-          allowTaint: true,
-          logging: false,
-          foreignObjectRendering: false
-        });
+      // For email sending, skip screenshot to reduce payload size
+      if (!shouldEmail) {
+        // Only capture screenshot for downloads to avoid large email payloads
+        try {
+          const canvas = await html2canvas(cargoBayElement, {
+            backgroundColor: '#1f2937',
+            scale: 0.5, // Reduce scale to decrease file size
+            useCORS: false,
+            allowTaint: true,
+            logging: false,
+            foreignObjectRendering: false,
+            width: Math.min(cargoBayElement.scrollWidth, 800), // Limit width
+            height: Math.min(cargoBayElement.scrollHeight, 600) // Limit height
+          });
 
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = pageWidth - 40;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        const yPosition = yPos + 10;
-        const maxHeight = pageHeight - yPosition - 20;
-        const finalHeight = Math.min(imgHeight, maxHeight);
-        const finalWidth = finalHeight === maxHeight ? (canvas.width * maxHeight) / canvas.height : imgWidth;
-        
-        if (finalHeight > 0 && finalWidth > 0) {
-          pdf.addImage(imgData, 'PNG', 20, yPosition, finalWidth, finalHeight);
+          const imgData = canvas.toDataURL('image/jpeg', 0.7); // Use JPEG with compression
+          const imgWidth = pageWidth - 40;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          const yPosition = yPos + 10;
+          const maxHeight = pageHeight - yPosition - 20;
+          const finalHeight = Math.min(imgHeight, maxHeight);
+          const finalWidth = finalHeight === maxHeight ? (canvas.width * maxHeight) / canvas.height : imgWidth;
+          
+          if (finalHeight > 0 && finalWidth > 0) {
+            pdf.addImage(imgData, 'JPEG', 20, yPosition, finalWidth, finalHeight);
+          }
+        } catch (screenshotError) {
+          console.warn('Visual layout capture failed, using text summary only:', screenshotError);
         }
-      } catch (screenshotError) {
-        console.warn('Visual layout capture failed, using text summary only:', screenshotError);
+      } else {
+        // For email, add detailed text-based cargo layout instead of image
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Detailed Cargo Bay Layout:', 20, yPos + 20);
+        
+        let detailYPos = yPos + 35;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        
+        // Create ASCII-style layout representation
+        const layoutText = [
+          'Cargo Bay Layout (Text Representation):',
+          '┌────────────────────────────────────────┐',
+          '│                NOSE                    │',
+          '├────────────────────────────────────────┤'
+        ];
+        
+        cargoPositions.forEach((position, index) => {
+          if (position.weight > 0) {
+            const posText = `│ Pos ${position.id}: ${position.cargoType.padEnd(20)} ${position.weight}${aircraftId === 'kc30a' ? 'kg' : 'lbs'} │`;
+            layoutText.push(posText);
+          }
+        });
+        
+        layoutText.push('└────────────────────────────────────────┘');
+        
+        layoutText.forEach(line => {
+          pdf.text(line, 25, detailYPos);
+          detailYPos += 6;
+        });
       }
 
       const fileName = `${config.name}_LoadPlan_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -354,11 +390,19 @@ export default function LoadPlanningPage() {
           // Convert PDF to base64 for email
           const pdfBase64 = pdf.output('datauristring').split(',')[1];
           
-          // Create abort controller with timeout
+          // Log payload size for debugging
+          const payloadSize = Math.round(pdfBase64.length / 1024);
+          console.log(`PDF payload size: ${payloadSize}KB`);
+          
+          if (payloadSize > 10000) { // 10MB threshold
+            console.warn('PDF payload very large, may cause timeout');
+          }
+          
+          // Create abort controller with longer timeout for large files
           const controller = new AbortController();
           const timeoutId = setTimeout(() => {
             controller.abort();
-          }, 15000); // 15 second timeout
+          }, 30000); // 30 second timeout for email
           
           // Send email with PDF attachment
           const response = await fetch('/api/send-load-plan-email', {
@@ -386,12 +430,12 @@ export default function LoadPlanningPage() {
             setShowEmailDialog(false);
             setEmailAddress('');
           } else {
-            const errorText = await response.text();
-            console.error('Email sending failed:', errorText);
+            const errorData = await response.text();
+            console.error('Email sending failed:', response.status, errorData);
             
             // Fall back to download
             pdf.save(fileName);
-            alert('Email failed - PDF downloaded instead. Email service may need configuration.');
+            alert(`Email failed (${response.status}) - PDF downloaded instead. Please try again or contact support.`);
             setShowEmailDialog(false);
           }
         } catch (emailError: any) {
@@ -400,7 +444,9 @@ export default function LoadPlanningPage() {
           // Fall back to download
           pdf.save(fileName);
           if (emailError?.name === 'AbortError') {
-            alert('Email timeout - PDF downloaded instead. Please try again or check your connection.');
+            alert('Email timeout - PDF downloaded instead. The file may be too large for email.');
+          } else if (emailError?.message?.includes('Failed to fetch')) {
+            alert('Network error - PDF downloaded instead. Please check your connection.');
           } else {
             alert('Email service unavailable - PDF downloaded instead.');
           }

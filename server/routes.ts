@@ -896,16 +896,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Load Plan PDF Email Route
   app.post('/api/send-load-plan-email', async (req: Request, res: Response) => {
     try {
+      console.log('📧 Load plan email request received');
       const { email, fileName, pdfData, aircraftName, centerOfGravity, totalWeight, status } = req.body;
 
       if (!email || !fileName || !pdfData) {
+        console.error('❌ Missing required fields:', { email: !!email, fileName: !!fileName, pdfData: !!pdfData });
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
+      // Log payload size for debugging
+      const payloadSizeKB = Math.round(pdfData.length / 1024);
+      console.log(`📊 PDF payload size: ${payloadSizeKB}KB`);
+
       // Check if SendGrid API key is properly configured
       if (!process.env.SENDGRID_API_KEY) {
+        console.error('❌ SendGrid API key not configured');
         return res.status(500).json({ error: 'Email service not configured' });
       }
+
+      console.log(`📧 Preparing email to: ${email} for aircraft: ${aircraftName}`);
 
       // Create email content
       const emailContent = {
@@ -965,23 +974,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sgMail = require('@sendgrid/mail');
       sgMail.setApiKey(process.env.SENDGRID_API_KEY);
       
+      console.log('📤 Sending email via SendGrid...');
       const result = await sgMail.send(emailContent);
-      console.log('Email sent successfully to:', email);
+      console.log('✅ Email sent successfully to:', email);
       
       res.json({ success: true, message: 'Load plan PDF sent successfully' });
       
     } catch (error: any) {
-      console.error('SendGrid error details:', error.response?.body || error);
+      console.error('❌ SendGrid error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        body: error.response?.body,
+        stack: error.stack?.substring(0, 500)
+      });
       
+      // Handle specific SendGrid errors
       if (error.code === 403 || error.response?.status === 403) {
+        console.error('🔒 Authentication failed - API key or sender verification issue');
         res.status(500).json({ 
           error: 'Email service authentication failed. SendGrid API key may be invalid or sender email not verified.' 
         });
       } else if (error.code === 400 || error.response?.status === 400) {
+        console.error('📝 Bad request - email configuration issue');
         res.status(500).json({ 
           error: 'Invalid email configuration. Please check sender email verification in SendGrid.' 
         });
+      } else if (error.code === 413 || error.message?.includes('too large')) {
+        console.error('📦 Payload too large for email');
+        res.status(413).json({ 
+          error: 'PDF file too large for email. Please try downloading instead.' 
+        });
+      } else if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
+        console.error('🌐 Network connectivity issue');
+        res.status(500).json({ 
+          error: 'Network error occurred. Please check connection and try again.' 
+        });
       } else {
+        console.error('🔧 General email service error');
         res.status(500).json({ 
           error: 'Email service temporarily unavailable. Please download the PDF instead.' 
         });
