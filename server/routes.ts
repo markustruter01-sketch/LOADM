@@ -926,42 +926,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         to: email,
         from: 'info@digitaldynamics-group.com', // Use verified sender email
         subject: `Load Plan: ${aircraftName} - CG ${centerOfGravity}%`,
+        text: `Aircraft Load Plan
+
+Load Plan Summary:
+Aircraft: ${aircraftName}
+Center of Gravity: ${centerOfGravity}%
+Total Weight: ${totalWeight}
+Status: ${status.toUpperCase()}
+Generated: ${new Date().toLocaleString()}
+
+The detailed load plan with visual cargo bay diagram is attached as a PDF document.
+
+LOADMworkflow - Advanced Military Logistics Platform
+`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1f2937;">Aircraft Load Plan</h2>
-            
-            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="color: #374151; margin-top: 0;">Load Plan Summary</h3>
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Aircraft:</td>
-                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${aircraftName}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Center of Gravity:</td>
-                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${centerOfGravity}%</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Total Weight:</td>
-                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${totalWeight}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Status:</td>
-                  <td style="padding: 8px 0; font-weight: bold; color: ${status === 'safe' ? '#059669' : status === 'caution' ? '#d97706' : '#dc2626'};">${status.toUpperCase()}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Generated:</td>
-                  <td style="padding: 8px 0; font-weight: bold; color: #1f2937;">${new Date().toLocaleString()}</td>
-                </tr>
-              </table>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+            <div style="background-color: #1f2937; color: white; padding: 20px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px;">Aircraft Load Plan</h1>
+              <p style="margin: 5px 0 0 0; font-size: 14px;">LOADMworkflow - Military Logistics Platform</p>
             </div>
             
-            <p style="color: #6b7280;">The detailed load plan is attached as a PDF document.</p>
-            
-            <div style="background-color: #eff6ff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
-              <p style="margin: 0; color: #1e40af; font-size: 14px;">
-                <strong>LOADMworkflow</strong> - Advanced Military Logistics Platform
+            <div style="padding: 20px;">
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h2 style="color: #374151; margin-top: 0; font-size: 18px;">Load Plan Summary</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 12px 0; color: #6b7280; font-weight: 500;">Aircraft:</td>
+                    <td style="padding: 12px 0; font-weight: bold; color: #1f2937;">${aircraftName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #6b7280; font-weight: 500;">Center of Gravity:</td>
+                    <td style="padding: 12px 0; font-weight: bold; color: #1f2937;">${centerOfGravity}%</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #6b7280; font-weight: 500;">Total Weight:</td>
+                    <td style="padding: 12px 0; font-weight: bold; color: #1f2937;">${totalWeight}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #6b7280; font-weight: 500;">Status:</td>
+                    <td style="padding: 12px 0; font-weight: bold; color: ${status === 'safe' ? '#059669' : status === 'caution' ? '#d97706' : '#dc2626'};">${status.toUpperCase()}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px 0; color: #6b7280; font-weight: 500;">Generated:</td>
+                    <td style="padding: 12px 0; font-weight: bold; color: #1f2937;">${new Date().toLocaleString()}</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <p style="color: #4b5563; line-height: 1.6; margin: 20px 0;">
+                The detailed load plan with enhanced visual cargo bay diagram is attached as a PDF document. 
+                The diagram includes color-coded cargo positions, center of gravity indicators, and professional legends.
               </p>
+              
+              <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #1e40af; font-size: 14px; font-weight: 500;">
+                  This email was sent from LOADMworkflow Advanced Military Logistics Platform
+                </p>
+              </div>
             </div>
           </div>
         `,
@@ -976,7 +997,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log('📤 Sending email via SendGrid...');
+      console.log('Email payload details:', {
+        to: emailContent.to,
+        from: emailContent.from,
+        subject: emailContent.subject,
+        attachmentCount: emailContent.attachments?.length || 0,
+        attachmentSize: emailContent.attachments?.[0]?.content?.length || 0
+      });
+      
       const result = await sgMail.send(emailContent);
+      console.log('✅ SendGrid response:', {
+        statusCode: result[0]?.statusCode,
+        headers: result[0]?.headers,
+        messageId: result[0]?.headers?.['x-message-id'],
+        body: result[0]?.body
+      });
+      
+      // Additional delivery verification
+      if (result[0]?.statusCode === 202) {
+        console.log('📬 Email accepted by SendGrid for delivery');
+        console.log('Message ID for tracking:', result[0]?.headers?.['x-message-id']);
+      } else {
+        console.log('⚠️ Unexpected response code:', result[0]?.statusCode);
+      }
+      
       console.log('✅ Email sent successfully to:', email);
       
       res.json({ success: true, message: 'Load plan PDF sent successfully' });
