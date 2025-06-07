@@ -117,8 +117,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory - Public access
   app.get("/api/phone-directory", async (req, res) => {
     try {
-      const directories = await db.select().from(phoneDirectory).orderBy(phoneDirectory.airbaseName);
-      res.json(directories);
+      console.log("NUCLEAR: Phone directory GET request received");
+      const directories = await db.select().from(phoneDirectory);
+      console.log("NUCLEAR: Raw directories count:", directories.length);
+      console.log("NUCLEAR: First 3 unsorted:", directories.slice(0, 3).map(d => d.airbaseName));
+      
+      // Sort alphabetically by airbase name in JavaScript to ensure proper ordering
+      const sortedDirectories = directories.sort((a, b) => 
+        a.airbaseName.localeCompare(b.airbaseName, 'en', { sensitivity: 'base' })
+      );
+      
+      console.log("NUCLEAR: First 3 sorted:", sortedDirectories.slice(0, 3).map(d => d.airbaseName));
+      console.log("NUCLEAR: Phone directory data:", sortedDirectories);
+      res.json(sortedDirectories);
     } catch (error) {
       console.error("Error fetching phone directory:", error);
       res.status(500).json({ message: "Failed to fetch phone directory" });
