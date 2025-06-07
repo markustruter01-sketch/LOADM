@@ -349,36 +349,98 @@ export default function LoadPlanningPage() {
           console.warn('Visual layout capture failed, using text summary only:', screenshotError);
         }
       } else {
-        // For email, add detailed text-based cargo layout instead of image
+        // For email, create a professional vector-based cargo bay diagram
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('Detailed Cargo Bay Layout:', 20, yPos + 20);
+        pdf.text('Cargo Bay Layout Diagram:', 20, yPos + 20);
         
-        let detailYPos = yPos + 35;
-        pdf.setFont('helvetica', 'normal');
+        const startY = yPos + 35;
+        const bayWidth = 200;
+        const bayHeight = 80;
+        const startX = 30;
+        
+        // Draw cargo bay outline
+        pdf.setDrawColor(0, 0, 0);
+        pdf.setLineWidth(0.5);
+        pdf.rect(startX, startY, bayWidth, bayHeight);
+        
+        // Draw nose section
+        pdf.setFillColor(240, 240, 240);
+        pdf.rect(startX, startY, 40, bayHeight, 'F');
         pdf.setFontSize(10);
+        pdf.text('NOSE', startX + 12, startY + bayHeight/2 + 2);
         
-        // Create ASCII-style layout representation
-        const layoutText = [
-          'Cargo Bay Layout (Text Representation):',
-          '┌────────────────────────────────────────┐',
-          '│                NOSE                    │',
-          '├────────────────────────────────────────┤'
-        ];
+        // Draw position grid
+        const numPositions = Math.max(cargoPositions.length, 8);
+        const positionWidth = (bayWidth - 40) / numPositions;
         
+        // Draw vertical separators
+        for (let i = 1; i < numPositions; i++) {
+          const x = startX + 40 + (i * positionWidth);
+          pdf.setDrawColor(200, 200, 200);
+          pdf.line(x, startY, x, startY + bayHeight);
+        }
+        
+        // Fill cargo positions
         cargoPositions.forEach((position, index) => {
+          const posX = startX + 40 + (index * positionWidth);
+          
           if (position.weight > 0) {
-            const posText = `│ Pos ${position.id}: ${position.cargoType.padEnd(20)} ${position.weight}${aircraftId === 'kc30a' ? 'kg' : 'lbs'} │`;
-            layoutText.push(posText);
+            // Fill with cargo color based on type
+            if (position.cargoType === 'DG') {
+              pdf.setFillColor(255, 200, 200); // Light red for dangerous goods
+            } else if (position.cargoType === 'PAX') {
+              pdf.setFillColor(200, 255, 200); // Light green for passengers
+            } else {
+              pdf.setFillColor(200, 220, 255); // Light blue for general cargo
+            }
+            pdf.rect(posX + 1, startY + 1, positionWidth - 2, bayHeight - 2, 'F');
+            
+            // Add cargo info
+            pdf.setFontSize(8);
+            pdf.setTextColor(0, 0, 0);
+            pdf.text(`P${position.id}`, posX + 3, startY + 12);
+            pdf.text(position.cargoType, posX + 3, startY + 20);
+            pdf.text(`${position.weight}${aircraftId === 'kc30a' ? 'kg' : 'lbs'}`, posX + 3, startY + 28);
+          } else {
+            // Empty position
+            pdf.setFillColor(250, 250, 250);
+            pdf.rect(posX + 1, startY + 1, positionWidth - 2, bayHeight - 2, 'F');
+            pdf.setFontSize(8);
+            pdf.setTextColor(150, 150, 150);
+            pdf.text(`P${position.id}`, posX + 3, startY + 12);
+            pdf.text('EMPTY', posX + 3, startY + 20);
           }
         });
         
-        layoutText.push('└────────────────────────────────────────┘');
+        // Add center of gravity indicator
+        const cgPosition = (balanceResult.centerOfGravity / 100) * bayWidth;
+        pdf.setDrawColor(255, 0, 0);
+        pdf.setLineWidth(2);
+        pdf.line(startX + cgPosition, startY - 5, startX + cgPosition, startY + bayHeight + 5);
         
-        layoutText.forEach(line => {
-          pdf.text(line, 25, detailYPos);
-          detailYPos += 6;
-        });
+        pdf.setFontSize(8);
+        pdf.setTextColor(255, 0, 0);
+        pdf.text(`CG: ${balanceResult.centerOfGravity.toFixed(1)}%`, startX + cgPosition - 15, startY - 8);
+        
+        // Add legend
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text('Legend:', startX, startY + bayHeight + 20);
+        
+        // Legend items
+        const legendY = startY + bayHeight + 30;
+        pdf.setFillColor(255, 200, 200);
+        pdf.rect(startX, legendY, 10, 8, 'F');
+        pdf.text('Dangerous Goods', startX + 15, legendY + 6);
+        
+        pdf.setFillColor(200, 255, 200);
+        pdf.rect(startX + 80, legendY, 10, 8, 'F');
+        pdf.text('Passengers', startX + 95, legendY + 6);
+        
+        pdf.setFillColor(200, 220, 255);
+        pdf.rect(startX + 150, legendY, 10, 8, 'F');
+        pdf.text('General Cargo', startX + 165, legendY + 6);
       }
 
       const fileName = `${config.name}_LoadPlan_${new Date().toISOString().split('T')[0]}.pdf`;

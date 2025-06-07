@@ -916,10 +916,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`📧 Preparing email to: ${email} for aircraft: ${aircraftName}`);
 
+      // Initialize SendGrid
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
       // Create email content
       const emailContent = {
         to: email,
-        from: 'loadmaster@loadmworkflow.com', // Use a verified sender
+        from: 'noreply@digitaldynamics.com', // Use verified sender from email service
         subject: `Load Plan: ${aircraftName} - CG ${centerOfGravity}%`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -970,10 +974,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ]
       };
 
-      // Send email using SendGrid
-      const sgMail = require('@sendgrid/mail');
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      
       console.log('📤 Sending email via SendGrid...');
       const result = await sgMail.send(emailContent);
       console.log('✅ Email sent successfully to:', email);
