@@ -36,8 +36,16 @@ export default function ArmyHomePage() {
         />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-8 mb-16">
-        <div className="max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 py-8 mb-16 relative">
+        {/* Coming Soon Overlay */}
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 rounded-lg">
+          <div className="text-center">
+            <h1 className="text-6xl font-bold text-orange-500 mb-4">COMING SOON</h1>
+            <p className="text-2xl text-white font-medium">Army Module in Development</p>
+          </div>
+        </div>
+        
+        <div className="max-w-4xl mx-auto filter blur-sm pointer-events-none">
           {/* Service Branch Selection */}
           <div className="mb-8 text-center">
             <div className="max-w-xs mx-auto">

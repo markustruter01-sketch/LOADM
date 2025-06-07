@@ -105,7 +105,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Quiz Scenarios</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Interactive quizzes and assessments for training
+                      Complete scenario-based quizzes and training assessments
                     </p>
                   </CardContent>
                 </Card>
@@ -120,7 +120,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Training Modules</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Structured learning modules and course materials
+                      Interactive aircraft training modules and simulations
                     </p>
                   </CardContent>
                 </Card>
@@ -130,9 +130,9 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <Package2 className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Cargo Planning</h3>
+                    <h3 className="text-lg font-medium mb-2">Load Planning</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Aircraft load calculation and cargo planning tools
+                      Visual aircraft load planning with balance calculations
                     </p>
                   </CardContent>
                 </Card>
@@ -144,7 +144,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Document Center</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Submit and review required training documents
+                      Access documents, phone directory, and training materials
                     </p>
                   </CardContent>
                 </Card>
@@ -156,7 +156,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Calculation Tools</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Weight, balance, and performance calculators
+                      Military calculators, converters, and reference tools
                     </p>
                   </CardContent>
                 </Card>
@@ -168,7 +168,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Instructor Portal</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Manage scenarios and review student submissions
+                      Manage students, review submissions, and track progress
                     </p>
                   </CardContent>
                 </Card>
