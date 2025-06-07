@@ -59,28 +59,37 @@ export default function ScenariosPage() {
           </section>
 
           {/* Tab navigation */}
-          <div className="bg-muted mb-6 p-1 rounded-lg inline-flex">
-            <button 
-              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'training' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
-              onClick={() => setActiveTab("training")}
-            >
-              <Book className="h-4 w-4 mr-2 inline-block" />
-              Training
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'assessment' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
-              onClick={() => setActiveTab("assessment")}
-            >
-              <FileCheck className="h-4 w-4 mr-2 inline-block" />
-              Assessment
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'quiz' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
-              onClick={() => setActiveTab("quiz")}
-            >
-              <HelpCircle className="h-4 w-4 mr-2 inline-block" />
-              Quiz
-            </button>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="bg-muted p-1 rounded-lg inline-flex">
+              <button 
+                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'training' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setActiveTab("training")}
+              >
+                <Book className="h-4 w-4 mr-2 inline-block" />
+                Training
+              </button>
+              <button 
+                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'assessment' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setActiveTab("assessment")}
+              >
+                <FileCheck className="h-4 w-4 mr-2 inline-block" />
+                Assessment
+              </button>
+              <button 
+                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'quiz' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
+                onClick={() => setActiveTab("quiz")}
+              >
+                <HelpCircle className="h-4 w-4 mr-2 inline-block" />
+                Quiz
+              </button>
+            </div>
+            
+            {/* Training mode notice */}
+            {activeTab === 'training' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700">
+                <span className="font-medium">Note:</span> Scenarios completed under the Training section will not be submitted for review.
+              </div>
+            )}
           </div>
           
           {/* Scenarios Grid */}
