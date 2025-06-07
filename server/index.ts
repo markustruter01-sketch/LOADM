@@ -418,29 +418,37 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
-const PORT = 5000;
-const httpServer = createServer(app);
-
-// Register other routes (they'll handle their own auth)
+// Register API routes BEFORE Vite middleware to prevent interception
 registerRoutes(app).then(() => {
   console.log('✅ All routes registered successfully');
+  
+  // Only add Vite middleware after routes are registered
+  app.use((req, res, next) => {
+    if (req.path.endsWith(".html")) {
+      res.redirect(req.path.slice(0, -5));
+    } else {
+      next();
+    }
+  });
+
+  if (app.get("env") === "development") {
+    setupVite(app, httpServer);
+  } else {
+    serveStatic(app);
+  }
+  
+  // Start server after everything is configured
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
+    console.log(`✅ ISOLATED SERVER: Authentication system ready`);
+  });
+  
 }).catch(err => {
   console.error('❌ Route registration failed:', err);
 });
 
-app.use((req, res, next) => {
-  if (req.path.endsWith(".html")) {
-    res.redirect(req.path.slice(0, -5));
-  } else {
-    next();
-  }
-});
-
-if (app.get("env") === "development") {
-  setupVite(app, httpServer);
-} else {
-  serveStatic(app);
-}
+const PORT = 5000;
+const httpServer = createServer(app);
 
 // WebSocket server for chat
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
@@ -559,9 +567,4 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-httpServer.listen(PORT, "0.0.0.0", () => {
-  console.log('✅ ISOLATED AUTH: All sessions cleared');
-  console.log('✅ ISOLATED SERVER: Running on port', PORT);
-  console.log('✅ ISOLATED SERVER: Authentication system ready');
-  console.log('✅ CHAT SYSTEM: WebSocket server ready on /ws');
-});
+// Server is already started in the route registration callback above

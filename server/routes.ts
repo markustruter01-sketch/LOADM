@@ -917,8 +917,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📧 Preparing email to: ${email} for aircraft: ${aircraftName}`);
 
       // Initialize SendGrid
-      const sgMail = require('@sendgrid/mail');
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      const sgMail = await import('@sendgrid/mail');
+      sgMail.default.setApiKey(process.env.SENDGRID_API_KEY!);
 
       // Create email content
       const emailContent = {
@@ -975,7 +975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       console.log('📤 Sending email via SendGrid...');
-      const result = await sgMail.send(emailContent);
+      const result = await sgMail.default.send(emailContent);
       console.log('✅ Email sent successfully to:', email);
       
       res.json({ success: true, message: 'Load plan PDF sent successfully' });
