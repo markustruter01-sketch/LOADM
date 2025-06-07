@@ -120,7 +120,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Training Modules</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Interactive aircraft training modules and simulations
+                      Interactive Training Modules for all Airframes
                     </p>
                   </CardContent>
                 </Card>
@@ -144,7 +144,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Document Center</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Access documents, phone directory, and training materials
+                      Access Documents and Airport Phone Directory
                     </p>
                   </CardContent>
                 </Card>
@@ -156,7 +156,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Calculation Tools</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Military calculators, converters, and reference tools
+                      Loadmaster Calculation Tools and Missions Risk Analysis Calculator
                     </p>
                   </CardContent>
                 </Card>
@@ -168,7 +168,7 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-medium mb-2">Instructor Portal</h3>
                     <p className="text-sm text-center text-muted-foreground">
-                      Manage students, review submissions, and track progress
+                      Create, Edit and Delete Assessments and Quizzes. Review Student Submissions and Workforce Analytical Data.
                     </p>
                   </CardContent>
                 </Card>
