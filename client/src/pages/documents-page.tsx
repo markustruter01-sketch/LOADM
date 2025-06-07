@@ -76,6 +76,22 @@ export default function DocumentsPage() {
       category: "Forms",
       lastModified: "2024-06-04",
       size: "145 KB"
+    },
+    {
+      filename: "DG Shipper Declaration.pdf",
+      title: "Dangerous Goods Shipper Declaration",
+      description: "Official shipper declaration form for dangerous goods transport compliance and documentation",
+      category: "Forms",
+      lastModified: "2024-06-07",
+      size: "219 KB"
+    },
+    {
+      filename: "Vehicles Load Card.pdf",
+      title: "Vehicle Load Card",
+      description: "DA Form 7598 for documenting vehicle cargo loading, weight distribution, and load planning specifications",
+      category: "Load Planning",
+      lastModified: "2024-06-07",
+      size: "124 KB"
     }
   ];
 
