@@ -924,7 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create email content
       const emailContent = {
         to: email,
-        from: 'noreply@digitaldynamics.com', // Use verified sender from email service
+        from: 'info@digitaldynamics-group.com', // Use verified sender email
         subject: `Load Plan: ${aircraftName} - CG ${centerOfGravity}%`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -990,26 +990,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stack: error.stack?.substring(0, 500)
       });
       
-      // Handle specific SendGrid errors
+      // Log detailed configuration for debugging
+      console.log('SendGrid Configuration Status:');
+      console.log('- API Key configured:', !!process.env.SENDGRID_API_KEY);
+      console.log('- Using sender: info@digitaldynamics-group.com');
+      
+      if (error.response?.body?.errors) {
+        console.log('Specific SendGrid errors:');
+        error.response.body.errors.forEach((err: any) => {
+          console.log(`- ${err.message} (${err.field})`);
+        });
+      }
+      
+      // Handle specific SendGrid errors with actionable solutions
       if (error.code === 403 || error.response?.status === 403) {
-        console.error('🔒 Authentication failed - API key or sender verification issue');
-        res.status(500).json({ 
-          error: 'Email service authentication failed. SendGrid API key may be invalid or sender email not verified.' 
+        console.error('Authentication failed - sender verification required');
+        res.status(200).json({ 
+          success: false,
+          error: 'Email service requires sender verification. Please verify info@digitaldynamics-group.com in your SendGrid account.',
+          action: 'verify_sender',
+          message: 'PDF ready for download. Email will be available once sender is verified.',
+          fallback: 'download'
         });
       } else if (error.code === 400 || error.response?.status === 400) {
-        console.error('📝 Bad request - email configuration issue');
-        res.status(500).json({ 
-          error: 'Invalid email configuration. Please check sender email verification in SendGrid.' 
+        console.error('Bad request - email configuration issue');
+        res.status(200).json({ 
+          success: false,
+          error: 'Email configuration error. PDF available for download.',
+          fallback: 'download'
         });
       } else if (error.code === 413 || error.message?.includes('too large')) {
-        console.error('📦 Payload too large for email');
-        res.status(413).json({ 
-          error: 'PDF file too large for email. Please try downloading instead.' 
+        console.error('Payload too large for email');
+        res.status(200).json({ 
+          success: false,
+          error: 'PDF file too large for email. Please download instead.',
+          fallback: 'download'
         });
       } else if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
-        console.error('🌐 Network connectivity issue');
-        res.status(500).json({ 
-          error: 'Network error occurred. Please check connection and try again.' 
+        console.error('Network connectivity issue');
+        res.status(200).json({ 
+          success: false,
+          error: 'Network error. PDF available for download.',
+          fallback: 'download'
         });
       } else {
         console.error('🔧 General email service error');
