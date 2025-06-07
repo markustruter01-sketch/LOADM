@@ -418,8 +418,15 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
+const PORT = 5000;
+const httpServer = createServer(app);
+
 // Register other routes (they'll handle their own auth)
-registerRoutes(app);
+registerRoutes(app).then(() => {
+  console.log('✅ All routes registered successfully');
+}).catch(err => {
+  console.error('❌ Route registration failed:', err);
+});
 
 app.use((req, res, next) => {
   if (req.path.endsWith(".html")) {
@@ -430,13 +437,10 @@ app.use((req, res, next) => {
 });
 
 if (app.get("env") === "development") {
-  await setupVite(app);
+  setupVite(app, httpServer);
 } else {
   serveStatic(app);
 }
-
-const PORT = 5000;
-const httpServer = createServer(app);
 
 // WebSocket server for chat
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
