@@ -111,6 +111,71 @@ export const loadmasterQuestions: QuizQuestion[] = [
     category: "dangerous-goods",
     difficulty: "easy"
   },
+  {
+    id: "dg-8",
+    question: "What does the orange diamond placard with '1.1' indicate?",
+    options: [
+      "Mass explosion hazard",
+      "Fire hazard with minor blast",
+      "Minor fire hazard",
+      "Toxic gas release"
+    ],
+    correctAnswer: 0,
+    category: "dangerous-goods",
+    difficulty: "medium"
+  },
+  {
+    id: "dg-9",
+    question: "Which class of dangerous goods requires the 'POISON' label?",
+    options: [
+      "Class 4.1 Flammable solids",
+      "Class 6.1 Toxic substances",
+      "Class 8 Corrosive substances",
+      "Class 9 Miscellaneous"
+    ],
+    correctAnswer: 1,
+    category: "dangerous-goods",
+    difficulty: "easy"
+  },
+  {
+    id: "dg-10",
+    question: "What is the maximum net quantity per package for most Class 3 flammable liquids on passenger aircraft?",
+    options: [
+      "1 liter",
+      "5 liters",
+      "10 liters",
+      "Not permitted"
+    ],
+    correctAnswer: 0,
+    category: "dangerous-goods",
+    difficulty: "hard"
+  },
+  {
+    id: "dg-11",
+    question: "When must a NOTOC (Notice to Captain) be provided?",
+    options: [
+      "Only for passenger flights",
+      "For all flights carrying dangerous goods",
+      "Only for international flights",
+      "Only for cargo aircraft"
+    ],
+    correctAnswer: 1,
+    category: "dangerous-goods",
+    difficulty: "medium"
+  },
+  {
+    id: "dg-12",
+    question: "What action should be taken if dangerous goods are discovered as undeclared cargo?",
+    options: [
+      "Complete loading and report after flight",
+      "Immediately stop loading and notify authorities",
+      "Continue if quantity is small",
+      "Move to cargo-only aircraft"
+    ],
+    correctAnswer: 1,
+    category: "dangerous-goods",
+    difficulty: "easy"
+  },
   
   // Loadmaster Fundamentals questions
   {
@@ -204,6 +269,71 @@ export const loadmasterQuestions: QuizQuestion[] = [
     category: "loadmaster-fundamentals",
     difficulty: "easy"
   },
+  {
+    id: "lf-8",
+    question: "What is the primary concern when loading oversized cargo?",
+    options: [
+      "Weight distribution",
+      "Clearance from aircraft structure and other cargo",
+      "Security classification",
+      "Insurance requirements"
+    ],
+    correctAnswer: 1,
+    category: "loadmaster-fundamentals",
+    difficulty: "medium"
+  },
+  {
+    id: "lf-9",
+    question: "When should a pre-load inspection be conducted?",
+    options: [
+      "Only for international flights",
+      "Before every loading operation",
+      "Only for hazardous cargo",
+      "Weekly"
+    ],
+    correctAnswer: 1,
+    category: "loadmaster-fundamentals",
+    difficulty: "easy"
+  },
+  {
+    id: "lf-10",
+    question: "What is the purpose of blocking and bracing cargo?",
+    options: [
+      "To meet insurance requirements",
+      "To prevent cargo movement during flight",
+      "To maximize space utilization",
+      "To facilitate unloading"
+    ],
+    correctAnswer: 1,
+    category: "loadmaster-fundamentals",
+    difficulty: "easy"
+  },
+  {
+    id: "lf-11",
+    question: "What information must be included on a load manifest?",
+    options: [
+      "Cargo weight, dimensions, and placement",
+      "Crew names only",
+      "Fuel quantity only",
+      "Flight schedule"
+    ],
+    correctAnswer: 0,
+    category: "loadmaster-fundamentals",
+    difficulty: "medium"
+  },
+  {
+    id: "lf-12",
+    question: "What is the maximum allowable floor loading for most military transport aircraft?",
+    options: [
+      "50 PSI",
+      "100 PSI",
+      "150 PSI",
+      "Varies by aircraft type"
+    ],
+    correctAnswer: 3,
+    category: "loadmaster-fundamentals",
+    difficulty: "hard"
+  },
   
   // Emergency Procedures questions
   {
@@ -283,6 +413,84 @@ export const loadmasterQuestions: QuizQuestion[] = [
     correctAnswer: 0,
     category: "emergency-procedures",
     difficulty: "medium"
+  },
+  {
+    id: "ep-7",
+    question: "What should a loadmaster do if smoke is detected in the cargo compartment?",
+    options: [
+      "Open cargo doors to ventilate",
+      "Use water to suppress potential fire",
+      "Don protective equipment and investigate the source",
+      "Immediately notify flight crew and don oxygen mask"
+    ],
+    correctAnswer: 3,
+    category: "emergency-procedures",
+    difficulty: "medium"
+  },
+  {
+    id: "ep-8",
+    question: "During rapid decompression, what is the first priority for a loadmaster?",
+    options: [
+      "Secure loose cargo",
+      "Don oxygen mask and ensure own safety first",
+      "Check on passengers",
+      "Report to flight crew"
+    ],
+    correctAnswer: 1,
+    category: "emergency-procedures",
+    difficulty: "easy"
+  },
+  {
+    id: "ep-9",
+    question: "What emergency equipment should be readily accessible during flight?",
+    options: [
+      "Fire extinguishers, oxygen masks, first aid kit",
+      "Tools and spare parts",
+      "Emergency rations",
+      "Communication equipment only"
+    ],
+    correctAnswer: 0,
+    category: "emergency-procedures",
+    difficulty: "easy"
+  },
+  {
+    id: "ep-10",
+    question: "When should emergency procedures be briefed to passengers?",
+    options: [
+      "Only if an emergency occurs",
+      "Before takeoff on every flight",
+      "Only on international flights",
+      "Weekly briefings are sufficient"
+    ],
+    correctAnswer: 1,
+    category: "emergency-procedures",
+    difficulty: "easy"
+  },
+  {
+    id: "ep-11",
+    question: "What information must be relayed to flight crew during a cargo fire emergency?",
+    options: [
+      "Location, size, and type of fire",
+      "Only the location",
+      "Estimated time to extinguish",
+      "Names of personnel involved"
+    ],
+    correctAnswer: 0,
+    category: "emergency-procedures",
+    difficulty: "medium"
+  },
+  {
+    id: "ep-12",
+    question: "In case of hydraulic failure affecting cargo systems, what should be the loadmaster's response?",
+    options: [
+      "Continue normal operations",
+      "Manually secure all cargo and restraints",
+      "Land at nearest airport immediately",
+      "Jettison all cargo"
+    ],
+    correctAnswer: 1,
+    category: "emergency-procedures",
+    difficulty: "hard"
   },
   
   // Weight and Balance questions
@@ -364,6 +572,84 @@ export const loadmasterQuestions: QuizQuestion[] = [
     category: "weight-balance",
     difficulty: "medium"
   },
+  {
+    id: "wb-7",
+    question: "What is the purpose of the aircraft's basic weight and balance report?",
+    options: [
+      "To determine fuel capacity",
+      "To establish the empty weight CG and moment",
+      "To calculate maximum payload",
+      "To determine maintenance schedules"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "easy"
+  },
+  {
+    id: "wb-8",
+    question: "When calculating weight and balance, what must be considered for liquid cargo?",
+    options: [
+      "Only the weight when full",
+      "Potential weight shift due to liquid movement",
+      "Container weight only",
+      "Temperature effects only"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "hard"
+  },
+  {
+    id: "wb-9",
+    question: "What is the maximum allowable CG range typically expressed as?",
+    options: [
+      "Forward and aft limits in percentage of MAC",
+      "Total weight limits",
+      "Fuel quantity limits",
+      "Altitude restrictions"
+    ],
+    correctAnswer: 0,
+    category: "weight-balance",
+    difficulty: "medium"
+  },
+  {
+    id: "wb-10",
+    question: "Why is it critical to stay within CG limits during all phases of flight?",
+    options: [
+      "To save fuel",
+      "To maintain aircraft controllability and stability",
+      "To reduce maintenance costs",
+      "To increase cargo capacity"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "easy"
+  },
+  {
+    id: "wb-11",
+    question: "What effect does fuel burn have on aircraft CG during flight?",
+    options: [
+      "No effect on CG",
+      "CG moves based on fuel tank locations",
+      "CG always moves forward",
+      "CG always moves aft"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "medium"
+  },
+  {
+    id: "wb-12",
+    question: "What document contains the aircraft's certified weight and balance data?",
+    options: [
+      "Flight manual",
+      "Aircraft weight and balance report",
+      "Maintenance log",
+      "Load planning manual"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "easy"
+  },
   
   // Cargo Securing questions
   {
@@ -444,6 +730,84 @@ export const loadmasterQuestions: QuizQuestion[] = [
     category: "cargo-securing",
     difficulty: "medium"
   },
+  {
+    id: "cs-7",
+    question: "What type of material should NOT be used as dunnage?",
+    options: [
+      "Plywood sheets",
+      "Aluminum honeycomb panels",
+      "Steel plates",
+      "Cardboard or paper products"
+    ],
+    correctAnswer: 3,
+    category: "cargo-securing",
+    difficulty: "easy"
+  },
+  {
+    id: "cs-8",
+    question: "When using cargo nets for restraint, what is the minimum breaking strength requirement?",
+    options: [
+      "Equal to cargo weight",
+      "2 times the cargo weight",
+      "3 times the required restraint force",
+      "5 times the cargo weight"
+    ],
+    correctAnswer: 2,
+    category: "cargo-securing",
+    difficulty: "hard"
+  },
+  {
+    id: "cs-9",
+    question: "What is the proper procedure for tensioning tie-down straps?",
+    options: [
+      "Tighten until the strap stretches visibly",
+      "Apply tension gradually and evenly to specification",
+      "Tighten as much as physically possible",
+      "Use only hand-tight tension"
+    ],
+    correctAnswer: 1,
+    category: "cargo-securing",
+    difficulty: "medium"
+  },
+  {
+    id: "cs-10",
+    question: "Which restraint method is most appropriate for loose cargo items?",
+    options: [
+      "Individual tie-down straps for each item",
+      "Cargo nets or barrier nets",
+      "Shoring beams only",
+      "No restraint needed if items are small"
+    ],
+    correctAnswer: 1,
+    category: "cargo-securing",
+    difficulty: "easy"
+  },
+  {
+    id: "cs-11",
+    question: "What safety factor is typically applied to cargo restraint calculations?",
+    options: [
+      "1.5",
+      "2.0",
+      "2.5",
+      "3.0"
+    ],
+    correctAnswer: 1,
+    category: "cargo-securing",
+    difficulty: "medium"
+  },
+  {
+    id: "cs-12",
+    question: "When should cargo restraint equipment be inspected?",
+    options: [
+      "Only when damaged",
+      "Before each use and periodically per regulations",
+      "Monthly only",
+      "Once per year"
+    ],
+    correctAnswer: 1,
+    category: "cargo-securing",
+    difficulty: "easy"
+  },
   
   // Aircraft Systems questions
   {
@@ -511,6 +875,97 @@ export const loadmasterQuestions: QuizQuestion[] = [
     category: "aircraft-systems",
     difficulty: "hard"
   },
+  {
+    id: "as-6",
+    question: "What is the function of cargo floor locks in military transport aircraft?",
+    options: [
+      "To prevent cargo from shifting during flight",
+      "To secure pallets and containers to the aircraft floor",
+      "To lock the cargo doors",
+      "To secure passenger seating"
+    ],
+    correctAnswer: 1,
+    category: "aircraft-systems",
+    difficulty: "easy"
+  },
+  {
+    id: "as-7",
+    question: "How does the aircraft's hydraulic system support cargo operations?",
+    options: [
+      "Powers cargo door operation and winch systems",
+      "Provides cabin pressure control",
+      "Controls aircraft navigation",
+      "Manages fuel transfer"
+    ],
+    correctAnswer: 0,
+    category: "aircraft-systems",
+    difficulty: "medium"
+  },
+  {
+    id: "as-8",
+    question: "What backup system is available if hydraulic power fails during cargo operations?",
+    options: [
+      "Electric backup pumps",
+      "Manual operation procedures",
+      "Pneumatic backup system",
+      "All of the above"
+    ],
+    correctAnswer: 3,
+    category: "aircraft-systems",
+    difficulty: "hard"
+  },
+  {
+    id: "as-9",
+    question: "What is the primary purpose of aircraft cargo lighting systems?",
+    options: [
+      "Emergency evacuation guidance",
+      "Safe cargo loading and inspection operations",
+      "Passenger comfort",
+      "Navigation assistance"
+    ],
+    correctAnswer: 1,
+    category: "aircraft-systems",
+    difficulty: "easy"
+  },
+  {
+    id: "as-10",
+    question: "In C-130 aircraft, what powers the cargo handling equipment?",
+    options: [
+      "Aircraft engine bleed air",
+      "Aircraft electrical system",
+      "Hydraulic system",
+      "Both B and C"
+    ],
+    correctAnswer: 3,
+    category: "aircraft-systems",
+    difficulty: "medium"
+  },
+  {
+    id: "as-11",
+    question: "What safety feature prevents accidental cargo door operation during flight?",
+    options: [
+      "Door lock mechanisms and flight interlocks",
+      "Manual safety pins only",
+      "Crew awareness only",
+      "Passenger warning systems"
+    ],
+    correctAnswer: 0,
+    category: "aircraft-systems",
+    difficulty: "medium"
+  },
+  {
+    id: "as-12",
+    question: "What system monitors the position and security of cargo during flight?",
+    options: [
+      "Cargo monitoring and warning system",
+      "GPS tracking system",
+      "Radar system",
+      "Communication system"
+    ],
+    correctAnswer: 0,
+    category: "aircraft-systems",
+    difficulty: "easy"
+  },
   
   // Regulations questions
   {
@@ -577,6 +1032,97 @@ export const loadmasterQuestions: QuizQuestion[] = [
     correctAnswer: 2,
     category: "regulations",
     difficulty: "medium"
+  },
+  {
+    id: "reg-6",
+    question: "What is the minimum rest period required between duty periods for loadmasters?",
+    options: [
+      "8 hours",
+      "10 hours",
+      "12 hours",
+      "Depends on mission length"
+    ],
+    correctAnswer: 3,
+    category: "regulations",
+    difficulty: "medium"
+  },
+  {
+    id: "reg-7",
+    question: "According to IATA regulations, what is required for personnel handling dangerous goods?",
+    options: [
+      "High school diploma only",
+      "Specialized dangerous goods training and certification",
+      "Military rank of E-5 or above",
+      "Commercial pilot license"
+    ],
+    correctAnswer: 1,
+    category: "regulations",
+    difficulty: "easy"
+  },
+  {
+    id: "reg-8",
+    question: "What regulation governs the maximum weight limits for military air transport?",
+    options: [
+      "Aircraft-specific technical orders",
+      "International weight standards",
+      "IATA cargo regulations",
+      "Local airfield restrictions"
+    ],
+    correctAnswer: 0,
+    category: "regulations",
+    difficulty: "medium"
+  },
+  {
+    id: "reg-9",
+    question: "How often must cargo restraint equipment be inspected according to regulations?",
+    options: [
+      "Before each use",
+      "Weekly",
+      "Monthly",
+      "As specified in technical orders"
+    ],
+    correctAnswer: 3,
+    category: "regulations",
+    difficulty: "hard"
+  },
+  {
+    id: "reg-10",
+    question: "What document authorizes the movement of classified cargo?",
+    options: [
+      "Standard cargo manifest",
+      "Special handling authorization",
+      "Security classification guide",
+      "Classified cargo movement authorization"
+    ],
+    correctAnswer: 1,
+    category: "regulations",
+    difficulty: "medium"
+  },
+  {
+    id: "reg-11",
+    question: "According to regulations, what is the maximum number of dangerous goods packages allowed on a passenger aircraft?",
+    options: [
+      "No limit",
+      "50 packages",
+      "As specified in airline operations manual",
+      "Depends on the class of dangerous goods"
+    ],
+    correctAnswer: 3,
+    category: "regulations",
+    difficulty: "hard"
+  },
+  {
+    id: "reg-12",
+    question: "What regulation covers the transportation of live animals by air?",
+    options: [
+      "IATA Live Animals Regulations (LAR)",
+      "USDA Animal Transport Guidelines",
+      "Local veterinary regulations",
+      "International Animal Transport Code"
+    ],
+    correctAnswer: 0,
+    category: "regulations",
+    difficulty: "easy"
   },
   
   // Equipment Handling questions
