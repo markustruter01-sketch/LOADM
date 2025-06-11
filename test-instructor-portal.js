@@ -18,6 +18,8 @@ class InstructorPortalTester {
       const response = await axios.post(`${BASE_URL}/api/auth/login`, {
         email: 'markustruter01@gmail.com',
         password: 'password123'
+      }, {
+        validateStatus: () => true
       });
 
       if (response.status === 200 && response.headers['set-cookie']) {
@@ -53,6 +55,11 @@ class InstructorPortalTester {
         ];
 
         let allChangesApplied = true;
+        
+        // Log some of the actual HTML content for debugging
+        this.log(`HTML length: ${html.length}`);
+        this.log(`HTML contains "Create Pop Quiz": ${html.includes('Create Pop Quiz')}`);
+        this.log(`HTML contains "Manage Quizzes": ${html.includes('Manage Quizzes')}`);
         
         for (const check of buttonChecks) {
           const hasOld = html.includes(check.old);

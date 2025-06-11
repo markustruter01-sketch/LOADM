@@ -268,7 +268,7 @@ export default function InstructorsPortal() {
           </Card>
           
           {/* Pop Quizzes Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors">
+          <Card className="bg-card hover:bg-card/90 transition-colors" key="pop-quizzes-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Pop Quizzes</CardTitle>
@@ -283,7 +283,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/quizzes">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="create-pop-quiz">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   Create Pop Quiz
                 </Button>
               </Link>
@@ -291,7 +291,7 @@ export default function InstructorsPortal() {
           </Card>
 
           {/* Pop Quiz Questions Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors">
+          <Card className="bg-card hover:bg-card/90 transition-colors" key="quiz-questions-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Pop Quiz Questions</CardTitle>
@@ -306,7 +306,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/quiz-questions">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="edit-quiz-questions">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   Edit Quiz Questions
                 </Button>
               </Link>
@@ -337,7 +337,7 @@ export default function InstructorsPortal() {
           </Card>
 
           {/* Workforce Management Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors">
+          <Card className="bg-card hover:bg-card/90 transition-colors" key="workforce-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Workforce</CardTitle>
@@ -352,7 +352,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/workforce">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="view-workforce">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   View Workforce
                 </Button>
               </Link>
@@ -360,7 +360,7 @@ export default function InstructorsPortal() {
           </Card>
 
           {/* Advanced Analytics Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors">
+          <Card className="bg-card hover:bg-card/90 transition-colors" key="analytics-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Advanced Analytics</CardTitle>
@@ -375,7 +375,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/analytics">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="workforce-analytics">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   Workforce Performance Analytics
                 </Button>
               </Link>
