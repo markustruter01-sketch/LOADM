@@ -428,6 +428,7 @@ export default function QuizQuestionsManagement() {
                                     value={editingQuestion.questionText}
                                     onChange={(e) => updateEditingQuestion(question.id, 'questionText', e.target.value)}
                                     rows={3}
+                                    className="text-gray-900"
                                   />
                                 </div>
                                 
@@ -437,7 +438,7 @@ export default function QuizQuestionsManagement() {
                                     id={`edit-correct-${question.id}`}
                                     value={editingQuestion.correctAnswer}
                                     onChange={(e) => updateEditingQuestion(question.id, 'correctAnswer', e.target.value)}
-                                    className="bg-green-50 border-green-200"
+                                    className="bg-green-50 border-green-200 text-gray-900"
                                   />
                                 </div>
                                 
