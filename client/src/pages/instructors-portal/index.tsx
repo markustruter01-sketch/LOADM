@@ -283,7 +283,7 @@ export default function InstructorsPortal() {
             <CardFooter>
               <Link href="/instructors-portal/quizzes">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  Manage Quizzes
+                  Create Pop Quiz
                 </Button>
               </Link>
             </CardFooter>
@@ -306,7 +306,7 @@ export default function InstructorsPortal() {
             <CardFooter>
               <Link href="/instructors-portal/quiz-questions">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  Edit Questions
+                  Edit Quiz Questions
                 </Button>
               </Link>
             </CardFooter>
@@ -352,7 +352,7 @@ export default function InstructorsPortal() {
             <CardFooter>
               <Link href="/instructors-portal/workforce">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  Manage Workforce
+                  View Workforce
                 </Button>
               </Link>
             </CardFooter>
@@ -375,7 +375,7 @@ export default function InstructorsPortal() {
             <CardFooter>
               <Link href="/instructors-portal/analytics">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  View Advanced Analytics
+                  Workforce Performance Analytics
                 </Button>
               </Link>
             </CardFooter>
