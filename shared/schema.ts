@@ -238,6 +238,36 @@ export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).pi
   squadron: true,
 });
 
+// Quiz Questions schema - Editable question bank for instructors
+export const quizQuestions = pgTable("quiz_questions", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(), // dangerous-goods, loadmaster-fundamentals, etc.
+  questionText: text("question_text").notNull(),
+  correctAnswer: text("correct_answer").notNull(),
+  incorrectOption1: text("incorrect_option_1").notNull(),
+  incorrectOption2: text("incorrect_option_2").notNull(),
+  incorrectOption3: text("incorrect_option_3").notNull(),
+  difficulty: text("difficulty").notNull().default("medium"), // easy, medium, hard
+  createdById: integer("created_by_id")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).pick({
+  category: true,
+  questionText: true,
+  correctAnswer: true,
+  incorrectOption1: true,
+  incorrectOption2: true,
+  incorrectOption3: true,
+  difficulty: true,
+  createdById: true,
+  isActive: true,
+});
+
 // Phone Directory schema (moved from later in file to avoid conflicts)
 export const phoneDirectory = pgTable("phone_directory", {
   id: serial("id").primaryKey(),
@@ -375,6 +405,13 @@ export const quizSubmissionsRelations = relations(quizSubmissions, ({ one }) => 
   }),
 }));
 
+export const quizQuestionsRelations = relations(quizQuestions, ({ one }) => ({
+  creator: one(users, {
+    fields: [quizQuestions.createdById],
+    references: [users.id],
+  }),
+}));
+
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
     fields: [chatMessages.userId],
@@ -411,6 +448,9 @@ export type Quiz = typeof quizzes.$inferSelect;
 
 export type InsertQuizSubmission = z.infer<typeof insertQuizSubmissionSchema>;
 export type QuizSubmission = typeof quizSubmissions.$inferSelect;
+
+export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
+export type QuizQuestion = typeof quizQuestions.$inferSelect;
 
 // Field type for document forms
 export type FormField = {

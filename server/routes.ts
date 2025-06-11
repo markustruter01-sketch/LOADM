@@ -13,7 +13,8 @@ import {
   documentSubmissions, 
   scenarioSubmissions,
   phoneDirectory,
-  chatMessages
+  chatMessages,
+  quizQuestions
 } from "@shared/schema";
 import quizRoutes from './routes/quiz-new';
 import { sendLicenseWelcomeEmail } from "./services/email-service";
