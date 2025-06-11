@@ -309,6 +309,7 @@ export default function QuizQuestionsManagement() {
                   onChange={(e) => setNewQuestion({ ...newQuestion, questionText: e.target.value })}
                   placeholder="Enter the quiz question..."
                   rows={3}
+                  className="text-gray-900"
                 />
               </div>
               
@@ -319,6 +320,7 @@ export default function QuizQuestionsManagement() {
                   value={newQuestion.correctAnswer}
                   onChange={(e) => setNewQuestion({ ...newQuestion, correctAnswer: e.target.value })}
                   placeholder="Enter the correct answer..."
+                  className="text-gray-900"
                 />
               </div>
               
@@ -330,6 +332,7 @@ export default function QuizQuestionsManagement() {
                     value={newQuestion.incorrectOption1}
                     onChange={(e) => setNewQuestion({ ...newQuestion, incorrectOption1: e.target.value })}
                     placeholder="First incorrect answer..."
+                    className="text-gray-900"
                   />
                 </div>
                 <div>
@@ -339,6 +342,7 @@ export default function QuizQuestionsManagement() {
                     value={newQuestion.incorrectOption2}
                     onChange={(e) => setNewQuestion({ ...newQuestion, incorrectOption2: e.target.value })}
                     placeholder="Second incorrect answer..."
+                    className="text-gray-900"
                   />
                 </div>
                 <div>
@@ -348,6 +352,7 @@ export default function QuizQuestionsManagement() {
                     value={newQuestion.incorrectOption3}
                     onChange={(e) => setNewQuestion({ ...newQuestion, incorrectOption3: e.target.value })}
                     placeholder="Third incorrect answer..."
+                    className="text-gray-900"
                   />
                 </div>
               </div>
@@ -449,7 +454,7 @@ export default function QuizQuestionsManagement() {
                                       id={`edit-inc1-${question.id}`}
                                       value={editingQuestion.incorrectOption1}
                                       onChange={(e) => updateEditingQuestion(question.id, 'incorrectOption1', e.target.value)}
-                                      className="bg-red-50 border-red-200"
+                                      className="bg-red-50 border-red-200 text-gray-900"
                                     />
                                   </div>
                                   <div>
@@ -458,7 +463,7 @@ export default function QuizQuestionsManagement() {
                                       id={`edit-inc2-${question.id}`}
                                       value={editingQuestion.incorrectOption2}
                                       onChange={(e) => updateEditingQuestion(question.id, 'incorrectOption2', e.target.value)}
-                                      className="bg-red-50 border-red-200"
+                                      className="bg-red-50 border-red-200 text-gray-900"
                                     />
                                   </div>
                                   <div>
@@ -467,7 +472,7 @@ export default function QuizQuestionsManagement() {
                                       id={`edit-inc3-${question.id}`}
                                       value={editingQuestion.incorrectOption3}
                                       onChange={(e) => updateEditingQuestion(question.id, 'incorrectOption3', e.target.value)}
-                                      className="bg-red-50 border-red-200"
+                                      className="bg-red-50 border-red-200 text-gray-900"
                                     />
                                   </div>
                                 </div>
