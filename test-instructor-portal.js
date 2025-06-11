@@ -15,9 +15,9 @@ class InstructorPortalTester {
 
   async login() {
     try {
-      const response = await axios.post(`${BASE_URL}/api/auth/login`, {
+      const response = await axios.post(`${BASE_URL}/auth-isolated/login`, {
         email: 'markustruter01@gmail.com',
-        password: 'password123'
+        password: 'Skating69!'
       }, {
         validateStatus: () => true
       });

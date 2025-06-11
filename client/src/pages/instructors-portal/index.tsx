@@ -14,6 +14,7 @@ import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+// Force component refresh with updated button labels
 export default function InstructorsPortal() {
   // Force refresh for button text changes
   const { user } = useIsolatedAuth();
