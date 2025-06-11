@@ -30,9 +30,7 @@ export function createSession(userId: number, email: string, role: string): stri
 
 // Get session
 export function getSession(sessionId: string) {
-  const session = sessions.get(sessionId);
-  console.log(`🔥 NUCLEAR: Session check for ${sessionId}: ${session ? 'FOUND' : 'NOT FOUND'}`);
-  return session;
+  return sessions.get(sessionId);
 }
 
 // Delete session
@@ -44,34 +42,25 @@ export function deleteSession(sessionId: string) {
 
 // Authentication middleware - completely rebuilt
 export function requireAuth(req: any, res: any, next: any) {
-  console.log('🔥 NUCLEAR AUTH CHECK START');
-  
   const sessionId = req.cookies?.sessionId;
-  console.log(`🔥 NUCLEAR: Session ID from cookie: ${sessionId}`);
   
   if (!sessionId) {
-    console.log('🔥 NUCLEAR: No session ID - UNAUTHORIZED');
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   const session = getSession(sessionId);
   if (!session) {
-    console.log('🔥 NUCLEAR: Invalid session - UNAUTHORIZED');
     return res.status(401).json({ error: 'Invalid session' });
   }
   
-  console.log(`🔥 NUCLEAR: Auth SUCCESS for ${session.email}`);
   req.user = session;
   next();
 }
 
 // Login function - WORKING WITH YOUR EXISTING CREDENTIALS
 export async function loginUser(email: string, password: string) {
-  console.log(`🔥 NUCLEAR: Login attempt for ${email}`);
-  
   // IMMEDIATE FIX: Use your existing superadmin credentials
   if (email === 'markustruter01@gmail.com' && password === 'Skating69!') {
-    console.log(`🔥 NUCLEAR: Login SUCCESS for superadmin`);
     return {
       id: 1,
       email: 'markustruter01@gmail.com',

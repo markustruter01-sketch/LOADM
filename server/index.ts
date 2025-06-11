@@ -451,13 +451,27 @@ const PORT = 5000;
 const httpServer = createServer(app);
 
 // WebSocket server for chat
-const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+const wss = new WebSocketServer({ 
+  server: httpServer, 
+  path: '/ws',
+  perMessageDeflate: false,
+  clientTracking: true
+});
 
 // Store connected clients with user info
 const connectedClients = new Map<WebSocket, { userId: number, userName: string, userRole: string }>();
 
 wss.on('connection', (ws, req) => {
   console.log('WebSocket connection established');
+  
+  // Handle connection errors
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
+  
+  ws.on('close', () => {
+    connectedClients.delete(ws);
+  });
   
   ws.on('message', async (data) => {
     try {
