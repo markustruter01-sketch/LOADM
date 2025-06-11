@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
-  HelpCircle, Users, ArrowLeft
+  HelpCircle, Users, ArrowLeft, Edit
 } from "lucide-react";
 import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -284,6 +284,29 @@ export default function InstructorsPortal() {
               <Link href="/instructors-portal/quizzes">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   Manage Quizzes
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+
+          {/* Pop Quiz Questions Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Pop Quiz Questions</CardTitle>
+                <Edit className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Edit question bank and answers</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Manage the question library used for pop quizzes, including correct and incorrect answer options
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/quiz-questions">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Edit Questions
                 </Button>
               </Link>
             </CardFooter>

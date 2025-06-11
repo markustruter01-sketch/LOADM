@@ -1087,6 +1087,135 @@ LOADMworkflow - Advanced Military Logistics Platform
     }
   });
 
+  // Quiz Questions Management API (Instructor Portal)
+  
+  // Get quiz questions by category
+  app.get("/api/quiz-questions", requireInstructor, async (req: Request, res: Response) => {
+    try {
+      const { category } = req.query;
+      
+      let questionsResult;
+      
+      if (category) {
+        questionsResult = await db.select().from(quizQuestions)
+          .where(and(eq(quizQuestions.isActive, true), eq(quizQuestions.category, category as string)))
+          .orderBy(quizQuestions.category, quizQuestions.questionText);
+      } else {
+        questionsResult = await db.select().from(quizQuestions)
+          .where(eq(quizQuestions.isActive, true))
+          .orderBy(quizQuestions.category, quizQuestions.questionText);
+      }
+      
+      res.json(questionsResult);
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+      res.status(500).json({ error: 'Failed to fetch quiz questions' });
+    }
+  });
+
+  // Get all question categories
+  app.get("/api/quiz-questions/categories", requireInstructor, async (req: Request, res: Response) => {
+    try {
+      const categories = await db.select({ category: quizQuestions.category })
+        .from(quizQuestions)
+        .where(eq(quizQuestions.isActive, true))
+        .groupBy(quizQuestions.category)
+        .orderBy(quizQuestions.category);
+      
+      res.json(categories.map(c => c.category));
+    } catch (error) {
+      console.error('Error fetching question categories:', error);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  });
+
+  // Create new quiz question
+  app.post("/api/quiz-questions", requireInstructor, async (req: Request, res: Response) => {
+    try {
+      const { category, questionText, correctAnswer, incorrectOption1, incorrectOption2, incorrectOption3, difficulty } = req.body;
+      const user = (req as any).user;
+
+      if (!category || !questionText || !correctAnswer || !incorrectOption1 || !incorrectOption2 || !incorrectOption3) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+
+      const [newQuestion] = await db.insert(quizQuestions).values({
+        category,
+        questionText,
+        correctAnswer,
+        incorrectOption1,
+        incorrectOption2,
+        incorrectOption3,
+        difficulty: difficulty || 'medium',
+        createdById: user.id,
+      }).returning();
+
+      res.json(newQuestion);
+    } catch (error) {
+      console.error('Error creating quiz question:', error);
+      res.status(500).json({ error: 'Failed to create quiz question' });
+    }
+  });
+
+  // Update quiz question
+  app.put("/api/quiz-questions/:id", requireInstructor, async (req: Request, res: Response) => {
+    try {
+      const questionId = parseInt(req.params.id);
+      const { category, questionText, correctAnswer, incorrectOption1, incorrectOption2, incorrectOption3, difficulty } = req.body;
+
+      if (!category || !questionText || !correctAnswer || !incorrectOption1 || !incorrectOption2 || !incorrectOption3) {
+        return res.status(400).json({ error: 'All fields are required' });
+      }
+
+      const [updatedQuestion] = await db.update(quizQuestions)
+        .set({
+          category,
+          questionText,
+          correctAnswer,
+          incorrectOption1,
+          incorrectOption2,
+          incorrectOption3,
+          difficulty: difficulty || 'medium',
+          updatedAt: new Date(),
+        })
+        .where(eq(quizQuestions.id, questionId))
+        .returning();
+
+      if (!updatedQuestion) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+
+      res.json(updatedQuestion);
+    } catch (error) {
+      console.error('Error updating quiz question:', error);
+      res.status(500).json({ error: 'Failed to update quiz question' });
+    }
+  });
+
+  // Delete quiz question (soft delete)
+  app.delete("/api/quiz-questions/:id", requireInstructor, async (req: Request, res: Response) => {
+    try {
+      const questionId = parseInt(req.params.id);
+
+      const [deletedQuestion] = await db.update(quizQuestions)
+        .set({
+          isActive: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(quizQuestions.id, questionId))
+        .returning();
+
+      if (!deletedQuestion) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting quiz question:', error);
+      res.status(500).json({ error: 'Failed to delete quiz question' });
+    }
+  });
+
   const httpServer = createServer();
   httpServer.on("request", app);
   return httpServer;
