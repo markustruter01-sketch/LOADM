@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 export default function InstructorsPortal() {
+  // Force refresh for button text changes
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -282,7 +283,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/quizzes">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="create-pop-quiz">
                   Create Pop Quiz
                 </Button>
               </Link>
@@ -305,7 +306,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/quiz-questions">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="edit-quiz-questions">
                   Edit Quiz Questions
                 </Button>
               </Link>
@@ -351,7 +352,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/workforce">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="view-workforce">
                   View Workforce
                 </Button>
               </Link>
@@ -374,7 +375,7 @@ export default function InstructorsPortal() {
             </CardContent>
             <CardFooter>
               <Link href="/instructors-portal/analytics">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white" key="workforce-analytics">
                   Workforce Performance Analytics
                 </Button>
               </Link>
