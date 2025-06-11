@@ -76,9 +76,10 @@ export default function QuizQuestionsManagement() {
   });
 
   const createQuestionMutation = useMutation({
-    mutationFn: (questionData: any) => apiRequest('/api/quiz-questions', {
+    mutationFn: (questionData: any) => apiRequest({
+      url: '/api/quiz-questions',
       method: 'POST',
-      body: JSON.stringify(questionData),
+      body: questionData,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quiz-questions'] });
@@ -108,9 +109,10 @@ export default function QuizQuestionsManagement() {
 
   const updateQuestionMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => 
-      apiRequest(`/api/quiz-questions/${id}`, {
+      apiRequest({
+        url: `/api/quiz-questions/${id}`,
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: data,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quiz-questions'] });
@@ -130,7 +132,8 @@ export default function QuizQuestionsManagement() {
   });
 
   const deleteQuestionMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/quiz-questions/${id}`, {
+    mutationFn: (id: number) => apiRequest({
+      url: `/api/quiz-questions/${id}`,
       method: 'DELETE',
     }),
     onSuccess: () => {
