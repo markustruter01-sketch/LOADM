@@ -1198,11 +1198,89 @@ export const loadmasterQuestions: QuizQuestion[] = [
       "Pull emergency handle and manually open",
       "Use hydraulic system with control panel",
       "Follow aircraft-specific procedures in the technical manual",
-      "Open from outside using ground handling equipment"
+      "Request maintenance personnel to operate"
     ],
     correctAnswer: 2,
     category: "equipment-handling",
     difficulty: "medium"
+  },
+  {
+    id: "eh-7",
+    question: "What personal protective equipment is required when handling cargo?",
+    options: [
+      "Safety glasses only",
+      "Hard hat and safety vest",
+      "Steel-toed boots, safety glasses, and gloves",
+      "Full body protection suit"
+    ],
+    correctAnswer: 2,
+    category: "equipment-handling",
+    difficulty: "easy"
+  },
+  {
+    id: "eh-8",
+    question: "When should Material Handling Equipment (MHE) be grounded?",
+    options: [
+      "Only during thunderstorms",
+      "Before refueling operations",
+      "When working around aircraft and fuel systems",
+      "Never required for cargo operations"
+    ],
+    correctAnswer: 2,
+    category: "equipment-handling",
+    difficulty: "medium"
+  },
+  {
+    id: "eh-9",
+    question: "What is the maximum weight capacity of a standard 463L cargo pallet?",
+    options: [
+      "5,000 lbs",
+      "10,000 lbs",
+      "15,000 lbs",
+      "20,000 lbs"
+    ],
+    correctAnswer: 1,
+    category: "equipment-handling",
+    difficulty: "medium"
+  },
+  {
+    id: "eh-10",
+    question: "What tool is used to measure the weight distribution on a cargo pallet?",
+    options: [
+      "Load scale",
+      "Cargo balance scale",
+      "Pallet weighing system",
+      "Electronic weight distribution analyzer"
+    ],
+    correctAnswer: 0,
+    category: "equipment-handling",
+    difficulty: "easy"
+  },
+  {
+    id: "eh-11",
+    question: "How should cargo handling equipment be positioned relative to aircraft?",
+    options: [
+      "As close as possible for efficiency",
+      "At safe distances specified in ground safety procedures",
+      "No specific requirements",
+      "Only when aircraft engines are running"
+    ],
+    correctAnswer: 1,
+    category: "equipment-handling",
+    difficulty: "medium"
+  },
+  {
+    id: "eh-12",
+    question: "What is the primary safety concern when operating equipment near aircraft?",
+    options: [
+      "Equipment efficiency",
+      "Fuel consumption",
+      "Foreign object damage (FOD) and collision avoidance",
+      "Equipment maintenance costs"
+    ],
+    correctAnswer: 2,
+    category: "equipment-handling",
+    difficulty: "easy"
   },
   {
     id: "eh-7",
