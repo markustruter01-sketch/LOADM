@@ -24,7 +24,7 @@ import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
 import UserManagement from "@/pages/admin/user-management";
-import InstructorsPortalUpdated from "@/pages/instructors-portal/index-updated";
+import InstructorsPortal from "@/pages/instructors-portal";
 import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
 import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
 import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
@@ -129,7 +129,7 @@ function AuthenticatedApp() {
             <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
             <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
             <ProtectedRoute path="/admin/users" component={UserManagement} />
-            <InstructorRoute path="/instructors-portal" component={InstructorsPortalUpdated} />
+            <InstructorRoute path="/instructors-portal" component={InstructorsPortal} />
             <InstructorRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
             <InstructorRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
             <InstructorRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />

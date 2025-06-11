@@ -18,7 +18,6 @@ export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [refreshKey] = useState(Date.now()); // Force cache break
 
   // Remove the automatic redirect - superadmins should be able to access instructor portal
   const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
@@ -268,7 +267,7 @@ export default function InstructorsPortal() {
           </Card>
           
           {/* Pop Quizzes Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors" key="pop-quizzes-card">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Pop Quizzes</CardTitle>
@@ -291,7 +290,7 @@ export default function InstructorsPortal() {
           </Card>
 
           {/* Pop Quiz Questions Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors" key="quiz-questions-card">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Pop Quiz Questions</CardTitle>
@@ -337,7 +336,7 @@ export default function InstructorsPortal() {
           </Card>
 
           {/* Workforce Management Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors" key="workforce-card">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Workforce</CardTitle>
@@ -360,7 +359,7 @@ export default function InstructorsPortal() {
           </Card>
 
           {/* Advanced Analytics Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors" key="analytics-card">
+          <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Advanced Analytics</CardTitle>
