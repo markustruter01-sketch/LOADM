@@ -309,7 +309,7 @@ export default function QuizQuestionsManagement() {
                   onChange={(e) => setNewQuestion({ ...newQuestion, questionText: e.target.value })}
                   placeholder="Enter the quiz question..."
                   rows={3}
-                  className="text-gray-900"
+                  className="text-white bg-gray-800 border-gray-600"
                 />
               </div>
               
@@ -433,7 +433,7 @@ export default function QuizQuestionsManagement() {
                                     value={editingQuestion.questionText}
                                     onChange={(e) => updateEditingQuestion(question.id, 'questionText', e.target.value)}
                                     rows={3}
-                                    className="text-gray-900"
+                                    className="text-white bg-gray-800 border-gray-600"
                                   />
                                 </div>
                                 
