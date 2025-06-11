@@ -500,7 +500,7 @@ export default function QuizQuestionsManagement() {
                               <>
                                 <div>
                                   <Label>Question</Label>
-                                  <div className="p-3 bg-muted rounded border">
+                                  <div className="p-3 bg-muted rounded border text-white">
                                     {question.questionText}
                                   </div>
                                 </div>

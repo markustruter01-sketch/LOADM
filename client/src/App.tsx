@@ -51,7 +51,7 @@ import SuperAdminDashboard from "@/pages/superadmin-dashboard";
 import LicensingManagement from "@/pages/licensing-management-fixed";
 import LicenseRegistration from "@/pages/license-registration";
 import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
-import DocumentSubmissions from "@/pages/instructors-portal/document-submissions";
+
 import TeachingMaterials from "@/pages/instructors-portal/resources";
 import BestPractices from "@/pages/instructors-portal/best-practices";
 import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
@@ -148,7 +148,7 @@ function AuthenticatedApp() {
             <Route path="/license-registration" component={LicenseRegistration} />
             <AuthenticatedRoute path="/user-profile" component={UserProfile} />
             <InstructorRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
-            <InstructorRoute path="/instructors-portal/document-submissions" component={DocumentSubmissions} />
+
             <InstructorRoute path="/instructors-portal/resources" component={TeachingMaterials} />
             <InstructorRoute path="/instructors-portal/best-practices" component={BestPractices} />
             <InstructorRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />
