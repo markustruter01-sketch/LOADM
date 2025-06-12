@@ -464,11 +464,19 @@ app.put("/api/auth/change-password", async (req, res) => {
     
     // Verify current password
     const bcrypt = await import('bcryptjs');
+    console.log('✅ PASSWORD: Verifying current password...');
+    console.log('✅ PASSWORD: Current password length:', currentPassword.length);
+    console.log('✅ PASSWORD: Stored hash exists:', !!userResult[0].hashed_password);
+    
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userResult[0].hashed_password);
+    console.log('✅ PASSWORD: Password verification result:', isCurrentPasswordValid);
     
     if (!isCurrentPasswordValid) {
+      console.log('✅ PASSWORD: Current password verification failed');
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
+    
+    console.log('✅ PASSWORD: Current password verified successfully');
     
     // Hash new password
     const saltRounds = 10;
