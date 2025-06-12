@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Users, Calendar, Trophy, FileText, Brain, User, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Users, Calendar, Trophy, FileText, Brain, User, Clock, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { useLocation } from "wouter";
 
 interface User {
   id: number;
@@ -34,6 +35,7 @@ export default function WorkforcePage() {
   const [selectedSquadron, setSelectedSquadron] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
+  const [, setLocation] = useLocation();
 
   // Fetch squadrons
   const { data: squadrons = [] } = useQuery<string[]>({
@@ -116,6 +118,15 @@ export default function WorkforcePage() {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center gap-4 mb-6">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setLocation('/instructors-portal')}
+          className="flex items-center space-x-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Portal</span>
+        </Button>
         <Users className="h-6 w-6 text-primary" />
         <h1 className="text-3xl font-bold text-foreground">Workforce Management</h1>
       </div>

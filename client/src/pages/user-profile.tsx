@@ -12,12 +12,21 @@ import { apiRequest } from "@/lib/queryClient";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function UserProfile() {
   const { user, logout } = useIsolatedAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   // Fetch user profile data including submissions and progress
   const { data: profileData, isLoading } = useQuery({
@@ -172,7 +181,7 @@ export default function UserProfile() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setLocation('/dashboard')}
+            onClick={() => setLocation('/')}
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
