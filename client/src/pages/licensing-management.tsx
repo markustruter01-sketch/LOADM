@@ -774,12 +774,12 @@ export default function LicensingManagement() {
                               size="sm" 
                               variant="outline" 
                               title={license.status === 'suspended' ? 'Activate license' : 'Suspend license'}
-                              className={license.status === 'suspended' ? 'bg-green-50 hover:bg-green-100 border-green-300' : 'bg-orange-50 hover:bg-orange-100 border-orange-300'}
+                              className="bg-gray-800 hover:bg-gray-700 border-gray-600"
                             >
                               {license.status === 'suspended' ? (
-                                <Play className="w-3 h-3 text-green-600" />
+                                <Play className="w-3 h-3 text-white" />
                               ) : (
-                                <Pause className="w-3 h-3 text-orange-600" />
+                                <Pause className="w-3 h-3 text-white" />
                               )}
                             </Button>
                           </AlertDialogTrigger>
