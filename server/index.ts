@@ -261,6 +261,88 @@ app.put("/api/user/category", async (req, res) => {
   }
 });
 
+// Profile endpoint with category data
+app.get("/api/profile", async (req, res) => {
+  console.log('✅ PROFILE: GET request received');
+  try {
+    const sessionId = (req as any).cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Handle hardcoded superadmin case
+    let actualUserId = session.userId;
+    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+      actualUserId = 9;
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Get user profile data with license information
+    const userResult = await sql`
+      SELECT 
+        u.id,
+        u.email,
+        u.user_role,
+        l.squadron,
+        l.category,
+        l.first_name,
+        l.last_name,
+        l.license_type
+      FROM users u
+      LEFT JOIN licenses l ON u.license_id = l.id
+      WHERE u.id = ${actualUserId}
+    `;
+    
+    const user = userResult[0];
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Return basic profile structure
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.user_role,
+        squadron: user.squadron,
+        category: user.category,
+        firstName: user.first_name,
+        lastName: user.last_name
+      },
+      stats: {
+        totalSubmissions: 0,
+        passedSubmissions: 0,
+        failedSubmissions: 0,
+        pendingGrading: 0,
+        overallPassRate: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        weeksSinceLastActivity: 0
+      },
+      submissions: [],
+      submissionsByType: { scenarios: [], quizzes: [], assessments: [] },
+      trainingModules: [],
+      gamification: {
+        weeklyGoal: 1,
+        streakData: { current: 0, longest: 0, weeksSinceLastActivity: 0, streakAtRisk: false },
+        thisWeekActivity: 0,
+        achievements: {}
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching profile data:', error);
+    res.status(500).json({ error: "Failed to fetch profile data" });
+  }
+});
+
 app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req, res) => {
   console.log('✅ WORKFORCE: GET user submissions request received');
   console.log('✅ WORKFORCE: User ID:', req.params.userId);

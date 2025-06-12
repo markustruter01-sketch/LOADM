@@ -141,8 +141,8 @@ export default function UserProfile() {
   };
 
   // Extract data from profileData or use defaults
-  const userInfo = profileData?.user || user;
-  const stats = profileData?.stats || { 
+  const userInfo = (profileData as any)?.user || user;
+  const stats = (profileData as any)?.stats || { 
     totalSubmissions: 0, 
     passedSubmissions: 0, 
     failedSubmissions: 0, 
@@ -152,10 +152,10 @@ export default function UserProfile() {
     longestStreak: 0, 
     weeksSinceLastActivity: 0 
   };
-  const submissions = profileData?.submissions || [];
-  const submissionsByType = profileData?.submissionsByType || { scenarios: [], quizzes: [], assessments: [] };
-  const trainingModules = profileData?.trainingModules || [];
-  const gamification = profileData?.gamification || { 
+  const submissions = (profileData as any)?.submissions || [];
+  const submissionsByType = (profileData as any)?.submissionsByType || { scenarios: [], quizzes: [], assessments: [] };
+  const trainingModules = (profileData as any)?.trainingModules || [];
+  const gamification = (profileData as any)?.gamification || { 
     weeklyGoal: 1, 
     streakData: { current: 0, longest: 0, weeksSinceLastActivity: 0, streakAtRisk: false },
     thisWeekActivity: 0,
@@ -199,7 +199,7 @@ export default function UserProfile() {
               <div className="flex-1">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Squadron Assignment</p>
                 <Select 
-                  value={userSquadron?.squadron || ""} 
+                  value={(userSquadron as any)?.squadron || ""} 
                   onValueChange={(value) => updateSquadronMutation.mutate(value)}
                   disabled={updateSquadronMutation.isPending}
                 >
