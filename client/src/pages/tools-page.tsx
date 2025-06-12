@@ -189,9 +189,13 @@ function MissionComplexityAnalyzer() {
             </Label>
             <Input
               id="cargoWeight"
-              type="number"
-              value={missionData.cargoWeight}
-              onChange={(e) => setMissionData(prev => ({ ...prev, cargoWeight: parseInt(e.target.value) || 0 }))}
+              type="text"
+              value={missionData.cargoWeight === 0 ? '' : missionData.cargoWeight.toString()}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numValue = value === '' ? 0 : parseInt(value) || 0;
+                setMissionData(prev => ({ ...prev, cargoWeight: numValue }));
+              }}
               placeholder="Enter cargo weight"
               className={missionData.cargoWeight > currentLimits.maxWeight ? "border-red-500" : ""}
             />
@@ -209,9 +213,13 @@ function MissionComplexityAnalyzer() {
             </Label>
             <Input
               id="palletCount"
-              type="number"
-              value={missionData.palletCount}
-              onChange={(e) => setMissionData(prev => ({ ...prev, palletCount: parseInt(e.target.value) || 0 }))}
+              type="text"
+              value={missionData.palletCount === 0 ? '' : missionData.palletCount.toString()}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numValue = value === '' ? 0 : parseInt(value) || 0;
+                setMissionData(prev => ({ ...prev, palletCount: numValue }));
+              }}
               placeholder="Enter pallet count"
               className={missionData.palletCount > currentLimits.maxPallets ? "border-red-500" : ""}
             />
@@ -251,49 +259,96 @@ function MissionComplexityAnalyzer() {
 
         {/* Checkboxes */}
         <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="techPrep"
-              checked={missionData.requiresTechPrep}
-              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, requiresTechPrep: !!checked }))}
-            />
-            <Label htmlFor="techPrep">Mechanical Equipment (Tech Prep Form Required)</Label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="techPrep"
+                checked={missionData.requiresTechPrep}
+                onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, requiresTechPrep: !!checked }))}
+              />
+              <Label htmlFor="techPrep">Mechanical Equipment (Tech Prep)</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{missionData.requiresTechPrep ? 10 : 0}/10</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="international"
-              checked={missionData.isInternational}
-              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, isInternational: !!checked }))}
-            />
-            <Label htmlFor="international">International Destination</Label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="international"
+                checked={missionData.isInternational}
+                onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, isInternational: !!checked }))}
+              />
+              <Label htmlFor="international">International Destination</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{missionData.isInternational ? 8 : 0}/8</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="liveAnimals"
-              checked={missionData.hasLiveAnimals}
-              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasLiveAnimals: !!checked }))}
-            />
-            <Label htmlFor="liveAnimals">Live Animals</Label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="liveAnimals"
+                checked={missionData.hasLiveAnimals}
+                onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasLiveAnimals: !!checked }))}
+              />
+              <Label htmlFor="liveAnimals">Live Animals</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{missionData.hasLiveAnimals ? 12 : 0}/12</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="dangerousGoods"
-              checked={missionData.hasDangerousGoods}
-              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasDangerousGoods: !!checked }))}
-            />
-            <Label htmlFor="dangerousGoods">Dangerous Goods</Label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="dangerousGoods"
+                checked={missionData.hasDangerousGoods}
+                onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasDangerousGoods: !!checked }))}
+              />
+              <Label htmlFor="dangerousGoods">Dangerous Goods</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{missionData.hasDangerousGoods ? 15 : 0}/15</span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="loadingTeam"
-              checked={missionData.hasLoadingTeam}
-              onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasLoadingTeam: !!checked }))}
-            />
-            <Label htmlFor="loadingTeam">Loading Team Available</Label>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="singleLoadmaster"
+                checked={missionData.loadmasterCount === 1}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setMissionData(prev => ({ ...prev, loadmasterCount: 1 }));
+                  }
+                }}
+              />
+              <Label htmlFor="singleLoadmaster">Single Loadmaster</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{missionData.loadmasterCount === 1 ? 10 : 0}/10</span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="captainExperience"
+                checked={missionData.captainCategory === 'D'}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setMissionData(prev => ({ ...prev, captainCategory: 'D' }));
+                  }
+                }}
+              />
+              <Label htmlFor="captainExperience">Captain Experience Level</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{missionData.captainCategory === 'D' ? 10 : 0}/10</span>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="loadingTeam"
+                checked={!missionData.hasLoadingTeam}
+                onCheckedChange={(checked) => setMissionData(prev => ({ ...prev, hasLoadingTeam: !checked }))}
+              />
+              <Label htmlFor="loadingTeam">No Loading Team Assistance</Label>
+            </div>
+            <span className="text-sm text-muted-foreground">{!missionData.hasLoadingTeam ? 25 : 0}/25</span>
           </div>
         </div>
       </div>
