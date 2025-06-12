@@ -4,18 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Calendar, Shield, Mail, Key, Settings, Award, TrendingUp, Clock, Target, BookOpen, Users, AlertTriangle, CheckCircle, XCircle, Hourglass, Flame, Zap } from "lucide-react";
+import { User, Calendar, Shield, Mail, Key, Settings, Award, TrendingUp, Clock, Target, BookOpen, Users, AlertTriangle, CheckCircle, XCircle, Hourglass, Flame, Zap, ArrowLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 export default function UserProfile() {
   const { user, logout } = useIsolatedAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch user profile data including submissions and progress
   const { data: profileData, isLoading } = useQuery({
@@ -166,9 +168,20 @@ export default function UserProfile() {
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">User Profile</h1>
-          <p className="text-muted-foreground mt-1">Manage your account information and track your progress</p>
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation('/dashboard')}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Dashboard</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">User Profile</h1>
+            <p className="text-muted-foreground mt-1">Manage your account information and track your progress</p>
+          </div>
         </div>
       </div>
 
@@ -223,11 +236,25 @@ export default function UserProfile() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
-                <p className="text-2xl font-bold">{stats.totalSubmissions}</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Category</p>
+                <Select 
+                  value={userInfo.category || "D"} 
+                  onValueChange={(value) => updateCategoryMutation.mutate(value)}
+                  disabled={updateCategoryMutation.isPending}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="D">D Category</SelectItem>
+                    <SelectItem value="C">C Category</SelectItem>
+                    <SelectItem value="B">B Category</SelectItem>
+                    <SelectItem value="A">A Category</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Target className="w-8 h-8 text-blue-600" />
+              <Award className="w-8 h-8 text-purple-600 ml-4" />
             </div>
           </CardContent>
         </Card>
@@ -247,25 +274,11 @@ export default function UserProfile() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Category</p>
-                <Select 
-                  value={userInfo.category || "D"} 
-                  onValueChange={(value) => updateCategoryMutation.mutate(value)}
-                  disabled={updateCategoryMutation.isPending}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="D">D Category (Least Experienced)</SelectItem>
-                    <SelectItem value="C">C Category</SelectItem>
-                    <SelectItem value="B">B Category</SelectItem>
-                    <SelectItem value="A">A Category (Most Experienced)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                <p className="text-2xl font-bold">{stats.totalSubmissions}</p>
               </div>
-              <Award className="w-8 h-8 text-purple-600 ml-4" />
+              <Target className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>

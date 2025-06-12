@@ -17,6 +17,7 @@ interface User {
   license_type: string;
   last_login: string | null;
   created_at: string;
+  category?: string;
 }
 
 interface Submission {
