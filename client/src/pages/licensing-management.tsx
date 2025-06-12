@@ -403,9 +403,9 @@ export default function LicensingManagement() {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => suspendLicenseMutation.mutate({ 
+                  onClick={() => toggleSuspensionMutation.mutate({ 
                     id: license.id, 
-                    reason: 'Manually suspended by admin' 
+                    activate: false 
                   })}
                 >
                   Suspend
