@@ -709,8 +709,8 @@ export default function LicensingManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                        {license.licenseKey.slice(0, 8)}...
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                        {license.licenseKey}
                       </code>
                     </TableCell>
                     <TableCell>
