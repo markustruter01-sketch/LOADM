@@ -736,7 +736,51 @@ export default function LicensingManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <LicenseActionButtons license={license} />
+                      <div className="flex gap-1">
+                        {/* Refresh button for expired licenses */}
+                        {license.isExpired && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              console.log('🔄 REFRESH CLICKED for:', license.email);
+                              setRenewLicense(license);
+                              setShowRenewDialog(true);
+                            }}
+                            disabled={renewLicenseMutation.isPending}
+                            className="bg-blue-50 hover:bg-blue-100 border-blue-300"
+                            title="Renew expired license"
+                          >
+                            <RotateCcw className="w-3 h-3 text-blue-600" />
+                          </Button>
+                        )}
+                        
+                        {/* Delete Button */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="outline" title="Delete license">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete License</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the license for {license.email}. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteLicenseMutation.mutate(license.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
