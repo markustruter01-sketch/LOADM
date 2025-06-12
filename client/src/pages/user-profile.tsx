@@ -64,6 +64,34 @@ export default function UserProfile() {
     }
   });
 
+  // Category update mutation
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (category: string) => {
+      console.log('🔄 FRONTEND: Category update triggered for:', category);
+      const result = await apiRequest({
+        url: '/api/user/category',
+        method: 'PUT',
+        body: { category }
+      });
+      console.log('✅ FRONTEND: Category update result:', result);
+      return result;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Category Updated",
+        description: "Your seniority category has been successfully updated."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update category. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -168,30 +196,6 @@ export default function UserProfile() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
-                <p className="text-2xl font-bold">{stats.totalSubmissions}</p>
-              </div>
-              <Target className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Pass Rate</p>
-                <p className="text-2xl font-bold">{stats.overallPassRate.toFixed(1)}%</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Squadron Assignment</p>
                 <Select 
@@ -220,10 +224,48 @@ export default function UserProfile() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Best Streak</p>
-                <p className="text-2xl font-bold">{stats.longestStreak}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
+                <p className="text-2xl font-bold">{stats.totalSubmissions}</p>
               </div>
-              <Award className="w-8 h-8 text-purple-600" />
+              <Target className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Pass Rate</p>
+                <p className="text-2xl font-bold">{stats.overallPassRate.toFixed(1)}%</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Category</p>
+                <Select 
+                  value={userInfo.category || "D"} 
+                  onValueChange={(value) => updateCategoryMutation.mutate(value)}
+                  disabled={updateCategoryMutation.isPending}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="D">D Category (Least Experienced)</SelectItem>
+                    <SelectItem value="C">C Category</SelectItem>
+                    <SelectItem value="B">B Category</SelectItem>
+                    <SelectItem value="A">A Category (Most Experienced)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Award className="w-8 h-8 text-purple-600 ml-4" />
             </div>
           </CardContent>
         </Card>

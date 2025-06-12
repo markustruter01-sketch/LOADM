@@ -204,6 +204,63 @@ app.put("/api/user/squadron", async (req, res) => {
   }
 });
 
+app.put("/api/user/category", async (req, res) => {
+  console.log('✅ CATEGORY: PUT request received');
+  console.log('✅ CATEGORY: Request body:', req.body);
+  try {
+    const sessionId = (req as any).cookies?.sessionId;
+    console.log('✅ CATEGORY: Session ID for PUT:', sessionId?.substring(0, 20) + '...');
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Handle hardcoded superadmin case
+    let actualUserId = session.userId;
+    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+      actualUserId = 9;
+    }
+    
+    const { category } = req.body;
+    
+    if (!category || !['D', 'C', 'B', 'A'].includes(category)) {
+      return res.status(400).json({ error: "Invalid category selection" });
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Update the category in the licenses table
+    const updateResult = await sql`
+      UPDATE licenses 
+      SET category = ${category}
+      FROM users 
+      WHERE licenses.id = users.license_id 
+      AND users.id = ${actualUserId}
+    `;
+    console.log('✅ CATEGORY: Update executed, rows affected:', updateResult.length);
+    
+    // Verify the update by fetching the current value
+    const verifyResult = await sql`
+      SELECT l.category 
+      FROM users u
+      LEFT JOIN licenses l ON u.license_id = l.id
+      WHERE u.id = ${actualUserId}
+    `;
+    console.log('✅ CATEGORY: Verified updated value:', verifyResult[0]?.category);
+    
+    res.json({ success: true, category: verifyResult[0]?.category });
+  } catch (error) {
+    console.error('Error updating user category:', error);
+    res.status(500).json({ error: "Failed to update category assignment" });
+  }
+});
+
 app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req, res) => {
   console.log('✅ WORKFORCE: GET user submissions request received');
   console.log('✅ WORKFORCE: User ID:', req.params.userId);
