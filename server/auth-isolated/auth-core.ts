@@ -2,6 +2,7 @@
 // This works independently of everything else in the app
 
 import bcrypt from 'bcryptjs';
+import { licenseExpiryService } from '../license-expiry-service';
 
 // Isolated session storage - completely separate
 const ISOLATED_SESSIONS = new Map<string, {
@@ -104,6 +105,19 @@ export async function authenticateUser(email: string, password: string) {
       console.log(`❌ AUTH: Invalid password for ${email}`);
       console.log(`🔍 AUTH DEBUG: Password length: ${password.length}, Has hash: ${!!user.hashed_password}`);
       return null;
+    }
+    
+    // Check license expiry before allowing login
+    const licenseStatus = await licenseExpiryService.checkLicenseStatus(email);
+    
+    if (!licenseStatus.isValid) {
+      if (licenseStatus.isExpired) {
+        console.log(`❌ AUTH: License expired for ${email} on ${licenseStatus.expiryDate}`);
+        throw new Error('LICENSE_EXPIRED');
+      } else {
+        console.log(`❌ AUTH: Invalid license for ${email}`);
+        throw new Error('INVALID_LICENSE');
+      }
     }
     
     console.log(`✅ AUTH: Database login SUCCESS for ${email}`);

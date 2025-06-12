@@ -7,11 +7,15 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import isolatedAuthRoutes from './auth-isolated/auth-routes';
 import * as authCore from './auth-isolated/auth-core';
+import { licenseExpiryService } from './license-expiry-service';
 
 const app = express();
 
 // Clear all sessions on startup
 authCore.clearAllIsolatedSessions();
+
+// Start license expiry monitoring
+licenseExpiryService.startPeriodicCheck();
 
 app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
