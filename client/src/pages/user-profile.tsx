@@ -106,13 +106,51 @@ export default function UserProfile() {
   // Mutation for changing password
   const changePasswordMutation = useMutation({
     mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
-      return apiRequest({
-        url: '/api/auth/change-password',
-        method: 'PUT',
-        body: data
-      });
+      console.log('🔐 FRONTEND: Starting password change request');
+      console.log('🔐 FRONTEND: Data:', { currentPasswordLength: data.currentPassword.length, newPasswordLength: data.newPassword.length });
+      
+      try {
+        const response = await fetch('/api/auth/change-password', {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        console.log('🔐 FRONTEND: Response status:', response.status);
+        console.log('🔐 FRONTEND: Response ok:', response.ok);
+
+        const responseText = await response.text();
+        console.log('🔐 FRONTEND: Response text:', responseText);
+
+        if (!response.ok) {
+          let errorData;
+          try {
+            errorData = JSON.parse(responseText);
+          } catch {
+            errorData = { error: responseText };
+          }
+          throw new Error(errorData.error || `HTTP ${response.status}: ${responseText}`);
+        }
+
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch {
+          result = { message: responseText };
+        }
+
+        console.log('🔐 FRONTEND: Password change successful:', result);
+        return result;
+      } catch (error) {
+        console.error('🔐 FRONTEND: Password change error:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🔐 FRONTEND: Password change mutation success:', data);
       toast({
         title: "Password Changed",
         description: "Your password has been updated successfully."
@@ -121,6 +159,7 @@ export default function UserProfile() {
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     },
     onError: (error: any) => {
+      console.error('🔐 FRONTEND: Password change mutation error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to change password. Please try again.",

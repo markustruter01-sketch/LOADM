@@ -439,9 +439,19 @@ app.put("/api/auth/change-password", async (req, res) => {
       return res.status(400).json({ error: 'Current password and new password are required' });
     }
 
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      console.log('✅ PASSWORD: Invalid password data types - current:', typeof currentPassword, 'new:', typeof newPassword);
+      return res.status(400).json({ error: 'Password must be a string' });
+    }
+
     if (newPassword.length < 6) {
       console.log('✅ PASSWORD: New password too short:', newPassword.length);
       return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    if (currentPassword === newPassword) {
+      console.log('✅ PASSWORD: New password same as current');
+      return res.status(400).json({ error: 'New password must be different from current password' });
     }
     
     // Handle hardcoded superadmin case
