@@ -103,7 +103,7 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <ClipboardList className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Quiz Scenarios</h3>
+                    <h3 className="text-lg font-medium mb-2">Quizzes and Scenarios</h3>
                     <p className="text-sm text-center text-muted-foreground">
                       Complete scenario-based quizzes and training assessments
                     </p>
@@ -142,7 +142,7 @@ export default function HomePage() {
                     <div className="rounded-full bg-primary/10 p-3 mb-4">
                       <FileCheck className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">Document Center</h3>
+                    <h3 className="text-lg font-medium mb-2">Documents and Phone Directory</h3>
                     <p className="text-sm text-center text-muted-foreground">
                       Access Documents and Airport Phone Directory
                     </p>
