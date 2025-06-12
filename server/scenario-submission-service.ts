@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from './db';
-import { scenarioSubmissions, scenarios, users } from '@shared/schema';
+import { scenarioSubmissions, scenarios, users, licenses } from '../shared/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -206,10 +206,13 @@ export class ScenarioSubmissionService {
         submissionType: scenarioSubmissions.submissionType,
         squadron: scenarioSubmissions.squadron,
         studentName: scenarioSubmissions.studentName,
-        studentId: scenarioSubmissions.studentId
+        studentId: scenarioSubmissions.studentId,
+        category: licenses.category
       })
       .from(scenarioSubmissions)
       .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
+      .leftJoin(users, eq(scenarioSubmissions.userId, users.id))
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
       .where(eq(scenarioSubmissions.submissionType, 'assessment')); // ONLY ASSESSMENT SUBMISSIONS
 
       console.log('✅ Retrieved all submissions:', submissions.length);

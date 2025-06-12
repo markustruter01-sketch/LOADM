@@ -471,6 +471,7 @@ app.get("/api/workforce/squadron/:squadronId/users", requireInstructor, async (r
         COALESCE(l.last_name, '') as last_name,
         l.squadron,
         l.license_type,
+        COALESCE(l.category, 'D') as category,
         u.last_login,
         u.created_at
       FROM users u

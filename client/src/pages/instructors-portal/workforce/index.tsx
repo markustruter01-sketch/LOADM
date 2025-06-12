@@ -173,11 +173,14 @@ export default function WorkforcePage() {
                       <div className="flex items-center gap-3">
                         <User className="h-8 w-8 text-muted-foreground" />
                         <div>
-                          <h3 className="font-medium">
+                          <h3 className="font-medium flex items-center gap-2">
                             {user.first_name && user.last_name 
                               ? `${user.first_name} ${user.last_name}`
                               : user.first_name || user.email.split('@')[0]
                             }
+                            <Badge variant="outline" className="text-xs">
+                              {user.category || 'D'} Category
+                            </Badge>
                           </h3>
                           <p className="text-sm text-muted-foreground">{user.email}</p>
                         </div>
