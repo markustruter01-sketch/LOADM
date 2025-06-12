@@ -411,17 +411,37 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
 // Password change endpoint
 app.put("/api/auth/change-password", async (req, res) => {
   console.log('✅ PASSWORD: Change password request received');
+  console.log('✅ PASSWORD: Request body:', JSON.stringify(req.body, null, 2));
+  console.log('✅ PASSWORD: Cookies:', JSON.stringify((req as any).cookies, null, 2));
   try {
     const { currentPassword, newPassword } = req.body;
     const sessionId = (req as any).cookies?.sessionId;
     
+    console.log('✅ PASSWORD: Extracted data - currentPassword length:', currentPassword?.length, 'newPassword length:', newPassword?.length);
+    console.log('✅ PASSWORD: Session ID:', sessionId);
+    
     if (!sessionId || !sessionId.startsWith('isolated_')) {
+      console.log('✅ PASSWORD: Invalid session format:', sessionId);
       return res.status(401).json({ error: 'Authentication required' });
     }
     
     const session = authCore.getIsolatedSession(sessionId);
     if (!session) {
+      console.log('✅ PASSWORD: No session found for sessionId:', sessionId);
       return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    console.log('✅ PASSWORD: Session found:', JSON.stringify(session, null, 2));
+    
+    // Validate input data
+    if (!currentPassword || !newPassword) {
+      console.log('✅ PASSWORD: Missing password data - current:', !!currentPassword, 'new:', !!newPassword);
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      console.log('✅ PASSWORD: New password too short:', newPassword.length);
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
     }
     
     // Handle hardcoded superadmin case
