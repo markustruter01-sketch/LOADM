@@ -272,6 +272,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle license suspension (suspend/activate)
+  app.post("/api/licensing/licenses/:id/toggle-suspension", requireSuperAdmin, async (req, res) => {
+    try {
+      const licenseId = parseInt(req.params.id);
+      const { activate } = req.body;
+
+      if (!licenseId || isNaN(licenseId)) {
+        return res.status(400).json({ message: "Invalid license ID" });
+      }
+
+      if (typeof activate !== 'boolean') {
+        return res.status(400).json({ message: "Activate parameter must be boolean" });
+      }
+
+      // Update the license status
+      const newStatus = activate ? 'active' : 'suspended';
+      const updatedLicense = await db.update(licenses)
+        .set({
+          status: newStatus,
+          isActive: activate,
+          updatedAt: new Date()
+        })
+        .where(eq(licenses.id, licenseId))
+        .returning();
+
+      if (updatedLicense.length === 0) {
+        return res.status(404).json({ message: "License not found" });
+      }
+
+      console.log(`${activate ? '✅' : '⏸️'} LICENSE ${activate ? 'ACTIVATED' : 'SUSPENDED'}: License ${licenseId} for ${updatedLicense[0].email}`);
+      res.json({ success: true, license: updatedLicense[0] });
+    } catch (error) {
+      console.error('Error toggling license suspension:', error);
+      res.status(500).json({ message: "Failed to toggle license suspension" });
+    }
+  });
+
   // Delete license and associated user
   app.delete("/api/licensing/licenses/:id", requireSuperAdmin, async (req, res) => {
     console.log('🗑️ DELETE LICENSE: Request received for ID:', req.params.id);

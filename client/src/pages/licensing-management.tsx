@@ -193,7 +193,7 @@ export default function LicensingManagement() {
 
   // Toggle license suspension function
   const toggleLicenseSuspension = (licenseId: number, activate: boolean) => {
-    suspendLicenseMutation.mutate({ id: licenseId, activate });
+    toggleSuspensionMutation.mutate({ id: licenseId, activate });
   };
 
   // Filter licenses based on search and status
