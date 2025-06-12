@@ -350,32 +350,130 @@ export default function LicensingManagement() {
     );
   };
 
+  // New License Action Buttons Component
+  const LicenseActionButtons = ({ license }: { license: License }) => {
+    const handleRenewClick = () => {
+      console.log('🔄 RENEW CLICKED:', license.email);
+      setRenewLicense(license);
+      setShowRenewDialog(true);
+    };
+
+    return (
+      <div className="flex gap-1">
+        {/* Renewal Button for Expired Licenses */}
+        {license.isExpired && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRenewClick}
+            disabled={renewLicenseMutation.isPending}
+            className="bg-green-50 hover:bg-green-100 border-green-300"
+          >
+            <RotateCcw className="w-3 h-3 text-green-600" />
+          </Button>
+        )}
+        
+        {/* Suspend Button for Active Licenses */}
+        {!license.isExpired && license.status === 'active' && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <AlertTriangle className="w-3 h-3" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Suspend License</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will immediately suspend the license and end all active sessions.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => suspendLicenseMutation.mutate({ 
+                    id: license.id, 
+                    reason: 'Manually suspended by admin' 
+                  })}
+                >
+                  Suspend
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+
+        {/* Delete Button */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="outline">
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete License</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the license and associated user account.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteLicenseMutation.mutate(license.id)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  };
+
   const RenewLicenseDialog = () => {
     const [formData, setFormData] = useState({
       durationType: 'months',
       duration: 12
     });
 
-    console.log('🔄 RENEW DIALOG RENDER:', { showRenewDialog, renewLicense });
-
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       
-      if (!renewLicense) return;
+      if (!renewLicense) {
+        console.error('No license selected for renewal');
+        return;
+      }
       
       // Calculate new expiry date based on current date
       const now = new Date();
       let newExpiryDate = new Date(now);
       
-      if (formData.durationType === 'days') {
-        newExpiryDate.setDate(now.getDate() + formData.duration);
-      } else if (formData.durationType === 'weeks') {
-        newExpiryDate.setDate(now.getDate() + (formData.duration * 7));
-      } else if (formData.durationType === 'months') {
-        newExpiryDate.setMonth(now.getMonth() + formData.duration);
-      } else if (formData.durationType === 'years') {
-        newExpiryDate.setFullYear(now.getFullYear() + formData.duration);
+      switch (formData.durationType) {
+        case 'days':
+          newExpiryDate.setDate(now.getDate() + formData.duration);
+          break;
+        case 'weeks':
+          newExpiryDate.setDate(now.getDate() + (formData.duration * 7));
+          break;
+        case 'months':
+          newExpiryDate.setMonth(now.getMonth() + formData.duration);
+          break;
+        case 'years':
+          newExpiryDate.setFullYear(now.getFullYear() + formData.duration);
+          break;
+        default:
+          newExpiryDate.setMonth(now.getMonth() + formData.duration);
       }
+      
+      console.log('🔄 SUBMITTING RENEWAL:', {
+        licenseId: renewLicense.id,
+        email: renewLicense.email,
+        newExpiryDate: newExpiryDate.toISOString(),
+        duration: formData.duration,
+        durationType: formData.durationType
+      });
       
       renewLicenseMutation.mutate({
         id: renewLicense.id,
@@ -638,105 +736,7 @@ export default function LicensingManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        {/* Debug: Show license status info */}
-                        {console.log('🔍 LICENSE DEBUG:', { 
-                          id: license.id, 
-                          email: license.email, 
-                          status: license.status, 
-                          isExpired: license.isExpired,
-                          daysUntilExpiry: license.daysUntilExpiry 
-                        })}
-                        
-                        {/* Suspended License - Reactivate Button */}
-                        {license.status === 'suspended' ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => reactivateLicenseMutation.mutate(license.id)}
-                            disabled={reactivateLicenseMutation.isPending}
-                            title="Reactivate suspended license"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                          </Button>
-                        ) : null}
-                        
-                        {/* Expired License - Renew Button */}
-                        {license.isExpired ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              console.log('🔄 RENEW BUTTON CLICKED:', license);
-                              setRenewLicense(license);
-                              setShowRenewDialog(true);
-                              console.log('🔄 DIALOG STATE SET:', { renewLicense: license, showRenewDialog: true });
-                            }}
-                            disabled={renewLicenseMutation.isPending}
-                            title="Renew expired license"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                          </Button>
-                        ) : null}
-                        
-                        {/* Active License - Suspend Button */}
-                        {license.status === 'active' && !license.isExpired ? (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="outline" title="Suspend license">
-                                <AlertTriangle className="w-3 h-3" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Suspend License</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will immediately suspend the license and end all active sessions. 
-                                  Are you sure you want to continue?
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => suspendLicenseMutation.mutate({ 
-                                    id: license.id, 
-                                    reason: 'Manually suspended by admin' 
-                                  })}
-                                >
-                                  Suspend
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        ) : null}
-                        
-                        {/* Delete Button - Always Available */}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline" title="Delete license">
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete License</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete the license and associated user account. 
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteLicenseMutation.mutate(license.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                      <LicenseActionButtons license={license} />
                     </TableCell>
                   </TableRow>
                 ))}
