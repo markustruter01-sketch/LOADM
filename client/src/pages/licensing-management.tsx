@@ -648,7 +648,7 @@ export default function LicensingManagement() {
                           >
                             <RotateCcw className="w-3 h-3" />
                           </Button>
-                        ) : license.status === 'expired' ? (
+                        ) : license.isExpired ? (
                           <Button
                             size="sm"
                             variant="outline"
