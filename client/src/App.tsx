@@ -144,6 +144,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/workforce" component={WorkforcePage} />
             <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
             <SuperAdminRoute path="/licensing" component={LicensingManagement} />
+            <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
             <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
             <Route path="/license-registration" component={LicenseRegistration} />
             <AuthenticatedRoute path="/user-profile" component={UserProfile} />
