@@ -114,14 +114,14 @@ class PasswordChangeTest {
 
       // Test 2: Change password
       this.log('TEST 2: Change password');
-      const changeSuccess = await this.testPasswordChange('password123', 'newpassword123');
+      const changeSuccess = await this.testPasswordChange('password', 'newpassword123');
       if (!changeSuccess) {
         throw new Error('Password change failed');
       }
 
       // Test 3: Login with new password
       this.log('TEST 3: Login with new password');
-      const newLoginSuccess = await this.testLoginWithNewPassword('jasper.szemes@gmail.com', 'newpassword123');
+      const newLoginSuccess = await this.testLoginWithNewPassword('Jasper.szemes@gmail.com', 'newpassword123');
       if (!newLoginSuccess) {
         throw new Error('Login with new password failed');
       }
@@ -129,7 +129,7 @@ class PasswordChangeTest {
       // Test 4: Verify old password no longer works
       this.log('TEST 4: Verify old password rejected');
       this.sessionId = null;
-      const oldPasswordTest = await this.testLogin('jasper.szemes@gmail.com', 'password123');
+      const oldPasswordTest = await this.testLogin('Jasper.szemes@gmail.com', 'password');
       if (oldPasswordTest) {
         throw new Error('Old password still works - security issue!');
       }
@@ -137,8 +137,8 @@ class PasswordChangeTest {
 
       // Test 5: Reset password back to default
       this.log('TEST 5: Reset password back to default');
-      await this.testLogin('jasper.szemes@gmail.com', 'newpassword123');
-      const resetSuccess = await this.testPasswordChange('newpassword123', 'password123');
+      await this.testLogin('Jasper.szemes@gmail.com', 'newpassword123');
+      const resetSuccess = await this.testPasswordChange('newpassword123', 'password');
       if (!resetSuccess) {
         throw new Error('Password reset failed');
       }
