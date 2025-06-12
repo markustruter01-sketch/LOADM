@@ -639,16 +639,30 @@ export default function LicensingManagement() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        {/* Debug: Show license status info */}
+                        {console.log('🔍 LICENSE DEBUG:', { 
+                          id: license.id, 
+                          email: license.email, 
+                          status: license.status, 
+                          isExpired: license.isExpired,
+                          daysUntilExpiry: license.daysUntilExpiry 
+                        })}
+                        
+                        {/* Suspended License - Reactivate Button */}
                         {license.status === 'suspended' ? (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => reactivateLicenseMutation.mutate(license.id)}
                             disabled={reactivateLicenseMutation.isPending}
+                            title="Reactivate suspended license"
                           >
                             <RotateCcw className="w-3 h-3" />
                           </Button>
-                        ) : license.isExpired ? (
+                        ) : null}
+                        
+                        {/* Expired License - Renew Button */}
+                        {license.isExpired ? (
                           <Button
                             size="sm"
                             variant="outline"
@@ -663,10 +677,13 @@ export default function LicensingManagement() {
                           >
                             <RotateCcw className="w-3 h-3" />
                           </Button>
-                        ) : license.status === 'active' && !license.isExpired && (
+                        ) : null}
+                        
+                        {/* Active License - Suspend Button */}
+                        {license.status === 'active' && !license.isExpired ? (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="outline">
+                              <Button size="sm" variant="outline" title="Suspend license">
                                 <AlertTriangle className="w-3 h-3" />
                               </Button>
                             </AlertDialogTrigger>
@@ -691,11 +708,12 @@ export default function LicensingManagement() {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                        )}
+                        ) : null}
                         
+                        {/* Delete Button - Always Available */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" title="Delete license">
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </AlertDialogTrigger>
