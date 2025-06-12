@@ -236,6 +236,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Renew expired license
+  app.post("/api/licensing/licenses/:id/renew", requireSuperAdmin, async (req, res) => {
+    try {
+      const licenseId = parseInt(req.params.id);
+      const { expiryDate } = req.body;
+
+      if (!licenseId || isNaN(licenseId)) {
+        return res.status(400).json({ message: "Invalid license ID" });
+      }
+
+      if (!expiryDate) {
+        return res.status(400).json({ message: "New expiry date is required" });
+      }
+
+      // Update the license with new expiry date and reactivate it
+      const updatedLicense = await db.update(licenses)
+        .set({
+          expiryDate: new Date(expiryDate),
+          isActive: true,
+          updatedAt: new Date()
+        })
+        .where(eq(licenses.id, licenseId))
+        .returning();
+
+      if (updatedLicense.length === 0) {
+        return res.status(404).json({ message: "License not found" });
+      }
+
+      console.log(`🔄 LICENSE RENEWED: License ${licenseId} renewed until ${expiryDate}`);
+      res.json({ success: true, license: updatedLicense[0] });
+    } catch (error) {
+      console.error('Error renewing license:', error);
+      res.status(500).json({ message: "Failed to renew license" });
+    }
+  });
+
   // Delete license and associated user
   app.delete("/api/licensing/licenses/:id", requireSuperAdmin, async (req, res) => {
     console.log('🗑️ DELETE LICENSE: Request received for ID:', req.params.id);

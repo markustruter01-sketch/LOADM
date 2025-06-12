@@ -47,6 +47,8 @@ interface DashboardStats {
 export default function LicensingManagement() {
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showRenewDialog, setShowRenewDialog] = useState(false);
+  const [renewLicense, setRenewLicense] = useState<License | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
@@ -129,6 +131,36 @@ export default function LicensingManagement() {
       toast({
         title: "License reactivated",
         description: "The license has been reactivated successfully."
+      });
+    }
+  });
+
+  // Renew expired license mutation
+  const renewLicenseMutation = useMutation({
+    mutationFn: async ({ id, newExpiryDate }: { id: number; newExpiryDate: string }) => {
+      const response = await fetch(`/api/licensing/licenses/${id}/renew`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiryDate: newExpiryDate })
+      });
+      if (!response.ok) throw new Error('Failed to renew license');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/licensing/dashboard-stats'] });
+      setShowRenewDialog(false);
+      setRenewLicense(null);
+      toast({
+        title: "License renewed",
+        description: "The expired license has been successfully renewed and reactivated."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error renewing license",
+        description: "Please try again later.",
+        variant: "destructive"
       });
     }
   });
@@ -318,6 +350,111 @@ export default function LicensingManagement() {
     );
   };
 
+  const RenewLicenseDialog = () => {
+    const [formData, setFormData] = useState({
+      durationType: 'months',
+      duration: 12
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      if (!renewLicense) return;
+      
+      // Calculate new expiry date based on current date
+      const now = new Date();
+      let newExpiryDate = new Date(now);
+      
+      if (formData.durationType === 'days') {
+        newExpiryDate.setDate(now.getDate() + formData.duration);
+      } else if (formData.durationType === 'weeks') {
+        newExpiryDate.setDate(now.getDate() + (formData.duration * 7));
+      } else if (formData.durationType === 'months') {
+        newExpiryDate.setMonth(now.getMonth() + formData.duration);
+      } else if (formData.durationType === 'years') {
+        newExpiryDate.setFullYear(now.getFullYear() + formData.duration);
+      }
+      
+      renewLicenseMutation.mutate({
+        id: renewLicense.id,
+        newExpiryDate: newExpiryDate.toISOString()
+      });
+    };
+
+    return (
+      <Dialog open={showRenewDialog} onOpenChange={setShowRenewDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Renew Expired License</DialogTitle>
+            <DialogDescription>
+              Extend the expiry date for {renewLicense?.email} to reactivate their access.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="renewDuration">Duration</Label>
+                <Input
+                  id="renewDuration"
+                  type="number"
+                  min="1"
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="renewDurationType">Type</Label>
+                <Select value={formData.durationType} onValueChange={(value) => setFormData({ ...formData, durationType: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="days">Days</SelectItem>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                    <SelectItem value="years">Years</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-700">
+                <strong>Current Status:</strong> Expired on {renewLicense && format(new Date(renewLicense.expiryDate), "MMM dd, yyyy")}
+              </p>
+              <p className="text-sm text-blue-700 mt-1">
+                <strong>New Expiry:</strong> {(() => {
+                  const now = new Date();
+                  let newDate = new Date(now);
+                  if (formData.durationType === 'days') {
+                    newDate.setDate(now.getDate() + formData.duration);
+                  } else if (formData.durationType === 'weeks') {
+                    newDate.setDate(now.getDate() + (formData.duration * 7));
+                  } else if (formData.durationType === 'months') {
+                    newDate.setMonth(now.getMonth() + formData.duration);
+                  } else if (formData.durationType === 'years') {
+                    newDate.setFullYear(now.getFullYear() + formData.duration);
+                  }
+                  return format(newDate, "MMM dd, yyyy");
+                })()}
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowRenewDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={renewLicenseMutation.isPending}>
+                {renewLicenseMutation.isPending ? "Renewing..." : "Renew License"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -346,6 +483,9 @@ export default function LicensingManagement() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* License Renewal Dialog */}
+      <RenewLicenseDialog />
 
       {/* Dashboard Statistics */}
       {stats && (
@@ -503,6 +643,19 @@ export default function LicensingManagement() {
                             variant="outline"
                             onClick={() => reactivateLicenseMutation.mutate(license.id)}
                             disabled={reactivateLicenseMutation.isPending}
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                          </Button>
+                        ) : license.status === 'expired' ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setRenewLicense(license);
+                              setShowRenewDialog(true);
+                            }}
+                            disabled={renewLicenseMutation.isPending}
+                            title="Renew expired license"
                           >
                             <RotateCcw className="w-3 h-3" />
                           </Button>
