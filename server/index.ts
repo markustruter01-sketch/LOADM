@@ -408,6 +408,68 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
+// Password change endpoint
+app.put("/api/auth/change-password", async (req, res) => {
+  console.log('✅ PASSWORD: Change password request received');
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const sessionId = (req as any).cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Handle hardcoded superadmin case
+    let actualUserId = session.userId;
+    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+      actualUserId = 9;
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Get current user password
+    const userResult = await sql`
+      SELECT password_hash FROM users WHERE id = ${actualUserId}
+    `;
+    
+    if (!userResult[0]) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Verify current password
+    const bcrypt = await import('bcryptjs');
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userResult[0].password_hash);
+    
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+    
+    // Hash new password
+    const saltRounds = 10;
+    const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update password
+    await sql`
+      UPDATE users 
+      SET password_hash = ${newPasswordHash}
+      WHERE id = ${actualUserId}
+    `;
+    
+    console.log('✅ PASSWORD: Password updated successfully for user:', actualUserId);
+    res.json({ message: 'Password updated successfully' });
+    
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: "Failed to change password" });
+  }
+});
+
 // Workforce Management Routes - bypassing middleware issues
 import { licenses, users } from '../shared/schema';
 

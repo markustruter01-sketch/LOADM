@@ -103,6 +103,57 @@ export default function UserProfile() {
     }
   });
 
+  // Mutation for changing password
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      return apiRequest({
+        url: '/api/auth/change-password',
+        method: 'PUT',
+        body: data
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password Changed",
+        description: "Your password has been updated successfully."
+      });
+      setShowPasswordDialog(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change password. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handlePasswordChange = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword
+    });
+  };
+
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -657,10 +708,7 @@ export default function UserProfile() {
               <Button 
                 variant="outline" 
                 className="w-full justify-start"
-                onClick={() => {
-                  // Future: Add change password functionality
-                  alert('Password change functionality coming soon!');
-                }}
+                onClick={() => setShowPasswordDialog(true)}
               >
                 <Key className="w-4 h-4 mr-2" />
                 Change Password
@@ -856,6 +904,60 @@ export default function UserProfile() {
           </Card>
         </div>
       </div>
+
+      {/* Password Change Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current Password</label>
+              <Input
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, currentPassword: e.target.value}))}
+                placeholder="Enter current password"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Password</label>
+              <Input
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, newPassword: e.target.value}))}
+                placeholder="Enter new password"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Confirm New Password</label>
+              <Input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData(prev => ({...prev, confirmPassword: e.target.value}))}
+                placeholder="Confirm new password"
+              />
+            </div>
+            <div className="flex space-x-2 pt-4">
+              <Button
+                onClick={handlePasswordChange}
+                disabled={changePasswordMutation.isPending}
+                className="flex-1"
+              >
+                {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowPasswordDialog(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
