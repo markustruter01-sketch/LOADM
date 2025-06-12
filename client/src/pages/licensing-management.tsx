@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw } from "lucide-react";
+import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw, Play, Pause } from "lucide-react";
 import { format } from "date-fns";
 
 interface License {
@@ -95,27 +95,6 @@ export default function LicensingManagement() {
     }
   });
 
-  // Suspend license mutation
-  const suspendLicenseMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
-      const response = await fetch(`/api/licensing/licenses/${id}/suspend`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
-      });
-      if (!response.ok) throw new Error('Failed to suspend license');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/licensing/dashboard-stats'] });
-      toast({
-        title: "License suspended",
-        description: "The license has been suspended successfully."
-      });
-    }
-  });
-
   // Reactivate license mutation
   const reactivateLicenseMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -183,6 +162,39 @@ export default function LicensingManagement() {
       });
     }
   });
+
+  // Suspend/Activate license mutation
+  const toggleSuspensionMutation = useMutation({
+    mutationFn: async ({ id, activate }: { id: number; activate: boolean }) => {
+      const response = await fetch(`/api/licensing/licenses/${id}/toggle-suspension`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activate })
+      });
+      if (!response.ok) throw new Error(`Failed to ${activate ? 'activate' : 'suspend'} license`);
+      return response.json();
+    },
+    onSuccess: (_, { activate }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/licensing/dashboard-stats'] });
+      toast({
+        title: `License ${activate ? 'activated' : 'suspended'}`,
+        description: `The license has been ${activate ? 'activated' : 'suspended'} successfully.`
+      });
+    },
+    onError: (_, { activate }) => {
+      toast({
+        title: `Error ${activate ? 'activating' : 'suspending'} license`,
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Toggle license suspension function
+  const toggleLicenseSuspension = (licenseId: number, activate: boolean) => {
+    suspendLicenseMutation.mutate({ id: licenseId, activate });
+  };
 
   // Filter licenses based on search and status
   const filteredLicenses = licenses.filter(license => {
@@ -755,6 +767,46 @@ export default function LicensingManagement() {
                           </Button>
                         )}
                         
+                        {/* Suspend/Activate Button */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              title={license.status === 'suspended' ? 'Activate license' : 'Suspend license'}
+                              className={license.status === 'suspended' ? 'bg-green-50 hover:bg-green-100 border-green-300' : 'bg-orange-50 hover:bg-orange-100 border-orange-300'}
+                            >
+                              {license.status === 'suspended' ? (
+                                <Play className="w-3 h-3 text-green-600" />
+                              ) : (
+                                <Pause className="w-3 h-3 text-orange-600" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {license.status === 'suspended' ? 'Activate License' : 'Suspend License'}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {license.status === 'suspended' 
+                                  ? `This will reactivate the license for ${license.email}. They will be able to use the system again.`
+                                  : `This will suspend the license for ${license.email}. They will not be able to access the system until reactivated.`
+                                }
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => toggleLicenseSuspension(license.id, license.status === 'suspended')}
+                                className={license.status === 'suspended' ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}
+                              >
+                                {license.status === 'suspended' ? 'Activate' : 'Suspend'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+
                         {/* Delete Button */}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
