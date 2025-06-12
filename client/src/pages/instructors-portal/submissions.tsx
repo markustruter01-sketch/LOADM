@@ -7,6 +7,7 @@ import { Scenario, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -290,8 +291,11 @@ export default function ScenarioSubmissionsPage() {
                                   <User className="h-4 w-4 text-muted-foreground" />
                                 </div>
                                 <div>
-                                  <div className="font-medium">
+                                  <div className="font-medium flex items-center gap-2">
                                     {submission.studentName || `User ${submission.userId}`}
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border">
+                                      {(submission as any).category || 'D'} Category
+                                    </span>
                                   </div>
                                   <div className="text-sm text-muted-foreground">
                                     ID: {submission.studentId || submission.userId}
