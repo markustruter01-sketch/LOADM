@@ -435,7 +435,7 @@ app.put("/api/auth/change-password", async (req, res) => {
     
     // Get current user password
     const userResult = await sql`
-      SELECT password_hash FROM users WHERE id = ${actualUserId}
+      SELECT hashed_password FROM users WHERE id = ${actualUserId}
     `;
     
     if (!userResult[0]) {
@@ -444,7 +444,7 @@ app.put("/api/auth/change-password", async (req, res) => {
     
     // Verify current password
     const bcrypt = await import('bcryptjs');
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userResult[0].password_hash);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userResult[0].hashed_password);
     
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ error: 'Current password is incorrect' });
@@ -457,7 +457,7 @@ app.put("/api/auth/change-password", async (req, res) => {
     // Update password
     await sql`
       UPDATE users 
-      SET password_hash = ${newPasswordHash}
+      SET hashed_password = ${newPasswordHash}
       WHERE id = ${actualUserId}
     `;
     
