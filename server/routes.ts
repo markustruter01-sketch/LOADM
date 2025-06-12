@@ -179,7 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           licenseType: licenses.licenseType,
           isActive: licenses.isActive,
           expiryDate: licenses.expiryDate,
+          maxConcurrentSessions: licenses.maxConcurrentSessions,
+          maxDevices: licenses.maxDevices,
+          notes: licenses.notes,
           createdAt: licenses.createdAt,
+          updatedAt: licenses.updatedAt,
           userId: users.id,
           userEmail: users.email,
           isFirstLogin: users.isFirstLogin
@@ -188,7 +192,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .leftJoin(users, eq(licenses.id, users.licenseId))
         .orderBy(desc(licenses.createdAt));
 
-      res.json(allLicenses);
+      // Process licenses to add calculated fields expected by frontend
+      const processedLicenses = allLicenses.map(license => {
+        const now = new Date();
+        const expiryDate = new Date(license.expiryDate);
+        const isExpired = expiryDate < now;
+        const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Determine status based on isActive flag and expiry
+        let status: 'active' | 'suspended' | 'expired';
+        if (isExpired || !license.isActive) {
+          status = isExpired ? 'expired' : 'suspended';
+        } else {
+          status = 'active';
+        }
+
+        return {
+          id: license.id,
+          email: license.email,
+          username: `${license.firstName} ${license.lastName || ''}`.trim(),
+          licenseKey: license.licenseKey,
+          issuedDate: license.createdAt,
+          expiryDate: license.expiryDate,
+          status,
+          maxConcurrentSessions: license.maxConcurrentSessions || 3,
+          maxDevices: license.maxDevices || 2,
+          notes: license.notes || '',
+          createdAt: license.createdAt,
+          updatedAt: license.updatedAt,
+          activeSessionCount: 0, // TODO: Implement session tracking
+          totalSessionCount: 0, // TODO: Implement session tracking
+          isExpired,
+          daysUntilExpiry,
+          // Additional fields for compatibility
+          firstName: license.firstName,
+          lastName: license.lastName,
+          licenseType: license.licenseType,
+          isActive: license.isActive,
+          userId: license.userId,
+          userEmail: license.userEmail,
+          isFirstLogin: license.isFirstLogin
+        };
+      });
+
+      console.log(`📊 LICENSE API: Returning ${processedLicenses.length} licenses with calculated status`);
+      res.json(processedLicenses);
     } catch (error) {
       console.error('Error fetching licenses:', error);
       res.status(500).json({ message: "Failed to fetch licenses" });
@@ -838,59 +886,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard statistics for Super Admin
   app.get("/api/licensing/dashboard-stats", requireSuperAdmin, async (req, res) => {
     try {
-      // Get total licenses
-      const totalLicensesResult = await db.select({ count: sql<number>`count(*)` }).from(licenses);
-      const totalLicenses = totalLicensesResult[0]?.count || 0;
+      // Get all licenses for calculation
+      const allLicenses = await db.select({
+        id: licenses.id,
+        isActive: licenses.isActive,
+        expiryDate: licenses.expiryDate
+      }).from(licenses);
 
-      // Get active licenses (not expired and is_active = true)
-      const activeLicensesResult = await db.select({ count: sql<number>`count(*)` })
-        .from(licenses)
-        .where(and(
-          eq(licenses.isActive, true),
-          gt(licenses.expiryDate, new Date())
-        ));
-      const activeLicenses = activeLicensesResult[0]?.count || 0;
-
-      // Get expired licenses
-      const expiredLicensesResult = await db.select({ count: sql<number>`count(*)` })
-        .from(licenses)
-        .where(lt(licenses.expiryDate, new Date()));
-      const expiredLicenses = expiredLicensesResult[0]?.count || 0;
-
-      // Get licenses expiring in next 30 days
-      const thirtyDaysFromNow = new Date();
-      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+      const now = new Date();
+      const totalLicenses = allLicenses.length;
       
-      const expiringLicensesResult = await db.select({ count: sql<number>`count(*)` })
-        .from(licenses)
-        .where(and(
-          eq(licenses.isActive, true),
-          gt(licenses.expiryDate, new Date()),
-          lt(licenses.expiryDate, thirtyDaysFromNow)
-        ));
-      const expiringLicenses = expiringLicensesResult[0]?.count || 0;
+      // Calculate different license states
+      const activeLicenses = allLicenses.filter(license => 
+        license.isActive && new Date(license.expiryDate) > now
+      ).length;
+      
+      const expiredLicenses = allLicenses.filter(license => 
+        new Date(license.expiryDate) < now
+      ).length;
+      
+      const suspendedLicenses = allLicenses.filter(license => 
+        !license.isActive && new Date(license.expiryDate) > now
+      ).length;
+      
+      // Licenses expiring within 7 days
+      const sevenDaysFromNow = new Date();
+      sevenDaysFromNow.setDate(now.getDate() + 7);
+      const expiringLicenses = allLicenses.filter(license => {
+        const expiryDate = new Date(license.expiryDate);
+        return expiryDate > now && expiryDate <= sevenDaysFromNow;
+      }).length;
 
-      // Get total users (represents active sessions in our system)
-      const activeSessionsResult = await db.select({ count: sql<number>`count(*)` }).from(users);
-      const activeSessions = activeSessionsResult[0]?.count || 0;
+      console.log(`📊 DASHBOARD STATS: Total=${totalLicenses}, Active=${activeLicenses}, Expired=${expiredLicenses}, Suspended=${suspendedLicenses}, Expiring=${expiringLicenses}`);
 
-      // Calculate utilization rate (active licenses / total licenses)
-      const utilizationRate = totalLicenses > 0 ? Math.round((activeLicenses / totalLicenses) * 100) : 0;
-
-      const stats = {
+      res.json({
         totalLicenses,
         activeLicenses,
         expiredLicenses,
-        suspendedLicenses: 0, // We don't have suspended licenses in our schema
-        activeSessions,
+        suspendedLicenses,
         expiringLicenses,
-        utilizationRate
-      };
-
-      res.json(stats);
+        activeSessions: 0, // TODO: Implement session tracking
+        utilizationRate: totalLicenses > 0 ? Math.round((activeLicenses / totalLicenses) * 100) : 0
+      });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      res.status(500).json({ error: "Failed to fetch dashboard statistics" });
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
 
