@@ -94,6 +94,19 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
       } else {
         const errorText = await response.text();
         console.log('✅ ISOLATED CLIENT: Login FAILED - Response:', errorText);
+        
+        // Handle license expiry errors
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.code === 'LICENSE_EXPIRED') {
+            throw new Error('Your license has expired. Please contact your administrator to renew your access.');
+          } else if (errorData.code === 'INVALID_LICENSE') {
+            throw new Error('Your license is invalid or inactive. Please contact your administrator.');
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, continue with generic error
+        }
+        
         return false;
       }
     } catch (error) {

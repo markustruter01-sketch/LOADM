@@ -547,6 +547,31 @@ function requireInstructor(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+// License management endpoint to get expired licenses
+app.get("/api/licenses/expired", async (req, res) => {
+  console.log('🕒 LICENSE API: Get expired licenses request');
+  try {
+    const sessionId = (req as any).cookies?.sessionId;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session || session.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Superadmin access required' });
+    }
+    
+    const expiredLicenses = await licenseExpiryService.getAllExpiredLicenses();
+    console.log('🕒 LICENSE API: Found', expiredLicenses.length, 'expired licenses');
+    
+    res.json(expiredLicenses);
+  } catch (error) {
+    console.error('🕒 LICENSE API ERROR:', error);
+    res.status(500).json({ error: "Failed to get expired licenses" });
+  }
+});
+
 app.get("/api/workforce/squadrons", requireInstructor, async (req, res) => {
   try {
     const squadrons = ['33SQN', '35SQN', '36SQN', '37SQN', 'AMG'];

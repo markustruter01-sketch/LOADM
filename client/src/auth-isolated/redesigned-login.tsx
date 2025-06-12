@@ -31,9 +31,17 @@ export function RedesignedLogin() {
       } else {
         setError('Invalid email or password. Please check your credentials.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ REDESIGNED LOGIN: Login error:', error);
-      setError('Login failed. Please try again.');
+      
+      // Handle specific license expiry errors
+      if (error.message && error.message.includes('license has expired')) {
+        setError(error.message);
+      } else if (error.message && error.message.includes('license is invalid')) {
+        setError(error.message);
+      } else {
+        setError('Login failed. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

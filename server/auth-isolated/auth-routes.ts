@@ -45,8 +45,26 @@ router.post('/login', async (req, res) => {
       isFirstLogin: user.isFirstLogin || false
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('✅ ISOLATED: Login error:', error);
+    
+    // Handle specific license expiry errors
+    if (error.message === 'LICENSE_EXPIRED') {
+      console.log('✅ ISOLATED: Login blocked - license expired');
+      return res.status(403).json({ 
+        error: 'Your license has expired. Please contact your administrator to renew your access.',
+        code: 'LICENSE_EXPIRED'
+      });
+    }
+    
+    if (error.message === 'INVALID_LICENSE') {
+      console.log('✅ ISOLATED: Login blocked - invalid license');
+      return res.status(403).json({ 
+        error: 'Your license is invalid or inactive. Please contact your administrator.',
+        code: 'INVALID_LICENSE'
+      });
+    }
+    
     res.status(500).json({ error: 'Login failed' });
   }
 });
