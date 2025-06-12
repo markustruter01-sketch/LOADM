@@ -57,9 +57,11 @@ export default function LicensingManagement() {
     queryKey: ['/api/licensing/dashboard-stats']
   });
 
-  // Fetch all licenses
+  // Fetch all licenses with fresh data
   const { data: licenses = [], isLoading } = useQuery<License[]>({
-    queryKey: ['/api/licensing/licenses']
+    queryKey: ['/api/licensing/licenses'],
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true
   });
 
   // Create license mutation
@@ -158,6 +160,7 @@ export default function LicensingManagement() {
     
     if (statusFilter === "all") return matchesSearch;
     if (statusFilter === "expiring") return matchesSearch && license.daysUntilExpiry <= 7 && license.daysUntilExpiry > 0;
+    if (statusFilter === "expired") return matchesSearch && license.isExpired;
     return matchesSearch && license.status === statusFilter;
   });
 
