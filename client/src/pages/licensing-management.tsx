@@ -356,6 +356,8 @@ export default function LicensingManagement() {
       duration: 12
     });
 
+    console.log('🔄 RENEW DIALOG RENDER:', { showRenewDialog, renewLicense });
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       
@@ -651,8 +653,10 @@ export default function LicensingManagement() {
                             size="sm"
                             variant="outline"
                             onClick={() => {
+                              console.log('🔄 RENEW BUTTON CLICKED:', license);
                               setRenewLicense(license);
                               setShowRenewDialog(true);
+                              console.log('🔄 DIALOG STATE SET:', { renewLicense: license, showRenewDialog: true });
                             }}
                             disabled={renewLicenseMutation.isPending}
                             title="Renew expired license"
