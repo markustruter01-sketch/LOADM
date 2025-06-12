@@ -709,7 +709,7 @@ export default function LicensingManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono text-black">
                         {license.licenseKey}
                       </code>
                     </TableCell>
