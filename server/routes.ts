@@ -490,6 +490,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const quizzesModule = await import('./routes/quizzes');
   app.use('/api/quizzes', quizzesModule.default);
   
+  // Import direct quiz routes for comprehensive auth handling
+  const quizDirectModule = await import('./routes/quiz-direct');
+  app.use('/api/quiz', quizDirectModule.default);
+  
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {
