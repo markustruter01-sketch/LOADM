@@ -681,7 +681,11 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
       ...scenarioSubs.map(s => ({ ...s, type: 'scenario' })),
       ...quizSubs.map(q => ({ ...q, type: 'quiz' })),
       ...documentSubs.map(d => ({ ...d, type: 'document' }))
-    ].sort((a, b) => new Date(b.submission_date).getTime() - new Date(a.submission_date).getTime())
+    ].sort((a: any, b: any) => {
+      const aDate = a.submissionDate || a.createdAt || new Date();
+      const bDate = b.submissionDate || b.createdAt || new Date();
+      return new Date(bDate).getTime() - new Date(aDate).getTime();
+    })
      .slice(0, 5);
     
     res.json(allSubmissions);

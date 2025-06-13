@@ -94,7 +94,8 @@ router.post('/create-direct', async (req: any, res: any) => {
     
   } catch (error) {
     console.error('🔧 DIRECT QUIZ CREATE: Error:', error);
-    res.status(500).json({ error: 'Failed to create quiz', details: error.message });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Failed to create quiz', details: errorMessage });
   }
 });
 
