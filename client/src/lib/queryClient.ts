@@ -5,9 +5,11 @@ export async function apiRequest(options: {
   url: string;
   method?: string;
   body?: any;
+  data?: any;
   headers?: Record<string, string>;
 }) {
-  const { url, method = 'GET', body, headers = {} } = options;
+  const { url, method = 'GET', body, data, headers = {} } = options;
+  const requestBody = body || data;
   
   const response = await fetch(url, {
     method,
@@ -16,7 +18,7 @@ export async function apiRequest(options: {
       'Content-Type': 'application/json',
       ...headers,
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: requestBody ? JSON.stringify(requestBody) : undefined,
   });
 
   if (!response.ok) {

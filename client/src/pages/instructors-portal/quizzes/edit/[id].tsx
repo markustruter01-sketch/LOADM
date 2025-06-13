@@ -146,6 +146,11 @@ export default function EditQuizPage() {
       
       console.log("🔧 QUIZ EDIT DEBUG: Update data to send:", updateData);
       
+      // Add explicit debugging for the request
+      console.log("🔧 QUIZ EDIT DEBUG: Making PUT request to:", `/api/quizzes/${quizId}`);
+      console.log("🔧 QUIZ EDIT DEBUG: Request method: PUT");
+      console.log("🔧 QUIZ EDIT DEBUG: Request data stringified:", JSON.stringify(updateData));
+      
       const response = await apiRequest({
         url: `/api/quizzes/${quizId}`,
         method: 'PUT',
