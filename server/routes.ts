@@ -7,6 +7,15 @@ import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
 
+// Extend Request interface for authenticated routes
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    role: string;
+  };
+}
+
 // Authentication middleware functions
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   // This will be handled by the isolated auth system in index.ts

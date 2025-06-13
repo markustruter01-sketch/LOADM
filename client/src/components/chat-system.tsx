@@ -30,11 +30,18 @@ export function ChatSystem() {
 
   // WebSocket connection
   useEffect(() => {
-    if (!isOpen || !user) return;
+    if (!isOpen || !user || !user.id) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const ws = new WebSocket(wsUrl);
+    
+    let ws;
+    try {
+      ws = new WebSocket(wsUrl);
+    } catch (error) {
+      console.error("Failed to create WebSocket connection:", error);
+      return;
+    }
 
     ws.onopen = () => {
       console.log("WebSocket connected");
@@ -45,7 +52,7 @@ export function ChatSystem() {
       const authMessage = {
         type: "auth",
         userId: user.id,
-        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+        userName: user.email || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         userRole: user.role
       };
       console.log("Sending auth message:", authMessage);
@@ -86,7 +93,9 @@ export function ChatSystem() {
     setSocket(ws);
 
     return () => {
-      ws.close();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
     };
   }, [isOpen, user, queryClient]);
 
@@ -109,16 +118,19 @@ export function ChatSystem() {
       return;
     }
 
-    const messageData = {
-      type: "chat_message",
-      messageType,
-      content: content.trim()
-    };
-    
-    console.log("Sending message:", messageData);
-    socket.send(JSON.stringify(messageData));
-
-    setContent("");
+    try {
+      const messageData = {
+        type: "chat_message",
+        messageType,
+        content: content.trim()
+      };
+      
+      console.log("Sending message:", messageData);
+      socket.send(JSON.stringify(messageData));
+      setContent("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
