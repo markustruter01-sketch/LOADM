@@ -589,7 +589,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
       }
       
-      const submissions = await storage.getDocumentSubmissions(documentId, userId || req.user?.id);
+      let whereConditions = [];
+      if (documentId) {
+        whereConditions.push(eq(documentSubmissions.documentId, documentId));
+      }
+      if (userId || req.user?.id) {
+        whereConditions.push(eq(documentSubmissions.userId, userId || req.user?.id));
+      }
+      
+      const submissions = whereConditions.length > 0 
+        ? await db.select().from(documentSubmissions).where(and(...whereConditions))
+        : await db.select().from(documentSubmissions);
       res.json(submissions);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve document submissions" });
@@ -599,7 +609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/document-submissions", requireAuth, async (req, res) => {
     try {
       const submissionData = insertDocumentSubmissionSchema.parse(req.body);
-      const submission = await storage.createDocumentSubmission(submissionData);
+      const [submission] = await db.insert(documentSubmissions).values(submissionData).returning();
       res.status(201).json(submission);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -622,7 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/scenarios/:id", async (req, res) => {
     try {
       const scenarioId = parseInt(req.params.id);
-      const scenario = await storage.getScenario(scenarioId);
+      const [scenario] = await db.select().from(scenarios).where(eq(scenarios.id, scenarioId));
       
       if (!scenario) {
         return res.status(404).json({ message: "Scenario not found" });
@@ -637,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/scenarios", requireInstructor, async (req, res) => {
     try {
       const scenarioData = insertScenarioSchema.parse(req.body);
-      const scenario = await storage.createScenario(scenarioData);
+      const [scenario] = await db.insert(scenarios).values(scenarioData).returning();
       res.status(201).json(scenario);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -651,7 +661,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const scenarioId = parseInt(req.params.id);
       const scenarioData = insertScenarioSchema.partial().parse(req.body);
-      const scenario = await storage.updateScenario(scenarioId, scenarioData);
+      const [scenario] = await db.update(scenarios)
+        .set(scenarioData)
+        .where(eq(scenarios.id, scenarioId))
+        .returning();
       
       if (!scenario) {
         return res.status(404).json({ message: "Scenario not found" });
@@ -669,9 +682,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/scenarios/:id", requireInstructor, async (req, res) => {
     try {
       const scenarioId = parseInt(req.params.id);
-      const success = await storage.deleteScenario(scenarioId);
+      const result = await db.delete(scenarios).where(eq(scenarios.id, scenarioId));
       
-      if (!success) {
+      if (result.rowCount === 0) {
         return res.status(404).json({ message: "Scenario not found" });
       }
       
@@ -693,7 +706,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
       }
       
-      const submissions = await storage.getScenarioSubmissions(scenarioId, userId || req.user?.id);
+      let whereConditions = [];
+      if (scenarioId) {
+        whereConditions.push(eq(scenarioSubmissions.scenarioId, scenarioId));
+      }
+      if (userId || req.user?.id) {
+        whereConditions.push(eq(scenarioSubmissions.userId, userId || req.user?.id));
+      }
+      
+      const submissions = whereConditions.length > 0 
+        ? await db.select().from(scenarioSubmissions).where(and(...whereConditions))
+        : await db.select().from(scenarioSubmissions);
       res.json(submissions);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve scenario submissions" });
@@ -703,7 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
     try {
       const submissionData = insertScenarioSubmissionSchema.parse(req.body);
-      const submission = await storage.createScenarioSubmission(submissionData);
+      const [submission] = await db.insert(scenarioSubmissions).values(submissionData).returning();
       res.status(201).json(submission);
     } catch (error) {
       if (error instanceof z.ZodError) {
