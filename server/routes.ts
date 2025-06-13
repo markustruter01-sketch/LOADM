@@ -494,6 +494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const quizDirectModule = await import('./routes/quiz-direct');
   app.use('/api/quiz', quizDirectModule.default);
   
+  // Import debug session routes
+  const debugSessionModule = await import('./routes/debug-session');
+  app.use('/api/debug', debugSessionModule.default);
+  
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {

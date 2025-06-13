@@ -59,6 +59,15 @@ export function clearAllIsolatedSessions(): void {
   console.log('✅ ISOLATED AUTH: All sessions cleared');
 }
 
+export function getAllActiveSessions() {
+  return Array.from(ISOLATED_SESSIONS.entries()).map(([sessionId, data]) => ({
+    sessionId: sessionId.substring(0, 20) + '...',
+    email: data.email,
+    role: data.role,
+    loginTime: data.loginTime
+  }));
+}
+
 export async function authenticateUser(email: string, password: string) {
   console.log(`🔐 AUTH: Login attempt for ${email}`);
   

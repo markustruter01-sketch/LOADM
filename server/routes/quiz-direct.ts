@@ -11,6 +11,11 @@ router.post('/create-direct', async (req: any, res: any) => {
     console.log('🔧 DIRECT QUIZ CREATE: Cookies:', req.cookies);
     console.log('🔧 DIRECT QUIZ CREATE: Body:', req.body);
     
+    // Debug: Check all available sessions
+    console.log('🔧 DIRECT QUIZ CREATE: Checking available sessions...');
+    const allSessions = authCore.getAllActiveSessions();
+    console.log('🔧 DIRECT QUIZ CREATE: Active sessions count:', allSessions?.length || 0);
+    
     // Extract session from multiple possible sources
     let sessionId = req.cookies?.sessionId;
     if (!sessionId && req.headers.authorization) {
