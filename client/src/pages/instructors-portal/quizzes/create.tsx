@@ -118,11 +118,11 @@ export default function CreateQuiz() {
       const quizData = {
         title: data.title,
         description: data.description,
-        question_count: data.questionCount,
+        questionCount: data.questionCount,
         categories: data.categories,
-        is_active: data.isActive,
-        expires_at: data.expiresAt ? data.expiresAt.toISOString() : null,
-        created_by_id: authenticatedUser.id
+        isActive: data.isActive,
+        expiresAt: data.expiresAt ? data.expiresAt.toISOString() : null,
+        createdById: authenticatedUser.id
       };
 
       console.log("🔧 QUIZ CREATE DEBUG: Quiz data to send:", quizData);
