@@ -4,7 +4,7 @@ import http from 'http';
 // Test configuration
 const BASE_URL = 'http://localhost:5000';
 const TEST_EMAIL = 'markustruter01@gmail.com';
-const TEST_PASSWORD = 'password123';
+const TEST_PASSWORD = 'Admin123!';
 
 // Helper function to make HTTP requests
 function makeRequest(method, path, data = null, headers = {}) {
@@ -64,7 +64,7 @@ async function testQuizEdit() {
   try {
     // Step 1: Login to get session
     console.log('🧪 QUIZ EDIT TEST: Step 1 - Logging in...');
-    const loginResponse = await makeRequest('POST', '/api/auth-isolated/login', {
+    const loginResponse = await makeRequest('POST', '/api/isolated-auth/login', {
       email: TEST_EMAIL,
       password: TEST_PASSWORD
     });
@@ -95,7 +95,7 @@ async function testQuizEdit() {
     
     // Step 2: Get user info to verify authentication
     console.log('🧪 QUIZ EDIT TEST: Step 2 - Verifying authentication...');
-    const userResponse = await makeRequest('GET', '/api/auth-isolated/user', null, {
+    const userResponse = await makeRequest('GET', '/api/isolated-auth/user', null, {
       'Cookie': sessionCookie
     });
     
