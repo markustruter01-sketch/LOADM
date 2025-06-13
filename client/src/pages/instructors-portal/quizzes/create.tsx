@@ -108,7 +108,7 @@ export default function CreateQuiz() {
       console.log("🔧 QUIZ CREATE DEBUG: Quiz data to send:", quizData);
 
       const response = await apiRequest({
-        url: "/api/quiz/create-direct",
+        url: "/api/quizzes",
         method: "POST",
         body: quizData
       });
