@@ -65,8 +65,7 @@ router.put('/update/:id', requireIsolatedAuth, async (req: any, res: any) => {
         question_count = ${questionCount},
         categories = ${JSON.stringify(categories)},
         is_active = ${isActive !== false},
-        expires_at = ${expiresAt ? new Date(expiresAt) : null},
-        updated_at = NOW()
+        expires_at = ${expiresAt ? new Date(expiresAt) : null}
       WHERE id = ${quizId}
       RETURNING *
     `;

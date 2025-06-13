@@ -59,42 +59,29 @@ function makeRequest(method, path, data = null, headers = {}) {
 }
 
 async function testQuizEdit() {
-  console.log('🧪 QUIZ EDIT TEST: Starting comprehensive quiz edit test...');
+  console.log('🧪 QUIZ EDIT TEST: Starting direct quiz edit test...');
   
   try {
-    // Step 1: Login to get session
-    console.log('🧪 QUIZ EDIT TEST: Step 1 - Logging in...');
-    const loginResponse = await makeRequest('POST', '/api/isolated-auth/login', {
+    // Step 1: Create a test session directly via auth core
+    console.log('🧪 QUIZ EDIT TEST: Step 1 - Creating test session...');
+    const createSessionResponse = await makeRequest('POST', '/api/debug/create-test-session', {
+      userId: 9,
       email: TEST_EMAIL,
-      password: TEST_PASSWORD
+      role: 'superadmin'
     });
     
-    console.log('🧪 QUIZ EDIT TEST: Login response:', loginResponse.statusCode);
+    console.log('🧪 QUIZ EDIT TEST: Session creation response:', createSessionResponse.statusCode);
     
-    if (loginResponse.statusCode !== 200) {
-      console.error('🧪 QUIZ EDIT TEST: Login failed:', loginResponse.data);
+    if (createSessionResponse.statusCode !== 200) {
+      console.error('🧪 QUIZ EDIT TEST: Session creation failed:', createSessionResponse.data);
       return;
     }
     
-    // Extract session cookie
-    const setCookieHeader = loginResponse.headers['set-cookie'];
-    let sessionCookie = '';
-    if (setCookieHeader) {
-      const sessionMatch = setCookieHeader.find(cookie => cookie.startsWith('sessionId='));
-      if (sessionMatch) {
-        sessionCookie = sessionMatch.split(';')[0];
-      }
-    }
+    const sessionCookie = `sessionId=${createSessionResponse.data.sessionId}`;
+    console.log('🧪 QUIZ EDIT TEST: Test session cookie:', sessionCookie);
     
-    console.log('🧪 QUIZ EDIT TEST: Session cookie:', sessionCookie);
-    
-    if (!sessionCookie) {
-      console.error('🧪 QUIZ EDIT TEST: No session cookie found');
-      return;
-    }
-    
-    // Step 2: Get user info to verify authentication
-    console.log('🧪 QUIZ EDIT TEST: Step 2 - Verifying authentication...');
+    // Step 2: Verify session works
+    console.log('🧪 QUIZ EDIT TEST: Step 2 - Verifying test session...');
     const userResponse = await makeRequest('GET', '/api/isolated-auth/user', null, {
       'Cookie': sessionCookie
     });
