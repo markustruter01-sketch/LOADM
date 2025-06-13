@@ -153,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create new license and user account
-  app.post("/api/licensing/licenses", requireSuperAdmin, async (req, res) => {
+  app.post("/api/licensing/licenses", requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
     try {
       const { email, firstName, lastName, licenseType, expiryDate } = req.body;
 
@@ -296,10 +296,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Update the license status
-      const newStatus = activate ? 'active' : 'suspended';
       const updatedLicense = await db.update(licenses)
         .set({
-          status: newStatus,
           isActive: activate,
           updatedAt: new Date()
         })
@@ -587,7 +585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Document submissions routes
-  app.get("/api/document-submissions", requireAuth, async (req, res) => {
+  app.get("/api/document-submissions", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const documentId = req.query.documentId ? parseInt(req.query.documentId as string) : undefined;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
@@ -602,8 +600,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (documentId) {
         whereConditions.push(eq(documentSubmissions.documentId, documentId));
       }
-      if (userId || req.user?.id) {
-        whereConditions.push(eq(documentSubmissions.userId, userId || req.user?.id));
+      if (userId !== undefined) {
+        whereConditions.push(eq(documentSubmissions.userId, userId));
+      } else if (req.user?.id) {
+        whereConditions.push(eq(documentSubmissions.userId, req.user.id));
       }
       
       const submissions = whereConditions.length > 0 
@@ -704,7 +704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Scenario submissions routes
-  app.get("/api/scenario-submissions", requireAuth, async (req, res) => {
+  app.get("/api/scenario-submissions", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const scenarioId = req.query.scenarioId ? parseInt(req.query.scenarioId as string) : undefined;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
