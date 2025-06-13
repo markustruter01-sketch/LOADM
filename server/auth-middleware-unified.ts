@@ -3,7 +3,7 @@ import * as authCore from './auth-isolated/auth-core';
 
 // Unified authentication middleware for all routes
 export function unifiedAuthMiddleware(req: any, res: Response, next: NextFunction) {
-  const sessionId = req.cookies?.sessionId;
+  const sessionId = req.cookies?.isolated_session;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
     req.isAuthenticated = false;
