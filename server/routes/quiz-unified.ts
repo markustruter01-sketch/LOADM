@@ -285,7 +285,7 @@ router.get('/:id/questions', requireAuth, async (req: any, res: any) => {
 });
 
 // Submit quiz answers
-router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/:id/submit', requireAuth, async (req: any, res: any) => {
   try {
     const quizId = parseInt(req.params.id);
     const { answers, squadron } = req.body;
