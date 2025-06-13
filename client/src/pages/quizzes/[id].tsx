@@ -28,7 +28,13 @@ export default function QuizPage() {
 
   const { data: quiz, isLoading } = useQuery({
     queryKey: [`/api/quizzes/${quizId}`],
-    queryFn: ({ queryKey, signal }) => fetch(queryKey[0], { signal }).then(res => {
+    queryFn: ({ queryKey, signal }) => fetch(queryKey[0], { 
+      signal,
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then(res => {
       if (!res.ok) throw new Error('Failed to fetch quiz');
       return res.json();
     }),
@@ -38,7 +44,13 @@ export default function QuizPage() {
   const { data: questions, isLoading: questionsLoading } = useQuery({
     queryKey: [`/api/quizzes/${quizId}/questions`],
     queryFn: ({ queryKey, signal }) => 
-      fetch(queryKey[0], { signal })
+      fetch(queryKey[0], { 
+        signal,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
         .then(res => {
           if (!res.ok) throw new Error('Failed to fetch quiz questions');
           return res.json();
