@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import InstructorLayout from "../../../../components/InstructorLayout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 // Define the quiz categories
 const quizCategories = [
@@ -75,6 +76,7 @@ export default function EditQuizPage() {
   const [, params] = useRoute('/instructors-portal/quizzes/edit/:id');
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useIsolatedAuth();
   const quizId = params?.id;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
