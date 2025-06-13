@@ -27,10 +27,15 @@ router.put('/update/:id', requireIsolatedAuth, async (req: any, res: any) => {
       });
     }
 
-    if (!req.user || !req.user.id) {
-      console.log('🔧 QUIZ EDIT: No user in request');
+    // Handle different user object formats from different auth middlewares
+    const userId = req.user?.id || req.user?.userId;
+    if (!req.user || !userId) {
+      console.log('🔧 QUIZ EDIT: No user in request or missing user ID');
+      console.log('🔧 QUIZ EDIT: User object structure:', req.user);
       return res.status(401).json({ error: 'Authentication required - no user found' });
     }
+    
+    console.log('🔧 QUIZ EDIT: User ID extracted:', userId);
     
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
@@ -47,7 +52,7 @@ router.put('/update/:id', requireIsolatedAuth, async (req: any, res: any) => {
     
     // Check permissions - allow superadmin or creator to edit
     const quiz = existingQuiz[0];
-    if (req.user.role !== 'superadmin' && quiz.created_by_id !== req.user.id) {
+    if (req.user.role !== 'superadmin' && quiz.created_by_id !== userId) {
       console.log('🔧 QUIZ EDIT: Permission denied');
       return res.status(403).json({ error: 'You can only edit your own quizzes' });
     }

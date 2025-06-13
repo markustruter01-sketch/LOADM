@@ -1,73 +1,143 @@
-import { chromium } from 'playwright';
+import https from 'https';
+import http from 'http';
+
+// Test configuration
+const BASE_URL = 'http://localhost:5000';
+const TEST_EMAIL = 'markustruter01@gmail.com';
+const TEST_PASSWORD = 'password123';
+
+// Helper function to make HTTP requests
+function makeRequest(method, path, data = null, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const url = new URL(BASE_URL + path);
+    const options = {
+      hostname: url.hostname,
+      port: url.port,
+      path: url.pathname + url.search,
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      }
+    };
+
+    const req = http.request(options, (res) => {
+      let responseData = '';
+      
+      res.on('data', (chunk) => {
+        responseData += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const parsed = responseData ? JSON.parse(responseData) : {};
+          resolve({
+            statusCode: res.statusCode,
+            headers: res.headers,
+            data: parsed
+          });
+        } catch (e) {
+          resolve({
+            statusCode: res.statusCode,
+            headers: res.headers,
+            data: responseData
+          });
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      reject(error);
+    });
+
+    if (data) {
+      req.write(JSON.stringify(data));
+    }
+    
+    req.end();
+  });
+}
 
 async function testQuizEdit() {
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
+  console.log('🧪 QUIZ EDIT TEST: Starting comprehensive quiz edit test...');
+  
   try {
-    // Navigate to the application
-    await page.goto('http://localhost:5000');
-    
-    // Wait for login form and login
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
-    await page.fill('input[type="email"]', 'markustruter01@gmail.com');
-    await page.fill('input[type="password"]', 'Admin123!');
-    await page.click('button[type="submit"]');
-    
-    // Wait for login to complete
-    await page.waitForTimeout(3000);
-    
-    // Navigate to instructors portal
-    await page.goto('http://localhost:5000/instructors-portal');
-    await page.waitForTimeout(2000);
-    
-    // Click on quizzes link
-    await page.click('text=Quizzes');
-    await page.waitForTimeout(2000);
-    
-    // Find and click edit button for a quiz
-    const editButton = page.locator('text=Edit').first();
-    await editButton.click();
-    await page.waitForTimeout(3000);
-    
-    // Intercept network requests to see what's being sent
-    page.on('request', request => {
-      if (request.url().includes('/api/quizzes/') && request.method() === 'PUT') {
-        console.log('🔧 NETWORK REQUEST: Method:', request.method());
-        console.log('🔧 NETWORK REQUEST: URL:', request.url());
-        console.log('🔧 NETWORK REQUEST: Headers:', request.headers());
-        console.log('🔧 NETWORK REQUEST: Body:', request.postData());
-      }
+    // Step 1: Login to get session
+    console.log('🧪 QUIZ EDIT TEST: Step 1 - Logging in...');
+    const loginResponse = await makeRequest('POST', '/api/auth-isolated/login', {
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD
     });
     
-    page.on('response', response => {
-      if (response.url().includes('/api/quizzes/') && response.request().method() === 'PUT') {
-        console.log('🔧 NETWORK RESPONSE: Status:', response.status());
-        console.log('🔧 NETWORK RESPONSE: URL:', response.url());
+    console.log('🧪 QUIZ EDIT TEST: Login response:', loginResponse.statusCode);
+    
+    if (loginResponse.statusCode !== 200) {
+      console.error('🧪 QUIZ EDIT TEST: Login failed:', loginResponse.data);
+      return;
+    }
+    
+    // Extract session cookie
+    const setCookieHeader = loginResponse.headers['set-cookie'];
+    let sessionCookie = '';
+    if (setCookieHeader) {
+      const sessionMatch = setCookieHeader.find(cookie => cookie.startsWith('sessionId='));
+      if (sessionMatch) {
+        sessionCookie = sessionMatch.split(';')[0];
       }
+    }
+    
+    console.log('🧪 QUIZ EDIT TEST: Session cookie:', sessionCookie);
+    
+    if (!sessionCookie) {
+      console.error('🧪 QUIZ EDIT TEST: No session cookie found');
+      return;
+    }
+    
+    // Step 2: Get user info to verify authentication
+    console.log('🧪 QUIZ EDIT TEST: Step 2 - Verifying authentication...');
+    const userResponse = await makeRequest('GET', '/api/auth-isolated/user', null, {
+      'Cookie': sessionCookie
     });
     
-    // Modify the quiz title
-    const titleInput = page.locator('input[name="title"]');
-    await titleInput.fill('Updated Quiz Title - Test');
+    console.log('🧪 QUIZ EDIT TEST: User response:', userResponse.statusCode, userResponse.data);
     
-    // Wait a moment
-    await page.waitForTimeout(1000);
+    if (userResponse.statusCode !== 200) {
+      console.error('🧪 QUIZ EDIT TEST: User verification failed');
+      return;
+    }
     
-    // Click save changes button
-    await page.click('text=Save Changes');
+    // Step 3: Test quiz editing
+    console.log('🧪 QUIZ EDIT TEST: Step 3 - Testing quiz edit...');
+    const quizUpdateData = {
+      title: '33SQN - Cargo Refresher Quiz (Updated via Test)',
+      description: 'Automated test update',
+      questionCount: 20,
+      categories: ['weight-balance', 'loadmaster-fundamentals', 'dangerous-goods'],
+      isActive: true,
+      expiresAt: '2025-12-31T23:59:59.000Z'
+    };
     
-    // Wait for the request to complete
-    await page.waitForTimeout(5000);
+    const quizEditResponse = await makeRequest('PUT', '/api/quiz-edit/update/53', quizUpdateData, {
+      'Cookie': sessionCookie
+    });
     
-    console.log('✅ Test completed');
+    console.log('🧪 QUIZ EDIT TEST: Quiz edit response:', quizEditResponse.statusCode);
+    console.log('🧪 QUIZ EDIT TEST: Quiz edit data:', quizEditResponse.data);
+    
+    if (quizEditResponse.statusCode === 200) {
+      console.log('✅ QUIZ EDIT TEST: SUCCESS! Quiz editing is working correctly');
+      console.log('✅ QUIZ EDIT TEST: Updated quiz:', quizEditResponse.data.quiz);
+    } else {
+      console.error('❌ QUIZ EDIT TEST: FAILED! Status:', quizEditResponse.statusCode);
+      console.error('❌ QUIZ EDIT TEST: Error:', quizEditResponse.data);
+    }
     
   } catch (error) {
-    console.error('❌ Test failed:', error);
-  } finally {
-    await browser.close();
+    console.error('🧪 QUIZ EDIT TEST: Test failed with error:', error);
   }
 }
 
-testQuizEdit();
+// Wait for server to start then run test
+setTimeout(() => {
+  testQuizEdit();
+}, 3000);
