@@ -119,18 +119,38 @@ export default function EditQuizPage() {
     try {
       setIsSubmitting(true);
       
-      await apiRequest({
+      console.log("🔧 QUIZ EDIT DEBUG: Starting quiz update for ID:", quizId);
+      console.log("🔧 QUIZ EDIT DEBUG: Form data:", data);
+      console.log("🔧 QUIZ EDIT DEBUG: User:", user);
+      
+      if (!user || !user.id) {
+        console.error("🔧 QUIZ EDIT DEBUG: No authenticated user");
+        toast({
+          title: "Authentication error",
+          description: "You must be logged in to edit a quiz",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const updateData = {
+        title: data.title,
+        description: data.description || "",
+        questionCount: data.questionCount,
+        categories: data.categories,
+        isActive: data.isActive,
+        expiresAt: data.expires ? data.expires.toISOString() : null
+      };
+      
+      console.log("🔧 QUIZ EDIT DEBUG: Update data to send:", updateData);
+      
+      const response = await apiRequest({
         url: `/api/quizzes/${quizId}`,
         method: 'PUT',
-        data: {
-          title: data.title,
-          description: data.description || "",
-          questionCount: data.questionCount,
-          categories: data.categories,
-          isActive: data.isActive,
-          expiresAt: data.expires ? data.expires.toISOString() : null
-        }
+        data: updateData
       });
+      
+      console.log("🔧 QUIZ EDIT DEBUG: Update response:", response);
       
       toast({
         title: "Quiz updated",

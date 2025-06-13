@@ -145,7 +145,66 @@ router.post('/', requireInstructor, async (req: any, res: any) => {
   }
 });
 
-// Update a quiz
+// Update a quiz (PUT method for complete replacement)
+router.put('/:id', requireInstructor, async (req: any, res: any) => {
+  try {
+    console.log('🔧 QUIZ UPDATE: Starting quiz update...');
+    console.log('🔧 QUIZ UPDATE: Request body:', req.body);
+    console.log('🔧 QUIZ UPDATE: User from middleware:', req.user);
+    
+    const id = parseInt(req.params.id);
+    const { title, description, questionCount, categories, isActive, expiresAt, timeLimit, passingThreshold } = req.body;
+    
+    if (!title || !questionCount || !categories || !categories.length) {
+      return res.status(400).json({ error: 'Missing required fields: title, questionCount, and categories are required' });
+    }
+
+    if (!req.user) {
+      console.log('🔧 QUIZ UPDATE: No user in request object');
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Check if quiz exists and user has permission
+    const existingQuiz = await sql`
+      SELECT * FROM quizzes WHERE id = ${id}
+    `;
+    
+    if (existingQuiz.length === 0) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    
+    // Allow superadmin or the creator to edit
+    if (req.user.role !== 'superadmin' && existingQuiz[0].created_by_id !== req.user.id) {
+      return res.status(403).json({ error: 'You can only edit your own quizzes' });
+    }
+    
+    const updatedQuiz = await sql`
+      UPDATE quizzes SET
+        title = ${title},
+        description = ${description || ''},
+        question_count = ${questionCount},
+        categories = ${JSON.stringify(categories)},
+        is_active = ${isActive !== false},
+        expires_at = ${expiresAt ? new Date(expiresAt) : null},
+        time_limit = ${timeLimit || null},
+        passing_threshold = ${passingThreshold || 70},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    
+    console.log('🔧 QUIZ UPDATE: Quiz updated successfully with ID:', updatedQuiz[0].id);
+    res.json(updatedQuiz[0]);
+  } catch (error) {
+    console.error('Error updating quiz:', error);
+    res.status(500).json({ error: 'Failed to update quiz' });
+  }
+});
+
+// Update a quiz (PATCH method for partial updates)
 router.patch('/:id', requireInstructor, async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
