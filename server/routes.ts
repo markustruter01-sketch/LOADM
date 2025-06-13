@@ -505,8 +505,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Documents routes
   app.get("/api/documents", async (req, res) => {
     try {
-      const documents = await storage.getDocuments();
-      res.json(documents);
+      const documentsData = await db.select().from(documents);
+      res.json(documentsData);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve documents" });
     }
@@ -515,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/documents/:id", async (req, res) => {
     try {
       const documentId = parseInt(req.params.id);
-      const document = await storage.getDocument(documentId);
+      const [document] = await db.select().from(documents).where(eq(documents.id, documentId));
       
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/documents", requireInstructor, async (req, res) => {
     try {
       const documentData = insertDocumentSchema.parse(req.body);
-      const document = await storage.createDocument(documentData);
+      const [document] = await db.insert(documents).values(documentData).returning();
       res.status(201).json(document);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -544,7 +544,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const documentId = parseInt(req.params.id);
       const documentData = insertDocumentSchema.partial().parse(req.body);
-      const document = await storage.updateDocument(documentId, documentData);
+      const [document] = await db.update(documents)
+        .set(documentData)
+        .where(eq(documents.id, documentId))
+        .returning();
       
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
@@ -562,9 +565,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/documents/:id", requireInstructor, async (req, res) => {
     try {
       const documentId = parseInt(req.params.id);
-      const success = await storage.deleteDocument(documentId);
+      const result = await db.delete(documents).where(eq(documents.id, documentId));
       
-      if (!success) {
+      if (result.rowCount === 0) {
         return res.status(404).json({ message: "Document not found" });
       }
       
@@ -609,8 +612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scenarios routes
   app.get("/api/scenarios", async (req, res) => {
     try {
-      const scenarios = await storage.getScenarios();
-      res.json(scenarios);
+      const scenariosData = await db.select().from(scenarios);
+      res.json(scenariosData);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve scenarios" });
     }
