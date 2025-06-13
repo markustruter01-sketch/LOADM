@@ -493,17 +493,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Import quiz routes with proper authentication
-  const quizzesModule = await import('./routes/quizzes');
-  app.use('/api/quizzes', quizzesModule.default);
-  
-  // Import direct quiz routes for comprehensive auth handling
-  const quizDirectModule = await import('./routes/quiz-direct');
-  app.use('/api/quiz', quizDirectModule.default);
-  
-  // Import new quiz edit routes with proper isolated authentication
-  const quizEditModule = await import('./routes/quiz-edit');
-  app.use('/api/quiz-edit', quizEditModule.default);
+  // Import unified quiz routes with proper authentication
+  const quizUnifiedModule = await import('./routes/quiz-unified');
+  app.use('/api/quizzes', quizUnifiedModule.default);
+  app.use('/api/quiz', quizUnifiedModule.default);
   
   // Import debug session routes
   const debugSessionModule = await import('./routes/debug-session');
