@@ -41,7 +41,7 @@ export default function QuizPage() {
     enabled: !!quizId
   });
 
-  const { data: questions, isLoading: questionsLoading } = useQuery({
+  const { data: questionsData, isLoading: questionsLoading } = useQuery({
     queryKey: [`/api/quizzes/${quizId}/questions`],
     queryFn: ({ queryKey, signal }) => 
       fetch(queryKey[0], { 
@@ -57,6 +57,55 @@ export default function QuizPage() {
         }),
     enabled: !!quizId
   });
+
+  // Extract questions array from the response
+  const questions = questionsData?.questions || [];
+
+  // Add loading check
+  if (isLoading || questionsLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-lg">Loading quiz...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Add error check
+  if (!quiz || !questionsData) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center">
+          <p className="text-lg text-red-500">Failed to load quiz. Please try again.</p>
+          <Button 
+            className="mt-4" 
+            onClick={() => setLocation('/scenarios')}
+          >
+            Back to Scenarios
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Add empty questions check
+  if (questions.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center">
+          <p className="text-lg text-yellow-500">No questions available for this quiz.</p>
+          <Button 
+            className="mt-4" 
+            onClick={() => setLocation('/scenarios')}
+          >
+            Back to Scenarios
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers(prev => ({
