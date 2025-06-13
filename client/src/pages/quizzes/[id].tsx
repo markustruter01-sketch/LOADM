@@ -155,12 +155,12 @@ export default function QuizPage() {
       // Show quiz results
       const result = response;
       setScore(result.score);
-      setSubmissionQuestions(result.questions || []);
+      setSubmissionQuestions(result.detailedResults || []);
       setQuizSubmitted(true);
       
       toast({
         title: "Quiz Submitted Successfully!",
-        description: `You scored ${result.score}% (${result.correctCount}/${result.totalQuestions} correct)`,
+        description: `You scored ${result.score}% (${result.correctAnswers}/${result.totalQuestions} correct)`,
       });
 
       // Invalidate relevant queries
@@ -284,7 +284,7 @@ export default function QuizPage() {
                           <p className="font-medium mb-2">Question {index + 1}: {item.questionText}</p>
                           <div className="mb-2">
                             <p className="text-sm font-medium">
-                              Your answer: {item.yourAnswer}
+                              Your answer: {item.userAnswer}
                             </p>
                             {!item.isCorrect && (
                               <p className="text-sm font-medium text-green-500">

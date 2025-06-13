@@ -372,14 +372,30 @@ router.post('/:id/submit', requireAuth, async (req: any, res: any) => {
     let correctAnswers = 0;
     const detailedResults = answers.map((answer: any, index: number) => {
       const question = questions[index];
-      const isCorrect = question && question.correctAnswer === answer.answer;
+      if (!question) {
+        return {
+          questionIndex: index,
+          questionId: null,
+          questionText: "Question not found",
+          userAnswer: "No answer",
+          correctAnswer: "Not available",
+          isCorrect: false
+        };
+      }
+      
+      // The frontend sends answeredOption as the selected option index
+      const userAnswerIndex = parseInt(answer.answeredOption);
+      const correctAnswerIndex = question.correctAnswer;
+      const isCorrect = userAnswerIndex === correctAnswerIndex;
+      
       if (isCorrect) correctAnswers++;
       
       return {
         questionIndex: index,
-        questionId: question?.id,
-        userAnswer: answer.answer,
-        correctAnswer: question?.correctAnswer,
+        questionId: question.id,
+        questionText: question.question,
+        userAnswer: question.options[userAnswerIndex] || "Invalid option",
+        correctAnswer: question.options[correctAnswerIndex] || "Not available",
         isCorrect
       };
     });
