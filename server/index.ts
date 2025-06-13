@@ -35,6 +35,12 @@ import { db } from './db';
 import { phoneDirectory, chatMessages } from '../shared/schema';
 import { eq, sql, gte } from 'drizzle-orm';
 
+// Debug endpoint to check active sessions
+app.get("/api/debug-sessions", (req, res) => {
+  const sessions = authCore.getAllActiveSessions();
+  res.json({ activeSessions: sessions, count: sessions.length });
+});
+
 app.get("/api/phone-directory", async (req, res) => {
   try {
     console.log("NUCLEAR: Phone directory GET request received");
