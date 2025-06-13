@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
       domain: undefined // Let browser handle domain automatically
     };
     
-    res.cookie('sessionId', sessionId, cookieOptions);
+    res.cookie('isolated_session', sessionId, cookieOptions);
     
     console.log(`✅ ISOLATED: Login SUCCESS for ${user.email}`);
     res.json({
@@ -73,13 +73,13 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   try {
     console.log('✅ ISOLATED: Logout request');
-    const sessionId = req.cookies?.sessionId;
+    const sessionId = req.cookies?.isolated_session;
     
     if (sessionId) {
       authCore.deleteIsolatedSession(sessionId);
     }
     
-    res.clearCookie('sessionId', {
+    res.clearCookie('isolated_session', {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
@@ -99,7 +99,7 @@ router.post('/logout', (req, res) => {
 router.get('/user', async (req, res) => {
   try {
     console.log('✅ ISOLATED: User check request');
-    const sessionId = req.cookies?.sessionId;
+    const sessionId = req.cookies?.isolated_session;
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
       console.log('✅ ISOLATED: No valid session found');

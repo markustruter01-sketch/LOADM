@@ -5,22 +5,15 @@ import * as authCore from './auth-isolated/auth-core';
 export function unifiedAuthMiddleware(req: any, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.isolated_session;
   
-  console.log('🔍 AUTH MIDDLEWARE: Checking authentication');
-  console.log('🔍 AUTH MIDDLEWARE: Session ID from cookies:', sessionId);
-  console.log('🔍 AUTH MIDDLEWARE: All cookies:', req.cookies);
-  
   if (!sessionId || !sessionId.startsWith('isolated_')) {
-    console.log('🔍 AUTH MIDDLEWARE: No valid session ID found');
     req.isAuthenticated = false;
     req.user = null;
     return next();
   }
   
   const session = authCore.getIsolatedSession(sessionId);
-  console.log('🔍 AUTH MIDDLEWARE: Session data:', session);
   
   if (!session) {
-    console.log('🔍 AUTH MIDDLEWARE: Session not found in memory');
     req.isAuthenticated = false;
     req.user = null;
     return next();
