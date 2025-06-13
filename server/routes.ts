@@ -719,8 +719,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (scenarioId) {
         whereConditions.push(eq(scenarioSubmissions.scenarioId, scenarioId));
       }
-      if (userId || req.user?.id) {
-        whereConditions.push(eq(scenarioSubmissions.userId, userId || req.user?.id));
+      if (userId !== undefined) {
+        whereConditions.push(eq(scenarioSubmissions.userId, userId));
+      } else if (req.user?.id) {
+        whereConditions.push(eq(scenarioSubmissions.userId, req.user.id));
       }
       
       const submissions = whereConditions.length > 0 
@@ -732,10 +734,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/scenario-submissions", requireAuth, async (req, res) => {
+  app.post("/api/scenario-submissions", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const submissionData = insertScenarioSubmissionSchema.parse(req.body);
-      const [submission] = await db.insert(scenarioSubmissions).values(submissionData).returning();
+      // Add userId from authenticated request
+      const submissionWithUserId = {
+        ...submissionData,
+        userId: req.user?.id || 1
+      };
+      const [submission] = await db.insert(scenarioSubmissions).values(submissionWithUserId).returning();
       res.status(201).json(submission);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -748,8 +755,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics routes
   app.post("/api/analytics/generate", requireAuth, async (req, res) => {
     try {
-      const { submissionId, type } = req.body;
-      const analytics = await generateAnalytics(submissionId, type);
+      const { scenarioName, selectedScenarioId, totalSubmissions, averageScore, passRate, scoreDistribution, passFailRatio } = req.body;
+      const analytics = await generateAnalytics({ 
+        scenarioName, 
+        selectedScenarioId, 
+        totalSubmissions, 
+        averageScore, 
+        passRate, 
+        scoreDistribution, 
+        passFailRatio 
+      });
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ message: "Failed to generate analytics" });
@@ -768,8 +783,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/analytics/advanced", requireAuth, async (req, res) => {
     try {
-      const { userId, timeframe } = req.body;
-      const analytics = await generateAdvancedAnalytics(userId, timeframe);
+      const { 
+        analysisType,
+        overallStats,
+        squadronData,
+        assessmentTypeData,
+        scoreDistribution,
+        trendData,
+        selectedFilters
+      } = req.body;
+      const analytics = await generateAdvancedAnalytics({ 
+        analysisType,
+        overallStats,
+        squadronData,
+        assessmentTypeData,
+        scoreDistribution,
+        trendData,
+        selectedFilters
+      });
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ message: "Failed to generate advanced analytics" });
