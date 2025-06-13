@@ -21,6 +21,10 @@ app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Add unified authentication middleware for all routes
+import { unifiedAuthMiddleware } from './auth-middleware-unified';
+app.use(unifiedAuthMiddleware);
+
 // Mount isolated auth routes FIRST (before Vite middleware)
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);

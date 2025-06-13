@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, requireInstructor, type AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, requireInstructor } from '../auth-middleware-unified';
 
 const router = Router();
 
@@ -85,14 +85,20 @@ router.get('/:id', async (req: any, res: any) => {
 // Create a new quiz
 router.post('/', requireInstructor, async (req: any, res: any) => {
   try {
-    const { title, description, questionCount, categories, isActive, expiresAt, timeLimit, passingThreshold, createdById } = req.body;
+    console.log('🔧 QUIZ CREATE: Starting quiz creation...');
+    console.log('🔧 QUIZ CREATE: Request body:', req.body);
+    console.log('🔧 QUIZ CREATE: User from middleware:', req.user);
+    
+    const { title, description, questionCount, categories, isActive, expiresAt, timeLimit, passingThreshold } = req.body;
     
     if (!title || !questionCount || !categories || !categories.length) {
       return res.status(400).json({ error: 'Missing required fields: title, questionCount, and categories are required' });
     }
 
-    console.log('🔧 QUIZ CREATE: Request body:', req.body);
-    console.log('🔧 QUIZ CREATE: User object:', req.user);
+    if (!req.user) {
+      console.log('🔧 QUIZ CREATE: No user in request object');
+      return res.status(401).json({ error: 'Authentication required' });
+    }
     
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
