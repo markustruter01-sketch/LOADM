@@ -1,50 +1,7 @@
 import { Router } from 'express';
-import * as authCore from '../auth-isolated/auth-core';
+import { requireAuth, requireInstructor, type AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
-
-// Authentication middleware for quiz routes
-function requireAuth(req: any, res: any, next: any) {
-  const sessionId = req.cookies?.sessionId;
-  
-  if (!sessionId || !sessionId.startsWith('isolated_')) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  
-  const session = authCore.getIsolatedSession(sessionId);
-  
-  if (!session) {
-    return res.status(401).json({ error: 'Invalid session' });
-  }
-  
-  // Handle hardcoded superadmin case - map to actual database user
-  let userId = session.userId;
-  let userRole = session.role;
-  let userEmail = session.email;
-  
-  // If this is the hardcoded superadmin, map to the real database user
-  if (session.email === 'markustruter01@gmail.com' && session.userId === 1) {
-    userId = 9; // Real database user ID
-  }
-  
-  req.user = {
-    id: userId,
-    email: userEmail,
-    role: userRole
-  };
-  
-  next();
-}
-
-function requireInstructor(req: any, res: any, next: any) {
-  requireAuth(req, res, () => {
-    if (req.user && (req.user.role === 'instructor' || req.user.role === 'superadmin')) {
-      next();
-    } else {
-      res.status(403).json({ error: 'Instructor access required' });
-    }
-  });
-}
 
 // Get all quizzes
 router.get('/', async (req: any, res: any) => {
