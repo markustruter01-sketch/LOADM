@@ -82,18 +82,9 @@ export default function CreateQuiz() {
     console.log("🔧 QUIZ CREATE DEBUG: User object:", user);
     
     try {
-      // Always fetch fresh user data for quiz creation to ensure authentication
-      console.log("🔧 QUIZ CREATE DEBUG: Fetching fresh user data...");
-      
-      const userResponse = await fetch("/api/user", {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!userResponse.ok) {
-        console.error("🔧 QUIZ CREATE DEBUG: User authentication failed", userResponse.status);
+      // Use the user data from the auth context - no need to fetch again
+      if (!user || !user.id) {
+        console.error("🔧 QUIZ CREATE DEBUG: No authenticated user");
         toast({
           title: "Authentication error",
           description: "You must be logged in to create a quiz",
@@ -102,18 +93,7 @@ export default function CreateQuiz() {
         return;
       }
       
-      const authenticatedUser = await userResponse.json();
-      console.log("🔧 QUIZ CREATE DEBUG: Authenticated user:", authenticatedUser);
-      
-      if (!authenticatedUser?.id) {
-        console.error("🔧 QUIZ CREATE DEBUG: No user ID in response");
-        toast({
-          title: "Authentication error",
-          description: "Unable to verify user identity",
-          variant: "destructive"
-        });
-        return;
-      }
+      console.log("🔧 QUIZ CREATE DEBUG: Using authenticated user:", user);
 
       const quizData = {
         title: data.title,
@@ -122,7 +102,7 @@ export default function CreateQuiz() {
         categories: data.categories,
         isActive: data.isActive,
         expiresAt: data.expiresAt ? data.expiresAt.toISOString() : null,
-        createdById: authenticatedUser.id
+        createdById: user.id
       };
 
       console.log("🔧 QUIZ CREATE DEBUG: Quiz data to send:", quizData);
