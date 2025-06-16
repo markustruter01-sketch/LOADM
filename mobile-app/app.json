@@ -11,14 +11,22 @@
       "bundleIdentifier": "com.loadmworkflow.training",
       "buildNumber": "1",
       "requireFullScreen": true,
-      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"]
+      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"],
+      "usesAppleSignIn": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "description": "Military logistics training platform for comprehensive aircraft load planning and operational readiness simulation.",
     "category": "Education",
     "extra": {
       "eas": {
-        "projectId": "3c8e41cc-de68-4a98-8910-2e0v97abcc7e"
+        "projectId": "f4da2523-298e-45f9-b198-edd99aa91829"
       }
+    },
+    "owner": "markust",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
     }
   }
 }
