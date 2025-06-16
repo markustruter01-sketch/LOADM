@@ -94,26 +94,26 @@ export default function SubmissionReview() {
     enabled: !!submission?.scenarioId,
   });
   
-  // Parse questions from scenario - handle both JSON string and array formats
+  // Parse questions from submission data (scenarioQuestions) - this is the correct source
   let questions: ScenarioQuestion[] = [];
   
-  if (scenario?.questions) {
-    if (typeof scenario.questions === 'string') {
+  // Get questions from submission.scenarioQuestions (this is what the backend returns)
+  if (submission?.scenarioQuestions) {
+    if (typeof submission.scenarioQuestions === 'string') {
       try {
-        questions = JSON.parse(scenario.questions);
+        questions = JSON.parse(submission.scenarioQuestions);
       } catch (e) {
-        console.error('Failed to parse scenario questions:', e);
+        console.error('Failed to parse scenario questions from submission:', e);
         questions = [];
       }
-    } else if (Array.isArray(scenario.questions)) {
-      questions = scenario.questions as ScenarioQuestion[];
+    } else if (Array.isArray(submission.scenarioQuestions)) {
+      questions = submission.scenarioQuestions as ScenarioQuestion[];
     }
   }
   
-  console.log('🎯 SCENARIO DEBUG: Raw scenario data:', scenario);
-  console.log('🎯 SCENARIO DEBUG: scenario.questions:', scenario?.questions);
+  console.log('🎯 SCENARIO DEBUG: submission.scenarioQuestions:', submission?.scenarioQuestions);
   console.log('🎯 SCENARIO DEBUG: parsed questions array length:', questions.length);
-  console.log('🎯 SCENARIO DEBUG: typeof scenario.questions:', typeof scenario?.questions);
+  console.log('🎯 SCENARIO DEBUG: typeof submission.scenarioQuestions:', typeof submission?.scenarioQuestions);
   
   // Parse answers from submission - new improved approach
   const answers: AnswerResponse[] = [];
@@ -290,24 +290,35 @@ export default function SubmissionReview() {
     });
   };
   
-  // Calculate current score and make it reactive to changes in real-time
-  const correctAnswers = useMemo(() => {
-    console.log('🎯 SCORE DEBUG: markedAnswers object:', markedAnswers);
-    console.log('🎯 SCORE DEBUG: Object.keys(markedAnswers):', Object.keys(markedAnswers));
-    console.log('🎯 SCORE DEBUG: Object.values(markedAnswers):', Object.values(markedAnswers));
+  // Dynamic score calculation system - completely rewritten for real-time updates
+  const { correctAnswers, totalQuestions, currentScore } = useMemo(() => {
+    console.log('🎯 SCORE DEBUG: Starting score calculation...');
+    console.log('🎯 SCORE DEBUG: markedAnswers state:', markedAnswers);
+    console.log('🎯 SCORE DEBUG: questions.length:', questions.length);
+    
+    // Count total questions
+    const total = questions.length;
+    
+    // Count correct answers from marked state
     const correct = Object.values(markedAnswers).filter(value => value === true).length;
-    console.log('🎯 SCORE DEBUG: Calculated correct answers:', correct);
-    return correct;
-  }, [markedAnswers]);
-  
-  const totalQuestions = questions.length || 0;
-  console.log('🎯 SCORE DEBUG: Total questions:', totalQuestions);
-  
-  const currentScore = useMemo(() => {
-    const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-    console.log('🎯 SCORE DEBUG: Calculated score:', score, 'from', correctAnswers, 'correct out of', totalQuestions);
-    return score;
-  }, [correctAnswers, totalQuestions]);
+    
+    // Calculate percentage
+    const score = total > 0 ? Math.round((correct / total) * 100) : 0;
+    
+    console.log('🎯 SCORE DEBUG: Final calculation:', {
+      total,
+      correct,
+      score: `${score}%`,
+      markedKeys: Object.keys(markedAnswers),
+      markedValues: Object.values(markedAnswers)
+    });
+    
+    return {
+      correctAnswers: correct,
+      totalQuestions: total,
+      currentScore: score
+    };
+  }, [markedAnswers, questions]);
   
   // Score calculation is now reactive to marking changes
   
