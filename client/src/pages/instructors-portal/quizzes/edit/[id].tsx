@@ -140,9 +140,9 @@ export default function EditQuizPage() {
       };
       
       await apiRequest({
-        url: `/api/quiz-edit/update/${quizId}`,
+        url: `/api/quizzes/${quizId}`,
         method: 'PUT',
-        data: updateData
+        body: updateData
       });
       
       toast({
