@@ -101,3 +101,21 @@
     @apply mb-10;
   }
 }
+
+/* Quiz Questions Page Overrides */
+.quiz-questions-page {
+  background-color: #f1f5f9 !important; /* slate-100 */
+}
+
+.quiz-question-container {
+  background-color: #e2e8f0 !important; /* slate-200 */
+}
+
+.quiz-question-content {
+  background-color: #f8fafc !important; /* slate-50 */
+}
+
+.quiz-question-text {
+  background-color: #e2e8f0 !important; /* slate-200 */
+  color: #111827 !important; /* gray-900 */
+}

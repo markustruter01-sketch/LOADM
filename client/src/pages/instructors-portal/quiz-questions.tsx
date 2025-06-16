@@ -68,7 +68,7 @@ export default function QuizQuestionsManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+    <div className="min-h-screen bg-slate-100 p-4 quiz-questions-page">
       <Helmet>
         <title>Quiz Questions Management - LOADMdocs</title>
         <meta name="description" content="Manage and review quiz questions for loadmaster training" />
@@ -154,7 +154,7 @@ export default function QuizQuestionsManagement() {
                     <Collapsible key={question.id} open={isExpanded} onOpenChange={() => toggleExpanded(question.id)}>
                       <div className="border rounded-lg bg-slate-100 shadow-sm">
                         <CollapsibleTrigger asChild>
-                          <div className="flex items-center justify-between p-4 hover:bg-slate-300/50 cursor-pointer bg-slate-200">
+                          <div className="flex items-center justify-between p-4 hover:bg-slate-300/50 cursor-pointer bg-slate-200 quiz-question-container">
                             <div className="flex items-center gap-3">
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               <span className="font-medium truncate">
@@ -174,10 +174,10 @@ export default function QuizQuestionsManagement() {
                         </CollapsibleTrigger>
                         
                         <CollapsibleContent>
-                          <div className="p-4 border-t space-y-4 bg-slate-50">
+                          <div className="p-4 border-t space-y-4 bg-slate-50 quiz-question-content">
                             <div>
                               <h4 className="font-medium text-gray-900 mb-2">Question:</h4>
-                              <p className="text-gray-900 bg-slate-200 p-3 rounded">{question.question}</p>
+                              <p className="text-gray-900 font-medium bg-slate-200 p-3 rounded quiz-question-text">{question.question}</p>
                             </div>
                             
                             <div>
