@@ -11,6 +11,7 @@ import {
 import { useDatabase } from '../contexts/DatabaseContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSync } from '../contexts/SyncContext';
+import { theme } from '../theme';
 
 interface Props {
   navigation: any;
