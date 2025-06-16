@@ -341,16 +341,16 @@ app.get("/api/user/activity-history", unifiedAuthMiddleware, async (req: any, re
       UNION ALL
       
       SELECT 
-        q.id,
-        q.created_at as date,
-        q.score,
-        q.passed,
+        qs.id,
+        qs.submission_date as date,
+        qs.score,
+        CASE WHEN qs.score >= 70 THEN true ELSE false END as passed,
         'completed' as status,
         qz.title,
         'quiz' as type
-      FROM quiz_submissions q
-      JOIN quizzes qz ON q.quiz_id = qz.id
-      WHERE q.user_id = ${req.user.id}
+      FROM quiz_submissions qs
+      JOIN quizzes qz ON qs.quiz_id = qz.id
+      WHERE qs.user_id = ${req.user.id}
       
       ORDER BY date DESC
       LIMIT 50

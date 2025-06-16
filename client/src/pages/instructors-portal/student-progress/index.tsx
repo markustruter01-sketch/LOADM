@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Scenario, ScenarioSubmission } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,13 +29,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, FileText, Search, User } from "lucide-react";
+import { ArrowLeft, FileText, Search, User, RefreshCw } from "lucide-react";
 import { format } from 'date-fns';
 
 export default function StudentProgress() {
   const [searchTerm, setSearchTerm] = useState("");
   const [scenarioFilter, setScenarioFilter] = useState<number | "all">("all");
   const [squadronFilter, setSquadronFilter] = useState<string>("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Refresh function
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
+    await queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
+    setTimeout(() => setIsRefreshing(false), 1000); // Visual feedback for refresh
+  };
   
   // Fetch all scenario submissions
   const { data: submissions, isLoading: isLoadingSubmissions } = useQuery<ScenarioSubmission[]>({
@@ -119,13 +129,24 @@ export default function StudentProgress() {
       </Helmet>
       
       <div className="container mx-auto px-4 py-8 mb-16">
-        <div className="flex items-center mb-6">
-          <Link href="/instructors-portal">
-            <Button variant="ghost" className="text-primary hover:text-primary/80 mr-4 p-2">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <h2 className="text-2xl font-bold text-foreground">Student Submissions</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Link href="/instructors-portal">
+              <Button variant="ghost" className="text-primary hover:text-primary/80 mr-4 p-2">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <h2 className="text-2xl font-bold text-foreground">Student Submissions</h2>
+          </div>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
         </div>
         
         {/* Overview Cards */}
