@@ -55,7 +55,6 @@ export default function Header() {
                 <DropdownMenuSeparator />
 
                 {/* Show different menu options based on user role */}
-                {(() => { console.log('Header user data:', user); return null; })()}
                 {(user.role === 'instructor' || user.role === 'superadmin') && (
                   <DropdownMenuItem asChild>
                     <div className="w-full cursor-pointer" onClick={() => setLocation("/instructors-portal")}>

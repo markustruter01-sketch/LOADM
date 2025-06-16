@@ -111,15 +111,11 @@ export default function SubmissionReview() {
     }
   }
   
-  console.log('🎯 SCENARIO DEBUG: submission.scenarioQuestions:', submission?.scenarioQuestions);
-  console.log('🎯 SCENARIO DEBUG: parsed questions array length:', questions.length);
-  console.log('🎯 SCENARIO DEBUG: typeof submission.scenarioQuestions:', typeof submission?.scenarioQuestions);
+
   
   // Parse answers from submission - new improved approach
   const answers: AnswerResponse[] = [];
-  console.log('🔍 DEBUG: Raw submission data:', submission);
-  console.log('🔍 DEBUG: submission.answers:', submission?.answers);
-  console.log('🔍 DEBUG: typeof submission.answers:', typeof submission?.answers);
+
   
   try {
     if (submission?.answers) {
@@ -205,7 +201,7 @@ export default function SubmissionReview() {
       const correctAnswers = Object.values(markedAnswers).filter(Boolean).length;
       const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
       
-      console.log(`Calculated score: ${score}% (${correctAnswers}/${totalQuestions} correct)`);
+
       
       // Use manual pass/fail if provided, otherwise calculate based on threshold
       const passingThreshold = scenario?.passingThreshold || 70; // Default to 70% if not set
@@ -292,9 +288,7 @@ export default function SubmissionReview() {
   
   // Dynamic score calculation system - completely rewritten for real-time updates
   const { correctAnswers, totalQuestions, currentScore } = useMemo(() => {
-    console.log('🎯 SCORE DEBUG: Starting score calculation...');
-    console.log('🎯 SCORE DEBUG: markedAnswers state:', markedAnswers);
-    console.log('🎯 SCORE DEBUG: questions.length:', questions.length);
+
     
     // Count total questions
     const total = questions.length;
