@@ -727,6 +727,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.get("/api/scenario-submissions/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const submissionId = parseInt(req.params.id);
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission ID" });
+      }
+
+      const [submission] = await db.select({
+        id: scenarioSubmissions.id,
+        scenarioId: scenarioSubmissions.scenarioId,
+        userId: scenarioSubmissions.userId,
+        submissionDate: scenarioSubmissions.submissionDate,
+        answers: scenarioSubmissions.answers,
+        score: scenarioSubmissions.score,
+        studentName: scenarioSubmissions.studentName,
+        studentId: scenarioSubmissions.studentId,
+        squadron: scenarioSubmissions.squadron,
+        instructorFeedback: scenarioSubmissions.instructorFeedback,
+        markedAnswers: scenarioSubmissions.markedAnswers,
+        status: scenarioSubmissions.status,
+        passed: scenarioSubmissions.passed,
+        timeSpent: scenarioSubmissions.timeSpent,
+        notes: scenarioSubmissions.notes,
+        scenarioTitle: scenarios.title,
+        scenarioQuestions: scenarios.questions
+      })
+        .from(scenarioSubmissions)
+        .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
+        .where(eq(scenarioSubmissions.id, submissionId))
+        .limit(1);
+
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+
+      // Authorization check: users can only see their own submissions unless they're instructors
+      if (req.user?.role !== 'instructor' && req.user?.role !== 'superadmin' && 
+          submission.userId !== req.user?.id) {
+        return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
+      }
+
+      res.json(submission);
+    } catch (error) {
+      console.error('Failed to get submission:', error);
+      res.status(500).json({ message: "Failed to retrieve submission" });
+    }
+  });
+
   app.post("/api/scenario-submissions", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const submissionData = insertScenarioSubmissionSchema.parse(req.body);

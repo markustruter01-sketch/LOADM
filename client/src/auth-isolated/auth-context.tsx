@@ -9,6 +9,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   role: string;
+  squadron?: string;
   isFirstLogin?: boolean;
   hasCompletedOnboarding?: boolean;
 }

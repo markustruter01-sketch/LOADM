@@ -48,9 +48,9 @@ export default function ModernScenarioPage() {
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [studentName, setStudentName] = useState("");
+  const [studentName, setStudentName] = useState(user?.firstName || "");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState("");
+  const [selectedSquadron, setSelectedSquadron] = useState(user?.squadron || "AMG");
   const [submissionType, setSubmissionType] = useState<"training" | "assessment">("assessment");
   const [score, setScore] = useState(0);
 

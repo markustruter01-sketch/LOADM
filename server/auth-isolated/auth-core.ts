@@ -129,6 +129,15 @@ export async function authenticateUser(email: string, password: string) {
       }
     }
     
+    // Get license data to include squadron information
+    const license = await sql`
+      SELECT squadron, category, license_type 
+      FROM licenses 
+      WHERE id = ${user.license_id}
+    `;
+    
+    const squadronData = license[0];
+    
     console.log(`✅ AUTH: Database login SUCCESS for ${email}`);
     return {
       id: user.id,
@@ -136,6 +145,7 @@ export async function authenticateUser(email: string, password: string) {
       firstName: user.first_name || user.firstName || '',
       lastName: user.last_name || user.lastName || '',
       role: user.user_role || user.role || 'loadmaster',
+      squadron: squadronData?.squadron || 'AMG',
       isFirstLogin: user.is_first_login
     };
   } catch (error) {

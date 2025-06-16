@@ -48,9 +48,9 @@ export default function ScenarioPage() {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
-  const [studentName, setStudentName] = useState("");
+  const [studentName, setStudentName] = useState(user?.firstName || "");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState<string>("");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>(user?.squadron || "AMG");
   const [showSquadronDialog, setShowSquadronDialog] = useState(false);
   
   const scenarioId = parseInt(id);
