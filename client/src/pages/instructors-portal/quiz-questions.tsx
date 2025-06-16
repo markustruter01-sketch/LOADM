@@ -16,6 +16,132 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { QuizQuestion } from '@shared/quiz-questions';
 
+// Question form component for adding/editing questions
+interface QuestionFormProps {
+  initialData?: QuizQuestion;
+  onSubmit: (data: Omit<QuizQuestion, 'id'>) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+}
+
+function QuestionForm({ initialData, onSubmit, onCancel, isLoading }: QuestionFormProps) {
+  const [question, setQuestion] = useState(initialData?.question || '');
+  const [options, setOptions] = useState(initialData?.options || ['', '', '', '']);
+  const [correctAnswer, setCorrectAnswer] = useState(initialData?.correctAnswer?.toString() || '0');
+  const [category, setCategory] = useState(initialData?.category || 'dangerous-goods');
+  const [difficulty, setDifficulty] = useState(initialData?.difficulty || 'medium');
+
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!question.trim() || options.some(opt => !opt.trim())) {
+      return;
+    }
+    
+    onSubmit({
+      question: question.trim(),
+      options: options.map(opt => opt.trim()),
+      correctAnswer: parseInt(correctAnswer),
+      category: category as any,
+      difficulty: difficulty as any
+    });
+  };
+
+  const categories = [
+    { value: 'dangerous-goods', label: 'Dangerous Goods' },
+    { value: 'loadmaster-fundamentals', label: 'Loadmaster Fundamentals' },
+    { value: 'emergency-procedures', label: 'Emergency Procedures' },
+    { value: 'weight-balance', label: 'Weight & Balance' },
+    { value: 'cargo-securing', label: 'Cargo Securing' },
+    { value: 'aircraft-systems', label: 'Aircraft Systems' },
+    { value: 'regulations', label: 'Regulations' },
+    { value: 'equipment-handling', label: 'Equipment Handling' }
+  ];
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="question">Question</Label>
+        <Textarea
+          id="question"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Enter the question..."
+          className="mt-1"
+          required
+        />
+      </div>
+
+      <div>
+        <Label>Answer Options</Label>
+        <RadioGroup value={correctAnswer} onValueChange={setCorrectAnswer} className="mt-2">
+          <div className="space-y-2">
+            {options.map((option, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                <Input
+                  value={option}
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  placeholder={`Option ${index + 1}`}
+                  className="flex-1"
+                  required
+                />
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+        <p className="text-sm text-gray-500 mt-1">Select the correct answer by clicking the radio button</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="category">Category</Label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="difficulty">Difficulty</Label>
+          <Select value={difficulty} onValueChange={setDifficulty}>
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="easy">Easy</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="hard">Hard</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : initialData ? 'Update Question' : 'Add Question'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export default function QuizQuestionsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
@@ -166,8 +292,8 @@ export default function QuizQuestionsPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Quiz Questions Management</h1>
-              <p className="text-muted-foreground">Review and manage quiz questions by category</p>
+              <h1 className="text-2xl font-bold text-white">Quiz Questions Management</h1>
+              <p className="text-gray-300">Review and manage quiz questions by category</p>
             </div>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -181,9 +307,28 @@ export default function QuizQuestionsPage() {
               <DialogHeader>
                 <DialogTitle>Add New Quiz Question</DialogTitle>
               </DialogHeader>
-              <div className="text-center py-8 text-muted-foreground">
-                Question form coming soon...
-              </div>
+              <QuestionForm
+                onSubmit={(data) => createQuestionMutation.mutate(data)}
+                onCancel={() => setIsAddDialogOpen(false)}
+                isLoading={createQuestionMutation.isPending}
+              />
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Dialog */}
+          <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Edit Quiz Question</DialogTitle>
+              </DialogHeader>
+              {editingQuestion && (
+                <QuestionForm
+                  initialData={editingQuestion}
+                  onSubmit={(data) => updateQuestionMutation.mutate({ id: editingQuestion.id, ...data })}
+                  onCancel={() => setEditingQuestion(null)}
+                  isLoading={updateQuestionMutation.isPending}
+                />
+              )}
             </DialogContent>
           </Dialog>
         </div>
