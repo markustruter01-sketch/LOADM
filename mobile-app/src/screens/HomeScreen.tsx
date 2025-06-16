@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useSync } from '../contexts/SyncContext';
+import { theme } from '../theme';
 
 interface Props {
   navigation: any;
@@ -156,47 +157,52 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.md,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#1f2937',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: theme.spacing.lg,
   },
   userInfo: {
     flex: 1,
   },
   welcomeText: {
-    color: '#9ca3af',
-    fontSize: 16,
+    color: theme.colors.mutedForeground,
+    fontSize: theme.fontSize.md,
   },
   userName: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 4,
+    color: theme.colors.foreground,
+    fontSize: theme.fontSize.title,
+    fontWeight: theme.fontWeight.bold,
+    marginTop: theme.spacing.xs,
   },
   userRole: {
-    color: '#9ca3af',
-    fontSize: 14,
-    marginTop: 2,
+    color: theme.colors.mutedForeground,
+    fontSize: theme.fontSize.sm,
+    marginTop: theme.spacing.xs,
   },
   syncButton: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
     minWidth: 80,
     alignItems: 'center',
   },
   syncButtonDisabled: {
-    backgroundColor: '#6b7280',
+    backgroundColor: theme.colors.muted,
   },
   syncButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: theme.colors.primaryForeground,
+    fontWeight: theme.fontWeight.bold,
   },
   statusContainer: {
     flexDirection: 'row',
