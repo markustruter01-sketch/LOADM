@@ -44,8 +44,7 @@ export function ChatSystem() {
     }
 
     ws.onopen = () => {
-      console.log("WebSocket connected");
-      console.log("User object:", user);
+
       setIsConnected(true);
       
       // Authenticate with the server
@@ -55,7 +54,7 @@ export function ChatSystem() {
         userName: user.email || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         userRole: user.role
       };
-      console.log("Sending auth message:", authMessage);
+
       ws.send(JSON.stringify(authMessage));
     };
 

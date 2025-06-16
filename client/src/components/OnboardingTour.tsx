@@ -207,7 +207,7 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
       });
       
       if (response.ok) {
-        console.log('✅ TOUR: Onboarding completed successfully');
+
         onComplete();
       } else {
         console.error('❌ TOUR: Failed to complete onboarding');
@@ -231,7 +231,7 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
       });
       
       if (response.ok) {
-        console.log('✅ TOUR: Onboarding skipped successfully');
+
         onSkip();
       } else {
         console.error('❌ TOUR: Failed to skip onboarding');

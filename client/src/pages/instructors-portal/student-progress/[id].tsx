@@ -299,13 +299,7 @@ export default function SubmissionReview() {
     // Calculate percentage
     const score = total > 0 ? Math.round((correct / total) * 100) : 0;
     
-    console.log('🎯 SCORE DEBUG: Final calculation:', {
-      total,
-      correct,
-      score: `${score}%`,
-      markedKeys: Object.keys(markedAnswers),
-      markedValues: Object.values(markedAnswers)
-    });
+    // Final calculation complete
     
     return {
       correctAnswers: correct,
