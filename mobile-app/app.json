@@ -18,15 +18,11 @@
       }
     },
     "description": "Military logistics training platform for comprehensive aircraft load planning and operational readiness simulation.",
-    "category": "Education",
     "extra": {
       "eas": {
-        "projectId": "f4da2523-298e-45f9-b198-edd99aa91829"
+        "projectId": "c708f758-604b-4fa2-b4b3-be856218d179"
       }
     },
-    "owner": "markust",
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    }
+    "owner": "markust"
   }
 }
