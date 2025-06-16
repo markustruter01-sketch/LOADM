@@ -730,7 +730,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/scenario-submissions/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const submissionId = parseInt(req.params.id);
+      console.log('🔍 SUBMISSION DEBUG: Fetching submission ID:', submissionId);
+      console.log('🔍 SUBMISSION DEBUG: User role:', req.user?.role);
+      console.log('🔍 SUBMISSION DEBUG: User ID:', req.user?.id);
+      
       if (isNaN(submissionId)) {
+        console.log('❌ SUBMISSION DEBUG: Invalid submission ID');
         return res.status(400).json({ message: "Invalid submission ID" });
       }
 
@@ -758,9 +763,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(scenarioSubmissions.id, submissionId))
         .limit(1);
 
+      console.log('🔍 SUBMISSION DEBUG: Query result:', submission);
+      
       if (!submission) {
+        console.log('❌ SUBMISSION DEBUG: Submission not found in database for ID:', submissionId);
         return res.status(404).json({ message: "Submission not found" });
       }
+      
+      console.log('✅ SUBMISSION DEBUG: Submission found, checking authorization...');
 
       // Authorization check: users can only see their own submissions unless they're instructors
       if (req.user?.role !== 'instructor' && req.user?.role !== 'superadmin' && 
