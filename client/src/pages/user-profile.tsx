@@ -254,7 +254,21 @@ export default function UserProfile() {
     weeksSinceLastActivity: 0 
   };
   const submissions = (profileData as any)?.submissions || [];
-  const submissionsByType = (profileData as any)?.submissionsByType || { scenarios: [], quizzes: [], assessments: [] };
+  
+  // Process and categorize activity history data
+  const processedActivityData = activityHistory && Array.isArray(activityHistory) ? activityHistory.map((item: any) => ({
+    ...item,
+    date: item.date ? new Date(item.date).toLocaleDateString() : 'Invalid Date',
+    title: item.title || 'Untitled Activity'
+  })) : [];
+
+  // Categorize submissions by type
+  const submissionsByType = {
+    scenarios: processedActivityData.filter((item: any) => item.type === 'scenario'),
+    quizzes: processedActivityData.filter((item: any) => item.type === 'quiz'),
+    assessments: processedActivityData.filter((item: any) => item.type === 'scenario' && item.status === 'reviewed')
+  };
+
   const trainingModules = (profileData as any)?.trainingModules || [];
   const gamification = (profileData as any)?.gamification || { 
     weeklyGoal: 1, 
@@ -262,6 +276,10 @@ export default function UserProfile() {
     thisWeekActivity: 0,
     achievements: {}
   };
+  
+  // State for submission detail popup
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [showSubmissionDetail, setShowSubmissionDetail] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -549,27 +567,49 @@ export default function UserProfile() {
                     </div>
                   ) : (
                     <>
-                      {/* Display recent training submissions from activity history */}
-                      {activityHistory && activityHistory.length > 0 ? (
-                        activityHistory.slice(0, 5).map((activity: any) => (
-                          <div key={`activity-${activity.id}`} className="flex items-center justify-between p-3 rounded-lg border">
+                      {/* Display recent activity from processed data */}
+                      {processedActivityData && processedActivityData.length > 0 ? (
+                        processedActivityData.slice(0, 5).map((activity: any) => (
+                          <div 
+                            key={`activity-${activity.id}`} 
+                            className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => {
+                              setSelectedSubmission(activity);
+                              setShowSubmissionDetail(true);
+                            }}
+                          >
                             <div className="flex items-center space-x-3">
-                              <div className="w-3 h-3 rounded-full bg-blue-500" />
+                              <div className={`w-3 h-3 rounded-full ${
+                                activity.passed === true ? 'bg-green-500' : 
+                                activity.passed === false ? 'bg-red-500' : 
+                                activity.type === 'quiz' ? 'bg-blue-500' : 'bg-yellow-500'
+                              }`} />
                               <div>
                                 <div className="flex items-center space-x-2">
-                                  <p className="text-sm font-medium">{activity.activity_title}</p>
-                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                    Training
+                                  <p className="text-sm font-medium">{activity.title}</p>
+                                  <Badge variant="outline" className={`text-xs ${
+                                    activity.type === 'quiz' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                    'bg-green-50 text-green-700 border-green-200'
+                                  }`}>
+                                    {activity.type === 'quiz' ? 'Quiz' : 'Scenario'}
                                   </Badge>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(activity.completion_date).toLocaleDateString()} at {new Date(activity.completion_date).toLocaleTimeString()}
+                                  {activity.date}
                                 </p>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                Completed
+                              {activity.score && (
+                                <span className="text-sm font-medium">{activity.score}%</span>
+                              )}
+                              <Badge variant={
+                                activity.passed === true ? 'default' : 
+                                activity.passed === false ? 'destructive' : 'secondary'
+                              }>
+                                {activity.status === 'completed' ? 'Completed' :
+                                 activity.passed === true ? 'Pass' : 
+                                 activity.passed === false ? 'Fail' : 'Pending'}
                               </Badge>
                             </div>
                           </div>
@@ -611,7 +651,7 @@ export default function UserProfile() {
                         </div>
                       ))}
                       
-                      {(!activityHistory || activityHistory.length === 0) && submissions.length === 0 && (
+                      {(!processedActivityData || processedActivityData.length === 0) && submissions.length === 0 && (
                         <p className="text-sm text-muted-foreground text-center py-8">
                           No submissions yet. Start training to see your progress here!
                         </p>
