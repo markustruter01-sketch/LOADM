@@ -282,7 +282,7 @@ export default function QuizQuestionsPage() {
       </Helmet>
 
       <div 
-        className="min-h-screen"
+        className="min-h-screen max-w-4xl mx-auto"
         style={{ 
           backgroundColor: 'var(--background)',
           color: 'var(--foreground)'
