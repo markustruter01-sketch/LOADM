@@ -748,7 +748,14 @@ export default function UserProfile() {
 
                 <TabsContent value="assessments" className="space-y-4 mt-4">
                   {submissionsByType.assessments.slice(0, 10).map((submission: any) => (
-                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div 
+                      key={submission.id} 
+                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        setSelectedSubmission(submission);
+                        setShowSubmissionDetail(true);
+                      }}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           submission.passed === true ? 'bg-green-500' : 
@@ -757,12 +764,12 @@ export default function UserProfile() {
                         <div>
                           <p className="text-sm font-medium">{submission.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(submission.submissionDate).toLocaleDateString()}
+                            {submission.date}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {submission.score > 0 && (
+                        {submission.score && (
                           <span className="text-sm font-medium">{submission.score}%</span>
                         )}
                         <Badge variant={
