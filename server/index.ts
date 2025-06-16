@@ -8,6 +8,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import isolatedAuthRoutes from './auth-isolated/auth-routes';
 import * as authCore from './auth-isolated/auth-core';
 import { licenseExpiryService } from './license-expiry-service';
+import path from "path";
 
 const app = express();
 
@@ -24,6 +25,15 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Apply unified authentication middleware globally to add user info to all requests
 import { unifiedAuthMiddleware } from './auth-middleware-unified';
 app.use(unifiedAuthMiddleware);
+
+// Serve PDF files from attached_assets directory
+app.use('/pdfs', express.static(path.join(process.cwd(), 'attached_assets'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.pdf')) {
+      res.setHeader('Content-Type', 'application/pdf');
+    }
+  }
+}));
 
 // Mount isolated auth routes FIRST (before Vite middleware)
 app.use('/api/isolated-auth', isolatedAuthRoutes);

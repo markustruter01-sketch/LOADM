@@ -33,7 +33,11 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState<number>(0);
-  const [pdfUrl, setPdfUrl] = useState<string>(() => `/pdfs/${encodeURIComponent(file)}`);
+  const [pdfUrl, setPdfUrl] = useState<string>(() => {
+    // Handle both direct filenames and full paths
+    const filename = file.startsWith('/pdfs/') ? file.split('/').pop() : file;
+    return `/pdfs/${encodeURIComponent(filename || '')}`;
+  });
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -43,8 +47,7 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
   }, []);
 
   const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('PDF load error:', error);
-    setError('Failed to load PDF document');
+    setError(`Failed to load PDF: ${error.message}`);
     setLoading(false);
   }, []);
 
@@ -53,7 +56,8 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
     setLoading(true);
     setRetryCount(prev => prev + 1);
     // Force cache bypass with timestamp
-    setPdfUrl(`/pdfs/${encodeURIComponent(file)}?v=${Date.now()}`);
+    const filename = file.startsWith('/pdfs/') ? file.split('/').pop() : file;
+    setPdfUrl(`/pdfs/${encodeURIComponent(filename || '')}?v=${Date.now()}`);
   }, [file]);
 
   const goToPrevPage = useCallback(() => {
@@ -77,9 +81,10 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
   }, []);
 
   const downloadPdf = useCallback(() => {
+    const filename = file.startsWith('/pdfs/') ? file.split('/').pop() : file;
     const link = document.createElement('a');
-    link.href = file;
-    link.download = file.split('/').pop() || 'document.pdf';
+    link.href = `/pdfs/${encodeURIComponent(filename || '')}`;
+    link.download = filename || 'document.pdf';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
