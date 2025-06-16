@@ -190,14 +190,7 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
           )}
           
           <Document
-            file={{
-              url: pdfUrl,
-              httpHeaders: {
-                'Accept': 'application/pdf',
-                'Content-Type': 'application/pdf'
-              },
-              withCredentials: false
-            }}
+            file={pdfUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
             loading={null}
@@ -206,10 +199,7 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
             options={{
               cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
               cMapPacked: true,
-              standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
-              disableWorker: false,
-              disableStream: false,
-              disableAutoFetch: false
+              standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/'
             }}
           >
             <Page
