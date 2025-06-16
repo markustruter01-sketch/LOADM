@@ -52,13 +52,24 @@ export default function ModernScenarioPage() {
   const [studentId, setStudentId] = useState("");
   const [selectedSquadron, setSelectedSquadron] = useState("AMG");
 
+  // Fetch user squadron data
+  const { data: userSquadron } = useQuery({
+    queryKey: ["/api/user/squadron"],
+    enabled: !!user,
+  });
+
   // Auto-fill form data when user data is available
   useEffect(() => {
     if (user) {
       setStudentName(user.firstName || "");
-      setSelectedSquadron((user as any)?.squadron || "AMG");
+      // Use squadron from profile API, fallback to AMG only if no squadron is set
+      const squadronValue = userSquadron && typeof userSquadron === 'object' && 'squadron' in userSquadron 
+        ? (userSquadron as any).squadron 
+        : "AMG";
+      setSelectedSquadron(squadronValue);
+      console.log('🏷️ AUTO-FILL: Setting squadron to:', squadronValue, 'from user profile');
     }
-  }, [user]);
+  }, [user, userSquadron]);
   const [submissionType, setSubmissionType] = useState<"training" | "assessment">("assessment");
   const [score, setScore] = useState(0);
 

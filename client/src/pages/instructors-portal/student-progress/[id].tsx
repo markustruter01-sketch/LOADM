@@ -404,14 +404,7 @@ export default function SubmissionReview() {
           </div>
           
           {/* Student Answers & Grading */}
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="review">
-              <TabsList className="mb-6">
-                <TabsTrigger value="review">Review Answers</TabsTrigger>
-                <TabsTrigger value="feedback">Instructor Feedback</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="review" className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Student Answers</CardTitle>
@@ -528,9 +521,8 @@ export default function SubmissionReview() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-              
-              <TabsContent value="feedback" className="space-y-6">
+                
+                {/* Instructor Feedback Section - Now on same page */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Provide Feedback</CardTitle>
@@ -622,8 +614,6 @@ export default function SubmissionReview() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
             
             <div className="flex justify-end mt-6">
               <Button
