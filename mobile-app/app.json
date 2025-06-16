@@ -19,7 +19,28 @@
       "bundleIdentifier": "com.digitaldynamics.loadmworkflow",
       "buildNumber": "1",
       "requireFullScreen": true,
-      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"]
+      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"],
+      "infoPlist": {
+        "UIRequiredDeviceCapabilities": ["arm64"],
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ],
+        "UIRequiresFullScreen": true,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "replit.dev": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSExceptionMinimumTLSVersion": "TLSv1.0"
+            }
+          }
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +58,11 @@
         "projectId": "loadmworkflow-mobile"
       }
     },
-    "owner": "digitaldynamics"
+    "owner": "digitaldynamics",
+    "privacy": "public",
+    "platforms": ["ios"],
+    "description": "Military logistics training platform for comprehensive aircraft load planning and operational readiness simulation. Designed for loadmaster operations with complete offline functionality.",
+    "keywords": ["military", "logistics", "aviation", "training", "education", "loadmaster", "aircraft"],
+    "category": "Education"
   }
 }
