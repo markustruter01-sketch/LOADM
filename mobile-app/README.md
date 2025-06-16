@@ -95,21 +95,41 @@ The mobile app uses SQLite with the following main tables:
 
 ## Development Setup
 
-1. Install dependencies:
+1. Install Expo CLI globally:
+   ```bash
+   npm install -g @expo/cli
+   ```
+
+2. Install dependencies:
    ```bash
    cd mobile-app
    npm install
    ```
 
-2. Start development server:
+3. Start development server:
    ```bash
    npm start
    ```
 
-3. Run on iOS simulator:
+4. Run on iOS simulator:
    ```bash
    npm run ios
    ```
+
+5. For production builds:
+   ```bash
+   npm run build:ios
+   ```
+
+## Quick Start Guide
+
+1. **Authentication**: Users can log in with existing credentials from the web platform
+2. **Offline Mode**: All features work without internet connection
+3. **Data Sync**: Press the refresh button in the header when online to sync data
+4. **Quiz Taking**: Take training quizzes with automatic scoring and offline storage
+5. **Load Planning**: Create aircraft load plans with real-time balance calculations
+6. **Scenarios**: Complete training scenarios with form submissions
+7. **Chat**: Send messages that queue for sync when back online
 
 ## Deployment
 
