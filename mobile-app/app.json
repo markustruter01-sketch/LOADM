@@ -1,14 +1,14 @@
 {
   "expo": {
     "name": "LOADMworkflow",
-    "slug": "loadmworkflow-training",
+    "slug": "loadmworkflow-training-new",
     "version": "1.0.0",
     "orientation": "landscape",
     "userInterfaceStyle": "dark",
     "platforms": ["ios"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.loadmworkflow.training",
+      "bundleIdentifier": "com.loadmworkflow.training.new",
       "buildNumber": "1",
       "requireFullScreen": true,
       "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"],

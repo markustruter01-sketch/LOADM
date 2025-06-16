@@ -182,6 +182,13 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Created comprehensive design documentation and status tracking
   - Mobile app now visually matches web application exactly with professional iPad-optimized design
   - Application is production-ready for iOS App Store deployment with complete feature parity and visual consistency
+- June 16, 2025. Fixed mobile app Expo configuration issues:
+  - Resolved persistent project ID conflicts causing build failures
+  - Removed invalid project IDs from app.json and eas.json configurations
+  - Changed app slug to "loadmworkflow-training-new" to avoid cached ID conflicts
+  - Updated bundle identifier to "com.loadmworkflow.training.new" for fresh project setup
+  - Created complete reset instructions for clearing Expo cache
+  - Mobile app configuration now clean and ready for proper EAS build setup
 
 ## User Preferences
 
