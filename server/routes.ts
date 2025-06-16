@@ -480,6 +480,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Quiz questions management endpoint
+  app.get("/api/quiz-questions", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const category = req.query.category as string;
+      
+      console.log(`✅ QUIZ QUESTIONS: Request received for category: ${category || 'all'}`);
+      console.log(`✅ QUIZ QUESTIONS: User authenticated: ${req.user?.email}`);
+      
+      // Import the quiz questions from shared module
+      const { loadmasterQuestions } = await import('../shared/quiz-questions');
+      
+      // Filter by category if specified
+      let questions = loadmasterQuestions;
+      if (category && category !== 'all') {
+        questions = loadmasterQuestions.filter(q => q.category === category);
+      }
+      
+      console.log(`✅ QUIZ QUESTIONS: Returning ${questions.length} questions for category: ${category || 'all'}`);
+      res.json(questions);
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+      res.status(500).json({ error: 'Failed to fetch quiz questions' });
+    }
+  });
+
   // Import unified quiz routes with proper authentication
   const quizUnifiedModule = await import('./routes/quiz-unified');
   app.use('/api/quizzes', quizUnifiedModule.default);

@@ -1147,7 +1147,7 @@ export default function UserProfile() {
                 <h4 className="font-medium">Instructor Feedback</h4>
                 {selectedSubmission.instructorFeedback ? (
                   <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                    <p className="text-sm text-black">{selectedSubmission.instructorFeedback}</p>
+                    <p className="text-sm text-gray-900 font-normal">{selectedSubmission.instructorFeedback}</p>
                   </div>
                 ) : (
                   <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">

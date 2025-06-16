@@ -650,6 +650,45 @@ export const loadmasterQuestions: QuizQuestion[] = [
     category: "weight-balance",
     difficulty: "easy"
   },
+  {
+    id: "wb-13",
+    question: "What is the standard method for calculating the CG of a loaded aircraft?",
+    options: [
+      "Total weight divided by total moment",
+      "Total moment divided by total weight",
+      "Sum of all arm distances",
+      "Average of all weight positions"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "medium"
+  },
+  {
+    id: "wb-14",
+    question: "What happens if cargo shifts during flight affecting the CG?",
+    options: [
+      "Aircraft performance improves",
+      "No significant effect on flight characteristics",
+      "Aircraft may become uncontrollable",
+      "Only fuel consumption is affected"
+    ],
+    correctAnswer: 2,
+    category: "weight-balance",
+    difficulty: "hard"
+  },
+  {
+    id: "wb-15",
+    question: "How often should weight and balance calculations be verified during multi-leg missions?",
+    options: [
+      "Only at the beginning of the mission",
+      "Before each takeoff when cargo or fuel changes",
+      "Once per week",
+      "Only when new cargo is added"
+    ],
+    correctAnswer: 1,
+    category: "weight-balance",
+    difficulty: "easy"
+  },
   
   // Cargo Securing questions
   {
