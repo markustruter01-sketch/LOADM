@@ -11,18 +11,32 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "platforms": ["ios"],
-    "ios": {
-      "supportsTablet": true,
-      "requireFullScreen": true,
-      "bundleIdentifier": "com.digitaldynamics.loadmworkflow",
-      "buildNumber": "1.0.0"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.digitaldynamics.loadmworkflow",
+      "buildNumber": "1",
+      "requireFullScreen": true,
+      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.digitaldynamics.loadmworkflow",
+      "versionCode": 1
+    },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "loadmworkflow-mobile"
+      }
+    },
+    "owner": "digitaldynamics"
   }
 }
