@@ -20,17 +20,14 @@
     },
     "production": {
       "ios": {
-        "resourceClass": "m1-medium",
-        "bundleIdentifier": "com.loadmworkflow.training"
+        "resourceClass": "m1-medium"
       }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "markustruter01@gmail.com",
-        "ascAppId": "placeholder",
-        "appleTeamId": "placeholder"
+        "appleId": "markustruter01@gmail.com"
       }
     }
   }
