@@ -674,7 +674,7 @@ export default function UserProfile() {
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                          submission.passed === false ? 'bg-orange-500' : 'bg-gray-400'
                         }`} />
                         <div>
                           <p className="text-sm font-medium">{submission.title}</p>
@@ -687,9 +687,10 @@ export default function UserProfile() {
                         {submission.score && (
                           <span className="text-sm font-medium">{submission.score}%</span>
                         )}
-                        <Badge variant={
-                          submission.passed === true ? 'default' : 
-                          submission.passed === false ? 'destructive' : 'secondary'
+                        <Badge className={
+                          submission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
+                          submission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
+                          'bg-yellow-600 text-white hover:bg-yellow-700'
                         }>
                           {submission.passed === true ? 'Pass' : 
                            submission.passed === false ? 'Fail' : 'Pending Review'}
@@ -717,7 +718,7 @@ export default function UserProfile() {
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                          submission.passed === false ? 'bg-orange-500' : 'bg-gray-400'
                         }`} />
                         <div>
                           <p className="text-sm font-medium">{submission.title}</p>
@@ -730,9 +731,10 @@ export default function UserProfile() {
                         {submission.score && (
                           <span className="text-sm font-medium">{submission.score}%</span>
                         )}
-                        <Badge variant={
-                          submission.passed === true ? 'default' : 
-                          submission.passed === false ? 'destructive' : 'secondary'
+                        <Badge className={
+                          submission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
+                          submission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
+                          'bg-yellow-600 text-white hover:bg-yellow-700'
                         }>
                           {submission.passed === true ? 'Pass' : 
                            submission.passed === false ? 'Fail' : 'Pending Review'}
@@ -760,7 +762,7 @@ export default function UserProfile() {
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
+                          submission.passed === false ? 'bg-orange-500' : 'bg-gray-400'
                         }`} />
                         <div>
                           <p className="text-sm font-medium">{submission.title}</p>
@@ -773,9 +775,10 @@ export default function UserProfile() {
                         {submission.score && (
                           <span className="text-sm font-medium">{submission.score}%</span>
                         )}
-                        <Badge variant={
-                          submission.passed === true ? 'default' : 
-                          submission.passed === false ? 'destructive' : 'secondary'
+                        <Badge className={
+                          submission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
+                          submission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
+                          'bg-yellow-600 text-white hover:bg-yellow-700'
                         }>
                           {submission.passed === true ? 'Pass' : 
                            submission.passed === false ? 'Fail' : 'Pending Review'}
@@ -1081,9 +1084,10 @@ export default function UserProfile() {
                     {selectedSubmission.score && (
                       <span className="text-2xl font-bold">{selectedSubmission.score}%</span>
                     )}
-                    <Badge variant={
-                      selectedSubmission.passed === true ? 'default' : 
-                      selectedSubmission.passed === false ? 'destructive' : 'secondary'
+                    <Badge className={
+                      selectedSubmission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
+                      selectedSubmission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
+                      'bg-yellow-600 text-white hover:bg-yellow-700'
                     }>
                       {selectedSubmission.passed === true ? 'PASS' : 
                        selectedSubmission.passed === false ? 'FAIL' : 'PENDING'}
@@ -1138,8 +1142,8 @@ export default function UserProfile() {
               <div className="space-y-4">
                 <h4 className="font-medium">Instructor Feedback</h4>
                 {selectedSubmission.instructorFeedback ? (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm">{selectedSubmission.instructorFeedback}</p>
+                  <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                    <p className="text-sm text-black">{selectedSubmission.instructorFeedback}</p>
                   </div>
                 ) : (
                   <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
