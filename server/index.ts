@@ -123,25 +123,11 @@ setInterval(async () => {
 }, 24 * 60 * 60 * 1000); // Run every 24 hours
 
 // User squadron management endpoints
-app.get("/api/user/squadron", async (req, res) => {
+app.get("/api/user/squadron", unifiedAuthMiddleware, async (req: any, res) => {
   console.log('✅ SQUADRON: GET request received');
   try {
-    const sessionId = (req as any).cookies?.isolated_session;
-    console.log('✅ SQUADRON: Session ID:', sessionId?.substring(0, 20) + '...');
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
     }
     
     const { neon } = await import('@neondatabase/serverless');
@@ -151,7 +137,7 @@ app.get("/api/user/squadron", async (req, res) => {
       SELECT l.squadron 
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
-      WHERE u.id = ${actualUserId}
+      WHERE u.id = ${req.user.id}
     `;
     
     res.json({ squadron: result[0]?.squadron || null });
@@ -161,26 +147,12 @@ app.get("/api/user/squadron", async (req, res) => {
   }
 });
 
-app.put("/api/user/squadron", async (req, res) => {
+app.put("/api/user/squadron", unifiedAuthMiddleware, async (req: any, res) => {
   console.log('✅ SQUADRON: PUT request received');
   console.log('✅ SQUADRON: Request body:', req.body);
   try {
-    const sessionId = (req as any).cookies?.isolated_session;
-    console.log('✅ SQUADRON: Session ID for PUT:', sessionId?.substring(0, 20) + '...');
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
     }
     
     const { squadron } = req.body;
@@ -198,7 +170,7 @@ app.put("/api/user/squadron", async (req, res) => {
       SET squadron = ${squadron}
       FROM users 
       WHERE licenses.id = users.license_id 
-      AND users.id = ${actualUserId}
+      AND users.id = ${req.user.id}
     `;
     console.log('✅ SQUADRON: Update executed, rows affected:', updateResult.length);
     
@@ -207,7 +179,7 @@ app.put("/api/user/squadron", async (req, res) => {
       SELECT l.squadron 
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
-      WHERE u.id = ${actualUserId}
+      WHERE u.id = ${req.user.id}
     `;
     console.log('✅ SQUADRON: Verified updated value:', verifyResult[0]?.squadron);
     
@@ -218,26 +190,12 @@ app.put("/api/user/squadron", async (req, res) => {
   }
 });
 
-app.put("/api/user/category", async (req, res) => {
+app.put("/api/user/category", unifiedAuthMiddleware, async (req: any, res) => {
   console.log('✅ CATEGORY: PUT request received');
   console.log('✅ CATEGORY: Request body:', req.body);
   try {
-    const sessionId = (req as any).cookies?.isolated_session;
-    console.log('✅ CATEGORY: Session ID for PUT:', sessionId?.substring(0, 20) + '...');
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
     }
     
     const { category } = req.body;
@@ -255,7 +213,7 @@ app.put("/api/user/category", async (req, res) => {
       SET category = ${category}
       FROM users 
       WHERE licenses.id = users.license_id 
-      AND users.id = ${actualUserId}
+      AND users.id = ${req.user.id}
     `;
     console.log('✅ CATEGORY: Update executed, rows affected:', updateResult.length);
     
@@ -264,7 +222,7 @@ app.put("/api/user/category", async (req, res) => {
       SELECT l.category 
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
-      WHERE u.id = ${actualUserId}
+      WHERE u.id = ${req.user.id}
     `;
     console.log('✅ CATEGORY: Verified updated value:', verifyResult[0]?.category);
     
@@ -276,24 +234,11 @@ app.put("/api/user/category", async (req, res) => {
 });
 
 // Profile endpoint with category data
-app.get("/api/profile", async (req, res) => {
+app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
   console.log('✅ PROFILE: GET request received');
   try {
-    const sessionId = (req as any).cookies?.isolated_session;
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
     }
     
     const { neon } = await import('@neondatabase/serverless');
@@ -312,7 +257,7 @@ app.get("/api/profile", async (req, res) => {
         l.license_type
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
-      WHERE u.id = ${actualUserId}
+      WHERE u.id = ${req.user.id}
     `;
     
     const user = userResult[0];
@@ -358,24 +303,11 @@ app.get("/api/profile", async (req, res) => {
 });
 
 // User activity history endpoint
-app.get("/api/user/activity-history", async (req, res) => {
+app.get("/api/user/activity-history", unifiedAuthMiddleware, async (req: any, res) => {
   console.log('✅ ACTIVITY: GET request received');
   try {
-    const sessionId = (req as any).cookies?.isolated_session;
-    
-    if (!sessionId || !sessionId.startsWith('isolated_')) {
+    if (!req.user?.id) {
       return res.status(401).json({ error: 'Authentication required' });
-    }
-    
-    const session = authCore.getIsolatedSession(sessionId);
-    if (!session) {
-      return res.status(401).json({ error: 'Invalid session' });
-    }
-    
-    // Handle hardcoded superadmin case
-    let actualUserId = session.userId;
-    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
-      actualUserId = 9;
     }
     
     const { neon } = await import('@neondatabase/serverless');
@@ -393,7 +325,7 @@ app.get("/api/user/activity-history", async (req, res) => {
         'scenario' as type
       FROM scenario_submissions s
       JOIN scenarios sc ON s.scenario_id = sc.id
-      WHERE s.user_id = ${actualUserId}
+      WHERE s.user_id = ${req.user.id}
       
       UNION ALL
       
