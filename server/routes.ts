@@ -6,6 +6,7 @@ import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
+import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth";
 
 // Extend Request interface for authenticated routes
 interface AuthenticatedRequest extends Request {
@@ -16,21 +17,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-// Authentication middleware functions
-function requireAuth(req: Request, res: Response, next: NextFunction) {
-  // This will be handled by the isolated auth system in index.ts
-  next();
-}
-
-function requireInstructor(req: Request, res: Response, next: NextFunction) {
-  // This will be handled by the isolated auth system in index.ts
-  next();
-}
-
-function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
-  // This will be handled by the isolated auth system in index.ts
-  next();
-}
+// Authentication middleware functions are imported from ./middleware/auth
 
 // Rate limiting for security
 const ONE_MINUTE = 60 * 1000;
