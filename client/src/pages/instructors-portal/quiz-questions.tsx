@@ -28,8 +28,8 @@ function QuestionForm({ initialData, onSubmit, onCancel, isLoading }: QuestionFo
   const [question, setQuestion] = useState(initialData?.question || '');
   const [options, setOptions] = useState(initialData?.options || ['', '', '', '']);
   const [correctAnswer, setCorrectAnswer] = useState(initialData?.correctAnswer?.toString() || '0');
-  const [category, setCategory] = useState(initialData?.category || 'dangerous-goods');
-  const [difficulty, setDifficulty] = useState(initialData?.difficulty || 'medium');
+  const [category, setCategory] = useState<string>(initialData?.category || 'dangerous-goods');
+  const [difficulty, setDifficulty] = useState<string>(initialData?.difficulty || 'medium');
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
@@ -101,7 +101,7 @@ function QuestionForm({ initialData, onSubmit, onCancel, isLoading }: QuestionFo
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="category">Category</Label>
-          <Select value={category} onValueChange={setCategory}>
+          <Select value={category} onValueChange={(value) => setCategory(value)}>
             <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
@@ -117,7 +117,7 @@ function QuestionForm({ initialData, onSubmit, onCancel, isLoading }: QuestionFo
 
         <div>
           <Label htmlFor="difficulty">Difficulty</Label>
-          <Select value={difficulty} onValueChange={setDifficulty}>
+          <Select value={difficulty} onValueChange={(value) => setDifficulty(value)}>
             <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
@@ -185,8 +185,8 @@ export default function QuizQuestionsPage() {
   });
 
   const updateQuestionMutation = useMutation({
-    mutationFn: async (questionData: QuizQuestion) => {
-      const response = await fetch(`/api/quiz-questions/${questionData.id}`, {
+    mutationFn: async ({ id, ...questionData }: { id: string } & Omit<QuizQuestion, 'id'>) => {
+      const response = await fetch(`/api/quiz-questions/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(questionData),
@@ -278,10 +278,16 @@ export default function QuizQuestionsPage() {
     <div className="min-h-screen bg-background p-4">
       <Helmet>
         <title>Quiz Questions Management - LOADMdocs</title>
-        <meta name="description" content="Manage and review quiz questions for loadmaster training" />
+        <meta name="description" content="Manage and organize quiz questions for military training assessments" />
       </Helmet>
 
-      <div className="max-w-6xl mx-auto">
+      <div 
+        className="min-h-screen"
+        style={{ 
+          backgroundColor: 'var(--background)',
+          color: 'var(--foreground)'
+        }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -340,55 +346,62 @@ export default function QuizQuestionsPage() {
             <p className="text-muted-foreground">Select a category to view specific questions</p>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
 
         {/* Questions List */}
-        <Card className="bg-card">
+        <Card style={{ backgroundColor: 'var(--card)' }}>
           <CardHeader>
             <CardTitle className="text-foreground">
               Questions ({filteredQuestions.length})
             </CardTitle>
-            <p className="text-muted-foreground">All available quiz questions</p>
+            <p className="text-muted-foreground">
+              {selectedCategory === 'all' 
+                ? 'Showing all questions across categories'
+                : `Showing questions for ${categories.find(c => c.value === selectedCategory)?.label}`
+              }
+            </p>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-muted-foreground">Loading questions...</div>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Loading questions...</p>
               </div>
             ) : filteredQuestions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No questions found for the selected category.
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No questions found for this category.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredQuestions.map((question) => {
-                  const isExpanded = expandedQuestions.has(question.id);
-
-                  return (
-                    <Collapsible key={question.id} open={isExpanded} onOpenChange={() => toggleExpanded(question.id)}>
-                      <div className="border rounded-lg shadow-sm bg-card">
-                        <CollapsibleTrigger asChild>
-                          <div className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer bg-muted/30">
+                {filteredQuestions.map((question) => (
+                  <Collapsible
+                    key={question.id}
+                    open={expandedQuestions.has(question.id)}
+                    onOpenChange={() => toggleExpanded(question.id)}
+                  >
+                    <Card style={{ backgroundColor: 'var(--card)' }}>
+                      <CollapsibleTrigger asChild>
+                        <div className="p-4 cursor-pointer hover:bg-muted/20 transition-colors">
+                          <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              <span className="font-medium truncate text-foreground">
+                              {expandedQuestions.has(question.id) ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="text-foreground text-sm">
                                 {question.question.substring(0, 100)}
                                 {question.question.length > 100 && '...'}
                               </span>
@@ -424,53 +437,46 @@ export default function QuizQuestionsPage() {
                               </Button>
                             </div>
                           </div>
-                        </CollapsibleTrigger>
-                        
-                        <CollapsibleContent>
-                          <div className="p-4 border-t space-y-4 bg-card">
-                            <div>
-                              <h4 className="font-medium text-foreground mb-2">Question:</h4>
-                              <p className="font-medium p-3 rounded bg-muted text-foreground">
-                                {question.question}
-                              </p>
-                            </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent>
+                        <div className="px-4 pb-4 border-t border-border">
+                          <div className="mt-4">
+                            <h4 className="font-medium text-foreground mb-2">Question:</h4>
+                            <p className="text-muted-foreground mb-4">{question.question}</p>
                             
-                            <div>
-                              <h4 className="font-medium text-foreground mb-2">Answer Options:</h4>
-                              <div className="space-y-2">
-                                {question.options.map((option, index) => (
-                                  <div
-                                    key={index}
-                                    className={`p-3 rounded border ${
-                                      index === question.correctAnswer
-                                        ? 'bg-green-100 border-green-300 text-green-900'
-                                        : 'bg-muted border-border text-foreground'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium">
-                                        {String.fromCharCode(65 + index)}.
-                                      </span>
-                                      <span>{option}</span>
-                                      {index === question.correctAnswer && (
-                                        <CheckCircle className="h-4 w-4 text-green-600 ml-auto" />
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span>Difficulty: <strong>{question.difficulty}</strong></span>
-                              <span>Category: <strong>{question.category}</strong></span>
+                            <h4 className="font-medium text-foreground mb-2">Answer Options:</h4>
+                            <div className="space-y-2">
+                              {question.options.map((option, index) => (
+                                <div 
+                                  key={index} 
+                                  className={`flex items-center gap-2 p-2 rounded ${
+                                    index === question.correctAnswer 
+                                      ? 'bg-green-50 border border-green-200' 
+                                      : 'bg-background/50'
+                                  }`}
+                                >
+                                  {index === question.correctAnswer && (
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  )}
+                                  <span className="text-foreground">
+                                    {String.fromCharCode(65 + index)}. {option}
+                                  </span>
+                                  {index === question.correctAnswer && (
+                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-auto">
+                                      Correct
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        </CollapsibleContent>
-                      </div>
-                    </Collapsible>
-                  );
-                })}
+                        </div>
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
+                ))}
               </div>
             )}
           </CardContent>
