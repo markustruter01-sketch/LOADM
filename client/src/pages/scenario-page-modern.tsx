@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioQuestion } from "@shared/schema";
@@ -48,9 +48,17 @@ export default function ModernScenarioPage() {
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [studentName, setStudentName] = useState(user?.firstName || "");
+  const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState((user as any)?.squadron || "AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState("AMG");
+
+  // Auto-fill form data when user data is available
+  useEffect(() => {
+    if (user) {
+      setStudentName(user.firstName || "");
+      setSelectedSquadron((user as any)?.squadron || "AMG");
+    }
+  }, [user]);
   const [submissionType, setSubmissionType] = useState<"training" | "assessment">("assessment");
   const [score, setScore] = useState(0);
 

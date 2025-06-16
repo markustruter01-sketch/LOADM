@@ -146,6 +146,7 @@ export async function authenticateUser(email: string, password: string) {
       lastName: user.last_name || user.lastName || '',
       role: user.user_role || user.role || 'loadmaster',
       squadron: squadronData?.squadron || 'AMG',
+      category: squadronData?.category || 'D',
       isFirstLogin: user.is_first_login
     };
   } catch (error) {

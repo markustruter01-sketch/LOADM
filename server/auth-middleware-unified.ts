@@ -6,17 +6,13 @@ export function unifiedAuthMiddleware(req: any, res: Response, next: NextFunctio
   const sessionId = req.cookies?.isolated_session;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
-    req.isAuthenticated = false;
-    req.user = null;
-    return next();
+    return res.status(401).json({ error: 'Authentication required' });
   }
   
   const session = authCore.getIsolatedSession(sessionId);
   
   if (!session) {
-    req.isAuthenticated = false;
-    req.user = null;
-    return next();
+    return res.status(401).json({ error: 'Invalid session' });
   }
   
   // Handle hardcoded superadmin case - map to actual database user
@@ -29,7 +25,9 @@ export function unifiedAuthMiddleware(req: any, res: Response, next: NextFunctio
   req.user = {
     id: userId,
     email: session.email,
-    role: session.role
+    role: session.role,
+    squadron: (session as any).squadron || 'AMG',
+    category: (session as any).category || 'D'
   };
   
   next();

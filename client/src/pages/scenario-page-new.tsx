@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioQuestion } from "@shared/schema";
@@ -48,9 +48,17 @@ export default function ScenarioPage() {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
-  const [studentName, setStudentName] = useState(user?.firstName || "");
+  const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState<string>((user as any)?.squadron || "AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
+
+  // Auto-fill form data when user data is available
+  useEffect(() => {
+    if (user) {
+      setStudentName(user.firstName || "");
+      setSelectedSquadron((user as any)?.squadron || "AMG");
+    }
+  }, [user]);
   const [showSquadronDialog, setShowSquadronDialog] = useState(false);
   
   const scenarioId = parseInt(id);

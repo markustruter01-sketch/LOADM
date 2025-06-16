@@ -339,7 +339,7 @@ app.get("/api/user/activity-history", unifiedAuthMiddleware, async (req: any, re
         'quiz' as type
       FROM quiz_submissions q
       JOIN quizzes qz ON q.quiz_id = qz.id
-      WHERE q.user_id = ${actualUserId}
+      WHERE q.user_id = ${req.user.id}
       
       ORDER BY date DESC
       LIMIT 50
