@@ -1,21 +1,112 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet';
 import { Link } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ChevronDown, ChevronRight, ArrowLeft, CheckCircle, Plus, Edit, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import type { QuizQuestion } from '@shared/quiz-questions';
 
 export default function QuizQuestionsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | null>(null);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: questions = [], isLoading } = useQuery<QuizQuestion[]>({
     queryKey: ['/api/quiz-questions', selectedCategory],
     enabled: true,
+  });
+
+  // Mutations for CRUD operations
+  const createQuestionMutation = useMutation({
+    mutationFn: async (questionData: Omit<QuizQuestion, 'id'>) => {
+      const response = await fetch('/api/quiz-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(questionData),
+      });
+      if (!response.ok) throw new Error('Failed to create question');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quiz-questions'] });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Question created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to create question: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateQuestionMutation = useMutation({
+    mutationFn: async (questionData: QuizQuestion) => {
+      const response = await fetch(`/api/quiz-questions/${questionData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(questionData),
+      });
+      if (!response.ok) throw new Error('Failed to update question');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quiz-questions'] });
+      setEditingQuestion(null);
+      toast({
+        title: "Success",
+        description: "Question updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update question: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: string) => {
+      const response = await fetch(`/api/quiz-questions/${questionId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete question');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quiz-questions'] });
+      toast({
+        title: "Success",
+        description: "Question deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete question: ${error.message}`,
+        variant: "destructive",
+      });
+    },
   });
 
   useEffect(() => {
@@ -66,17 +157,35 @@ export default function QuizQuestionsPage() {
 
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/instructors-portal">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Portal
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quiz Questions Management</h1>
-            <p className="text-gray-600">Review and manage quiz questions by category</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Link href="/instructors-portal">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Portal
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Quiz Questions Management</h1>
+              <p className="text-muted-foreground">Review and manage quiz questions by category</p>
+            </div>
           </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Question
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add New Quiz Question</DialogTitle>
+              </DialogHeader>
+              <div className="text-center py-8 text-muted-foreground">
+                Question form coming soon...
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Filter Section */}
