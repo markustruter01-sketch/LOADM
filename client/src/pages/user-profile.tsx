@@ -831,7 +831,7 @@ export default function UserProfile() {
           </Card>
 
           {/* Role-specific Information */}
-          {(userInfo.role || user.role) === 'superadmin' && (
+          {(userInfo.role || user?.role) === 'superadmin' && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-purple-600">Super Administrator Access</CardTitle>
