@@ -399,7 +399,7 @@ app.get("/api/user/activity-history", async (req, res) => {
       
       SELECT 
         q.id,
-        q.submitted_at as date,
+        q.created_at as date,
         q.score,
         q.passed,
         'completed' as status,
