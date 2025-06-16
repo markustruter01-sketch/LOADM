@@ -120,6 +120,12 @@ LOADMworkflow is a comprehensive military logistics training and management plat
 ## Changelog
 
 - June 16, 2025. Initial setup
+- June 16, 2025. Fixed comprehensive squadron management system:
+  - Resolved authentication middleware blocking frontend from loading
+  - Standardized squadron auto-fill functionality in submission forms
+  - Added missing submission viewing API route
+  - Unified authentication middleware across all endpoints
+  - Squadron values standardized (33SQN, 35SQN, 36SQN, 37SQN, AMG)
 
 ## User Preferences
 
