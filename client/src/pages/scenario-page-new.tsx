@@ -50,7 +50,7 @@ export default function ScenarioPage() {
   const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
   const [studentName, setStudentName] = useState(user?.firstName || "");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState<string>(user?.squadron || "AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>((user as any)?.squadron || "AMG");
   const [showSquadronDialog, setShowSquadronDialog] = useState(false);
   
   const scenarioId = parseInt(id);

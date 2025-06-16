@@ -50,7 +50,7 @@ export default function ModernScenarioPage() {
   const [showResults, setShowResults] = useState(false);
   const [studentName, setStudentName] = useState(user?.firstName || "");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState(user?.squadron || "AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState((user as any)?.squadron || "AMG");
   const [submissionType, setSubmissionType] = useState<"training" | "assessment">("assessment");
   const [score, setScore] = useState(0);
 
@@ -383,10 +383,11 @@ export default function ModernScenarioPage() {
                   <SelectValue placeholder="Select your squadron" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="33">33 Squadron</SelectItem>
-                  <SelectItem value="35">35 Squadron</SelectItem>
-                  <SelectItem value="36">36 Squadron</SelectItem>
-                  <SelectItem value="37">37 Squadron</SelectItem>
+                  <SelectItem value="33SQN">33 Squadron</SelectItem>
+                  <SelectItem value="35SQN">35 Squadron</SelectItem>
+                  <SelectItem value="36SQN">36 Squadron</SelectItem>
+                  <SelectItem value="37SQN">37 Squadron</SelectItem>
+                  <SelectItem value="AMG">AMG</SelectItem>
                 </SelectContent>
               </Select>
             </div>
