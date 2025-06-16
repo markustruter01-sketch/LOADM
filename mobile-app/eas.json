@@ -1,23 +1,9 @@
 {
-  "cli": {
-    "version": ">= 5.0.0"
-  },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal"
-    },
     "production": {
       "ios": {
-        "distribution": "store",
-        "bundleIdentifier": "com.loadmworkflow.training"
+        "distribution": "store"
       }
     }
-  },
-  "submit": {
-    "production": {}
   }
 }
