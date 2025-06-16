@@ -94,7 +94,26 @@ export default function SubmissionReview() {
     enabled: !!submission?.scenarioId,
   });
   
-  const questions = scenario?.questions as ScenarioQuestion[] || [];
+  // Parse questions from scenario - handle both JSON string and array formats
+  let questions: ScenarioQuestion[] = [];
+  
+  if (scenario?.questions) {
+    if (typeof scenario.questions === 'string') {
+      try {
+        questions = JSON.parse(scenario.questions);
+      } catch (e) {
+        console.error('Failed to parse scenario questions:', e);
+        questions = [];
+      }
+    } else if (Array.isArray(scenario.questions)) {
+      questions = scenario.questions as ScenarioQuestion[];
+    }
+  }
+  
+  console.log('🎯 SCENARIO DEBUG: Raw scenario data:', scenario);
+  console.log('🎯 SCENARIO DEBUG: scenario.questions:', scenario?.questions);
+  console.log('🎯 SCENARIO DEBUG: parsed questions array length:', questions.length);
+  console.log('🎯 SCENARIO DEBUG: typeof scenario.questions:', typeof scenario?.questions);
   
   // Parse answers from submission - new improved approach
   const answers: AnswerResponse[] = [];
