@@ -151,29 +151,25 @@ export default function QuizQuestionsPage() {
                         </CollapsibleTrigger>
                         
                         <CollapsibleContent>
-                          <div className="p-4 border-t space-y-4" style={{ backgroundColor: '#f8fafc' }}>
+                          <div className="p-4 border-t space-y-4 bg-card">
                             <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Question:</h4>
-                              <p 
-                                className="font-medium p-3 rounded" 
-                                style={{ backgroundColor: '#e2e8f0', color: '#111827' }}
-                              >
+                              <h4 className="font-medium text-foreground mb-2">Question:</h4>
+                              <p className="font-medium p-3 rounded bg-muted text-foreground">
                                 {question.question}
                               </p>
                             </div>
                             
                             <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Answer Options:</h4>
+                              <h4 className="font-medium text-foreground mb-2">Answer Options:</h4>
                               <div className="space-y-2">
                                 {question.options.map((option, index) => (
                                   <div
                                     key={index}
-                                    className="p-3 rounded border"
-                                    style={{
-                                      backgroundColor: index === question.correctAnswer ? '#dcfce7' : '#e2e8f0',
-                                      borderColor: index === question.correctAnswer ? '#86efac' : '#cbd5e1',
-                                      color: '#111827'
-                                    }}
+                                    className={`p-3 rounded border ${
+                                      index === question.correctAnswer
+                                        ? 'bg-green-100 border-green-300 text-green-900'
+                                        : 'bg-muted border-border text-foreground'
+                                    }`}
                                   >
                                     <div className="flex items-center gap-2">
                                       <span className="font-medium">
@@ -189,7 +185,7 @@ export default function QuizQuestionsPage() {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span>Difficulty: <strong>{question.difficulty}</strong></span>
                               <span>Category: <strong>{question.category}</strong></span>
                             </div>
