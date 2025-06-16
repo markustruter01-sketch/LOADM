@@ -3,7 +3,6 @@ import Logo from "./Logo";
 import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
-import DownloadApp from "./DownloadApp";
 import SimpleLoginModal from "./SimpleLoginModal";
 import { useState } from "react";
 import {
@@ -41,7 +40,6 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center space-x-4">
-          <DownloadApp />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
