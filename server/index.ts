@@ -123,15 +123,21 @@ setInterval(async () => {
 }, 24 * 60 * 60 * 1000); // Run every 24 hours
 
 // User squadron management endpoints
-app.get("/api/user/squadron", unifiedAuthMiddleware, async (req: any, res) => {
+app.get("/api/user/squadron", async (req: any, res) => {
   console.log('✅ SQUADRON: GET request received');
+  console.log('✅ SQUADRON: User info:', req.user);
+  console.log('✅ SQUADRON: Is authenticated:', req.isAuthenticated);
+  
   try {
-    if (!req.user?.id) {
+    if (!req.isAuthenticated || !req.user?.id) {
+      console.log('✅ SQUADRON: Authentication failed');
       return res.status(401).json({ error: 'Authentication required' });
     }
     
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
+    
+    console.log('✅ SQUADRON: Querying for user ID:', req.user.id);
     
     const result = await sql`
       SELECT l.squadron 
@@ -140,7 +146,12 @@ app.get("/api/user/squadron", unifiedAuthMiddleware, async (req: any, res) => {
       WHERE u.id = ${req.user.id}
     `;
     
-    res.json({ squadron: result[0]?.squadron || null });
+    console.log('✅ SQUADRON: Query result:', result);
+    
+    const squadron = result[0]?.squadron || null;
+    console.log('✅ SQUADRON: Returning squadron:', squadron);
+    
+    res.json({ squadron });
   } catch (error) {
     console.error('Error fetching user squadron:', error);
     res.status(500).json({ error: "Failed to fetch squadron information" });
