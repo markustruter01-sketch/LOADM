@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuthStatus = async () => {
-    console.log('🔥 NUCLEAR CLIENT: Checking auth status...');
+
     try {
       const response = await fetch('/api/user', {
         credentials: 'include'

@@ -60,10 +60,8 @@ export function ChatSystem() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("WebSocket message received:", data);
       
       if (data.type === "new_message") {
-        console.log("New message received:", data.message);
         // Update the messages cache
         queryClient.setQueryData(["/api/chat-messages"], (oldMessages: ChatMessage[] = []) => {
           return [...oldMessages, data.message];
@@ -75,12 +73,11 @@ export function ChatSystem() {
       }
       
       if (data.type === "auth_success") {
-        console.log("Authentication successful");
+        // Authentication confirmed
       }
     };
 
     ws.onclose = () => {
-      console.log("WebSocket disconnected");
       setIsConnected(false);
     };
 
@@ -107,7 +104,7 @@ export function ChatSystem() {
 
   const sendMessage = () => {
     if (!socket || !content.trim() || !isConnected) {
-      console.log("Cannot send message:", { socket: !!socket, content: content.trim(), isConnected });
+
       return;
     }
 
@@ -124,7 +121,7 @@ export function ChatSystem() {
         content: content.trim()
       };
       
-      console.log("Sending message:", messageData);
+
       socket.send(JSON.stringify(messageData));
       setContent("");
     } catch (error) {
