@@ -152,9 +152,9 @@ export default function QuizQuestionsManagement() {
 
                   return (
                     <Collapsible key={question.id} open={isExpanded} onOpenChange={() => toggleExpanded(question.id)}>
-                      <div className="border rounded-lg bg-slate-50">
+                      <div className="border rounded-lg bg-slate-100 shadow-sm">
                         <CollapsibleTrigger asChild>
-                          <div className="flex items-center justify-between p-4 hover:bg-slate-200/50 cursor-pointer bg-slate-100">
+                          <div className="flex items-center justify-between p-4 hover:bg-slate-300/50 cursor-pointer bg-slate-200">
                             <div className="flex items-center gap-3">
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               <span className="font-medium truncate">
@@ -177,7 +177,7 @@ export default function QuizQuestionsManagement() {
                           <div className="p-4 border-t space-y-4 bg-slate-50">
                             <div>
                               <h4 className="font-medium text-gray-900 mb-2">Question:</h4>
-                              <p className="text-gray-900 bg-slate-100 p-3 rounded">{question.question}</p>
+                              <p className="text-gray-900 bg-slate-200 p-3 rounded">{question.question}</p>
                             </div>
                             
                             <div>
@@ -188,8 +188,8 @@ export default function QuizQuestionsManagement() {
                                     key={index}
                                     className={`p-3 rounded border ${
                                       index === question.correctAnswer
-                                        ? 'bg-green-50 border-green-200 text-green-900'
-                                        : 'bg-slate-100 border-slate-200 text-gray-700'
+                                        ? 'bg-green-100 border-green-300 text-green-900'
+                                        : 'bg-slate-200 border-slate-300 text-gray-900'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
