@@ -27,6 +27,10 @@ export default function UserProfile() {
     newPassword: '',
     confirmPassword: ''
   });
+  
+  // State for submission detail popup - moved to top to fix hooks order
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [showSubmissionDetail, setShowSubmissionDetail] = useState(false);
 
   // Fetch user profile data including submissions and progress
   const { data: profileData, isLoading } = useQuery({
@@ -193,30 +197,6 @@ export default function UserProfile() {
     });
   };
 
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Please log in to view your profile.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Loading profile data...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'superadmin':
@@ -240,6 +220,31 @@ export default function UserProfile() {
         return 'User';
     }
   };
+
+  // Handle loading and authentication states without early returns
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">Please log in to view your profile.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">Loading profile data...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Extract data from profileData or use defaults
   const userInfo = (profileData as any)?.user || user;
@@ -276,10 +281,6 @@ export default function UserProfile() {
     thisWeekActivity: 0,
     achievements: {}
   };
-  
-  // State for submission detail popup
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-  const [showSubmissionDetail, setShowSubmissionDetail] = useState(false);
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -444,8 +445,8 @@ export default function UserProfile() {
                     <Shield className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Role:</span>
                   </div>
-                  <Badge className={getRoleBadgeColor(userInfo.role || user.role)}>
-                    {getRoleDisplayName(userInfo.role || user.role)}
+                  <Badge className={getRoleBadgeColor(userInfo.role || user?.role || 'student')}>
+                    {getRoleDisplayName(userInfo.role || user?.role || 'student')}
                   </Badge>
                 </div>
 
