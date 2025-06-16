@@ -183,8 +183,7 @@ router.put('/:id', requireInstructor, async (req: any, res: any) => {
         is_active = ${isActive !== false},
         expires_at = ${expiresAt ? new Date(expiresAt) : null},
         time_limit = ${timeLimit || null},
-        passing_threshold = ${passingThreshold || 70},
-        updated_at = NOW()
+        passing_threshold = ${passingThreshold || 70}
       WHERE id = ${id}
       RETURNING *
     `;

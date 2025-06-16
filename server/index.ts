@@ -357,6 +357,69 @@ app.get("/api/profile", async (req, res) => {
   }
 });
 
+// User activity history endpoint
+app.get("/api/user/activity-history", async (req, res) => {
+  console.log('✅ ACTIVITY: GET request received');
+  try {
+    const sessionId = (req as any).cookies?.isolated_session;
+    
+    if (!sessionId || !sessionId.startsWith('isolated_')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const session = authCore.getIsolatedSession(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    // Handle hardcoded superadmin case
+    let actualUserId = session.userId;
+    if (session.userId === 1 && session.email === 'markustruter01@gmail.com') {
+      actualUserId = 9;
+    }
+    
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    
+    // Get user activity history from multiple sources
+    const activities = await sql`
+      SELECT 
+        s.id,
+        s.submission_date as date,
+        s.score,
+        s.passed,
+        s.status,
+        sc.title,
+        'scenario' as type
+      FROM scenario_submissions s
+      JOIN scenarios sc ON s.scenario_id = sc.id
+      WHERE s.user_id = ${actualUserId}
+      
+      UNION ALL
+      
+      SELECT 
+        q.id,
+        q.submitted_at as date,
+        q.score,
+        q.passed,
+        'completed' as status,
+        qz.title,
+        'quiz' as type
+      FROM quiz_submissions q
+      JOIN quizzes qz ON q.quiz_id = qz.id
+      WHERE q.user_id = ${actualUserId}
+      
+      ORDER BY date DESC
+      LIMIT 50
+    `;
+    
+    res.json(activities);
+  } catch (error) {
+    console.error('Error fetching activity history:', error);
+    res.status(500).json({ error: "Failed to fetch activity history" });
+  }
+});
+
 app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req, res) => {
   console.log('✅ WORKFORCE: GET user submissions request received');
   console.log('✅ WORKFORCE: User ID:', req.params.userId);
