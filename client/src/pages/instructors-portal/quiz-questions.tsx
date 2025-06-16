@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { QuizQuestion } from "@shared/schema";
+import { QuizQuestion as DBQuizQuestion } from "@shared/schema";
+import { QuizQuestion as SharedQuizQuestion } from "@shared/quiz-questions";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -413,8 +414,8 @@ export default function QuizQuestionsManagement() {
                             <div className="flex items-center gap-3">
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               <span className="font-medium truncate">
-                                {question.questionText.substring(0, 100)}
-                                {question.questionText.length > 100 && '...'}
+                                {question.question?.substring(0, 100) || question.questionText?.substring(0, 100) || 'No question text'}
+                                {(question.question && question.question.length > 100) || (question.questionText && question.questionText.length > 100) ? '...' : ''}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -433,8 +434,8 @@ export default function QuizQuestionsManagement() {
                                   <Label htmlFor={`edit-question-${question.id}`}>Question</Label>
                                   <Textarea
                                     id={`edit-question-${question.id}`}
-                                    value={editingQuestion.questionText}
-                                    onChange={(e) => updateEditingQuestion(question.id, 'questionText', e.target.value)}
+                                    value={editingQuestion.question || editingQuestion.questionText}
+                                    onChange={(e) => updateEditingQuestion(question.id, 'question', e.target.value)}
                                     rows={3}
                                     className="text-white bg-gray-800 border-gray-600"
                                   />
