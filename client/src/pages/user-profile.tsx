@@ -498,7 +498,7 @@ export default function UserProfile() {
               <CardDescription>Your progress across different aircraft types</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {trainingModules.map((module) => (
+              {trainingModules.map((module: any) => (
                 <div key={module.id} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -651,7 +651,7 @@ export default function UserProfile() {
                         </div>
                       ))}
                       
-                      {(!processedActivityData || processedActivityData.length === 0) && submissions.length === 0 && (
+                      {(!processedActivityData || processedActivityData.length === 0) && (!submissions || submissions.length === 0) && (
                         <p className="text-sm text-muted-foreground text-center py-8">
                           No submissions yet. Start training to see your progress here!
                         </p>
@@ -662,7 +662,14 @@ export default function UserProfile() {
 
                 <TabsContent value="scenarios" className="space-y-4 mt-4">
                   {submissionsByType.scenarios.slice(0, 10).map((submission: any) => (
-                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div 
+                      key={submission.id} 
+                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        setSelectedSubmission(submission);
+                        setShowSubmissionDetail(true);
+                      }}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           submission.passed === true ? 'bg-green-500' : 
@@ -671,12 +678,12 @@ export default function UserProfile() {
                         <div>
                           <p className="text-sm font-medium">{submission.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(submission.submissionDate).toLocaleDateString()}
+                            {submission.date}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {submission.score > 0 && (
+                        {submission.score && (
                           <span className="text-sm font-medium">{submission.score}%</span>
                         )}
                         <Badge variant={
@@ -698,7 +705,14 @@ export default function UserProfile() {
 
                 <TabsContent value="quizzes" className="space-y-4 mt-4">
                   {submissionsByType.quizzes.slice(0, 10).map((submission: any) => (
-                    <div key={submission.id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div 
+                      key={submission.id} 
+                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => {
+                        setSelectedSubmission(submission);
+                        setShowSubmissionDetail(true);
+                      }}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           submission.passed === true ? 'bg-green-500' : 
@@ -707,12 +721,12 @@ export default function UserProfile() {
                         <div>
                           <p className="text-sm font-medium">{submission.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(submission.submissionDate).toLocaleDateString()}
+                            {submission.date}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {submission.score > 0 && (
+                        {submission.score && (
                           <span className="text-sm font-medium">{submission.score}%</span>
                         )}
                         <Badge variant={
@@ -1035,6 +1049,125 @@ export default function UserProfile() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Submission Detail Popup */}
+      <Dialog open={showSubmissionDetail} onOpenChange={setShowSubmissionDetail}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Submission Details</DialogTitle>
+          </DialogHeader>
+          {selectedSubmission && (
+            <div className="space-y-6">
+              {/* Header Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-medium text-lg">{selectedSubmission.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Submitted on {selectedSubmission.date}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center justify-end space-x-2 mb-2">
+                    {selectedSubmission.score && (
+                      <span className="text-2xl font-bold">{selectedSubmission.score}%</span>
+                    )}
+                    <Badge variant={
+                      selectedSubmission.passed === true ? 'default' : 
+                      selectedSubmission.passed === false ? 'destructive' : 'secondary'
+                    }>
+                      {selectedSubmission.passed === true ? 'PASS' : 
+                       selectedSubmission.passed === false ? 'FAIL' : 'PENDING'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Type: {selectedSubmission.type === 'quiz' ? 'Quiz' : 'Scenario'}
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Performance Summary */}
+              {selectedSubmission.score && (
+                <div className="space-y-4">
+                  <h4 className="font-medium">Performance Summary</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {Math.round((selectedSubmission.score / 100) * 10)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Questions Correct</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-red-600">
+                          {10 - Math.round((selectedSubmission.score / 100) * 10)}
+                        </div>
+                        <p className="text-xs text-muted-foreground">Questions Incorrect</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4 text-center">
+                        <div className={`text-2xl font-bold ${
+                          selectedSubmission.passed ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {selectedSubmission.passed ? '✓' : '✗'}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {selectedSubmission.passed ? 'Passed' : 'Failed'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              )}
+
+              {/* Instructor Feedback Section */}
+              <div className="space-y-4">
+                <h4 className="font-medium">Instructor Feedback</h4>
+                {selectedSubmission.instructorFeedback ? (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm">{selectedSubmission.instructorFeedback}</p>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      {selectedSubmission.status === 'pending' 
+                        ? 'Waiting for instructor review and feedback.'
+                        : 'No instructor feedback provided for this submission.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional Details */}
+              <div className="space-y-4">
+                <h4 className="font-medium">Additional Information</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Status:</span>
+                    <span className="ml-2">{selectedSubmission.status || 'Completed'}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Type:</span>
+                    <span className="ml-2">
+                      {selectedSubmission.type === 'quiz' ? 'Quiz Assessment' : 'Scenario Training'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={() => setShowSubmissionDetail(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
