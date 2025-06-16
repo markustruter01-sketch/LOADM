@@ -255,6 +255,28 @@ export default function QuizQuestionsPage() {
                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                 {question.category}
                               </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingQuestion(question);
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (confirm('Are you sure you want to delete this question?')) {
+                                    deleteQuestionMutation.mutate(question.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
                         </CollapsibleTrigger>

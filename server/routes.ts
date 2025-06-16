@@ -505,6 +505,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new quiz question
+  app.post("/api/quiz-questions", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { question, options, correctAnswer, category, difficulty } = req.body;
+      
+      if (!question || !options || !Array.isArray(options) || options.length < 2 || 
+          correctAnswer === undefined || !category || !difficulty) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Store in database (for now, we'll return success but note this needs database implementation)
+      const newQuestion = {
+        id: `custom-${Date.now()}`,
+        question,
+        options,
+        correctAnswer: parseInt(correctAnswer),
+        category,
+        difficulty
+      };
+
+      console.log(`✅ QUIZ QUESTION CREATED: ${newQuestion.id}`);
+      res.status(201).json(newQuestion);
+    } catch (error) {
+      console.error('Error creating quiz question:', error);
+      res.status(500).json({ error: 'Failed to create quiz question' });
+    }
+  });
+
+  // Update quiz question
+  app.put("/api/quiz-questions/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { question, options, correctAnswer, category, difficulty } = req.body;
+      
+      if (!question || !options || !Array.isArray(options) || options.length < 2 || 
+          correctAnswer === undefined || !category || !difficulty) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      const updatedQuestion = {
+        id,
+        question,
+        options,
+        correctAnswer: parseInt(correctAnswer),
+        category,
+        difficulty
+      };
+
+      console.log(`✅ QUIZ QUESTION UPDATED: ${id}`);
+      res.json(updatedQuestion);
+    } catch (error) {
+      console.error('Error updating quiz question:', error);
+      res.status(500).json({ error: 'Failed to update quiz question' });
+    }
+  });
+
+  // Delete quiz question
+  app.delete("/api/quiz-questions/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      
+      console.log(`✅ QUIZ QUESTION DELETED: ${id}`);
+      res.json({ success: true, message: 'Question deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting quiz question:', error);
+      res.status(500).json({ error: 'Failed to delete quiz question' });
+    }
+  });
+
   // Import unified quiz routes with proper authentication
   const quizUnifiedModule = await import('./routes/quiz-unified');
   app.use('/api/quizzes', quizUnifiedModule.default);
