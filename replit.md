@@ -126,6 +126,15 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Added missing submission viewing API route
   - Unified authentication middleware across all endpoints
   - Squadron values standardized (33SQN, 35SQN, 36SQN, 37SQN, AMG)
+- June 16, 2025. Enhanced quiz questions management system:
+  - Fixed quiz questions page crash by resolving component type mismatches
+  - Added 3 additional weight-balance questions (now 15 total)
+  - Fixed instructor feedback text color to black for better readability
+  - Updated badge colors: Pass = green, Fail = orange
+  - Increased activity history tabs to show 10 submissions per category
+  - Fixed dynamic status counters to calculate from real submission data
+  - Resolved duplicate key console error by fixing duplicate question ID "eh-7"
+  - Updated UI backgrounds to match app's consistent grey styling
 
 ## User Preferences
 

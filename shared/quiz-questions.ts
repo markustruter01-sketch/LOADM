@@ -1322,7 +1322,7 @@ export const loadmasterQuestions: QuizQuestion[] = [
     difficulty: "easy"
   },
   {
-    id: "eh-7",
+    id: "eh-13",
     question: "When securing rolling stock with chains, what is the proper way to attach the chain to the vehicle?",
     options: [
       "To any convenient structural member",

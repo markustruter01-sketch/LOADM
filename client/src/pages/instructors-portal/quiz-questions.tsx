@@ -177,7 +177,7 @@ export default function QuizQuestionsManagement() {
                           <div className="p-4 border-t space-y-4">
                             <div>
                               <h4 className="font-medium text-gray-900 mb-2">Question:</h4>
-                              <p className="text-gray-900 bg-gray-50 p-3 rounded">{question.question}</p>
+                              <p className="text-gray-900 bg-slate-100 p-3 rounded">{question.question}</p>
                             </div>
                             
                             <div>
