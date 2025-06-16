@@ -58,7 +58,7 @@ export default function QuizQuestionsPage() {
   };
 
   return (
-    <div className="min-h-screen p-4" style={{ backgroundColor: '#f1f5f9' }}>
+    <div className="min-h-screen bg-background p-4">
       <Helmet>
         <title>Quiz Questions Management - LOADMdocs</title>
         <meta name="description" content="Manage and review quiz questions for loadmaster training" />
@@ -80,16 +80,16 @@ export default function QuizQuestionsPage() {
         </div>
 
         {/* Filter Section */}
-        <Card className="mb-6" style={{ backgroundColor: '#e2e8f0' }}>
+        <Card className="mb-6 bg-card">
           <CardHeader>
-            <CardTitle className="text-gray-900">Filter Questions</CardTitle>
-            <p className="text-gray-600">Select a category to view specific questions</p>
+            <CardTitle className="text-foreground">Filter Questions</CardTitle>
+            <p className="text-muted-foreground">Select a category to view specific questions</p>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4">
               <div className="flex-1">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger style={{ backgroundColor: '#f8fafc' }}>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
@@ -106,20 +106,20 @@ export default function QuizQuestionsPage() {
         </Card>
 
         {/* Questions List */}
-        <Card style={{ backgroundColor: '#e2e8f0' }}>
+        <Card className="bg-card">
           <CardHeader>
-            <CardTitle className="text-gray-900">
+            <CardTitle className="text-foreground">
               Questions ({filteredQuestions.length})
             </CardTitle>
-            <p className="text-gray-600">All available quiz questions</p>
+            <p className="text-muted-foreground">All available quiz questions</p>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="text-gray-500">Loading questions...</div>
+                <div className="text-muted-foreground">Loading questions...</div>
               </div>
             ) : filteredQuestions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 No questions found for the selected category.
               </div>
             ) : (
@@ -129,15 +129,12 @@ export default function QuizQuestionsPage() {
 
                   return (
                     <Collapsible key={question.id} open={isExpanded} onOpenChange={() => toggleExpanded(question.id)}>
-                      <div className="border rounded-lg shadow-sm" style={{ backgroundColor: '#f8fafc' }}>
+                      <div className="border rounded-lg shadow-sm bg-card">
                         <CollapsibleTrigger asChild>
-                          <div 
-                            className="flex items-center justify-between p-4 hover:bg-slate-300/50 cursor-pointer"
-                            style={{ backgroundColor: '#e2e8f0' }}
-                          >
+                          <div className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer bg-muted/30">
                             <div className="flex items-center gap-3">
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              <span className="font-medium truncate text-gray-900">
+                              <span className="font-medium truncate text-foreground">
                                 {question.question.substring(0, 100)}
                                 {question.question.length > 100 && '...'}
                               </span>
