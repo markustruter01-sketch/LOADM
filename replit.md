@@ -148,6 +148,12 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Fixed syntax errors and maintained proper functionality
   - Preserved all critical features including authentication, quiz management, and analytics
   - Application is now deployment-ready with clean, professional code structure
+- June 16, 2025. Fixed PDF loading issues and enhanced scenario creation:
+  - Added static file serving configuration for PDF documents from attached_assets directory
+  - Fixed 404 errors when viewing PDF documents in Documents section
+  - Enhanced multiple choice question creation in scenarios with 4-option interface
+  - Added radio button selection for correct answers in multiple choice questions
+  - Improved PDF viewer component with better error handling and file path resolution
 
 ## User Preferences
 

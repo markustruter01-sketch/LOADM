@@ -81,7 +81,7 @@ export default function CreateScenario() {
           id: "q1",
           question: "",
           questionType: "free-text",
-          options: ["", ""],
+          options: ["", "", "", ""],
           correctAnswer: "",
         },
       ],
@@ -98,7 +98,7 @@ export default function CreateScenario() {
         id: `q${questions.length + 1}`,
         question: "",
         questionType: "free-text" as const,
-        options: ["", ""],
+        options: ["", "", "", ""],
         correctAnswer: "",
       },
     ]);
@@ -321,23 +321,55 @@ export default function CreateScenario() {
                   />
 
                   {form.watch(`questions.${qIndex}.questionType`) === "multiple-choice" && (
-                    <FormField
-                      control={form.control}
-                      name={`questions.${qIndex}.correctAnswer`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Correct Answer (Optional)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="Enter the correct answer"
-                              className="text-white font-medium"
+                    <div className="space-y-4">
+                      <FormLabel>Multiple Choice Options</FormLabel>
+                      <div className="space-y-3">
+                        {[0, 1, 2, 3].map((optionIndex) => (
+                          <div key={optionIndex} className="flex items-center gap-3">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                id={`q${qIndex}-option${optionIndex}`}
+                                name={`questions.${qIndex}.correctAnswer`}
+                                value={optionIndex.toString()}
+                                checked={form.watch(`questions.${qIndex}.correctAnswer`) === optionIndex.toString()}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    form.setValue(`questions.${qIndex}.correctAnswer`, optionIndex.toString());
+                                  }
+                                }}
+                                className="h-4 w-4"
+                              />
+                              <label 
+                                htmlFor={`q${qIndex}-option${optionIndex}`}
+                                className="text-sm font-medium text-foreground"
+                              >
+                                {String.fromCharCode(65 + optionIndex)}
+                              </label>
+                            </div>
+                            <FormField
+                              control={form.control}
+                              name={`questions.${qIndex}.options.${optionIndex}`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                                      className="text-white font-medium"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Select the radio button next to the correct answer option
+                      </p>
+                    </div>
                   )}
 
                   {form.watch(`questions.${qIndex}.questionType`) === "free-text" && (
