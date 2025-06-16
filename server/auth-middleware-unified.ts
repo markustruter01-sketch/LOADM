@@ -1,18 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authCore from './auth-isolated/auth-core';
 
-// Unified authentication middleware for all routes
+// Authentication middleware that adds user info to request if authenticated
 export function unifiedAuthMiddleware(req: any, res: Response, next: NextFunction) {
   const sessionId = req.cookies?.isolated_session;
   
+  // If no session, just continue without authentication (let specific routes handle auth requirements)
   if (!sessionId || !sessionId.startsWith('isolated_')) {
-    return res.status(401).json({ error: 'Authentication required' });
+    req.isAuthenticated = false;
+    req.user = null;
+    return next();
   }
   
   const session = authCore.getIsolatedSession(sessionId);
   
   if (!session) {
-    return res.status(401).json({ error: 'Invalid session' });
+    req.isAuthenticated = false;
+    req.user = null;
+    return next();
   }
   
   // Handle hardcoded superadmin case - map to actual database user

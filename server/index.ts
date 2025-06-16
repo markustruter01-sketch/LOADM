@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Add unified authentication middleware for all routes
+// Apply unified authentication middleware globally to add user info to all requests
 import { unifiedAuthMiddleware } from './auth-middleware-unified';
 app.use(unifiedAuthMiddleware);
 
@@ -700,13 +700,7 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
 registerRoutes(app).then(() => {
   console.log('✅ All routes registered successfully');
   
-  // Add specific API route protection middleware
-  app.use('/api/*', (req, res, next) => {
-    console.log('🔧 API ROUTE PROTECTION: Handling API request:', req.path);
-    // If we reach here, it means the API route wasn't handled by our Express routes
-    // This should not happen if routes are properly registered
-    res.status(404).json({ error: 'API endpoint not found' });
-  });
+  // API routes are already registered above - no catch-all needed
   
   // Only add Vite middleware after routes are registered
   app.use((req, res, next) => {
