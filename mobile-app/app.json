@@ -14,6 +14,11 @@
       "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"]
     },
     "description": "Military logistics training platform for comprehensive aircraft load planning and operational readiness simulation.",
-    "category": "Education"
+    "category": "Education",
+    "extra": {
+      "eas": {
+        "projectId": "3c8e41cc-de68-4a98-8910-2e0v97abcc7e"
+      }
+    }
   }
 }
