@@ -126,7 +126,7 @@ setInterval(async () => {
 app.get("/api/user/squadron", async (req, res) => {
   console.log('✅ SQUADRON: GET request received');
   try {
-    const sessionId = (req as any).cookies?.sessionId;
+    const sessionId = (req as any).cookies?.isolated_session;
     console.log('✅ SQUADRON: Session ID:', sessionId?.substring(0, 20) + '...');
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
@@ -165,7 +165,7 @@ app.put("/api/user/squadron", async (req, res) => {
   console.log('✅ SQUADRON: PUT request received');
   console.log('✅ SQUADRON: Request body:', req.body);
   try {
-    const sessionId = (req as any).cookies?.sessionId;
+    const sessionId = (req as any).cookies?.isolated_session;
     console.log('✅ SQUADRON: Session ID for PUT:', sessionId?.substring(0, 20) + '...');
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
@@ -222,7 +222,7 @@ app.put("/api/user/category", async (req, res) => {
   console.log('✅ CATEGORY: PUT request received');
   console.log('✅ CATEGORY: Request body:', req.body);
   try {
-    const sessionId = (req as any).cookies?.sessionId;
+    const sessionId = (req as any).cookies?.isolated_session;
     console.log('✅ CATEGORY: Session ID for PUT:', sessionId?.substring(0, 20) + '...');
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
@@ -279,7 +279,7 @@ app.put("/api/user/category", async (req, res) => {
 app.get("/api/profile", async (req, res) => {
   console.log('✅ PROFILE: GET request received');
   try {
-    const sessionId = (req as any).cookies?.sessionId;
+    const sessionId = (req as any).cookies?.isolated_session;
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -429,7 +429,7 @@ app.put("/api/auth/change-password", async (req, res) => {
   console.log('✅ PASSWORD: Cookies:', JSON.stringify((req as any).cookies, null, 2));
   try {
     const { currentPassword, newPassword } = req.body;
-    const sessionId = (req as any).cookies?.sessionId;
+    const sessionId = (req as any).cookies?.isolated_session;
     
     console.log('✅ PASSWORD: Extracted data - currentPassword length:', currentPassword?.length, 'newPassword length:', newPassword?.length);
     console.log('✅ PASSWORD: Session ID:', sessionId);
@@ -561,7 +561,7 @@ function requireInstructor(req: Request, res: Response, next: NextFunction) {
 app.get("/api/licenses/expired", async (req, res) => {
   console.log('🕒 LICENSE API: Get expired licenses request');
   try {
-    const sessionId = (req as any).cookies?.sessionId;
+    const sessionId = (req as any).cookies?.isolated_session;
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
       return res.status(401).json({ error: 'Authentication required' });
