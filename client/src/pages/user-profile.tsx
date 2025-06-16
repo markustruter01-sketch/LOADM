@@ -248,16 +248,6 @@ export default function UserProfile() {
 
   // Extract data from profileData or use defaults
   const userInfo = (profileData as any)?.user || user;
-  const stats = (profileData as any)?.stats || { 
-    totalSubmissions: 0, 
-    passedSubmissions: 0, 
-    failedSubmissions: 0, 
-    pendingGrading: 0, 
-    overallPassRate: 0, 
-    currentStreak: 0, 
-    longestStreak: 0, 
-    weeksSinceLastActivity: 0 
-  };
   const submissions = (profileData as any)?.submissions || [];
   
   // Process and categorize activity history data
@@ -272,6 +262,19 @@ export default function UserProfile() {
     scenarios: processedActivityData.filter((item: any) => item.type === 'scenario'),
     quizzes: processedActivityData.filter((item: any) => item.type === 'quiz'),
     assessments: processedActivityData.filter((item: any) => item.type === 'scenario' && item.status === 'reviewed')
+  };
+
+  // Calculate dynamic stats from actual submission data
+  const allSubmissions = [...processedActivityData, ...submissions];
+  const stats = {
+    totalSubmissions: allSubmissions.length,
+    passedSubmissions: allSubmissions.filter(item => item.passed === true).length,
+    failedSubmissions: allSubmissions.filter(item => item.passed === false).length,
+    pendingGrading: allSubmissions.filter(item => item.passed === null || item.passed === undefined || item.status === 'pending').length,
+    overallPassRate: allSubmissions.length > 0 ? Math.round((allSubmissions.filter(item => item.passed === true).length / allSubmissions.length) * 100) : 0,
+    currentStreak: (profileData as any)?.stats?.currentStreak || 0,
+    longestStreak: (profileData as any)?.stats?.longestStreak || 0,
+    weeksSinceLastActivity: (profileData as any)?.stats?.weeksSinceLastActivity || 0
   };
 
   const trainingModules = (profileData as any)?.trainingModules || [];
@@ -540,7 +543,7 @@ export default function UserProfile() {
                     <span>{stats.passedSubmissions} Passed</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <XCircle className="w-4 h-4 text-red-600" />
+                    <XCircle className="w-4 h-4 text-orange-600" />
                     <span>{stats.failedSubmissions} Failed</span>
                   </div>
                   <div className="flex items-center space-x-1">
@@ -570,7 +573,7 @@ export default function UserProfile() {
                     <>
                       {/* Display recent activity from processed data */}
                       {processedActivityData && processedActivityData.length > 0 ? (
-                        processedActivityData.slice(0, 5).map((activity: any) => (
+                        processedActivityData.slice(0, 10).map((activity: any) => (
                           <div 
                             key={`activity-${activity.id}`} 
                             className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
@@ -582,7 +585,7 @@ export default function UserProfile() {
                             <div className="flex items-center space-x-3">
                               <div className={`w-3 h-3 rounded-full ${
                                 activity.passed === true ? 'bg-green-500' : 
-                                activity.passed === false ? 'bg-red-500' : 
+                                activity.passed === false ? 'bg-orange-500' : 
                                 activity.type === 'quiz' ? 'bg-blue-500' : 'bg-yellow-500'
                               }`} />
                               <div>
@@ -604,9 +607,10 @@ export default function UserProfile() {
                               {activity.score && (
                                 <span className="text-sm font-medium">{activity.score}%</span>
                               )}
-                              <Badge variant={
-                                activity.passed === true ? 'default' : 
-                                activity.passed === false ? 'destructive' : 'secondary'
+                              <Badge className={
+                                activity.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
+                                activity.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
+                                'bg-yellow-600 text-white hover:bg-yellow-700'
                               }>
                                 {activity.status === 'completed' ? 'Completed' :
                                  activity.passed === true ? 'Pass' : 
