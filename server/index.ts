@@ -533,7 +533,7 @@ import { licenses, users } from '../shared/schema';
 
 // Authentication middleware for workforce routes
 function requireInstructor(req: Request, res: Response, next: NextFunction) {
-  const sessionId = (req as any).cookies?.sessionId;
+  const sessionId = (req as any).cookies?.isolated_session;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
     return res.status(401).json({ error: 'Authentication required' });

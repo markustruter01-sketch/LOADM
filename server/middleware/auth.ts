@@ -12,9 +12,9 @@ export interface AuthenticatedRequest extends Request {
 
 // Main authentication middleware
 export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const sessionId = req.cookies?.sessionId;
+  const sessionId = req.cookies?.isolated_session;
   
-  console.log('🔧 AUTH MIDDLEWARE: Session ID received:', sessionId?.substring(0, 20) + '...');
+  console.log('🔧 AUTH MIDDLEWARE: Session ID received:', sessionId ? sessionId.substring(0, 20) + '...' : 'undefined');
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
     console.log('🔧 AUTH MIDDLEWARE: No valid session ID found');

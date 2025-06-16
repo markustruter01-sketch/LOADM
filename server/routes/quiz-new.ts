@@ -14,7 +14,7 @@ interface AuthenticatedRequest extends Request {
 
 // Simple authentication middleware using the current isolated auth system
 function requireAuth(req: AuthenticatedRequest, res: Response, next: any) {
-  const sessionId = req.cookies?.sessionId;
+  const sessionId = req.cookies?.isolated_session;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
     return res.status(401).json({ error: 'Authentication required' });

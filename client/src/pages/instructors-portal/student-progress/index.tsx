@@ -59,7 +59,7 @@ export default function StudentProgress() {
       
       // Scenario filter
       if (scenarioFilter !== "all") {
-        if ((submission.scenario_id || submission.scenarioId) !== scenarioFilter) return false;
+        if (submission.scenarioId !== scenarioFilter) return false;
       }
       
       // Search term filter (search in student name, ID, or email)
@@ -97,8 +97,8 @@ export default function StudentProgress() {
       }
       
       // Within same priority group: Sort by submission date (newest first)
-      const aDate = new Date(a.submissionDate || a.createdAt || 0).getTime();
-      const bDate = new Date(b.submissionDate || b.createdAt || 0).getTime();
+      const aDate = new Date(a.submissionDate || 0).getTime();
+      const bDate = new Date(b.submissionDate || 0).getTime();
       return bDate - aDate;
     });
   }

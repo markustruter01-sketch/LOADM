@@ -156,7 +156,7 @@ export async function authenticateUser(email: string, password: string) {
 }
 
 export function requireIsolatedAuth(req: any, res: any, next: any) {
-  const sessionId = req.cookies?.sessionId;
+  const sessionId = req.cookies?.isolated_session;
   
   if (!sessionId || !sessionId.startsWith('isolated_')) {
     return res.status(401).json({ error: 'Authentication required' });
