@@ -78,6 +78,29 @@ export default function StudentProgress() {
       
       return true;
     });
+
+    // Sort submissions: Unreviewed first (highest priority), then by submission date (newest first)
+    filteredSubmissions = filteredSubmissions.sort((a, b) => {
+      // Create numeric priorities for absolute sorting
+      const getPriority = (submission: ScenarioSubmission) => {
+        if (submission.status === "pending" || submission.status === "submitted") return 0; // Highest priority - needs review
+        if (submission.status === "reviewed") return 1; // Lower priority - already reviewed
+        return 2; // Any other status
+      };
+      
+      const aPriority = getPriority(a);
+      const bPriority = getPriority(b);
+      
+      // First sort by priority
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      
+      // Within same priority group: Sort by submission date (newest first)
+      const aDate = new Date(a.submissionDate || a.createdAt || 0).getTime();
+      const bDate = new Date(b.submissionDate || b.createdAt || 0).getTime();
+      return bDate - aDate;
+    });
   }
   
   // Log the raw data to help debugging

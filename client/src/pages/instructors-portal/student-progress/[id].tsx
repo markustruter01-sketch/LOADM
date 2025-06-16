@@ -273,13 +273,21 @@ export default function SubmissionReview() {
   
   // Calculate current score and make it reactive to changes in real-time
   const correctAnswers = useMemo(() => {
-    return Object.values(markedAnswers).filter(Boolean).length || 0;
+    console.log('🎯 SCORE DEBUG: markedAnswers object:', markedAnswers);
+    console.log('🎯 SCORE DEBUG: Object.keys(markedAnswers):', Object.keys(markedAnswers));
+    console.log('🎯 SCORE DEBUG: Object.values(markedAnswers):', Object.values(markedAnswers));
+    const correct = Object.values(markedAnswers).filter(value => value === true).length;
+    console.log('🎯 SCORE DEBUG: Calculated correct answers:', correct);
+    return correct;
   }, [markedAnswers]);
   
   const totalQuestions = questions.length || 0;
+  console.log('🎯 SCORE DEBUG: Total questions:', totalQuestions);
   
   const currentScore = useMemo(() => {
-    return totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    console.log('🎯 SCORE DEBUG: Calculated score:', score, 'from', correctAnswers, 'correct out of', totalQuestions);
+    return score;
   }, [correctAnswers, totalQuestions]);
   
   // Score calculation is now reactive to marking changes
