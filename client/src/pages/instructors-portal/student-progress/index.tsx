@@ -265,22 +265,18 @@ export default function StudentProgress() {
                                 </div>
                                 <div>
                                   <div className="font-medium">
-                                    {submission.first_name && submission.last_name 
-                                      ? `${submission.first_name} ${submission.last_name}`
-                                      : submission.studentName || submission.email || `User ${submission.userId || submission.user_id}`
-                                    }
+                                    {submission.studentName || `User ${submission.userId}`}
                                   </div>
                                   <div className="text-sm text-muted-foreground">
-                                    {submission.email && `${submission.email} • `}
-                                    ID: {submission.studentId || submission.userId || submission.user_id}
+                                    ID: {submission.studentId || submission.userId}
                                   </div>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>{submission.scenario_title || scenario?.title || `Scenario #${submission.scenario_id || submission.scenarioId}`}</TableCell>
+                            <TableCell>{scenario?.title || `Scenario #${submission.scenarioId}`}</TableCell>
                             <TableCell>
-                              {submission.submission_date || submission.submissionDate ? (
-                                format(new Date(submission.submission_date || submission.submissionDate), 'MMM d, yyyy')
+                              {submission.submissionDate ? (
+                                format(new Date(submission.submissionDate), 'MMM d, yyyy')
                               ) : 'Unknown date'}
                             </TableCell>
                             <TableCell>
