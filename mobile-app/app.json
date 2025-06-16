@@ -1,68 +1,19 @@
 {
   "expo": {
     "name": "LOADMworkflow",
-    "slug": "loadmworkflow-mobile",
+    "slug": "loadmworkflow-training",
     "version": "1.0.0",
     "orientation": "landscape",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "userInterfaceStyle": "dark",
+    "platforms": ["ios"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.digitaldynamics.loadmworkflow",
+      "bundleIdentifier": "com.loadmworkflow.training",
       "buildNumber": "1",
       "requireFullScreen": true,
-      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"],
-      "infoPlist": {
-        "UIRequiredDeviceCapabilities": ["arm64"],
-        "UISupportedInterfaceOrientations~ipad": [
-          "UIInterfaceOrientationLandscapeLeft",
-          "UIInterfaceOrientationLandscapeRight"
-        ],
-        "UIRequiresFullScreen": true,
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": false,
-          "NSExceptionDomains": {
-            "replit.dev": {
-              "NSExceptionAllowsInsecureHTTPLoads": true,
-              "NSExceptionMinimumTLSVersion": "TLSv1.0"
-            }
-          }
-        },
-        "ITSAppUsesNonExemptEncryption": false
-      },
-      "config": {
-        "usesNonExemptEncryption": false
-      }
+      "supportedInterfaceOrientations": ["landscapeLeft", "landscapeRight"]
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      },
-      "package": "com.digitaldynamics.loadmworkflow",
-      "versionCode": 1
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "loadmworkflow-mobile"
-      }
-    },
-    "owner": "digitaldynamics",
-    "privacy": "public",
-    "platforms": ["ios"],
-    "description": "Military logistics training platform for comprehensive aircraft load planning and operational readiness simulation. Designed for loadmaster operations with complete offline functionality.",
-    "keywords": ["military", "logistics", "aviation", "training", "education", "loadmaster", "aircraft"],
+    "description": "Military logistics training platform for comprehensive aircraft load planning and operational readiness simulation.",
     "category": "Education"
   }
 }
