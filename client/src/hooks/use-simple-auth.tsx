@@ -28,14 +28,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await fetch('/api/user', { credentials: 'include' });
       if (response.ok) {
         const userData = await response.json();
-        console.log('Authentication check found user:', userData);
+
         setUser(userData);
       } else {
-        console.log('Authentication check: No valid session');
+
         setUser(null);
       }
     } catch (error) {
-      console.log('Authentication check failed:', error);
+
       setUser(null);
     }
     setIsLoading(false);

@@ -36,14 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (response.ok) {
         const userData = await response.json();
-        console.log('🔥 NUCLEAR CLIENT: Auth found:', userData.email);
         setUser(userData);
       } else {
-        console.log('🔥 NUCLEAR CLIENT: No authentication');
         setUser(null);
       }
     } catch (error) {
-      console.log('🔥 NUCLEAR CLIENT: Auth check error:', error);
+
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -51,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('🔥 NUCLEAR CLIENT: Login attempt for', email);
+
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -62,11 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const userData = await response.json();
-        console.log('🔥 NUCLEAR CLIENT: Login success');
         setUser(userData);
         return true;
       } else {
-        console.log('🔥 NUCLEAR CLIENT: Login failed');
         return false;
       }
     } catch (error) {
@@ -76,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    console.log('🔥 NUCLEAR CLIENT: Logout initiated');
+
     setUser(null);
     
     // Clear any cookies manually

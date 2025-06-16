@@ -28,8 +28,7 @@ export default function AdminDashboardNew() {
     enabled: !!user?.isAdmin,
   });
 
-  // Check if user is logged in with console log for debugging
-  console.log("User in admin dashboard:", user);
+  // Check if user is logged in
 
   return (
     <>
