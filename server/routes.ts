@@ -424,8 +424,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qs.squadron,
           qs.status,
           u.email,
-          u."firstName" as first_name,
-          u."lastName" as last_name,
+          u.first_name,
+          u.last_name,
           q.title as quiz_title,
           q.description as quiz_description
         FROM quiz_submissions qs

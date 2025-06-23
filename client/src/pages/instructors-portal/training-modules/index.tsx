@@ -636,8 +636,8 @@ export default function TrainingModulesManagement() {
                       <Label htmlFor="topics">Topics (comma-separated)</Label>
                       <Input
                         id="topics"
-                        value={Array.isArray(formData.topics) ? formData.topics.join(", ") : formData.topics}
-                        onChange={(e) => setFormData(prev => ({ ...prev, topics: e.target.value }))}
+                        value={formData.topicsString}
+                        onChange={(e) => setFormData(prev => ({ ...prev, topicsString: e.target.value }))}
                         placeholder="Topic 1, Topic 2, Topic 3"
                       />
                     </div>
@@ -646,8 +646,8 @@ export default function TrainingModulesManagement() {
                       <Label htmlFor="objectives">Learning Objectives (comma-separated)</Label>
                       <Textarea
                         id="objectives"
-                        value={Array.isArray(formData.objectives) ? formData.objectives.join(", ") : formData.objectives}
-                        onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
+                        value={formData.objectivesString}
+                        onChange={(e) => setFormData(prev => ({ ...prev, objectivesString: e.target.value }))}
                         placeholder="Objective 1, Objective 2, Objective 3"
                         rows={3}
                       />
@@ -906,8 +906,8 @@ export default function TrainingModulesManagement() {
                   <Label htmlFor="edit-topics">Topics (comma-separated)</Label>
                   <Input
                     id="edit-topics"
-                    value={Array.isArray(formData.topics) ? formData.topics.join(", ") : formData.topics}
-                    onChange={(e) => setFormData(prev => ({ ...prev, topics: e.target.value }))}
+                    value={formData.topicsString}
+                    onChange={(e) => setFormData(prev => ({ ...prev, topicsString: e.target.value }))}
                     placeholder="Topic 1, Topic 2, Topic 3"
                   />
                 </div>
@@ -916,8 +916,8 @@ export default function TrainingModulesManagement() {
                   <Label htmlFor="edit-objectives">Learning Objectives (comma-separated)</Label>
                   <Textarea
                     id="edit-objectives"
-                    value={Array.isArray(formData.objectives) ? formData.objectives.join(", ") : formData.objectives}
-                    onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
+                    value={formData.objectivesString}
+                    onChange={(e) => setFormData(prev => ({ ...prev, objectivesString: e.target.value }))}
                     placeholder="Objective 1, Objective 2, Objective 3"
                     rows={3}
                   />
