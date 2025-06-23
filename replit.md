@@ -189,6 +189,14 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Updated bundle identifier to "com.loadmworkflow.training.new" for fresh project setup
   - Created complete reset instructions for clearing Expo cache
   - Mobile app configuration now clean and ready for proper EAS build setup
+- June 23, 2025. Replaced Quiz Submissions with comprehensive Training Module Management:
+  - Removed Quiz Submissions section from instructors portal
+  - Created full CRUD Training Module Management system with aircraft-specific filtering
+  - Added comprehensive form handling for module creation and editing
+  - Implemented aircraft type filtering (C-17, C-130, KC30-A, C-27J) matching training modules structure
+  - Fixed database error in quiz submissions API (corrected column name from u.firstName to u.first_name)
+  - Added /instructors-portal/training-modules route with complete management interface
+  - System provides structured module management with difficulty levels, topics, and objectives
 
 ## User Preferences
 
