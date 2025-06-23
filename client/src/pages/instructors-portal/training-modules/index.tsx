@@ -389,6 +389,16 @@ export default function TrainingModulesManagement() {
     content: string;
     videoUrl: string;
     isActive: boolean;
+    // Enhanced content sections
+    overviewContent: string;
+    readingContent: string;
+    interactiveContent: string;
+    videoContent: string;
+    quizContent: string;
+    videoUrls: string[];
+    learningObjectives: string[];
+    prerequisites: string;
+    resources: string;
   }
 
   const [formData, setFormData] = useState<FormData>({
@@ -401,7 +411,16 @@ export default function TrainingModulesManagement() {
     objectivesString: "",
     content: "",
     videoUrl: "",
-    isActive: true
+    isActive: true,
+    overviewContent: "",
+    readingContent: "",
+    interactiveContent: "",
+    videoContent: "",
+    quizContent: "",
+    videoUrls: [],
+    learningObjectives: [],
+    prerequisites: "",
+    resources: ""
   });
 
   // For now, we'll use local state. In production, this would be API calls
@@ -490,7 +509,16 @@ export default function TrainingModulesManagement() {
       objectivesString: "",
       content: "",
       videoUrl: "",
-      isActive: true
+      isActive: true,
+      overviewContent: "",
+      readingContent: "",
+      interactiveContent: "",
+      videoContent: "",
+      quizContent: "",
+      videoUrls: [],
+      learningObjectives: [],
+      prerequisites: "",
+      resources: ""
     });
   };
 
@@ -506,7 +534,16 @@ export default function TrainingModulesManagement() {
       objectivesString: module.objectives.join(", "),
       content: module.content || "",
       videoUrl: module.videoUrl || "",
-      isActive: module.isActive
+      isActive: module.isActive,
+      overviewContent: module.content || "",
+      readingContent: "",
+      interactiveContent: "",
+      videoContent: "",
+      quizContent: "",
+      videoUrls: module.videoUrl ? [module.videoUrl] : [],
+      learningObjectives: module.objectives,
+      prerequisites: "",
+      resources: ""
     });
     setIsEditDialogOpen(true);
   };
@@ -822,124 +859,322 @@ export default function TrainingModulesManagement() {
             ))}
           </div>
 
-          {/* Edit Dialog */}
+          {/* Enhanced Full-Screen Edit Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full overflow-hidden">
               <DialogHeader>
-                <DialogTitle>Edit Training Module</DialogTitle>
+                <DialogTitle className="text-xl">Edit Training Module: {selectedModule?.title}</DialogTitle>
                 <DialogDescription>
-                  Update the training module information and content.
+                  Comprehensive content editing for all training module sections
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-title">Module Title</Label>
-                  <Input
-                    id="edit-title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Enter module title"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="edit-description">Description</Label>
-                  <Textarea
-                    id="edit-description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Enter module description"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-aircraft">Aircraft Type</Label>
-                    <Select 
-                      value={formData.aircraft} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, aircraft: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select aircraft" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="c17">C-17 Globemaster</SelectItem>
-                        <SelectItem value="c130">C-130 Hercules</SelectItem>
-                        <SelectItem value="kc30a">KC30-A Airbus</SelectItem>
-                        <SelectItem value="c27j">C-27J Spartan</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <Tabs defaultValue="overview" className="flex-1 flex flex-col h-full">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="overview" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger value="videos" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Videos
+                  </TabsTrigger>
+                  <TabsTrigger value="readings" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Readings
+                  </TabsTrigger>
+                  <TabsTrigger value="interactive" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Interactive
+                  </TabsTrigger>
+                  <TabsTrigger value="quizzes" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Quizzes
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Overview Tab */}
+                <TabsContent value="overview" className="flex-1 space-y-4 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-title">Module Title</Label>
+                        <Input
+                          id="edit-title"
+                          value={formData.title}
+                          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                          placeholder="Enter module title"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="edit-description">Description</Label>
+                        <Textarea
+                          id="edit-description"
+                          value={formData.description}
+                          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                          placeholder="Enter module description"
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="edit-aircraft">Aircraft Type</Label>
+                          <Select 
+                            value={formData.aircraft} 
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, aircraft: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select aircraft" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="c17">C-17 Globemaster</SelectItem>
+                              <SelectItem value="c130">C-130 Hercules</SelectItem>
+                              <SelectItem value="kc30a">KC30-A Airbus</SelectItem>
+                              <SelectItem value="c27j">C-27J Spartan</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="edit-difficulty">Difficulty Level</Label>
+                          <Select 
+                            value={formData.difficulty} 
+                            onValueChange={(value: DifficultyLevel) => setFormData(prev => ({ ...prev, difficulty: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="beginner">Beginner</SelectItem>
+                              <SelectItem value="intermediate">Intermediate</SelectItem>
+                              <SelectItem value="advanced">Advanced</SelectItem>
+                              <SelectItem value="expert">Expert</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="edit-duration">Duration</Label>
+                        <Input
+                          id="edit-duration"
+                          value={formData.duration}
+                          onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+                          placeholder="e.g., 45 minutes"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="edit-prerequisites">Prerequisites</Label>
+                        <Textarea
+                          id="edit-prerequisites"
+                          value={formData.prerequisites}
+                          onChange={(e) => setFormData(prev => ({ ...prev, prerequisites: e.target.value }))}
+                          placeholder="Required knowledge or previous modules"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-topics">Topics (comma-separated)</Label>
+                        <Textarea
+                          id="edit-topics"
+                          value={formData.topicsString}
+                          onChange={(e) => setFormData(prev => ({ ...prev, topicsString: e.target.value }))}
+                          placeholder="Topic 1, Topic 2, Topic 3"
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="edit-objectives">Learning Objectives</Label>
+                        <Textarea
+                          id="edit-objectives"
+                          value={formData.objectivesString}
+                          onChange={(e) => setFormData(prev => ({ ...prev, objectivesString: e.target.value }))}
+                          placeholder="Objective 1, Objective 2, Objective 3"
+                          rows={4}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="edit-resources">Additional Resources</Label>
+                        <Textarea
+                          id="edit-resources"
+                          value={formData.resources}
+                          onChange={(e) => setFormData(prev => ({ ...prev, resources: e.target.value }))}
+                          placeholder="Additional learning materials, manuals, references"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="edit-difficulty">Difficulty Level</Label>
-                    <Select 
-                      value={formData.difficulty} 
-                      onValueChange={(value: DifficultyLevel) => setFormData(prev => ({ ...prev, difficulty: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                        <SelectItem value="expert">Expert</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="edit-overview-content">Overview Content</Label>
+                    <Textarea
+                      id="edit-overview-content"
+                      value={formData.overviewContent}
+                      onChange={(e) => setFormData(prev => ({ ...prev, overviewContent: e.target.value }))}
+                      placeholder="Detailed overview content for this training module..."
+                      rows={8}
+                      className="w-full"
+                    />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="edit-duration">Duration</Label>
-                  <Input
-                    id="edit-duration"
-                    value={formData.duration}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-                    placeholder="e.g., 45 minutes"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="edit-topics">Topics (comma-separated)</Label>
-                  <Input
-                    id="edit-topics"
-                    value={formData.topicsString}
-                    onChange={(e) => setFormData(prev => ({ ...prev, topicsString: e.target.value }))}
-                    placeholder="Topic 1, Topic 2, Topic 3"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="edit-objectives">Learning Objectives (comma-separated)</Label>
-                  <Textarea
-                    id="edit-objectives"
-                    value={formData.objectivesString}
-                    onChange={(e) => setFormData(prev => ({ ...prev, objectivesString: e.target.value }))}
-                    placeholder="Objective 1, Objective 2, Objective 3"
-                    rows={3}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="edit-videoUrl">Video URL (optional)</Label>
-                  <Input
-                    id="edit-videoUrl"
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
-                    placeholder="https://example.com/video"
-                  />
-                </div>
-              </div>
+                </TabsContent>
+
+                {/* Videos Tab */}
+                <TabsContent value="videos" className="flex-1 space-y-4 overflow-y-auto">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-video-content">Video Content Description</Label>
+                      <Textarea
+                        id="edit-video-content"
+                        value={formData.videoContent}
+                        onChange={(e) => setFormData(prev => ({ ...prev, videoContent: e.target.value }))}
+                        placeholder="Describe the video content, key points covered, and learning outcomes..."
+                        rows={6}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="edit-video-urls">Video URLs (one per line)</Label>
+                      <Textarea
+                        id="edit-video-urls"
+                        value={formData.videoUrls.join('\n')}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          videoUrls: e.target.value.split('\n').filter(url => url.trim()) 
+                        }))}
+                        placeholder="https://example.com/video1&#10;https://example.com/video2"
+                        rows={8}
+                      />
+                    </div>
+                    
+                    <div className="bg-gray-800/20 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Video Guidelines:</h4>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Use YouTube, Vimeo, or direct video file URLs</li>
+                        <li>• Ensure videos are accessible to military personnel</li>
+                        <li>• Include captions for accessibility compliance</li>
+                        <li>• Video duration should align with module timing</li>
+                      </ul>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Readings Tab */}
+                <TabsContent value="readings" className="flex-1 space-y-4 overflow-y-auto">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-reading-content">Reading Material Content</Label>
+                      <Textarea
+                        id="edit-reading-content"
+                        value={formData.readingContent}
+                        onChange={(e) => setFormData(prev => ({ ...prev, readingContent: e.target.value }))}
+                        placeholder="Enter comprehensive reading material content. Use markdown formatting for structure..."
+                        rows={20}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                    
+                    <div className="bg-gray-800/20 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Reading Content Guidelines:</h4>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Use clear headings and subheadings</li>
+                        <li>• Include relevant diagrams and illustrations references</li>
+                        <li>• Reference official military publications when applicable</li>
+                        <li>• Structure content progressively from basic to advanced concepts</li>
+                        <li>• Include real-world examples and case studies</li>
+                      </ul>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Interactive Tab */}
+                <TabsContent value="interactive" className="flex-1 space-y-4 overflow-y-auto">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-interactive-content">Interactive Content</Label>
+                      <Textarea
+                        id="edit-interactive-content"
+                        value={formData.interactiveContent}
+                        onChange={(e) => setFormData(prev => ({ ...prev, interactiveContent: e.target.value }))}
+                        placeholder="Define interactive exercises, simulations, drag-and-drop activities, or hands-on practice scenarios..."
+                        rows={12}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-800/20 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Interactive Types:</h4>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Load planning simulations</li>
+                          <li>• Weight & balance calculators</li>
+                          <li>• Drag-and-drop cargo exercises</li>
+                          <li>• 3D aircraft visualization</li>
+                          <li>• Safety procedure walkthroughs</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-gray-800/20 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Implementation Notes:</h4>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Ensure mobile compatibility</li>
+                          <li>• Include progress tracking</li>
+                          <li>• Provide immediate feedback</li>
+                          <li>• Allow multiple attempts</li>
+                          <li>• Save progress automatically</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Quizzes Tab */}
+                <TabsContent value="quizzes" className="flex-1 space-y-4 overflow-y-auto">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-quiz-content">Quiz Content & Questions</Label>
+                      <Textarea
+                        id="edit-quiz-content"
+                        value={formData.quizContent}
+                        onChange={(e) => setFormData(prev => ({ ...prev, quizContent: e.target.value }))}
+                        placeholder="Define quiz questions, multiple choice options, correct answers, and explanations..."
+                        rows={15}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                    
+                    <div className="bg-gray-800/20 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Quiz Format Example:</h4>
+                      <pre className="text-xs text-muted-foreground bg-gray-900/50 p-3 rounded overflow-x-auto">
+{`Question 1: What is the maximum cargo weight for C-17?
+A) 170,900 lbs
+B) 169,000 lbs  
+C) 171,000 lbs
+D) 168,500 lbs
+Correct: A
+Explanation: The C-17 maximum payload is 170,900 lbs...
+
+Question 2: Which pallet position affects CG most?
+A) Position 1
+B) Position 2
+C) Position 3
+D) Position 4
+Correct: A
+Explanation: Forward positions have greater impact...`}
+                      </pre>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
               
-              <DialogFooter>
+              <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button onClick={handleEditModule} className="bg-primary hover:bg-primary/90 text-white">
-                  Update Module
+                  Update Training Module
                 </Button>
               </DialogFooter>
             </DialogContent>
