@@ -61,6 +61,7 @@ import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[i
 import WorkforcePage from "@/pages/instructors-portal/workforce";
 import PermissionsDashboard from "@/pages/permissions-dashboard";
 import QuizQuestionsManagement from "@/pages/instructors-portal/quiz-questions";
+import TrainingModulesManagement from "@/pages/instructors-portal/training-modules";
 
 
 // Import route protection components (we'll adapt these)
@@ -157,6 +158,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/quiz-submissions" component={QuizSubmissions} />
             <InstructorRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
             <InstructorRoute path="/instructors-portal/quiz-questions" component={QuizQuestionsManagement} />
+            <InstructorRoute path="/instructors-portal/training-modules" component={TrainingModulesManagement} />
             <Route component={NotFound} />
           </Switch>
         </main>

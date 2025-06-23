@@ -378,14 +378,27 @@ export default function TrainingModulesManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState<TrainingModule | null>(null);
-  const [formData, setFormData] = useState<Partial<TrainingModule>>({
+  interface FormData {
+    title: string;
+    description: string;
+    aircraft: string;
+    difficulty: DifficultyLevel;
+    duration: string;
+    topicsString: string;
+    objectivesString: string;
+    content: string;
+    videoUrl: string;
+    isActive: boolean;
+  }
+
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
     aircraft: "c17",
     difficulty: "beginner",
     duration: "",
-    topics: [],
-    objectives: [],
+    topicsString: "",
+    objectivesString: "",
     content: "",
     videoUrl: "",
     isActive: true
@@ -401,14 +414,20 @@ export default function TrainingModulesManagement() {
 
   const handleCreateModule = () => {
     const newModule: TrainingModule = {
-      ...formData,
       id: `${formData.aircraft}-${Date.now()}`,
-      topics: Array.isArray(formData.topics) ? formData.topics : (formData.topics as string || "").split(",").map(t => t.trim()).filter(Boolean),
-      objectives: Array.isArray(formData.objectives) ? formData.objectives : (formData.objectives as string || "").split(",").map(o => o.trim()).filter(Boolean),
+      title: formData.title || "",
+      description: formData.description || "",
+      aircraft: formData.aircraft || "c17",
+      difficulty: formData.difficulty || "beginner",
+      duration: formData.duration || "",
+      topics: (formData.topicsString || "").split(",").map(t => t.trim()).filter(Boolean),
+      objectives: (formData.objectivesString || "").split(",").map(o => o.trim()).filter(Boolean),
+      content: formData.content || "",
+      videoUrl: formData.videoUrl || "",
       createdBy: "Current User",
       lastModified: new Date().toISOString().split('T')[0],
       isActive: true
-    } as TrainingModule;
+    };
 
     setTrainingModules(prev => [...prev, newModule]);
     setIsCreateDialogOpen(false);
@@ -425,9 +444,16 @@ export default function TrainingModulesManagement() {
 
     const updatedModule: TrainingModule = {
       ...selectedModule,
-      ...formData,
-      topics: Array.isArray(formData.topics) ? formData.topics : (formData.topics as string || "").split(",").map(t => t.trim()).filter(Boolean),
-      objectives: Array.isArray(formData.objectives) ? formData.objectives : (formData.objectives as string || "").split(",").map(o => o.trim()).filter(Boolean),
+      title: formData.title,
+      description: formData.description,
+      aircraft: formData.aircraft,
+      difficulty: formData.difficulty,
+      duration: formData.duration,
+      topics: formData.topicsString.split(",").map(t => t.trim()).filter(Boolean),
+      objectives: formData.objectivesString.split(",").map(o => o.trim()).filter(Boolean),
+      content: formData.content,
+      videoUrl: formData.videoUrl,
+      isActive: formData.isActive,
       lastModified: new Date().toISOString().split('T')[0]
     };
 
@@ -460,8 +486,8 @@ export default function TrainingModulesManagement() {
       aircraft: "c17",
       difficulty: "beginner",
       duration: "",
-      topics: [],
-      objectives: [],
+      topicsString: "",
+      objectivesString: "",
       content: "",
       videoUrl: "",
       isActive: true
@@ -476,8 +502,8 @@ export default function TrainingModulesManagement() {
       aircraft: module.aircraft,
       difficulty: module.difficulty,
       duration: module.duration,
-      topics: module.topics,
-      objectives: module.objectives,
+      topicsString: module.topics.join(", "),
+      objectivesString: module.objectives.join(", "),
       content: module.content || "",
       videoUrl: module.videoUrl || "",
       isActive: module.isActive
