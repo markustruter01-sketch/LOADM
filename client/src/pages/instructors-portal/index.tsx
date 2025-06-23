@@ -312,24 +312,24 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
 
-          {/* Quiz Submissions Card */}
+          {/* Training Module Management Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Quiz Submissions</CardTitle>
-                <FileCheck className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Training Modules</CardTitle>
+                <BookOpen className="h-5 w-5 text-primary" />
               </div>
-              <CardDescription>Review and grade quiz submissions</CardDescription>
+              <CardDescription>Create and manage aircraft training content</CardDescription>
             </CardHeader>
             <CardContent className="h-28 flex items-center justify-center">
               <div className="text-center text-muted-foreground text-sm">
-                View all student quiz submissions, review answers, and track quiz performance across squadrons
+                Create, edit, and manage aircraft-specific training modules with reading content, videos, and assessments
               </div>
             </CardContent>
             <CardFooter>
-              <Link href="/instructors-portal/quiz-submissions">
+              <Link href="/instructors-portal/training-modules">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  View Quiz Submissions
+                  Manage Training Modules
                 </Button>
               </Link>
             </CardFooter>
