@@ -1,445 +1,98 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Helmet } from "react-helmet";
-import { useRoute, useLocation } from "wouter";
-import { 
-  ArrowLeft, 
-  BookOpen, 
-  Star, 
-  CheckCircle2,
-  Download,
-  Plane,
-  PlayCircle,
-  FileText,
-  LucideIcon,
-  ListChecks,
-  GraduationCap
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { aircraftConfigs } from "@/utils/aircraft-config";
+import { useState, useEffect } from 'react'
+import { useRoute, useLocation } from 'wouter'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useQuery } from '@tanstack/react-query'
 
-// Import interactive content components
-import C17BasicsInteractive from "./interactive-content/c17-basics";
-import KC30ABasicsInteractive from "./interactive-content/kc30a-basics";
-import C130BasicsInteractive from "./interactive-content/c130-basics";
-import C27JBasicsInteractive from "./interactive-content/c27j-basics";
+// Simple placeholder components for content that doesn't exist yet
+const TrainingVideoPlayer = ({ title, description }: { title: string; description: string }) => (
+  <div className="aspect-video bg-black rounded-lg flex items-center justify-center border border-gray-700">
+    <div className="text-center">
+      <div className="text-4xl mb-4">🎥</div>
+      <h4 className="text-lg font-medium mb-2">{title}</h4>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  </div>
+)
 
-// Import quiz content components
-import C17BasicsQuiz from "./quiz-content/c17-basics-quiz";
-import KC30ABasicsQuiz from "./quiz-content/kc30a-basics-quiz";
-import C130BasicsQuiz from "./quiz-content/c130-basics-quiz";
-import C27JBasicsQuiz from "./quiz-content/c27j-basics-quiz";
-
-// Import reading content components
-import C17CargoBayLayout from "./reading-content/c17-cargo-bay-layout";
-import KC30ACargoBaySystems from "./reading-content/kc30a-cargo-systems";
-import C130CargoConfigurations from "./reading-content/c130-cargo-configurations";
-import C27JOperations from "./reading-content/c27j-operations";
-
-// Import video player component
-import TrainingVideoPlayer from "@/components/TrainingVideoPlayer";
-
-// Types from the main modules page
-type DifficultyLevel = "beginner" | "intermediate" | "advanced" | "expert";
-
-interface Module {
-  id: string;
-  title: string;
-  description: string;
-  aircraft: string;
-  difficulty: DifficultyLevel;
-  duration: string;
-  topics: string[];
-  objectives: string[];
-  imageUrl?: string;
-}
-
-// Create a type for module content
-interface LessonContent {
-  id: string;
-  title: string;
-  type: "video" | "reading" | "interactive" | "quiz";
-  duration: string;
-  description: string;
-  content: string;
-  completed?: boolean;
-}
-
-// Create sample training modules the same as in the index page
-const trainingModules: Module[] = [
-  // C-17 Modules
+// Local training modules data (fallback)
+const trainingModules = [
   {
     id: "c17-basics",
-    title: "C-17 Globemaster Basics",
-    description: "Introduction to C-17 cargo loading fundamentals for beginner loadmasters",
-    aircraft: "c17",
-    difficulty: "beginner",
-    duration: "45 minutes",
-    topics: ["Aircraft Overview", "Safety Procedures", "Basic Loading Configurations"],
-    objectives: [
-      "Understand C-17 cargo area layout and dimensions",
-      "Learn basic weight and balance principles",
-      "Identify standard pallet positions"
-    ],
-    imageUrl: "/C17-cargo-bay.jpg"
-  },
-  {
-    id: "c17-intermediate",
-    title: "C-17 Weight Distribution",
-    description: "Intermediate training on C-17 weight balancing and cargo distribution",
-    aircraft: "c17",
-    difficulty: "intermediate",
-    duration: "60 minutes", 
-    topics: ["Weight & Balance Management", "CG Calculation", "Load Planning Software"],
-    objectives: [
-      "Calculate center of gravity accurately",
-      "Plan mixed cargo loads effectively",
-      "Develop load plans for various mission profiles"
-    ]
-  },
-  {
-    id: "c17-advanced",
-    title: "C-17 Complex Cargo Configurations",
-    description: "Advanced techniques for complex cargo arrangements on C-17 aircraft",
-    aircraft: "c17",
-    difficulty: "advanced",
-    duration: "90 minutes",
-    topics: ["Mixed Cargo Types", "Oversized Equipment", "Dangerous Goods Integration"],
-    objectives: [
-      "Secure and transport oversized equipment safely",
-      "Integrate multiple cargo types in single mission",
-      "Implement special handling procedures for sensitive cargo"
-    ]
-  },
-  {
-    id: "c17-expert",
-    title: "C-17 Tactical Loading Operations",
-    description: "Expert-level tactical loading operations for C-17 in combat environments",
-    aircraft: "c17",
-    difficulty: "expert", 
-    duration: "120 minutes",
-    topics: ["Combat Loading Techniques", "Rapid Deployment", "Tactical Airlift Operations"],
-    objectives: [
-      "Execute rapid loading/unloading in tactical situations",
-      "Plan airdrops and special mission configurations",
-      "Implement emergency loading procedures"
-    ]
-  },
-  
-  // C-130 Modules
-  {
-    id: "c130-basics",
-    title: "C-130 Hercules Fundamentals",
-    description: "Introduction to C-130 cargo loading fundamentals",
-    aircraft: "c130",
-    difficulty: "beginner",
-    duration: "45 minutes",
-    topics: ["Aircraft Familiarization", "Standard Cargo Configurations", "Weight Limitations"],
-    objectives: [
-      "Understand C-130 cargo area layout and limitations",
-      "Learn proper securing techniques",
-      "Identify standard cargo positions"
-    ]
-  },
-  {
-    id: "c130-intermediate",
-    title: "C-130 Load Planning Essentials",
-    description: "Intermediate training on C-130 load planning and configuration",
-    aircraft: "c130",
-    difficulty: "intermediate",
-    duration: "60 minutes",
-    topics: ["Load Planning", "Weight Distribution", "Mixed Load Configuration"],
-    objectives: [
-      "Create effective load plans for varied mission types",
-      "Calculate proper weight distribution",
-      "Configure the aircraft for dual-role missions"
-    ]
-  },
-  {
-    id: "c130-advanced",
-    title: "C-130 Specialized Cargo Handling",
-    description: "Advanced training for specialized cargo types on C-130 aircraft",
-    aircraft: "c130",
-    difficulty: "advanced",
-    duration: "90 minutes",
-    topics: ["Special Cargo Procedures", "Airdrop Operations", "Combat Offload Techniques"],
-    objectives: [
-      "Prepare and secure cargo for airdrop operations",
-      "Execute safe combat offload procedures",
-      "Handle specialized military equipment configurations"
-    ]
-  },
-  {
-    id: "c130-expert",
-    title: "C-130 Master Loadmaster Operations",
-    description: "Expert level training for C-130 loadmasters in complex operations",
-    aircraft: "c130",
-    difficulty: "expert",
-    duration: "120 minutes",
-    topics: ["Complex Mission Planning", "Tactical Loading", "Multi-Drop Operations"],
-    objectives: [
-      "Plan and execute multi-drop missions",
-      "Coordinate complex loading operations",
-      "Implement contingency procedures for mission changes"
-    ]
-  },
-  
-  // KC30A Modules
-  {
-    id: "kc30a-basics",
-    title: "KC30-A Airbus Cargo Basics",
-    description: "Introduction to KC30-A cargo loading fundamentals",
-    aircraft: "kc30a",
-    difficulty: "beginner",
-    duration: "45 minutes",
-    topics: ["Aircraft Configuration", "ULD Management", "Weight in Kilograms"],
-    objectives: [
-      "Understand KC30-A unique cargo systems",
-      "Properly plan loads using kg measurements",
-      "Learn LD3 container and pallet positioning"
-    ]
-  },
-  {
-    id: "kc30a-intermediate",
-    title: "KC30-A Mixed Operations",
-    description: "Intermediate level training for mixed cargo/passenger/fuel operations",
-    aircraft: "kc30a",
-    difficulty: "intermediate",
-    duration: "60 minutes",
-    topics: ["Dual-Role Operations", "Passenger Cargo Mix", "Fuel Considerations"],
-    objectives: [
-      "Configure aircraft for mixed passenger/cargo operations",
-      "Calculate weight balance with variable fuel loads",
-      "Optimize cargo arrangement for dual-role missions"
-    ]
-  },
-  {
-    id: "kc30a-advanced",
-    title: "KC30-A Advanced Configuration Management",
-    description: "Advanced KC30-A configuration and cargo management",
-    aircraft: "kc30a",
-    difficulty: "advanced",
-    duration: "90 minutes",
-    topics: ["Configuration Changes", "Long-Range Operations", "Cargo System Troubleshooting"],
-    objectives: [
-      "Plan configuration changes during deployed operations",
-      "Optimize loading for extended range missions",
-      "Troubleshoot and resolve cargo system issues"
-    ]
-  },
-  {
-    id: "kc30a-expert",
-    title: "KC30-A Operations Management",
-    description: "Expert level KC30-A operations and cargo management",
-    aircraft: "kc30a",
-    difficulty: "expert",
-    duration: "120 minutes",
-    topics: ["Complete Aircraft Management", "Mission Replanning", "System Integration"],
-    objectives: [
-      "Manage complete aircraft loading operations",
-      "Implement rapid reconfiguration procedures",
-      "Integrate with aerial refueling mission requirements"
-    ]
-  },
-  
-  // C-27J Modules
-  {
-    id: "c27j-basics",
-    title: "C-27J Spartan Fundamentals",
-    description: "Introduction to C-27J cargo loading basics",
-    aircraft: "c27j",
-    difficulty: "beginner",
-    duration: "30 minutes",
-    topics: ["Aircraft Overview", "Basic Loading", "Small Configuration Management"],
-    objectives: [
-      "Understand C-27J cargo area layout and limitations",
-      "Learn proper tie-down and securing techniques",
-      "Configure aircraft for basic cargo missions"
-    ]
-  },
-  {
-    id: "c27j-intermediate",
-    title: "C-27J Tactical Operations",
-    description: "Intermediate tactical loading for C-27J operations",
-    aircraft: "c27j",
-    difficulty: "intermediate",
-    duration: "45 minutes",
-    topics: ["Tactical Loading", "Short Field Operations", "Rapid Reconfiguration"],
-    objectives: [
-      "Execute loading plans for tactical operations",
-      "Prepare aircraft for short field operations",
-      "Perform rapid cargo-to-personnel conversions"
-    ]
-  },
-  {
-    id: "c27j-advanced",
-    title: "C-27J Multi-Mission Configuration",
-    description: "Advanced training for C-27J multi-mission configurations",
-    aircraft: "c27j",
-    difficulty: "advanced",
-    duration: "60 minutes",
-    topics: ["Multi-Role Operations", "Medevac Configuration", "Special Mission Support"],
-    objectives: [
-      "Configure aircraft for medevac operations",
-      "Support special mission requirements",
-      "Implement rapid role change procedures"
-    ]
-  },
-  {
-    id: "c27j-expert",
-    title: "C-27J Master Operations",
-    description: "Expert level C-27J operational management",
-    aircraft: "c27j",
-    difficulty: "expert",
-    duration: "90 minutes",
-    topics: ["Complete Platform Management", "Austere Field Operations", "Mission Command"],
-    objectives: [
-      "Plan complete aircraft utilization for austere operations",
-      "Manage loading operations in forward locations",
-      "Coordinate multiple mission types in single deployment"
-    ]
+    title: "C-17 Basics",
+    aircraft: "C-17 Globemaster III",
+    difficulty: "Beginner",
+    duration: "2 hours",
+    description: "Learn the fundamentals of C-17 Globemaster III loadmaster operations",
+    objectives: ["Understanding aircraft capabilities", "Basic loading procedures", "Safety protocols"],
+    prerequisites: "None",
+    instructor: "Loadmaster Instructor",
+    lastUpdated: "2024-01-15"
   }
-];
+]
 
-// Difficulty color mapping
-const difficultyColors: Record<DifficultyLevel, string> = {
-  beginner: "bg-green-500/20 text-green-500 border-green-500/30",
-  intermediate: "bg-blue-500/20 text-blue-500 border-blue-500/30",
-  advanced: "bg-amber-500/20 text-amber-500 border-amber-500/30",
-  expert: "bg-red-500/20 text-red-500 border-red-500/30"
-};
+// Aircraft configurations for display
+const aircraftConfigs = {
+  "c17-basics": { name: "C-17 Globemaster III", type: "Strategic Airlift" },
+  "c130-basics": { name: "C-130 Hercules", type: "Tactical Airlift" },
+  "kc30a-basics": { name: "KC30-A MRTT", type: "Multi-Role Tanker" },
+  "c27j-basics": { name: "C-27J Spartan", type: "Tactical Airlift" }
+}
 
-// Difficulty stars mapping
-const difficultyStars: Record<DifficultyLevel, number> = {
-  beginner: 1,
-  intermediate: 2,
-  advanced: 3,
-  expert: 4
-};
-
-// Content type icon mapping
-const contentTypeIcons: Record<string, LucideIcon> = {
-  video: PlayCircle,
-  reading: FileText,
-  interactive: ListChecks,
-  quiz: GraduationCap
-};
-
-// Sample module contents for all modules
-const moduleContents: Record<string, LessonContent[]> = {
+// Clean module contents without duplicates
+const moduleContents: Record<string, any[]> = {
   "c17-basics": [
     {
       id: "c17-basics-1",
-      title: "Introduction to C-17 Globemaster",
+      title: "C-17 Globemaster III Overview",
       type: "video",
-      duration: "15 min",
-      description: "Overview of the C-17 Globemaster capabilities and specifications",
+      duration: "20 min",
+      description: "Introduction to the C-17 Globemaster III aircraft and its cargo capabilities",
       content: "Video content would be embedded here",
-      completed: true
+      completed: false
     },
     {
       id: "c17-cargo-bay-layout",
-      title: "C-17 Cargo Bay Layout",
+      title: "C-17 Cargo Bay Layout and Features",
       type: "reading",
-      duration: "10 min",
-      description: "Detailed walkthrough of the C-17 cargo bay dimensions and configurations",
+      duration: "15 min",
+      description: "Detailed study of the C-17 cargo bay configuration and loadmaster workspace",
       content: "Reading content would be displayed here",
-      completed: true
+      completed: false
     },
     {
       id: "c17-basics-3",
-      title: "Pallet Position Identification",
+      title: "Basic Loading Procedures",
       type: "interactive",
-      duration: "12 min",
-      description: "Interactive exercise to learn pallet positions and naming conventions",
+      duration: "25 min",
+      description: "Interactive tutorial on fundamental C-17 loading procedures",
       content: "Interactive content would be displayed here",
       completed: false
     },
     {
       id: "c17-basics-4",
-      title: "Basic Weight and Balance Principles",
+      title: "Weight and Balance Basics",
       type: "reading",
-      duration: "8 min",
-      description: "Fundamental weight and balance principles for C-17 cargo loading",
+      duration: "18 min",
+      description: "Introduction to C-17 weight and balance principles",
       content: "Reading content would be displayed here",
       completed: false
     },
     {
       id: "c17-basics-5",
-      title: "C-17 Basics Assessment",
-      type: "quiz",
-      duration: "10 min",
-      description: "Test your knowledge of C-17 Globemaster basics",
-      content: "Quiz questions would be displayed here",
-      completed: false
-    }
-  ],
-  "c17-intermediate": [
-    {
-      id: "c17-inter-1",
-      title: "Advanced Weight Distribution Concepts",
-      type: "video",
-      duration: "18 min",
-      description: "Detailed overview of weight distribution principles for C-17",
-      content: "Video content would be embedded here",
-      completed: false
-    },
-    {
-      id: "c17-inter-2",
-      title: "Center of Gravity Calculations",
-      type: "interactive",
-      duration: "15 min",
-      description: "Interactive tutorial on CG calculations for different load scenarios",
-      content: "Interactive content would be displayed here",
-      completed: false
-    },
-    {
-      id: "c17-inter-3",
-      title: "Mixed Cargo Loading Strategies",
-      type: "reading",
-      duration: "12 min",
-      description: "Strategies for efficiently loading different types of cargo",
-      content: "Reading content would be displayed here",
-      completed: false
-    },
-    {
-      id: "c17-inter-4",
-      title: "Load Planning Software Tutorial",
-      type: "interactive",
-      duration: "20 min",
-      description: "Hands-on tutorial for using load planning software",
-      content: "Interactive tutorial would be displayed here",
-      completed: false
-    },
-    {
-      id: "c17-inter-5",
-      title: "Intermediate Assessment",
+      title: "C-17 Fundamentals Quiz",
       type: "quiz",
       duration: "15 min",
-      description: "Evaluate your understanding of intermediate C-17 loading concepts",
+      description: "Test your knowledge of C-17 fundamentals",
       content: "Quiz content would be displayed here",
       completed: false
     }
   ],
-
   "c130-basics": [
     {
       id: "c130-basics-1",
@@ -478,280 +131,6 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: false
     }
   ],
-
-  "c17-intermediate": [
-    {
-      id: "c17-intermediate-1",
-      title: "Weight & Balance Theory",
-      type: "video",
-      duration: "20 min",
-      description: "Advanced weight and balance calculations for C-17",
-      content: "Video content for weight and balance theory",
-      completed: false
-    },
-    {
-      id: "c17-intermediate-2",
-      title: "CG Calculations",
-      type: "reading",
-      duration: "15 min",
-      description: "Center of gravity calculation methods and formulas",
-      content: "Reading content for CG calculations",
-      completed: false
-    },
-    {
-      id: "c17-intermediate-3",
-      title: "Load Planning Software",
-      type: "interactive",
-      duration: "25 min",
-      description: "Hands-on training with load planning software",
-      content: "Interactive software training",
-      completed: false
-    },
-    {
-      id: "c17-intermediate-4",
-      title: "Weight Distribution Assessment",
-      type: "quiz",
-      duration: "15 min",
-      description: "Test your weight distribution knowledge",
-      content: "Quiz content for weight distribution",
-      completed: false
-    }
-  ],
-
-  "c17-advanced": [
-    {
-      id: "c17-advanced-1",
-      title: "Complex Cargo Configuration",
-      type: "video",
-      duration: "30 min",
-      description: "Advanced cargo configuration techniques",
-      content: "Video content for complex configurations",
-      completed: false
-    },
-    {
-      id: "c17-advanced-2",
-      title: "Mixed Cargo Loading",
-      type: "reading",
-      duration: "20 min",
-      description: "Procedures for mixed cargo types",
-      content: "Reading content for mixed cargo",
-      completed: false
-    },
-    {
-      id: "c17-advanced-3",
-      title: "Oversized Equipment Simulation",
-      type: "interactive",
-      duration: "35 min",
-      description: "Interactive simulation for oversized equipment",
-      content: "Interactive oversized equipment training",
-      completed: false
-    },
-    {
-      id: "c17-advanced-4",
-      title: "Advanced Configuration Quiz",
-      type: "quiz",
-      duration: "20 min",
-      description: "Assessment of complex configuration knowledge",
-      content: "Quiz for advanced configurations",
-      completed: false
-    }
-  ],
-
-  "c17-expert": [
-    {
-      id: "c17-expert-1",
-      title: "Tactical Loading Operations",
-      type: "video",
-      duration: "40 min",
-      description: "Expert-level tactical loading procedures",
-      content: "Video content for tactical operations",
-      completed: false
-    },
-    {
-      id: "c17-expert-2",
-      title: "Combat Environment Procedures",
-      type: "reading",
-      duration: "25 min",
-      description: "Loading procedures in combat environments",
-      content: "Reading content for combat procedures",
-      completed: false
-    },
-    {
-      id: "c17-expert-3",
-      title: "Rapid Deployment Simulation",
-      type: "interactive",
-      duration: "45 min",
-      description: "Interactive simulation of rapid deployment scenarios",
-      content: "Interactive rapid deployment training",
-      completed: false
-    },
-    {
-      id: "c17-expert-4",
-      title: "Tactical Operations Assessment",
-      type: "quiz",
-      duration: "25 min",
-      description: "Comprehensive assessment of tactical operations",
-      content: "Quiz for tactical operations",
-      completed: false
-    }
-  ],
-
-  "c130-basics": [
-    {
-      id: "c130-basics-1",
-      title: "C-130 Hercules Overview",
-      type: "video",
-      duration: "18 min",
-      description: "Introduction to C-130 Hercules capabilities",
-      content: "Video content for C-130 overview",
-      completed: false
-    },
-    {
-      id: "c130-basics-2",
-      title: "C-130 Cargo Compartment",
-      type: "reading",
-      duration: "12 min",
-      description: "Detailed study of C-130 cargo compartment",
-      content: "Reading content for cargo compartment",
-      completed: false
-    },
-    {
-      id: "c130-basics-3",
-      title: "Basic Loading Procedures",
-      type: "interactive",
-      duration: "20 min",
-      description: "Interactive training for basic C-130 loading",
-      content: "Interactive basic loading training",
-      completed: false
-    },
-    {
-      id: "c130-basics-4",
-      title: "C-130 Fundamentals Quiz",
-      type: "quiz",
-      duration: "12 min",
-      description: "Test your C-130 fundamental knowledge",
-      content: "Quiz for C-130 fundamentals",
-      completed: false
-    }
-  ],
-
-  "c130-intermediate": [
-    {
-      id: "c130-intermediate-1",
-      title: "Advanced C-130 Loading",
-      type: "video",
-      duration: "25 min",
-      description: "Advanced loading techniques for C-130",
-      content: "Video content for advanced loading",
-      completed: false
-    },
-    {
-      id: "c130-intermediate-2",
-      title: "C-130 Weight Calculations",
-      type: "reading",
-      duration: "18 min",
-      description: "Weight and balance calculations for C-130",
-      content: "Reading content for weight calculations",
-      completed: false
-    },
-    {
-      id: "c130-intermediate-3",
-      title: "Load Planning Practice",
-      type: "interactive",
-      duration: "30 min",
-      description: "Interactive load planning exercises",
-      content: "Interactive load planning training",
-      completed: false
-    },
-    {
-      id: "c130-intermediate-4",
-      title: "C-130 Advanced Quiz",
-      type: "quiz",
-      duration: "18 min",
-      description: "Assessment of advanced C-130 knowledge",
-      content: "Quiz for advanced C-130",
-      completed: false
-    }
-  ],
-
-  "c130-advanced": [
-    {
-      id: "c130-advanced-1",
-      title: "C-130 Special Operations",
-      type: "video",
-      duration: "35 min",
-      description: "Special operations loading for C-130",
-      content: "Video content for special operations",
-      completed: false
-    },
-    {
-      id: "c130-advanced-2",
-      title: "Complex Mission Planning",
-      type: "reading",
-      duration: "22 min",
-      description: "Advanced mission planning procedures",
-      content: "Reading content for mission planning",
-      completed: false
-    },
-    {
-      id: "c130-advanced-3",
-      title: "Multi-Drop Scenarios",
-      type: "interactive",
-      duration: "40 min",
-      description: "Interactive training for multi-drop missions",
-      content: "Interactive multi-drop training",
-      completed: false
-    },
-    {
-      id: "c130-advanced-4",
-      title: "Special Operations Assessment",
-      type: "quiz",
-      duration: "22 min",
-      description: "Assessment of special operations knowledge",
-      content: "Quiz for special operations",
-      completed: false
-    }
-  ],
-
-  "c130-expert": [
-    {
-      id: "c130-expert-1",
-      title: "C-130 Master Operations",
-      type: "video",
-      duration: "45 min",
-      description: "Master-level C-130 operations training",
-      content: "Video content for master operations",
-      completed: false
-    },
-    {
-      id: "c130-expert-2",
-      title: "Advanced Tactical Procedures",
-      type: "reading",
-      duration: "30 min",
-      description: "Expert-level tactical procedures",
-      content: "Reading content for tactical procedures",
-      completed: false
-    },
-    {
-      id: "c130-expert-3",
-      title: "Combat Loading Simulation",
-      type: "interactive",
-      duration: "50 min",
-      description: "Advanced combat loading simulation",
-      content: "Interactive combat loading training",
-      completed: false
-    },
-    {
-      id: "c130-expert-4",
-      title: "Master Operations Assessment",
-      type: "quiz",
-      duration: "30 min",
-      description: "Comprehensive master-level assessment",
-      content: "Quiz for master operations",
-      completed: false
-    }
-  ],
-
   "kc30a-basics": [
     {
       id: "kc30a-basics-1",
@@ -790,241 +169,6 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: false
     }
   ],
-
-  "kc30a-intermediate": [
-    {
-      id: "kc30a-intermediate-1",
-      title: "Advanced Cargo Handling",
-      type: "video",
-      duration: "28 min",
-      description: "Advanced cargo handling techniques",
-      content: "Video content for advanced cargo handling",
-      completed: false
-    },
-    {
-      id: "kc30a-intermediate-2",
-      title: "Weight Distribution Analysis",
-      type: "reading",
-      duration: "20 min",
-      description: "Weight distribution analysis for KC30-A",
-      content: "Reading content for weight distribution",
-      completed: false
-    },
-    {
-      id: "kc30a-intermediate-3",
-      title: "Load Planning Exercises",
-      type: "interactive",
-      duration: "32 min",
-      description: "Interactive load planning exercises",
-      content: "Interactive load planning training",
-      completed: false
-    },
-    {
-      id: "kc30a-intermediate-4",
-      title: "Advanced Handling Quiz",
-      type: "quiz",
-      duration: "20 min",
-      description: "Assessment of advanced handling knowledge",
-      content: "Quiz for advanced handling",
-      completed: false
-    }
-  ],
-
-  "kc30a-advanced": [
-    {
-      id: "kc30a-advanced-1",
-      title: "Complex Mission Operations",
-      type: "video",
-      duration: "38 min",
-      description: "Complex mission operations for KC30-A",
-      content: "Video content for complex operations",
-      completed: false
-    },
-    {
-      id: "kc30a-advanced-2",
-      title: "Multi-Role Configuration",
-      type: "reading",
-      duration: "25 min",
-      description: "Multi-role configuration procedures",
-      content: "Reading content for multi-role config",
-      completed: false
-    },
-    {
-      id: "kc30a-advanced-3",
-      title: "Advanced Mission Simulation",
-      type: "interactive",
-      duration: "42 min",
-      description: "Interactive simulation of advanced missions",
-      content: "Interactive advanced mission training",
-      completed: false
-    },
-    {
-      id: "kc30a-advanced-4",
-      title: "Complex Operations Assessment",
-      type: "quiz",
-      duration: "25 min",
-      description: "Assessment of complex operations knowledge",
-      content: "Quiz for complex operations",
-      completed: false
-    }
-  ],
-
-  "kc30a-expert": [
-    {
-      id: "kc30a-expert-1",
-      title: "KC30-A Operations Management",
-      type: "video",
-      duration: "45 min",
-      description: "Expert-level operations management",
-      content: "Video content for operations management",
-      completed: false
-    },
-    {
-      id: "kc30a-expert-2",
-      title: "Strategic Mission Planning",
-      type: "reading",
-      duration: "30 min",
-      description: "Strategic mission planning procedures",
-      content: "Reading content for strategic planning",
-      completed: false
-    },
-    {
-      id: "kc30a-expert-3",
-      title: "Master Operations Simulation",
-      type: "interactive",
-      duration: "50 min",
-      description: "Master-level operations simulation",
-      content: "Interactive master operations training",
-      completed: false
-    },
-    {
-      id: "kc30a-expert-4",
-      title: "Operations Management Assessment",
-      type: "quiz",
-      duration: "30 min",
-      description: "Comprehensive operations management assessment",
-      content: "Quiz for operations management",
-      completed: false
-    }
-  ],
-
-  "kc30a-basics": [
-    {
-      id: "kc30a-basics-1",
-      title: "KC30-A Introduction",
-      type: "video",
-      duration: "20 min",
-      description: "Introduction to KC30-A Multi-Role Tanker Transport",
-      content: "Video content for KC30-A introduction",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-2",
-      title: "Cargo Bay Systems",
-      type: "reading",
-      duration: "15 min",
-      description: "Study of KC30-A cargo bay systems",
-      content: "Reading content for cargo bay systems",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-3",
-      title: "Basic Cargo Operations",
-      type: "interactive",
-      duration: "25 min",
-      description: "Interactive training for basic cargo operations",
-      content: "Interactive basic cargo operations",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-4",
-      title: "KC30-A Basics Quiz",
-      type: "quiz",
-      duration: "15 min",
-      description: "Test your KC30-A basic knowledge",
-      content: "Quiz for KC30-A basics",
-      completed: false
-    }
-  ],
-
-  "kc30a-basics": [
-    {
-      id: "kc30a-basics-1",
-      title: "KC30-A Introduction",
-      type: "video",
-      duration: "20 min",
-      description: "Introduction to KC30-A Multi-Role Tanker Transport",
-      content: "Video content for KC30-A introduction",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-2",
-      title: "Cargo Bay Systems",
-      type: "reading",
-      duration: "15 min",
-      description: "Study of KC30-A cargo bay systems",
-      content: "Reading content for cargo bay systems",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-3",
-      title: "Basic Cargo Operations",
-      type: "interactive",
-      duration: "25 min",
-      description: "Interactive training for basic cargo operations",
-      content: "Interactive basic cargo operations",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-4",
-      title: "KC30-A Basics Quiz",
-      type: "quiz",
-      duration: "15 min",
-      description: "Test your KC30-A basic knowledge",
-      content: "Quiz for KC30-A basics",
-      completed: false
-    }
-  ],
-
-  "kc30a-intermediate": [
-    {
-      id: "kc30a-intermediate-1",
-      title: "Advanced KC30-A Operations",
-      type: "video",
-      duration: "22 min",
-      description: "Advanced KC30-A Multi-Role operations",
-      content: "Advanced video content for KC30-A",
-      completed: false
-    },
-    {
-      id: "kc30a-intermediate-2",
-      title: "Complex Cargo Systems",
-      type: "reading",
-      duration: "18 min",
-      description: "Complex KC30-A cargo systems study",
-      content: "Advanced reading content for cargo systems",
-      completed: false
-    },
-    {
-      id: "kc30a-intermediate-3",
-      title: "Multi-Modal Operations",
-      type: "interactive",
-      duration: "28 min",
-      description: "Interactive training for multi-modal operations",
-      content: "Interactive multi-modal operations",
-      completed: false
-    },
-    {
-      id: "kc30a-intermediate-4",
-      title: "KC30-A Intermediate Quiz",
-      type: "quiz",
-      duration: "18 min",
-      description: "Test your intermediate KC30-A knowledge",
-      content: "Quiz for KC30-A intermediate level",
-      completed: false
-    }
-  ],
-
   "c27j-basics": [
     {
       id: "c27j-basics-1",
@@ -1062,727 +206,334 @@ const moduleContents: Record<string, LessonContent[]> = {
       content: "Quiz for C-27J fundamentals",
       completed: false
     }
-  ],
-
-  "c27j-intermediate": [
-    {
-      id: "c27j-intermediate-1",
-      title: "Advanced C-27J Operations",
-      type: "video",
-      duration: "26 min",
-      description: "Advanced operations training for C-27J",
-      content: "Video content for advanced operations",
-      completed: false
-    },
-    {
-      id: "c27j-intermediate-2",
-      title: "Tactical Loading Procedures",
-      type: "reading",
-      duration: "18 min",
-      description: "Tactical loading procedures for C-27J",
-      content: "Reading content for tactical loading",
-      completed: false
-    },
-    {
-      id: "c27j-intermediate-3",
-      title: "Mission Planning Practice",
-      type: "interactive",
-      duration: "28 min",
-      description: "Interactive mission planning exercises",
-      content: "Interactive mission planning training",
-      completed: false
-    },
-    {
-      id: "c27j-intermediate-4",
-      title: "Advanced Operations Quiz",
-      type: "quiz",
-      duration: "18 min",
-      description: "Assessment of advanced operations knowledge",
-      content: "Quiz for advanced operations",
-      completed: false
-    }
-  ],
-
-  "c27j-advanced": [
-    {
-      id: "c27j-advanced-1",
-      title: "C-27J Tactical Operations",
-      type: "video",
-      duration: "35 min",
-      description: "Tactical operations training for C-27J",
-      content: "Video content for tactical operations",
-      completed: false
-    },
-    {
-      id: "c27j-advanced-2",
-      title: "Advanced Mission Profiles",
-      type: "reading",
-      duration: "22 min",
-      description: "Advanced mission profiles and procedures",
-      content: "Reading content for mission profiles",
-      completed: false
-    },
-    {
-      id: "c27j-advanced-3",
-      title: "Tactical Scenarios Simulation",
-      type: "interactive",
-      duration: "38 min",
-      description: "Interactive tactical scenarios training",
-      content: "Interactive tactical scenarios training",
-      completed: false
-    },
-    {
-      id: "c27j-advanced-4",
-      title: "Tactical Operations Assessment",
-      type: "quiz",
-      duration: "22 min",
-      description: "Assessment of tactical operations knowledge",
-      content: "Quiz for tactical operations",
-      completed: false
-    }
-  ],
-
-  "c27j-expert": [
-    {
-      id: "c27j-expert-1",
-      title: "C-27J Master Operations",
-      type: "video",
-      duration: "42 min",
-      description: "Master-level C-27J operational management",
-      content: "Video content for master operations",
-      completed: false
-    },
-    {
-      id: "c27j-expert-2",
-      title: "Complete Platform Management",
-      type: "reading",
-      duration: "28 min",
-      description: "Complete platform management procedures",
-      content: "Reading content for platform management",
-      completed: false
-    },
-    {
-      id: "c27j-expert-3",
-      title: "Austere Field Operations",
-      type: "interactive",
-      duration: "45 min",
-      description: "Interactive training for austere field operations",
-      content: "Interactive austere field training",
-      completed: false
-    },
-    {
-      id: "c27j-expert-4",
-      title: "Master Operations Assessment",
-      type: "quiz",
-      duration: "28 min",
-      description: "Comprehensive master operations assessment",
-      content: "Quiz for master operations",
-      completed: false
-    }
   ]
-};
+}
 
 export default function ModuleDetailPage() {
-  const [, params] = useRoute('/training-modules/:id');
-  const [, navigate] = useLocation();
-  const { toast } = useToast();
-  const [currentTab, setCurrentTab] = useState('overview');
-  const [moduleProgress, setModuleProgress] = useState(0);
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [, params] = useRoute('/training-modules/:id')
+  const [, navigate] = useLocation()
+  const { toast } = useToast()
+  const [currentTab, setCurrentTab] = useState('overview')
+  const [moduleProgress, setModuleProgress] = useState(0)
+  const [completedLessons, setCompletedLessons] = useState<string[]>([])
   
   // Fetch training modules from API
   const { data: apiModules } = useQuery({
     queryKey: ['/api/training-modules'],
     queryFn: async () => {
-      const response = await fetch('/api/training-modules');
-      if (!response.ok) throw new Error('Failed to fetch training modules');
-      return response.json();
+      const response = await fetch('/api/training-modules')
+      if (!response.ok) throw new Error('Failed to fetch training modules')
+      return response.json()
     },
-  });
+  })
 
   // Use API data if available, otherwise fallback to local data
-  const modules = apiModules || trainingModules;
+  const modules = apiModules || trainingModules
   
   // Find the module that matches the ID parameter (convert to number if needed)
-  const moduleId = params?.id || '';
-  const numericId = parseInt(moduleId);
-  const module = modules.find(m => m.id === numericId || m.id === moduleId);
+  const moduleId = params?.id || ''
+  const numericId = parseInt(moduleId)
+  const module = modules.find(m => m.id === numericId || m.id === moduleId)
 
   // Fetch uploaded videos for this specific module
   const { data: uploadedVideos } = useQuery({
     queryKey: ['/api/training-modules', module?.id, 'videos'],
     queryFn: async () => {
-      if (!module?.id || typeof module.id !== 'number') return [];
-      const response = await fetch(`/api/training-modules/${module.id}/videos`);
-      if (!response.ok) return [];
-      return response.json();
+      if (!module?.id || typeof module.id !== 'number') return []
+      const response = await fetch(`/api/training-modules/${module.id}/videos`)
+      if (!response.ok) return []
+      return response.json()
     },
     enabled: !!module?.id && typeof module.id === 'number',
-  });
+  })
 
   // Map API module IDs to content keys
   const getContentKey = (module: any) => {
-    if (!module) return '';
+    if (!module) return ''
     
     // If it's a numeric ID from API, map to content key
     if (typeof module.id === 'number') {
-      const aircraft = module.aircraft;
-      const difficulty = module.difficulty;
+      const aircraft = module.aircraft
+      const difficulty = module.difficulty
       
       // Map based on aircraft type and difficulty
       if (aircraft === 'c17') {
-        if (difficulty === 'beginner') return 'c17-basics';
-        if (difficulty === 'intermediate') return 'c17-intermediate';
-        if (difficulty === 'advanced') return 'c17-advanced';
-        if (difficulty === 'expert') return 'c17-expert';
+        if (difficulty === 'beginner') return 'c17-basics'
       }
       if (aircraft === 'c130') {
-        if (difficulty === 'beginner') return 'c130-basics';
-        if (difficulty === 'intermediate') return 'c130-intermediate';
-        if (difficulty === 'advanced') return 'c130-advanced';
-        if (difficulty === 'expert') return 'c130-expert';
+        if (difficulty === 'beginner') return 'c130-basics'
       }
       if (aircraft === 'kc30a') {
-        if (difficulty === 'beginner') return 'kc30a-basics';
-        if (difficulty === 'intermediate') return 'kc30a-intermediate';
-        if (difficulty === 'advanced') return 'kc30a-advanced';
-        if (difficulty === 'expert') return 'kc30a-expert';
+        if (difficulty === 'beginner') return 'kc30a-basics'
       }
       if (aircraft === 'c27j') {
-        if (difficulty === 'beginner') return 'c27j-basics';
-        if (difficulty === 'intermediate') return 'c27j-intermediate';
-        if (difficulty === 'advanced') return 'c27j-advanced';
-        if (difficulty === 'expert') return 'c27j-expert';
+        if (difficulty === 'beginner') return 'c27j-basics'
       }
     }
     
-    // Fallback to original ID for string IDs
-    return module.id;
-  };
+    // For string IDs, use directly
+    return module.id || ''
+  }
 
-  // Get module content using the correct key
-  const contentKey = getContentKey(module);
-  const content = moduleContents[contentKey] || [];
+  // Get lesson content based on module
+  const contentKey = getContentKey(module)
+  const content = moduleContents[contentKey] || []
 
-  // Calculate progress based on completed lessons
-  useEffect(() => {
-    if (content.length > 0) {
-      const completedCount = content.filter(lesson => lesson.completed).length;
-      const progress = Math.round((completedCount / content.length) * 100);
-      setModuleProgress(progress);
-      
-      // Update completed lessons array
-      const completed = content
-        .filter(lesson => lesson.completed)
-        .map(lesson => lesson.id);
-      setCompletedLessons(completed);
-    }
-  }, [content]);
-
-  // Handle lesson completion
   const completeLesson = (lessonId: string) => {
-    // In a real app, this would make an API call to update the user's progress
-    toast({
-      title: "Lesson completed",
-      description: "Your progress has been saved",
-    });
-    
-    // Update local state for demo purposes
-    setCompletedLessons(prev => [...prev, lessonId]);
-  };
+    if (!completedLessons.includes(lessonId)) {
+      const newCompleted = [...completedLessons, lessonId]
+      setCompletedLessons(newCompleted)
+      
+      // Calculate progress
+      const progress = (newCompleted.length / content.length) * 100
+      setModuleProgress(progress)
 
+      toast({
+        title: "Lesson completed!",
+        description: "Your progress has been saved.",
+      })
+    }
+  }
+
+  // Early return if module not found
   if (!module) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">Module Not Found</h2>
-          <p className="text-muted-foreground mb-6">
-            The training module you requested could not be found.
-          </p>
-          <Button onClick={() => navigate('/training-modules')}>
-            Return to Modules
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Module Not Found</h1>
+          <p className="text-gray-300 mb-6">The training module you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/training-modules')} className="bg-primary text-white">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Training Modules
           </Button>
         </div>
       </div>
-    );
+    )
   }
 
   // Calculate available content types including uploaded videos
-  const hasUploadedVideos = uploadedVideos && uploadedVideos.length > 0;
-  const staticContentTypes = [...new Set(content.map(item => item.type))];
+  const hasUploadedVideos = uploadedVideos && uploadedVideos.length > 0
+  const staticContentTypes = [...new Set(content.map(item => item.type))]
   const contentTypes = hasUploadedVideos 
     ? [...new Set([...staticContentTypes, 'video'])] 
-    : staticContentTypes;
+    : staticContentTypes
 
   const getAircraftName = (id: string) => {
-    const config = aircraftConfigs[id];
-    return config ? config.name : id;
-  };
+    const config = aircraftConfigs[id]
+    return config ? config.name : id
+  }
 
   return (
-    <>
-      <Helmet>
-        <title>{module.title} | LOADMworkflow</title>
-        <meta 
-          name="description" 
-          content={`${module.description} - Aircraft-specific training module for military loadmasters.`} 
-        />
-      </Helmet>
-
-      <div className="container mx-auto px-4 py-8 mb-16">
-        <div className="max-w-6xl mx-auto">
-          {/* Back Button */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
           <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mb-6"
-            onClick={() => navigate('/airframe')}
+            variant="outline" 
+            onClick={() => navigate('/training-modules')}
+            className="border-gray-700 text-gray-300 hover:bg-gray-800"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Modules
           </Button>
           
-          {/* Header Section */}
-          <div className="mb-8 bg-card border border-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="bg-orange-500/20 p-2 rounded-md">
-                    <Plane className="h-6 w-6 text-orange-500" />
-                  </div>
-                  <div>
-                    <Badge variant="outline" className={`${difficultyColors[module.difficulty]} border mb-1`}>
-                      {module.difficulty.charAt(0).toUpperCase() + module.difficulty.slice(1)}
-                      {' '}
-                      {[...Array(difficultyStars[module.difficulty])].map((_, i) => (
-                        <Star key={i} className="h-3 w-3 inline ml-0.5 fill-current" />
-                      ))}
-                    </Badge>
-                    <h1 className="text-2xl font-bold">{module.title}</h1>
-                  </div>
-                </div>
-                <p className="text-muted-foreground max-w-2xl mb-4">
-                  {module.description}
-                </p>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                      {getAircraftName(module.aircraft)}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <span>{module.duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ListChecks className="h-4 w-4 text-muted-foreground" />
-                    <span>{content.length} lessons</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="bg-gray-800/20 border-gray-800"
-                  onClick={() => {
-                    toast({
-                      title: "Module materials downloaded",
-                      description: "You can now access this module offline",
-                    });
-                  }}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mt-6">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Progress</span>
-                <span>{moduleProgress}%</span>
-              </div>
-              <Progress value={moduleProgress} className="h-2" />
-            </div>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-white">{module.title}</h1>
+            <p className="text-gray-300 mt-1">
+              {getAircraftName(module.id)} • {module.difficulty} Level
+            </p>
           </div>
+        </div>
 
-          {/* Content Tabs */}
-          <Tabs value={currentTab} onValueChange={setCurrentTab} className="mb-8">
-            <TabsList className="bg-muted">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                Overview
-              </TabsTrigger>
-              {contentTypes.includes('video') && (
-                <TabsTrigger value="videos" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                  Videos
-                </TabsTrigger>
-              )}
-              {contentTypes.includes('reading') && (
-                <TabsTrigger value="readings" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                  Readings
-                </TabsTrigger>
-              )}
-              {contentTypes.includes('interactive') && (
-                <TabsTrigger value="interactive" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                  Interactive
-                </TabsTrigger>
-              )}
-              {contentTypes.includes('quiz') && (
-                <TabsTrigger value="quizzes" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                  Quizzes
-                </TabsTrigger>
-              )}
-            </TabsList>
-
-            {/* Overview Tab Content */}
-            <TabsContent value="overview">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Left Column: Module Info */}
-                <div className="md:col-span-2 space-y-6">
-                  <Card className="border-gray-800">
-                    <CardHeader>
-                      <CardTitle>Module Description</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-4">
-                        {module.description}
-                      </p>
-                      <h3 className="text-lg font-medium mb-2">Learning Objectives</h3>
-                      <ul className="list-disc pl-5 space-y-1 text-muted-foreground mb-4">
-                        {module.objectives.map((objective, index) => (
-                          <li key={index}>{objective}</li>
-                        ))}
-                      </ul>
-                      <h3 className="text-lg font-medium mb-2">Topics Covered</h3>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {module.topics.map((topic, index) => (
-                          <Badge key={index} variant="outline" className="bg-gray-800/10 text-gray-300">
-                            {topic}
-                          </Badge>
-                        ))}
-                      </div>
-                      <h3 className="text-lg font-medium mb-2">Prerequisites</h3>
-                      <p className="text-muted-foreground">
-                        {module.difficulty === "beginner" 
-                          ? "No prerequisites required. This is a beginner level module."
-                          : `Complete the ${module.aircraft.toUpperCase()} ${
-                              module.difficulty === "intermediate" 
-                                ? "basics" 
-                                : module.difficulty === "advanced" 
-                                  ? "intermediate" 
-                                  : "advanced"
-                            } module before starting this one.`
-                        }
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-gray-800">
-                    <CardHeader>
-                      <CardTitle>Module Content</CardTitle>
-                      <CardDescription>
-                        Complete all lessons to finish this module
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {content.map((lesson, index) => {
-                          const ContentIcon = contentTypeIcons[lesson.type];
-                          const isCompleted = completedLessons.includes(lesson.id);
-                          return (
-                            <div key={lesson.id} className="relative">
-                              {index > 0 && (
-                                <div className="absolute left-4 top-0 h-full w-0.5 -translate-x-1/2 bg-gray-800/20" />
-                              )}
-                              <div className="relative flex items-start gap-4 pb-4">
-                                <div className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${
-                                  isCompleted 
-                                    ? "bg-primary border-primary" 
-                                    : "bg-gray-800/10 border-gray-800/30"
-                                }`}>
-                                  {isCompleted ? (
-                                    <CheckCircle2 className="h-4 w-4 text-white" />
-                                  ) : (
-                                    <ContentIcon className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="text-base font-medium">{lesson.title}</h4>
-                                    <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                      {lesson.duration}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {lesson.description}
-                                  </p>
-                                  <div className="mt-2">
-                                    <Button 
-                                      size="sm" 
-                                      onClick={() => isCompleted ? null : completeLesson(lesson.id)}
-                                      className={isCompleted ? "bg-green-600 hover:bg-green-700" : ""}
-                                      disabled={isCompleted}
-                                    >
-                                      {isCompleted ? (
-                                        <>
-                                          <CheckCircle2 className="h-4 w-4 mr-2" />
-                                          Completed
-                                        </>
-                                      ) : (
-                                        <>
-                                          <ContentIcon className="h-4 w-4 mr-2" />
-                                          Start {lesson.type}
-                                        </>
-                                      )}
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Right Column: Sidebar */}
-                <div className="space-y-6">
-                  <Card className="border-gray-800">
-                    <CardHeader>
-                      <CardTitle>Your Progress</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center mb-4">
-                        <div className="inline-flex items-center justify-center rounded-full w-20 h-20 border-4 border-primary mb-2">
-                          <span className="text-2xl font-bold">{moduleProgress}%</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {completedLessons.length} of {content.length} lessons completed
-                        </p>
-                      </div>
-                      
-                      <Separator className="my-4" />
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>Videos</span>
-                            <span>{
-                              completedLessons.filter(id => 
-                                content.find(l => l.id === id)?.type === 'video'
-                              ).length
-                            } / {
-                              content.filter(l => l.type === 'video').length
-                            }</span>
-                          </div>
-                          <Progress 
-                            value={
-                              content.filter(l => l.type === 'video').length > 0
-                                ? (completedLessons.filter(id => 
-                                    content.find(l => l.id === id)?.type === 'video'
-                                  ).length / 
-                                  content.filter(l => l.type === 'video').length) * 100
-                                : 0
-                            } 
-                            className="h-2" 
-                          />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>Readings</span>
-                            <span>{
-                              completedLessons.filter(id => 
-                                content.find(l => l.id === id)?.type === 'reading'
-                              ).length
-                            } / {
-                              content.filter(l => l.type === 'reading').length
-                            }</span>
-                          </div>
-                          <Progress 
-                            value={
-                              content.filter(l => l.type === 'reading').length > 0
-                                ? (completedLessons.filter(id => 
-                                    content.find(l => l.id === id)?.type === 'reading'
-                                  ).length / 
-                                  content.filter(l => l.type === 'reading').length) * 100
-                                : 0
-                            } 
-                            className="h-2" 
-                          />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>Interactive</span>
-                            <span>{
-                              completedLessons.filter(id => 
-                                content.find(l => l.id === id)?.type === 'interactive'
-                              ).length
-                            } / {
-                              content.filter(l => l.type === 'interactive').length
-                            }</span>
-                          </div>
-                          <Progress 
-                            value={
-                              content.filter(l => l.type === 'interactive').length > 0
-                                ? (completedLessons.filter(id => 
-                                    content.find(l => l.id === id)?.type === 'interactive'
-                                  ).length / 
-                                  content.filter(l => l.type === 'interactive').length) * 100
-                                : 0
-                            } 
-                            className="h-2" 
-                          />
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>Quizzes</span>
-                            <span>{
-                              completedLessons.filter(id => 
-                                content.find(l => l.id === id)?.type === 'quiz'
-                              ).length
-                            } / {
-                              content.filter(l => l.type === 'quiz').length
-                            }</span>
-                          </div>
-                          <Progress 
-                            value={
-                              content.filter(l => l.type === 'quiz').length > 0
-                                ? (completedLessons.filter(id => 
-                                    content.find(l => l.id === id)?.type === 'quiz'
-                                  ).length / 
-                                  content.filter(l => l.type === 'quiz').length) * 100
-                                : 0
-                            } 
-                            className="h-2" 
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-gray-800">
-                    <CardHeader>
-                      <CardTitle>Resources</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        <li>
-                          <Button variant="link" className="p-0 h-auto text-primary">
-                            <FileText className="h-4 w-4 mr-2" />
-                            {module.aircraft.toUpperCase()} Technical Manual
-                          </Button>
-                        </li>
-                        <li>
-                          <Button variant="link" className="p-0 h-auto text-primary">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Cargo Loading Procedures
-                          </Button>
-                        </li>
-                        <li>
-                          <Button variant="link" className="p-0 h-auto text-primary">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Weight and Balance Handbook
-                          </Button>
-                        </li>
-                        <li>
-                          <Button variant="link" className="p-0 h-auto text-primary">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download All Resources
-                          </Button>
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-gray-800">
-                    <CardHeader>
-                      <CardTitle>Certificate</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Complete this module to earn your certificate
-                      </p>
-                      <Button 
-                        className="w-full" 
-                        disabled={moduleProgress < 100}
-                        onClick={() => {
-                          if (moduleProgress >= 100) {
-                            toast({
-                              title: "Certificate Generated",
-                              description: "Your certificate has been generated and added to your profile",
-                            });
-                          }
-                        }}
-                      >
-                        <GraduationCap className="h-4 w-4 mr-2" />
-                        {moduleProgress >= 100 ? "Generate Certificate" : "Complete Module First"}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
+        {/* Progress Card */}
+        <Card className="border-gray-800 mb-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-white">Module Progress</CardTitle>
+                <CardDescription>{Math.round(moduleProgress)}% Complete</CardDescription>
               </div>
-            </TabsContent>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                {completedLessons.length} / {content.length} Lessons
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Progress value={moduleProgress} className="w-full" />
+          </CardContent>
+        </Card>
 
-            {/* Videos Tab Content */}
-            <TabsContent value="videos">
-              <Card className="border-gray-800">
-                <CardHeader>
-                  <CardTitle>Video Lessons</CardTitle>
-                  <CardDescription>
-                    Watch all video lessons to build your knowledge
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    {/* Show uploaded videos from instructor portal if available */}
-                    {uploadedVideos && uploadedVideos.length > 0 ? (
-                      uploadedVideos.map((video: any) => (
-                        <div key={video.id} className="space-y-4">
-                          <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
-                            <h3 className="text-lg font-medium mb-2">{video.videoTitle}</h3>
-                            <p className="text-muted-foreground mb-4">{video.videoDescription}</p>
-                            
-                            {/* Video Player */}
-                            <div className="aspect-video bg-black rounded-lg flex items-center justify-center mb-4">
-                              <video 
-                                controls 
-                                className="w-full h-full rounded-lg"
-                                src={`/api/training-modules/videos/stream/${video.id}`}
-                              >
-                                Your browser does not support video playback.
-                              </video>
-                            </div>
-                            
-                            <div className="flex justify-between items-center">
-                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                Video {video.videoOrder}
-                              </Badge>
-                              <Button 
-                                size="sm"
-                                onClick={() => {
-                                  toast({
-                                    title: "Video completed",
-                                    description: "Your progress has been saved",
-                                  });
-                                }}
-                                className="bg-primary text-white hover:bg-primary/90"
-                              >
-                                <PlayCircle className="h-4 w-4 mr-2" />
-                                Mark as Watched
-                              </Button>
-                            </div>
+        {/* Main Content Tabs */}
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+          <TabsList className="grid grid-cols-5 w-full bg-gray-800/50 border border-gray-700">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Overview
+            </TabsTrigger>
+            {contentTypes.includes('video') && (
+              <TabsTrigger value="videos" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Videos
+              </TabsTrigger>
+            )}
+            {contentTypes.includes('reading') && (
+              <TabsTrigger value="readings" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Readings
+              </TabsTrigger>
+            )}
+            {contentTypes.includes('interactive') && (
+              <TabsTrigger value="interactive" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Interactive
+              </TabsTrigger>
+            )}
+            {contentTypes.includes('quiz') && (
+              <TabsTrigger value="quiz" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                Quiz
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Module Description</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-300 leading-relaxed">
+                      {module.description}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Learning Objectives</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {module.objectives?.map((objective, index) => (
+                        <li key={index} className="flex items-start gap-2 text-gray-300">
+                          <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                          {objective}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-6">
+                <Card className="border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Module Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm">Duration: {module.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Users className="h-4 w-4" />
+                      <span className="text-sm">Instructor: {module.instructor}</span>
+                    </div>
+                    <div className="pt-2 border-t border-gray-700">
+                      <p className="text-sm text-gray-400">
+                        Prerequisites: {module.prerequisites}
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Last Updated: {module.lastUpdated}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="text-white">Certificate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-300 mb-4">
+                      Complete all lessons to earn your certificate
+                    </p>
+                    <Button 
+                      className="w-full bg-primary text-white hover:bg-primary/90"
+                      disabled={moduleProgress < 100}
+                      onClick={() => {
+                        if (moduleProgress >= 100) {
+                          toast({
+                            title: "Certificate Generated!",
+                            description: "Your completion certificate has been generated and saved.",
+                          })
+                        }
+                      }}
+                    >
+                      <GraduationCap className="h-4 w-4 mr-2" />
+                      {moduleProgress >= 100 ? "Generate Certificate" : "Complete Module First"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Videos Tab Content */}
+          <TabsContent value="videos">
+            <Card className="border-gray-800">
+              <CardHeader>
+                <CardTitle>Video Lessons</CardTitle>
+                <CardDescription>
+                  Watch all video lessons to build your knowledge
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-8">
+                  {/* Show uploaded videos from instructor portal if available */}
+                  {hasUploadedVideos ? (
+                    uploadedVideos.map((video: any) => (
+                      <div key={video.id} className="space-y-4">
+                        <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+                          <h3 className="text-lg font-medium mb-2">{video.videoTitle}</h3>
+                          <p className="text-muted-foreground mb-4">{video.videoDescription}</p>
+                          
+                          {/* Video Player */}
+                          <div className="aspect-video bg-black rounded-lg flex items-center justify-center mb-4">
+                            <video 
+                              controls 
+                              className="w-full h-full rounded-lg"
+                              src={`/api/training-modules/videos/stream/${video.id}`}
+                            >
+                              Your browser does not support video playback.
+                            </video>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                              Video {video.videoOrder}
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              onClick={() => {
+                                toast({
+                                  title: "Video completed",
+                                  description: "Your progress has been saved",
+                                })
+                              }}
+                              className="bg-primary text-white hover:bg-primary/90"
+                            >
+                              <PlayCircle className="h-4 w-4 mr-2" />
+                              Mark as Watched
+                            </Button>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      /* Fallback to local content if no uploaded videos */
-                      content
+                      </div>
+                    ))
+                  ) : (
+                    /* Fallback to local content if no uploaded videos */
+                    content
                       .filter(lesson => lesson.type === 'video')
                       .map(lesson => (
                         <div key={lesson.id} className="space-y-4">
-                          {/* Training Video Player Component with the provided video template */}
                           <TrainingVideoPlayer
                             title={lesson.title}
                             description={lesson.description}
@@ -1794,7 +545,7 @@ export default function ModuleDetailPage() {
                             </Badge>
                             <Button 
                               size="sm"
-                              onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                              onClick={() => completeLesson(lesson.id)}
                               disabled={completedLessons.includes(lesson.id)}
                               className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
                             >
@@ -1805,74 +556,124 @@ export default function ModuleDetailPage() {
                                 </>
                               ) : (
                                 <>
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Mark as Completed
+                                  <PlayCircle className="h-4 w-4 mr-2" />
+                                  Watch Now
                                 </>
                               )}
                             </Button>
                           </div>
                         </div>
                       ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Readings Tab Content */}
-            <TabsContent value="readings">
-              <Card className="border-gray-800">
-                <CardHeader>
-                  <CardTitle>Reading Materials</CardTitle>
-                  <CardDescription>
-                    Study the reading materials to deepen your understanding
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {content
-                      .filter(lesson => lesson.type === 'reading')
-                      .map(lesson => (
-                        <Card key={lesson.id} className="border-gray-800">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                {lesson.duration}
-                              </Badge>
-                            </div>
-                            <CardDescription>{lesson.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            {/* Display different reading content components based on the lesson ID */}
-                            {lesson.id === 'c17-cargo-bay-layout' && <C17CargoBayLayout />}
-                            {lesson.id === 'kc30a-cargo-systems' && <KC30ACargoBaySystems />}
-                            {lesson.id === 'c130-cargo-configurations' && <C130CargoConfigurations />}
-                            {lesson.id === 'c27j-operations' && <C27JOperations />}
-                            
-                            {/* Fallback if none of the specific components match */}
-                            {!['c17-cargo-bay-layout', 'kc30a-cargo-systems', 'c130-cargo-configurations', 'c27j-operations'].includes(lesson.id) && (
-                              <p className="text-sm text-muted-foreground">
-                                {lesson.content}
-                              </p>
+          {/* Readings Tab Content */}
+          <TabsContent value="readings">
+            <Card className="border-gray-800">
+              <CardHeader>
+                <CardTitle>Reading Materials</CardTitle>
+                <CardDescription>
+                  Study the reading materials to deepen your understanding
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {content
+                    .filter(lesson => lesson.type === 'reading')
+                    .map(lesson => (
+                      <Card key={lesson.id} className="border-gray-800">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg">{lesson.title}</CardTitle>
+                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                              {lesson.duration}
+                            </Badge>
+                          </div>
+                          <CardDescription>{lesson.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="prose prose-invert max-w-none">
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {lesson.content}
+                            </p>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-end">
+                          <Button 
+                            variant="outline"
+                            className="mr-2"
+                            onClick={() => {
+                              toast({
+                                title: "Reading downloaded",
+                                description: "The reading material has been saved for offline access",
+                              })
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download PDF
+                          </Button>
+                          <Button 
+                            onClick={() => completeLesson(lesson.id)}
+                            disabled={completedLessons.includes(lesson.id)}
+                            className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                          >
+                            {completedLessons.includes(lesson.id) ? (
+                              <>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                Completed
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                Mark as Read
+                              </>
                             )}
-                          </CardContent>
-                          <CardFooter className="flex justify-end">
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Interactive Tab Content */}
+          <TabsContent value="interactive">
+            <Card className="border-gray-800">
+              <CardHeader>
+                <CardTitle>Interactive Learning</CardTitle>
+                <CardDescription>
+                  Hands-on exercises and simulations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-8">
+                  {content
+                    .filter(lesson => lesson.type === 'interactive')
+                    .map(lesson => (
+                      <div key={lesson.id} className="space-y-4">
+                        <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+                          <h3 className="text-lg font-medium mb-2">{lesson.title}</h3>
+                          <p className="text-muted-foreground mb-4">{lesson.description}</p>
+                          
+                          {/* Placeholder for interactive content */}
+                          <div className="aspect-video bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg flex items-center justify-center border border-gray-700">
+                            <div className="text-center">
+                              <div className="text-4xl mb-4">🎮</div>
+                              <h4 className="text-lg font-medium mb-2">Interactive Training Module</h4>
+                              <p className="text-muted-foreground">Click "Start Training" to begin the interactive simulation</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center mt-4">
+                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                              {lesson.duration}
+                            </Badge>
                             <Button 
-                              variant="outline"
-                              className="mr-2"
-                              onClick={() => {
-                                toast({
-                                  title: "Reading downloaded",
-                                  description: "Material is now available offline",
-                                });
-                              }}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                            <Button 
-                              onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
+                              onClick={() => completeLesson(lesson.id)}
                               disabled={completedLessons.includes(lesson.id)}
                               className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
                             >
@@ -1882,292 +683,72 @@ export default function ModuleDetailPage() {
                                   Completed
                                 </>
                               ) : (
-                                <>
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Mark as Read
-                                </>
+                                "Start Training"
                               )}
                             </Button>
-                          </CardFooter>
-                        </Card>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Interactive Tab Content */}
-            <TabsContent value="interactive">
-              <Card className="border-gray-800">
-                <CardHeader>
-                  <CardTitle>Interactive Exercises</CardTitle>
-                  <CardDescription>
-                    Practice your skills with these interactive exercises
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {content
-                      .filter(lesson => lesson.type === 'interactive')
-                      .map(lesson => (
-                        <Card key={lesson.id} className="border-gray-800">
-                          <CardHeader>
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                {lesson.duration}
-                              </Badge>
+          {/* Quiz Tab Content */}
+          <TabsContent value="quiz">
+            <Card className="border-gray-800">
+              <CardHeader>
+                <CardTitle>Knowledge Assessment</CardTitle>
+                <CardDescription>
+                  Test your understanding of the module content
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-8">
+                  {content
+                    .filter(lesson => lesson.type === 'quiz')
+                    .map(lesson => (
+                      <div key={lesson.id} className="space-y-4">
+                        <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+                          <h3 className="text-lg font-medium mb-2">{lesson.title}</h3>
+                          <p className="text-muted-foreground mb-4">{lesson.description}</p>
+                          
+                          {/* Quiz placeholder */}
+                          <div className="aspect-video bg-gradient-to-br from-green-900/20 to-blue-900/20 rounded-lg flex items-center justify-center border border-gray-700">
+                            <div className="text-center">
+                              <div className="text-4xl mb-4">📝</div>
+                              <h4 className="text-lg font-medium mb-2">Knowledge Assessment</h4>
+                              <p className="text-muted-foreground">Click "Start Quiz" to begin the assessment</p>
                             </div>
-                            <CardDescription>{lesson.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            {/* Show custom interactive content for the specific aircraft modules */}
-                            {(module.id === "c17-basics" && lesson.id === "c17-basics-3") ? (
-                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
-                                <C17BasicsInteractive />
-                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
-                                  <Button 
-                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                    disabled={completedLessons.includes(lesson.id)}
-                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                                  >
-                                    {completedLessons.includes(lesson.id) ? (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Completed
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Mark Complete
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (module.id === "kc30a-basics" && lesson.id === "kc30a-basics-3") ? (
-                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
-                                <KC30ABasicsInteractive />
-                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
-                                  <Button 
-                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                    disabled={completedLessons.includes(lesson.id)}
-                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                                  >
-                                    {completedLessons.includes(lesson.id) ? (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Completed
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Mark Complete
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (module.id === "c130-basics" && lesson.id === "c130-basics-3") ? (
-                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
-                                <C130BasicsInteractive />
-                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
-                                  <Button 
-                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                    disabled={completedLessons.includes(lesson.id)}
-                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                                  >
-                                    {completedLessons.includes(lesson.id) ? (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Completed
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Mark Complete
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (module.id === "c27j-basics" && lesson.id === "c27j-basics-3") ? (
-                              <div className="bg-card border border-gray-800/30 rounded-lg p-6">
-                                <C27JBasicsInteractive />
-                                <div className="mt-6 pt-4 border-t border-gray-800/30 flex justify-center">
-                                  <Button 
-                                    onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                    disabled={completedLessons.includes(lesson.id)}
-                                    className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                                  >
-                                    {completedLessons.includes(lesson.id) ? (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Completed
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle2 className="h-4 w-4 mr-2" />
-                                        Mark Complete
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="bg-gray-800/20 border border-gray-800/30 rounded-lg p-6 text-center">
-                                <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                                <p className="text-muted-foreground mb-4">
-                                  Interactive exercise content would be displayed here
-                                </p>
-                                <Button 
-                                  onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                                  disabled={completedLessons.includes(lesson.id)}
-                                  className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                                >
-                                  {completedLessons.includes(lesson.id) ? (
-                                    <>
-                                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                                      Completed
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ListChecks className="h-4 w-4 mr-2" />
-                                      Start Exercise
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Quizzes Tab Content */}
-            <TabsContent value="quizzes">
-              <Card className="border-gray-800">
-                <CardHeader>
-                  <CardTitle>Assessment Quizzes</CardTitle>
-                  <CardDescription>
-                    Test your knowledge with these quizzes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {content
-                      .filter(lesson => lesson.type === 'quiz')
-                      .map(lesson => (
-                        <Card key={lesson.id} className="border-gray-800">
-                          <CardHeader>
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                {lesson.duration}
-                              </Badge>
+                          </div>
+                          
+                          <div className="flex justify-between items-center mt-4">
+                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                              {lesson.duration}
+                            </Badge>
+                            <div className="flex gap-2">
+                              <Button variant="outline">
+                                Review Questions
+                              </Button>
+                              <Button 
+                                onClick={() => completeLesson(lesson.id)}
+                                disabled={completedLessons.includes(lesson.id)}
+                                className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                              >
+                                {completedLessons.includes(lesson.id) ? "Completed" : "Start Quiz"}
+                              </Button>
                             </div>
-                            <CardDescription>{lesson.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            {/* Show specific quiz component based on module ID */}
-                            {(module.id === "c17-basics" && lesson.id === "c17-basics-5") ? (
-                              <div className="border border-gray-800/30 rounded-lg">
-                                {completedLessons.includes(lesson.id) ? (
-                                  <div className="bg-gray-800/20 p-6 text-center">
-                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
-                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
-                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <C17BasicsQuiz />
-                                )}
-                              </div>
-                            ) : (module.id === "kc30a-basics" && lesson.id === "kc30a-basics-5") ? (
-                              <div className="border border-gray-800/30 rounded-lg">
-                                {completedLessons.includes(lesson.id) ? (
-                                  <div className="bg-gray-800/20 p-6 text-center">
-                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
-                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
-                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <KC30ABasicsQuiz />
-                                )}
-                              </div>
-                            ) : (module.id === "c130-basics" && lesson.id === "c130-basics-5") ? (
-                              <div className="border border-gray-800/30 rounded-lg">
-                                {completedLessons.includes(lesson.id) ? (
-                                  <div className="bg-gray-800/20 p-6 text-center">
-                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
-                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
-                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <C130BasicsQuiz />
-                                )}
-                              </div>
-                            ) : (module.id === "c27j-basics" && lesson.id === "c27j-basics-5") ? (
-                              <div className="border border-gray-800/30 rounded-lg">
-                                {completedLessons.includes(lesson.id) ? (
-                                  <div className="bg-gray-800/20 p-6 text-center">
-                                    <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-md">
-                                      <p className="text-green-500 font-medium">Quiz passed successfully!</p>
-                                      <p className="text-sm text-green-500/80 mt-1">You've completed this assessment.</p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <C27JBasicsQuiz />
-                                )}
-                              </div>
-                            ) : (
-                              <div className="bg-gray-800/20 border border-gray-800/30 rounded-lg p-6 text-center">
-                                <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                                <p className="text-muted-foreground">
-                                  Complete all readings and videos before taking this quiz
-                                </p>
-                                {completedLessons.includes(lesson.id) && (
-                                  <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-md text-left">
-                                    <p className="text-green-500 font-medium">Quiz passed successfully!</p>
-                                    <p className="text-sm text-green-500/80">Score: 85%</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </CardContent>
-                          <CardFooter className="flex justify-end">
-                            <Button 
-                              onClick={() => completedLessons.includes(lesson.id) ? null : completeLesson(lesson.id)}
-                              disabled={completedLessons.includes(lesson.id)}
-                              className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                            >
-                              {completedLessons.includes(lesson.id) ? (
-                                <>
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Completed
-                                </>
-                              ) : (
-                                <>
-                                  <GraduationCap className="h-4 w-4 mr-2" />
-                                  Start Quiz
-                                </>
-                              )}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-    </>
-  );
+    </div>
+  )
 }
