@@ -274,13 +274,16 @@ export default function DocumentManagement() {
       </Helmet>
 
       <div className="container mx-auto px-4 py-8">
+        <Button 
+          variant="outline" 
+          className="mb-6 border-gray-600 text-gray-700 hover:bg-gray-100" 
+          onClick={() => setLocation('/superadmin-dashboard')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admin Dashboard
+        </Button>
+
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <Link href="/admin">
-              <a className="text-primary hover:text-primary/80 mr-4">
-                <ArrowLeft className="h-5 w-5" />
-              </a>
-            </Link>
             <h2 className="text-2xl font-bold">Document Management</h2>
           </div>
           <Dialog open={isCreating} onOpenChange={(open) => {
