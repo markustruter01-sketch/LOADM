@@ -1185,6 +1185,18 @@ export default function ModuleDetailPage() {
     },
   });
 
+  // Fetch uploaded videos for this specific module
+  const { data: uploadedVideos } = useQuery({
+    queryKey: ['/api/training-modules', module?.id, 'videos'],
+    queryFn: async () => {
+      if (!module?.id || typeof module.id !== 'number') return [];
+      const response = await fetch(`/api/training-modules/${module.id}/videos`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!module?.id && typeof module.id === 'number',
+  });
+
   // Use API data if available, otherwise fallback to local data
   const modules = apiModules || trainingModules;
   
@@ -1280,8 +1292,12 @@ export default function ModuleDetailPage() {
     );
   }
 
-  // Calculate available content types
-  const contentTypes = [...new Set(content.map(item => item.type))];
+  // Calculate available content types including uploaded videos
+  const hasUploadedVideos = uploadedVideos && uploadedVideos.length > 0;
+  const staticContentTypes = [...new Set(content.map(item => item.type))];
+  const contentTypes = hasUploadedVideos 
+    ? [...new Set([...staticContentTypes, 'video'])] 
+    : staticContentTypes;
 
   const getAircraftName = (id: string) => {
     const config = aircraftConfigs[id];
@@ -1705,7 +1721,49 @@ export default function ModuleDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-8">
-                    {content
+                    {/* Show uploaded videos from instructor portal if available */}
+                    {uploadedVideos && uploadedVideos.length > 0 ? (
+                      uploadedVideos.map((video: any) => (
+                        <div key={video.id} className="space-y-4">
+                          <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+                            <h3 className="text-lg font-medium mb-2">{video.videoTitle}</h3>
+                            <p className="text-muted-foreground mb-4">{video.videoDescription}</p>
+                            
+                            {/* Video Player */}
+                            <div className="aspect-video bg-black rounded-lg flex items-center justify-center mb-4">
+                              <video 
+                                controls 
+                                className="w-full h-full rounded-lg"
+                                src={`/api/training-modules/videos/stream/${video.id}`}
+                              >
+                                Your browser does not support video playback.
+                              </video>
+                            </div>
+                            
+                            <div className="flex justify-between items-center">
+                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                                Video {video.videoOrder}
+                              </Badge>
+                              <Button 
+                                size="sm"
+                                onClick={() => {
+                                  toast({
+                                    title: "Video completed",
+                                    description: "Your progress has been saved",
+                                  });
+                                }}
+                                className="bg-primary text-white hover:bg-primary/90"
+                              >
+                                <PlayCircle className="h-4 w-4 mr-2" />
+                                Mark as Watched
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      /* Fallback to local content if no uploaded videos */
+                      content
                       .filter(lesson => lesson.type === 'video')
                       .map(lesson => (
                         <div key={lesson.id} className="space-y-4">
@@ -1739,7 +1797,8 @@ export default function ModuleDetailPage() {
                             </Button>
                           </div>
                         </div>
-                      ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
