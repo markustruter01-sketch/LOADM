@@ -382,6 +382,77 @@ export default function TrainingModulesManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState<TrainingModule | null>(null);
+
+  // Fetch training modules from API
+  const { data: trainingModules = [], refetch: refetchModules } = useQuery({
+    queryKey: ['/api/training-modules'],
+    queryFn: async () => {
+      const response = await fetch('/api/training-modules');
+      if (!response.ok) throw new Error('Failed to fetch training modules');
+      return response.json();
+    },
+  });
+
+  // Create module mutation
+  const createModuleMutation = useMutation({
+    mutationFn: async (moduleData: any) => {
+      const response = await fetch('/api/training-modules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(moduleData),
+      });
+      if (!response.ok) throw new Error('Failed to create module');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchModules();
+      setIsCreateDialogOpen(false);
+      resetForm();
+      toast({
+        title: "Success",
+        description: "Training module created successfully.",
+      });
+    },
+  });
+
+  // Edit module mutation
+  const editModuleMutation = useMutation({
+    mutationFn: async (moduleData: any) => {
+      const response = await fetch(`/api/training-modules/${selectedModule?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(moduleData),
+      });
+      if (!response.ok) throw new Error('Failed to update module');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchModules();
+      setIsEditDialogOpen(false);
+      resetForm();
+      toast({
+        title: "Success",
+        description: "Training module updated successfully.",
+      });
+    },
+  });
+
+  // Delete module mutation
+  const deleteModuleMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/training-modules/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete module');
+    },
+    onSuccess: () => {
+      refetchModules();
+      toast({
+        title: "Success",
+        description: "Training module deleted successfully.",
+      });
+    },
+  });
   interface FormData {
     title: string;
     description: string;
@@ -435,13 +506,12 @@ export default function TrainingModulesManagement() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // For now, we'll use local state. In production, this would be API calls
-  const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(initialTrainingModules);
+  // Remove local state in favor of API data
 
   // Filter modules based on selected aircraft and squadron
   const filteredModules = activeTab === "all" 
     ? trainingModules 
-    : trainingModules.filter(module => module.aircraft === activeTab);
+    : trainingModules.filter((module: any) => module.aircraft === activeTab);
 
   const handleCreateModule = () => {
     const newModule: TrainingModule = {
@@ -1158,12 +1228,12 @@ export default function TrainingModulesManagement() {
                         {selectedFiles.length > 0 && (
                           <div className="space-y-3">
                             {selectedFiles.map((file, index) => (
-                              <div key={index} className="border rounded-lg p-3 bg-gray-700">
+                              <div key={index} className="border rounded-lg p-3 bg-gray-700 border-gray-600">
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="flex items-center gap-2">
                                     <VideoIcon className="h-4 w-4 text-orange-500" />
-                                    <span className="text-sm font-medium">{file.name}</span>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-sm font-medium text-white">{file.name}</span>
+                                    <span className="text-xs text-gray-400">
                                       ({Math.round(file.size / 1024 / 1024)}MB)
                                     </span>
                                   </div>
@@ -1171,6 +1241,7 @@ export default function TrainingModulesManagement() {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
+                                    className="bg-gray-600 hover:bg-gray-500 text-white"
                                     onClick={() => {
                                       setSelectedFiles(prev => prev.filter((_, i) => i !== index));
                                       setVideoTitles(prev => {
@@ -1191,7 +1262,7 @@ export default function TrainingModulesManagement() {
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   <div>
-                                    <Label htmlFor={`video-title-${index}`}>Video Title</Label>
+                                    <Label htmlFor={`video-title-${index}`} className="text-white">Video Title</Label>
                                     <Input
                                       id={`video-title-${index}`}
                                       value={videoTitles[index] || ""}
@@ -1203,10 +1274,11 @@ export default function TrainingModulesManagement() {
                                         });
                                       }}
                                       placeholder={`Video ${index + 1} title`}
+                                      className="bg-gray-600 border-gray-500 text-white placeholder-gray-400"
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor={`video-description-${index}`}>Description</Label>
+                                    <Label htmlFor={`video-description-${index}`} className="text-white">Description</Label>
                                     <Input
                                       id={`video-description-${index}`}
                                       value={videoDescriptions[index] || ""}
@@ -1218,6 +1290,7 @@ export default function TrainingModulesManagement() {
                                         });
                                       }}
                                       placeholder="Brief description of video content"
+                                      className="bg-gray-600 border-gray-500 text-white placeholder-gray-400"
                                     />
                                   </div>
                                 </div>

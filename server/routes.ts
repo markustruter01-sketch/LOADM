@@ -1115,6 +1115,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Training Modules CRUD endpoints
+  app.get("/api/training-modules", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      // For now, return mock data with proper numeric IDs
+      const mockModules = [
+        {
+          id: 1,
+          title: "Introduction to C-17 Globemaster",
+          description: "Overview of the C-17 Globemaster capabilities and specifications",
+          aircraft: "c17",
+          difficulty: "beginner",
+          duration: "45 minutes",
+          topics: ["Aircraft Overview", "Basic Operations", "Safety Protocols"],
+          objectives: ["Understand aircraft capabilities", "Learn basic operational procedures", "Master safety protocols"],
+          content: "Professional training material covering C-17 fundamentals...",
+          videoUrl: "",
+          isActive: true,
+          createdDate: "2024-12-20",
+          lastModified: "2024-12-20",
+          createdBy: "Marcus Truter",
+          completionRate: 85
+        },
+        {
+          id: 2,
+          title: "C-130 Load Planning Fundamentals",
+          description: "Essential load planning procedures for C-130 Hercules operations",
+          aircraft: "c130",
+          difficulty: "intermediate",
+          duration: "60 minutes",
+          topics: ["Weight Distribution", "Balance Calculations", "Cargo Securing"],
+          objectives: ["Master weight and balance calculations", "Learn proper cargo securing techniques", "Understand load planning procedures"],
+          content: "Comprehensive guide to C-130 load planning...",
+          videoUrl: "",
+          isActive: true,
+          createdDate: "2024-12-19",
+          lastModified: "2024-12-19",
+          createdBy: "System",
+          completionRate: 72
+        }
+      ];
+      
+      res.json(mockModules);
+    } catch (error) {
+      console.error("Failed to fetch training modules:", error);
+      res.status(500).json({ error: "Failed to fetch training modules" });
+    }
+  });
+
+  app.post("/api/training-modules", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const moduleData = req.body;
+      
+      // Generate a mock ID for now
+      const newModule = {
+        id: Math.floor(Math.random() * 1000) + 100,
+        ...moduleData,
+        createdDate: new Date().toISOString().split('T')[0],
+        lastModified: new Date().toISOString().split('T')[0],
+        createdBy: req.user?.email || "Unknown",
+        completionRate: 0
+      };
+      
+      res.json(newModule);
+    } catch (error) {
+      console.error("Failed to create training module:", error);
+      res.status(500).json({ error: "Failed to create training module" });
+    }
+  });
+
+  app.put("/api/training-modules/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const moduleData = req.body;
+      
+      const updatedModule = {
+        id: parseInt(id),
+        ...moduleData,
+        lastModified: new Date().toISOString().split('T')[0]
+      };
+      
+      res.json(updatedModule);
+    } catch (error) {
+      console.error("Failed to update training module:", error);
+      res.status(500).json({ error: "Failed to update training module" });
+    }
+  });
+
+  app.delete("/api/training-modules/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      res.json({ message: "Training module deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete training module:", error);
+      res.status(500).json({ error: "Failed to delete training module" });
+    }
+  });
+
   const httpServer = createServer();
   httpServer.on("request", app);
 
