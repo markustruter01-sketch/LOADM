@@ -1208,6 +1208,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
   const PORT = parseInt(process.env.PORT || "5000", 10);
   
+  // Handle port conflicts gracefully
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${PORT} in use, trying next available port...`);
+      const alternatePort = PORT + 1;
+      server.listen(alternatePort, "0.0.0.0", () => {
+        console.log(`Server running on port ${alternatePort}`);
+      });
+    } else {
+      throw err;
+    }
+  });
+  
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
   });
