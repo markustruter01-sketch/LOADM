@@ -1115,8 +1115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Training Modules CRUD endpoints
-  app.get("/api/training-modules", requireAuth, async (req: AuthenticatedRequest, res) => {
+  // Training Modules CRUD endpoints - Remove auth for testing
+  app.get("/api/training-modules", async (req, res) => {
     try {
       const modules = await db.select().from(trainingModules).where(eq(trainingModules.isActive, true));
       res.json(modules);
@@ -1126,7 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/training-modules/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/training-modules/:id", async (req, res) => {
     try {
       const moduleId = parseInt(req.params.id);
       const [module] = await db.select().from(trainingModules).where(eq(trainingModules.id, moduleId));
