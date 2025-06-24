@@ -126,3 +126,35 @@
   background-image: none !important;
   background: #111827 !important;
 }
+
+/* Force all body and html elements to use grey background */
+html, body, #root {
+  background-color: #1f2937 !important;
+  background-image: none !important;
+}
+
+/* Override any gradient backgrounds in training modules */
+.training-module-page * {
+  background-image: none !important;
+}
+
+/* Override all blue backgrounds in the app */
+* {
+  background-image: none !important;
+}
+
+*[class*="gradient"], *[class*="blue"] {
+  background-image: none !important;
+  background-color: #1f2937 !important;
+}
+
+/* Force body background to be consistent */
+body, html {
+  background: #1f2937 !important;
+}
+
+/* Remove any existing background styles from components */
+.min-h-screen {
+  background-color: #1f2937 !important;
+  background: #1f2937 !important;
+}

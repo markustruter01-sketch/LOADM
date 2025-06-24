@@ -18,7 +18,7 @@ import DocumentsPage from "@/pages/documents-page";
 import UserProfile from "@/pages/user-profile";
 import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
-import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
+import TrainingModuleDetailPage from "@/pages/training-modules/[id]-new";
 import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
