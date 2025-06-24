@@ -439,148 +439,46 @@ const moduleContents: Record<string, LessonContent[]> = {
       completed: false
     }
   ],
+
   "c130-basics": [
     {
       id: "c130-basics-1",
-      title: "Introduction to C-130 Hercules",
+      title: "C-130 Hercules Overview",
       type: "video",
-      duration: "15 min",
-      description: "Overview of the C-130 Hercules capabilities and specifications",
-      content: "Video content would be embedded here",
-      completed: true
+      duration: "18 min",
+      description: "Introduction to C-130 Hercules capabilities",
+      content: "Video content for C-130 overview",
+      completed: false
     },
     {
-      id: "c130-cargo-configurations",
-      title: "C-130 Cargo Configurations and Procedures",
+      id: "c130-basics-2",
+      title: "C-130 Cargo Compartment",
       type: "reading",
-      duration: "10 min",
-      description: "Standard configurations and procedures for the C-130 cargo systems",
-      content: "Reading content would be displayed here",
-      completed: true
+      duration: "12 min",
+      description: "Detailed study of C-130 cargo compartment",
+      content: "Reading content for cargo compartment",
+      completed: false
     },
     {
       id: "c130-basics-3",
-      title: "Pallet Securing Techniques",
+      title: "Basic Loading Procedures",
       type: "interactive",
-      duration: "15 min",
-      description: "Hands-on tutorial for securing pallets in a C-130",
-      content: "Interactive content would be displayed here",
-      completed: true
+      duration: "20 min",
+      description: "Interactive training for basic C-130 loading",
+      content: "Interactive basic loading training",
+      completed: false
     },
     {
       id: "c130-basics-4",
-      title: "C-130 Weight Limitations",
-      type: "reading",
-      duration: "10 min",
-      description: "Understanding weight limitations for the C-130 Hercules",
-      content: "Reading content would be displayed here",
-      completed: false
-    },
-    {
-      id: "c130-basics-5",
-      title: "C-130 Basics Assessment",
+      title: "C-130 Fundamentals Quiz",
       type: "quiz",
-      duration: "10 min",
-      description: "Test your knowledge of C-130 Hercules fundamentals",
-      content: "Quiz content would be displayed here",
-      completed: false
-    }
-  ],
-  "kc30a-basics": [
-    {
-      id: "kc30a-basics-1",
-      title: "Introduction to KC30-A Airbus",
-      type: "video",
-      duration: "15 min",
-      description: "Overview of the KC30-A capabilities and specifications",
-      content: "Video content would be embedded here",
-      completed: true
-    },
-    {
-      id: "kc30a-cargo-systems",
-      title: "KC30-A Multi-Role Tanker Transport Cargo Systems",
-      type: "reading",
       duration: "12 min",
-      description: "Understanding cargo systems specific to the KC30-A MRTT",
-      content: "Reading content would be displayed here",
-      completed: true
-    },
-    {
-      id: "kc30a-basics-3",
-      title: "ULD Management for KC30-A",
-      type: "interactive",
-      duration: "15 min",
-      description: "Managing Unit Load Devices in KC30-A operations",
-      content: "Interactive content would be displayed here",
-      completed: true
-    },
-    {
-      id: "kc30a-basics-4",
-      title: "Kilogram Calculations for KC30-A",
-      type: "interactive",
-      duration: "10 min",
-      description: "Weight calculations using metric units for KC30-A",
-      content: "Interactive content would be displayed here",
-      completed: false
-    },
-    {
-      id: "kc30a-basics-5",
-      title: "KC30-A Basics Assessment",
-      type: "quiz",
-      duration: "10 min",
-      description: "Test your knowledge of KC30-A fundamentals",
-      content: "Quiz content would be displayed here",
+      description: "Test your C-130 fundamental knowledge",
+      content: "Quiz for C-130 fundamentals",
       completed: false
     }
   ],
-  "c27j-basics": [
-    {
-      id: "c27j-basics-1",
-      title: "Introduction to C-27J Spartan",
-      type: "video",
-      duration: "12 min",
-      description: "Overview of the C-27J Spartan capabilities and specifications",
-      content: "Video content would be embedded here",
-      completed: false
-    },
-    {
-      id: "c27j-operations",
-      title: "C-27J Spartan Tactical Operations",
-      type: "reading",
-      duration: "8 min",
-      description: "Understanding C-27J tactical operations and cargo configurations",
-      content: "Reading content would be displayed here",
-      completed: false
-    },
-    {
-      id: "c27j-basics-3",
-      title: "Tie-Down Techniques for C-27J",
-      type: "interactive",
-      duration: "10 min",
-      description: "Proper securing and tie-down methods for C-27J cargo",
-      content: "Interactive content would be displayed here",
-      completed: false
-    },
-    {
-      id: "c27j-basics-4",
-      title: "C-27J Weight and Balance",
-      type: "reading",
-      duration: "8 min",
-      description: "Basic weight and balance principles for the C-27J",
-      content: "Reading content would be displayed here",
-      completed: false
-    },
-    {
-      id: "c27j-basics-5",
-      title: "C-27J Basics Assessment",
-      type: "quiz",
-      duration: "8 min",
-      description: "Test your knowledge of C-27J Spartan fundamentals",
-      content: "Quiz content would be displayed here",
-      completed: false
-    }
-  ],
-  
+
   "c17-intermediate": [
     {
       id: "c17-intermediate-1",
@@ -1006,6 +904,45 @@ const moduleContents: Record<string, LessonContent[]> = {
       duration: "30 min",
       description: "Comprehensive operations management assessment",
       content: "Quiz for operations management",
+      completed: false
+    }
+  ],
+
+  "kc30a-basics": [
+    {
+      id: "kc30a-basics-1",
+      title: "KC30-A Introduction",
+      type: "video",
+      duration: "20 min",
+      description: "Introduction to KC30-A Multi-Role Tanker Transport",
+      content: "Video content for KC30-A introduction",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-2",
+      title: "Cargo Bay Systems",
+      type: "reading",
+      duration: "15 min",
+      description: "Study of KC30-A cargo bay systems",
+      content: "Reading content for cargo bay systems",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-3",
+      title: "Basic Cargo Operations",
+      type: "interactive",
+      duration: "25 min",
+      description: "Interactive training for basic cargo operations",
+      content: "Interactive basic cargo operations",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-4",
+      title: "KC30-A Basics Quiz",
+      type: "quiz",
+      duration: "15 min",
+      description: "Test your KC30-A basic knowledge",
+      content: "Quiz for KC30-A basics",
       completed: false
     }
   ],
