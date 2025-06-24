@@ -1118,27 +1118,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Training Modules CRUD endpoints
   app.get("/api/training-modules", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      // Return comprehensive training modules data matching what users see
+      // Return comprehensive training modules data with full content from instructor portal
       const trainingModules = [
         // C-17 Modules
         {
-          id: 1,
-          title: "C-17 Globemaster Basics",
-          description: "Introduction to C-17 cargo loading fundamentals for beginner loadmasters",
+          id: "c17-basics",
+          title: "C-17 Globemaster III Fundamentals",
+          description: "Introduction to C-17 cargo loading fundamentals",
           aircraft: "c17",
           difficulty: "beginner",
           duration: "45 minutes",
-          topics: ["Aircraft Overview", "Safety Procedures", "Basic Loading Configurations"],
+          topics: ["Aircraft Familiarization", "Standard Cargo Configurations", "Basic Weight and Balance"],
           objectives: [
-            "Understand C-17 cargo area layout and dimensions",
-            "Learn basic weight and balance principles",
-            "Identify standard pallet positions"
+            "Understand C-17 cargo area layout and capabilities",
+            "Learn standard pallet configurations and positions",
+            "Master basic weight and balance principles"
           ],
           isActive: true,
           createdBy: "System",
           lastModified: "2025-01-15",
-          content: "",
-          videoUrl: "",
+          readingContent: `# C-17 Globemaster III - Aircraft Overview
+
+## Aircraft Specifications
+- **Length**: 174 feet (53.0 meters)
+- **Wingspan**: 169.8 feet (51.8 meters)
+- **Height**: 55.1 feet (16.8 meters)
+- **Maximum Takeoff Weight**: 585,000 lbs (265,352 kg)
+- **Maximum Payload**: 170,900 lbs (77,519 kg)
+- **Cargo Volume**: 18,216 cubic feet (515.8 cubic meters)
+
+## Cargo Compartment Dimensions
+- **Length**: 88 feet (26.8 meters)
+- **Width**: 18 feet (5.5 meters)
+- **Height**: 12.4 feet (3.8 meters)
+- **Usable Floor Area**: 1,584 square feet (147.2 square meters)
+
+## Standard Pallet Configurations
+The C-17 can accommodate various pallet arrangements:
+- **18 Standard 463L Pallets** (88" x 108")
+- **Large vehicles** up to 169,000 lbs
+- **102 Paratroopers** with full equipment
+- **36 Litter patients** with medical attendants
+
+## Weight and Balance Fundamentals
+- **Center of Gravity Range**: 25% to 35% MAC
+- **Maximum Floor Loading**: 250 PSF (pounds per square foot)
+- **Fuel Capacity**: 180,000 lbs maximum
+- **Operating Empty Weight**: 282,500 lbs typical
+
+## Key Capabilities
+- **Strategic range**: 2,400 nautical miles with maximum payload
+- **Aerial delivery**: Personnel and equipment airdrop capability
+- **Tactical operations**: Short, rough runway capability
+- **Self-sufficiency**: Built-in cargo handling equipment
+
+## Safety Considerations
+- Always verify cargo securing before flight
+- Monitor weight distribution throughout loading
+- Ensure proper aisle space for emergency egress
+- Follow established loading sequences for safety
+- Coordinate with aircrew for all operations
+
+## Basic Loading Principles
+1. Plan the load before aircraft arrival
+2. Load heaviest items first and near center of gravity
+3. Secure all cargo with appropriate restraint systems
+4. Verify weight and balance calculations
+5. Conduct final walkthrough inspection`,
+          videoContent: `# Video Training Modules
+
+## Module 1: Aircraft Familiarization (15 minutes)
+- External walkround and cargo door operations
+- Interior layout and equipment locations
+- Safety equipment and emergency procedures
+
+## Module 2: Basic Loading Procedures (20 minutes)
+- Standard pallet loading sequences
+- Cargo restraint systems and techniques
+- Weight and balance verification
+
+## Module 3: Cargo Configurations (18 minutes)
+- Standard 18-pallet configuration
+- Mixed cargo and passenger loads
+- Vehicle loading procedures`,
+          interactiveContent: `# Interactive Training Exercises
+
+## Exercise 1: C-17 Cargo Bay Virtual Tour
+Navigate through the C-17 cargo compartment and identify key features:
+- 18 standard pallet positions
+- Cargo restraint anchor points
+- Emergency equipment locations
+- Load planning reference points
+
+## Exercise 2: Weight and Balance Calculator
+Practice calculating weight and balance for various load configurations:
+- Empty aircraft weight: 282,500 lbs
+- Fuel load: Variable up to 180,000 lbs
+- Cargo weight: Student input up to 170,900 lbs
+- Calculate center of gravity position
+
+## Exercise 3: Pallet Loading Simulator
+Drag and drop pallets to create efficient load plans:
+- 18 pallets of varying weights
+- Maintain CG within 25-35% MAC
+- Optimize for mission requirements`,
+          quizContent: `# C-17 Fundamentals Knowledge Assessment
+
+## Question 1: What is the maximum payload capacity?
+A) 150,000 lbs
+B) 170,900 lbs
+C) 190,000 lbs
+D) 210,000 lbs
+**Answer: B) 170,900 lbs**
+
+## Question 2: How many standard 463L pallets can the C-17 carry?
+A) 16 pallets
+B) 18 pallets
+C) 20 pallets
+D) 22 pallets
+**Answer: B) 18 pallets**
+
+## Question 3: What is the acceptable CG range?
+A) 20% to 30% MAC
+B) 25% to 35% MAC
+C) 30% to 40% MAC
+D) 35% to 45% MAC
+**Answer: B) 25% to 35% MAC**`,
           createdDate: "2025-01-15",
           completionRate: 0
         },
