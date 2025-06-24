@@ -608,8 +608,49 @@ export default function ModuleDetailPage() {
   const numericId = parseInt(moduleId);
   const module = modules.find(m => m.id === numericId || m.id === moduleId);
 
-  // Get module content
-  const content = moduleContents[moduleId] || [];
+  // Map API module IDs to content keys
+  const getContentKey = (module: any) => {
+    if (!module) return '';
+    
+    // If it's a numeric ID from API, map to content key
+    if (typeof module.id === 'number') {
+      const aircraft = module.aircraft;
+      const difficulty = module.difficulty;
+      
+      // Map based on aircraft type and difficulty
+      if (aircraft === 'c17') {
+        if (difficulty === 'beginner') return 'c17-basics';
+        if (difficulty === 'intermediate') return 'c17-intermediate';
+        if (difficulty === 'advanced') return 'c17-advanced';
+        if (difficulty === 'expert') return 'c17-expert';
+      }
+      if (aircraft === 'c130') {
+        if (difficulty === 'beginner') return 'c130-basics';
+        if (difficulty === 'intermediate') return 'c130-intermediate';
+        if (difficulty === 'advanced') return 'c130-advanced';
+        if (difficulty === 'expert') return 'c130-expert';
+      }
+      if (aircraft === 'kc30a') {
+        if (difficulty === 'beginner') return 'kc30a-basics';
+        if (difficulty === 'intermediate') return 'kc30a-intermediate';
+        if (difficulty === 'advanced') return 'kc30a-advanced';
+        if (difficulty === 'expert') return 'kc30a-expert';
+      }
+      if (aircraft === 'c27j') {
+        if (difficulty === 'beginner') return 'c27j-basics';
+        if (difficulty === 'intermediate') return 'c27j-intermediate';
+        if (difficulty === 'advanced') return 'c27j-advanced';
+        if (difficulty === 'expert') return 'c27j-expert';
+      }
+    }
+    
+    // Fallback to original ID for string IDs
+    return module.id;
+  };
+
+  // Get module content using the correct key
+  const contentKey = getContentKey(module);
+  const content = moduleContents[contentKey] || [];
 
   // Calculate progress based on completed lessons
   useEffect(() => {
