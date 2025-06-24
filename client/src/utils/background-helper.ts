@@ -40,9 +40,9 @@ export function forceBackgroundColor(element: HTMLElement, color: BackgroundColo
  */
 export function setPageBackground(color: BackgroundColor) {
   const body = document.body
-  const html = document.documentElement
+  const htmlElement = document.documentElement
   
-  [body, html].forEach(element => {
+  [bodyElement, htmlElement].forEach(element => {
     forceBackgroundColor(element, color)
   })
 }
@@ -51,10 +51,10 @@ export function setPageBackground(color: BackgroundColor) {
  * Reset background to default
  */
 export function resetPageBackground() {
-  const body = document.body
-  const html = document.documentElement
+  const bodyElement = document.body
+  const htmlElement = document.documentElement
   
-  [body, html].forEach(element => {
+  [bodyElement, htmlElement].forEach(element => {
     element.style.removeProperty('background-color')
     element.style.removeProperty('background-image') 
     element.style.removeProperty('background')

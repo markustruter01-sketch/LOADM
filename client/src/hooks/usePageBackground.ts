@@ -25,10 +25,10 @@ export function useForcePageBackground(color: BackgroundColor) {
       setPageBackground(color);
       
       // Additional DOM manipulation for stubborn cases
-      const body = document.body;
-      const html = document.documentElement;
+      const bodyElement = document.body;
+      const htmlElement = document.documentElement;
       
-      [body, html].forEach(element => {
+      [bodyElement, htmlElement].forEach(element => {
         element.classList.add('emergency-bg-override');
         element.style.setProperty('background-color', color === 'gray-900' ? '#111827' : '#f1f5f9', 'important');
       });
