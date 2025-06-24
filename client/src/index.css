@@ -1,5 +1,4 @@
 @import "./components/ui/micro-interactions.css";
-@import "./styles/background-system.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

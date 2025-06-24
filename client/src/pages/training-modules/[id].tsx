@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useRoute, useLocation } from 'wouter'
-import { useForcePageBackground } from "@/hooks/usePageBackground"
-import { BackgroundTester } from "@/components/BackgroundTester"
-import { BackgroundDebugger } from "@/components/BackgroundDebugger"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -220,8 +217,21 @@ export default function ModuleDetailPage() {
   const [moduleProgress, setModuleProgress] = useState(0)
   const [completedLessons, setCompletedLessons] = useState<string[]>([])
   
-  // Force background color with emergency override
-  useForcePageBackground('gray-900')
+  // Apply background with safe fallback
+  useEffect(() => {
+    try {
+      const bodyElement = document.body;
+      const htmlElement = document.documentElement;
+      
+      [bodyElement, htmlElement].forEach(element => {
+        element.style.setProperty('background-color', '#111827', 'important');
+        element.style.setProperty('background-image', 'none', 'important');
+        element.style.setProperty('background', '#111827', 'important');
+      });
+    } catch (error) {
+      console.error('Background setting error:', error);
+    }
+  }, []);
   
   // Fetch training modules from API
   const { data: apiModules } = useQuery({
@@ -304,7 +314,7 @@ export default function ModuleDetailPage() {
   // Early return if module not found
   if (!module) {
     return (
-      <div className="dark-page-background page-training-module bg-force-gray-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Module Not Found</h1>
           <p className="text-gray-300 mb-6">The training module you're looking for doesn't exist.</p>
@@ -330,9 +340,7 @@ export default function ModuleDetailPage() {
   }
 
   return (
-    <div className="dark-page-background page-training-module bg-force-gray-900">
-      <BackgroundTester />
-      <BackgroundDebugger />
+    <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
