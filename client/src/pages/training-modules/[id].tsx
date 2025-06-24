@@ -947,6 +947,84 @@ const moduleContents: Record<string, LessonContent[]> = {
     }
   ],
 
+  "kc30a-basics": [
+    {
+      id: "kc30a-basics-1",
+      title: "KC30-A Introduction",
+      type: "video",
+      duration: "20 min",
+      description: "Introduction to KC30-A Multi-Role Tanker Transport",
+      content: "Video content for KC30-A introduction",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-2",
+      title: "Cargo Bay Systems",
+      type: "reading",
+      duration: "15 min",
+      description: "Study of KC30-A cargo bay systems",
+      content: "Reading content for cargo bay systems",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-3",
+      title: "Basic Cargo Operations",
+      type: "interactive",
+      duration: "25 min",
+      description: "Interactive training for basic cargo operations",
+      content: "Interactive basic cargo operations",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-4",
+      title: "KC30-A Basics Quiz",
+      type: "quiz",
+      duration: "15 min",
+      description: "Test your KC30-A basic knowledge",
+      content: "Quiz for KC30-A basics",
+      completed: false
+    }
+  ],
+
+  "kc30a-intermediate": [
+    {
+      id: "kc30a-intermediate-1",
+      title: "Advanced KC30-A Operations",
+      type: "video",
+      duration: "22 min",
+      description: "Advanced KC30-A Multi-Role operations",
+      content: "Advanced video content for KC30-A",
+      completed: false
+    },
+    {
+      id: "kc30a-intermediate-2",
+      title: "Complex Cargo Systems",
+      type: "reading",
+      duration: "18 min",
+      description: "Complex KC30-A cargo systems study",
+      content: "Advanced reading content for cargo systems",
+      completed: false
+    },
+    {
+      id: "kc30a-intermediate-3",
+      title: "Multi-Modal Operations",
+      type: "interactive",
+      duration: "28 min",
+      description: "Interactive training for multi-modal operations",
+      content: "Interactive multi-modal operations",
+      completed: false
+    },
+    {
+      id: "kc30a-intermediate-4",
+      title: "KC30-A Intermediate Quiz",
+      type: "quiz",
+      duration: "18 min",
+      description: "Test your intermediate KC30-A knowledge",
+      content: "Quiz for KC30-A intermediate level",
+      completed: false
+    }
+  ],
+
   "c27j-basics": [
     {
       id: "c27j-basics-1",
@@ -1122,6 +1200,14 @@ export default function ModuleDetailPage() {
     },
   });
 
+  // Use API data if available, otherwise fallback to local data
+  const modules = apiModules || trainingModules;
+  
+  // Find the module that matches the ID parameter (convert to number if needed)
+  const moduleId = params?.id || '';
+  const numericId = parseInt(moduleId);
+  const module = modules.find(m => m.id === numericId || m.id === moduleId);
+
   // Fetch uploaded videos for this specific module
   const { data: uploadedVideos } = useQuery({
     queryKey: ['/api/training-modules', module?.id, 'videos'],
@@ -1133,14 +1219,6 @@ export default function ModuleDetailPage() {
     },
     enabled: !!module?.id && typeof module.id === 'number',
   });
-
-  // Use API data if available, otherwise fallback to local data
-  const modules = apiModules || trainingModules;
-  
-  // Find the module that matches the ID parameter (convert to number if needed)
-  const moduleId = params?.id || '';
-  const numericId = parseInt(moduleId);
-  const module = modules.find(m => m.id === numericId || m.id === moduleId);
 
   // Map API module IDs to content keys
   const getContentKey = (module: any) => {
