@@ -383,8 +383,11 @@ export default function TrainingModulesManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState<TrainingModule | null>(null);
 
-  // Fetch training modules from API
-  const { data: trainingModules = [], refetch: refetchModules } = useQuery({
+  // Keep local modules for development with fallback
+  const [localModules, setLocalModules] = useState<TrainingModule[]>(initialTrainingModules);
+
+  // Fetch training modules from API with fallback
+  const { data: apiModules, refetch: refetchModules } = useQuery({
     queryKey: ['/api/training-modules'],
     queryFn: async () => {
       const response = await fetch('/api/training-modules');
@@ -392,6 +395,9 @@ export default function TrainingModulesManagement() {
       return response.json();
     },
   });
+
+  // Use API data if available, otherwise use local modules
+  const trainingModules = apiModules && apiModules.length > 0 ? apiModules : localModules;
 
   // Create module mutation
   const createModuleMutation = useMutation({
@@ -506,7 +512,7 @@ export default function TrainingModulesManagement() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Remove local state in favor of API data
+  // Video upload related state
 
   // Filter modules based on selected aircraft and squadron
   const filteredModules = activeTab === "all" 
