@@ -576,12 +576,14 @@ export default function TrainingModulesManagement() {
   };
 
   const handleDeleteModule = (moduleId: string) => {
-    setTrainingModules(prev => prev.filter(module => module.id !== moduleId));
-    
-    toast({
-      title: "Module Deleted",
-      description: "Training module has been deleted successfully.",
-    });
+    if (confirm("Are you sure you want to delete this training module?")) {
+      setLocalModules(prev => prev.filter(module => module.id !== moduleId));
+      
+      toast({
+        title: "Success",
+        description: "Training module deleted successfully.",
+      });
+    }
   };
 
   const resetForm = () => {
