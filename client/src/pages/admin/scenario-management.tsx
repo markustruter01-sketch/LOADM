@@ -38,7 +38,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, ClipboardList, Edit, Loader2, Plus, Save, Trash2 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   AlertDialog,
   AlertDialogAction,

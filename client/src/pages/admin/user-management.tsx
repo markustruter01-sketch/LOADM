@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { ArrowLeft, Trash2, UserCircle, ShieldAlert } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Table, 
   TableBody, 

@@ -12,8 +12,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw, Play, Pause } from "lucide-react";
+import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw, Play, Pause, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { useLocation } from "wouter";
 
 interface License {
   id: number;
@@ -45,6 +46,7 @@ interface DashboardStats {
 }
 
 export default function LicensingManagement() {
+  const [, setLocation] = useLocation();
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRenewDialog, setShowRenewDialog] = useState(false);
@@ -569,6 +571,14 @@ export default function LicensingManagement() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <Button 
+        variant="outline" 
+        className="mb-6 border-gray-600 text-gray-700 hover:bg-gray-100" 
+        onClick={() => setLocation('/superadmin-dashboard')}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admin Dashboard
+      </Button>
+      
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
