@@ -48,7 +48,7 @@ export function NewLoginComponent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-gray-900">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="w-full h-full bg-repeat" style={{

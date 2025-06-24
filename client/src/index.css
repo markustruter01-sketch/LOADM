@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 12%;
+  --background: 210 11% 12%;
   --foreground: 0 0% 98%;
   --muted: 0 0% 18%;
   --muted-foreground: 0 0% 88%;
@@ -40,7 +40,7 @@
 }
 
 .dark {
-  --background: 0 0% 12%;
+  --background: 210 11% 12%;
   --foreground: 0 0% 98%;
   --muted: 0 0% 18%;
   --muted-foreground: 0 0% 88%;
@@ -78,9 +78,15 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    background-color: #1e1e1e !important;
+  }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply font-sans antialiased;
+    background-color: #1e1e1e !important;
+    color: #ffffff !important;
   }
   
   h1, h2, h3, h4, h5, h6 {
