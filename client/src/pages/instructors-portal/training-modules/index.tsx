@@ -355,6 +355,76 @@ const initialTrainingModules: TrainingModule[] = [
     isActive: true,
     createdBy: "System",
     lastModified: "2025-01-15"
+  },
+  
+  // Multi-Aircraft Cross-Training Modules
+  {
+    id: "multi-dg-handling",
+    title: "Multi-Aircraft Dangerous Goods Procedures", 
+    description: "Comprehensive dangerous goods handling across all aircraft types",
+    aircraft: "all",
+    difficulty: "advanced",
+    duration: "75 minutes",
+    topics: ["DG Classification", "Aircraft-Specific Requirements", "Emergency Procedures"],
+    objectives: [
+      "Apply DG regulations across all aircraft platforms",
+      "Implement aircraft-specific DG procedures", 
+      "Execute emergency response protocols"
+    ],
+    isActive: true,
+    createdBy: "System",
+    lastModified: "2025-01-15"
+  },
+  {
+    id: "multi-weight-balance",
+    title: "Universal Weight & Balance Principles",
+    description: "Weight and balance fundamentals applicable to all aircraft",
+    aircraft: "all", 
+    difficulty: "intermediate",
+    duration: "90 minutes",
+    topics: ["Universal Principles", "CG Calculations", "Load Distribution"],
+    objectives: [
+      "Master weight and balance principles across platforms",
+      "Calculate center of gravity for any aircraft type",
+      "Optimize load distribution for mission effectiveness"
+    ],
+    isActive: true,
+    createdBy: "System", 
+    lastModified: "2025-01-15"
+  },
+  {
+    id: "emergency-procedures",
+    title: "Emergency Response Procedures",
+    description: "Critical emergency procedures for all loadmaster operations",
+    aircraft: "all",
+    difficulty: "expert",
+    duration: "60 minutes", 
+    topics: ["Emergency Response", "Cargo Fire Procedures", "In-Flight Emergencies"],
+    objectives: [
+      "Execute emergency cargo procedures",
+      "Respond to in-flight emergency situations",
+      "Coordinate with aircrew during emergencies"
+    ],
+    isActive: true,
+    createdBy: "System",
+    lastModified: "2025-01-15"
+  },
+  {
+    id: "leadership-training",
+    title: "Loadmaster Leadership Development",
+    description: "Leadership skills for senior loadmasters and instructors", 
+    aircraft: "all",
+    difficulty: "expert",
+    duration: "120 minutes",
+    topics: ["Team Leadership", "Training Development", "Operational Planning"],
+    objectives: [
+      "Develop leadership skills for loadmaster operations",
+      "Create effective training programs",
+      "Lead complex multi-aircraft operations"
+    ],
+    isActive: true,
+    createdBy: "System",
+    lastModified: "2025-01-15"
   }
 ];
 
@@ -517,6 +587,8 @@ export default function TrainingModulesManagement() {
   // Filter modules based on selected aircraft and squadron
   const filteredModules = activeTab === "all" 
     ? trainingModules 
+    : activeTab === "all-aircraft" 
+    ? trainingModules.filter((module: any) => module.aircraft === "all")
     : trainingModules.filter((module: any) => module.aircraft === activeTab);
 
   const handleCreateModule = () => {
