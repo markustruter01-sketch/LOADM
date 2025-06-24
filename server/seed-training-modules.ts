@@ -1,5 +1,5 @@
 import { db } from './db';
-import { trainingModules } from '@shared/schema';
+import { trainingModules } from '../shared/schema';
 
 async function seedTrainingModules() {
   try {

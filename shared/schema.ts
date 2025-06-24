@@ -494,6 +494,9 @@ export type QuizSubmission = typeof quizSubmissions.$inferSelect;
 export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
 
+export type InsertTrainingModule = z.infer<typeof insertTrainingModuleSchema>;
+export type TrainingModule = typeof trainingModules.$inferSelect;
+
 // Field type for document forms
 export type FormField = {
   id: string;

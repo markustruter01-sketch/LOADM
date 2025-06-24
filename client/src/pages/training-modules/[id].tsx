@@ -247,13 +247,10 @@ export default function ModuleDetailPage() {
     },
   })
 
-  // Use API data if available, otherwise fallback to local data
-  const modules = apiModules || trainingModules
-  
-  // Find the module that matches the ID parameter (convert to number if needed)
+  // Find the module that matches the ID parameter
   const moduleId = params?.id || ''
   const numericId = parseInt(moduleId)
-  const module = modules.find(m => m.id === numericId || m.id === moduleId)
+  const module = apiModules?.find(m => m.id === numericId)
 
   // Fetch uploaded videos for this specific module
   const { data: uploadedVideos } = useQuery({

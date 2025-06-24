@@ -1203,21 +1203,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to delete training module" });
     }
   });
-        {
-          id: 3,
-          title: "C-17 Complex Cargo Configurations",
-          description: "Advanced techniques for complex cargo arrangements on C-17 aircraft",
-          aircraft: "c17",
-          difficulty: "advanced",
-          duration: "90 minutes",
-          topics: ["Mixed Cargo Types", "Oversized Equipment", "Dangerous Goods Integration"],
-          objectives: [
-            "Secure and transport oversized equipment safely",
-            "Integrate multiple cargo types in single mission",
-            "Implement special handling procedures for sensitive cargo"
-          ],
-          isActive: true,
-          createdBy: "System",
           lastModified: "2025-01-15",
           content: "",
           videoUrl: "",
