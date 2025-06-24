@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { useRoute, useLocation } from "wouter";
 import { 
@@ -589,9 +590,23 @@ export default function ModuleDetailPage() {
   const [moduleProgress, setModuleProgress] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   
-  // Find the module that matches the ID parameter
+  // Fetch training modules from API
+  const { data: apiModules } = useQuery({
+    queryKey: ['/api/training-modules'],
+    queryFn: async () => {
+      const response = await fetch('/api/training-modules');
+      if (!response.ok) throw new Error('Failed to fetch training modules');
+      return response.json();
+    },
+  });
+
+  // Use API data if available, otherwise fallback to local data
+  const modules = apiModules || trainingModules;
+  
+  // Find the module that matches the ID parameter (convert to number if needed)
   const moduleId = params?.id || '';
-  const module = trainingModules.find(m => m.id === moduleId);
+  const numericId = parseInt(moduleId);
+  const module = modules.find(m => m.id === numericId || m.id === moduleId);
 
   // Get module content
   const content = moduleContents[moduleId] || [];
