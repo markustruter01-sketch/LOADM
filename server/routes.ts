@@ -50,6 +50,44 @@ function rateLimiter(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+// Multer configuration for video uploads
+const videoStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadPath = path.join(process.cwd(), 'uploads', 'training-videos');
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    } catch (error) {
+      cb(error as Error, '');
+    }
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+// File filter for video uploads
+const videoFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Accept only video files
+  if (file.mimetype.startsWith('video/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only video files are allowed!'));
+  }
+};
+
+// Configure multer for video uploads (max 100MB per file)
+const uploadVideo = multer({
+  storage: videoStorage,
+  fileFilter: videoFileFilter,
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB limit
+    files: 3 // Maximum 3 files per upload
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory API endpoints
   app.get("/api/phone-directory", async (req, res) => {
@@ -939,6 +977,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ message: "Failed to generate advanced analytics" });
+    }
+  });
+
+  // Training Module Video Upload endpoints
+  app.post("/api/training-modules/:moduleId/videos", requireInstructor, uploadVideo.array('videos', 3), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { moduleId } = req.params;
+      const files = req.files as Express.Multer.File[];
+      const { videoTitles, videoDescriptions } = req.body;
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No video files uploaded" });
+      }
+
+      const videoRecords = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const title = Array.isArray(videoTitles) ? videoTitles[i] : videoTitles;
+        const description = Array.isArray(videoDescriptions) ? videoDescriptions[i] : videoDescriptions;
+        
+        const videoData = {
+          moduleId: parseInt(moduleId),
+          videoTitle: title || `Training Video ${i + 1}`,
+          videoDescription: description || '',
+          fileName: file.originalname,
+          filePath: file.path,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadedById: req.user!.id,
+          videoOrder: i + 1,
+          isActive: true
+        };
+
+        const [insertedVideo] = await db.insert(trainingModuleVideos).values(videoData).returning();
+        videoRecords.push(insertedVideo);
+      }
+
+      res.json({ 
+        message: "Videos uploaded successfully", 
+        videos: videoRecords 
+      });
+    } catch (error) {
+      console.error("Video upload error:", error);
+      res.status(500).json({ error: "Failed to upload videos" });
+    }
+  });
+
+  // Get videos for a training module
+  app.get("/api/training-modules/:moduleId/videos", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { moduleId } = req.params;
+      
+      const videos = await db.query.trainingModuleVideos.findMany({
+        where: and(
+          eq(trainingModuleVideos.moduleId, parseInt(moduleId)),
+          eq(trainingModuleVideos.isActive, true)
+        ),
+        orderBy: (trainingModuleVideos, { asc }) => [asc(trainingModuleVideos.videoOrder)],
+        with: {
+          uploadedBy: {
+            columns: { firstName: true, lastName: true, email: true }
+          }
+        }
+      });
+
+      res.json(videos);
+    } catch (error) {
+      console.error("Failed to fetch module videos:", error);
+      res.status(500).json({ error: "Failed to fetch videos" });
+    }
+  });
+
+  // Delete a training module video
+  app.delete("/api/training-modules/videos/:videoId", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { videoId } = req.params;
+      
+      const video = await db.query.trainingModuleVideos.findFirst({
+        where: eq(trainingModuleVideos.id, parseInt(videoId))
+      });
+
+      if (!video) {
+        return res.status(404).json({ error: "Video not found" });
+      }
+
+      // Delete physical file
+      try {
+        await fs.unlink(video.filePath);
+      } catch (fileError) {
+        console.warn("Could not delete physical file:", fileError);
+      }
+
+      // Delete database record
+      await db.delete(trainingModuleVideos).where(eq(trainingModuleVideos.id, parseInt(videoId)));
+
+      res.json({ message: "Video deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete video:", error);
+      res.status(500).json({ error: "Failed to delete video" });
+    }
+  });
+
+  // Serve uploaded videos
+  app.get("/api/training-modules/videos/stream/:videoId", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { videoId } = req.params;
+      
+      const video = await db.query.trainingModuleVideos.findFirst({
+        where: and(
+          eq(trainingModuleVideos.id, parseInt(videoId)),
+          eq(trainingModuleVideos.isActive, true)
+        )
+      });
+
+      if (!video) {
+        return res.status(404).json({ error: "Video not found" });
+      }
+
+      // Check if file exists
+      try {
+        await fs.access(video.filePath);
+      } catch {
+        return res.status(404).json({ error: "Video file not found" });
+      }
+
+      // Set appropriate headers for video streaming
+      res.setHeader('Content-Type', video.mimeType);
+      res.setHeader('Content-Disposition', `inline; filename="${video.fileName}"`);
+      
+      // For now, send the entire file. Could implement range requests for better streaming
+      res.sendFile(path.resolve(video.filePath));
+    } catch (error) {
+      console.error("Failed to stream video:", error);
+      res.status(500).json({ error: "Failed to stream video" });
     }
   });
 

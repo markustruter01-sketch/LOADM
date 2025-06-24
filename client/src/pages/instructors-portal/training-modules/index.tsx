@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,7 +13,11 @@ import {
   Edit,
   Trash2,
   Eye,
-  Filter
+  Filter,
+  Upload,
+  VideoIcon,
+  X,
+  Play
 } from "lucide-react";
 import { 
   Card, 
@@ -422,6 +426,14 @@ export default function TrainingModulesManagement() {
     prerequisites: "",
     resources: ""
   });
+
+  // Video upload state
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [videoTitles, setVideoTitles] = useState<string[]>(["", "", ""]);
+  const [videoDescriptions, setVideoDescriptions] = useState<string[]>(["", "", ""]);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // For now, we'll use local state. In production, this would be API calls
   const [trainingModules, setTrainingModules] = useState<TrainingModule[]>(initialTrainingModules);
