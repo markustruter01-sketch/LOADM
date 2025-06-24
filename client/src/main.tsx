@@ -1,5 +1,23 @@
 import { createRoot } from "react-dom/client";
-import App from "./test-minimal";
-import "./index.css";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import TrainingModules from "./pages/training-modules/index";
 
-createRoot(document.getElementById("root")!).render(<App />);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TrainingModules />
+    </QueryClientProvider>
+  );
+}
+
+const root = createRoot(document.getElementById("root")!);
+root.render(<App />);
