@@ -46,7 +46,7 @@ interface Module {
 const trainingModules: Module[] = [
   // C-17 Modules
   {
-    id: "c17-basics",
+    id: "c17-globemaster-basics",
     title: "C-17 Globemaster Basics",
     description: "Introduction to C-17 cargo loading fundamentals for beginner loadmasters",
     aircraft: "c17",
@@ -119,7 +119,7 @@ const trainingModules: Module[] = [
     ]
   },
   {
-    id: "c130-intermediate",
+    id: "c130-load-planning-essentials",
     title: "C-130 Load Planning Essentials",
     description: "Intermediate training on C-130 load planning and configuration",
     aircraft: "c130",
@@ -191,8 +191,8 @@ const trainingModules: Module[] = [
     ]
   },
   {
-    id: "kc30a-advanced",
-    title: "KC30-A Advanced Configuration Management",
+    id: "kc30a-tanker-operations",
+    title: "KC30-A Tanker Operations",
     description: "Advanced KC30-A configuration and cargo management",
     aircraft: "kc30a",
     difficulty: "advanced",
@@ -235,7 +235,7 @@ const trainingModules: Module[] = [
     ]
   },
   {
-    id: "c27j-intermediate",
+    id: "c27j-tactical-operations",
     title: "C-27J Tactical Operations",
     description: "Intermediate tactical loading for C-27J operations",
     aircraft: "c27j",

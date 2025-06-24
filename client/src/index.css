@@ -190,15 +190,36 @@ body, html, #root, [data-reactroot] {
 
 /* Nuclear option - force all elements to use grey background */
 * {
+  background: #1f2937 !important;
+}
+
+/* Force root elements */
+html, body, #root, main, .App {
+  background: #1f2937 !important;
   background-color: #1f2937 !important;
+}
+
+/* Override any existing background gradients or colors */
+*[style*="background"], *[class*="gradient"] {
   background: #1f2937 !important;
 }
 
 /* Allow specific component backgrounds but override gradients */
-.bg-gray-800, .bg-gray-900, .border-gray-800, .border-gray-700 {
-  background-color: #374151 !important;
+.bg-gray-800, .bg-gray-900, [class*="bg-gray-8"], [class*="bg-gray-9"] {
+  background: #374151 !important;
 }
 
-.bg-orange-500 {
-  background-color: #f97316 !important;
+.bg-orange-500, .bg-primary, [class*="bg-orange"] {
+  background: #f97316 !important;
+}
+
+/* Make sure cards and content areas are visible */
+.card, [class*="card"], .border-gray-800, .border-gray-700 {
+  background: #374151 !important;
+  border-color: #6b7280 !important;
+}
+
+/* Text should remain readable */
+.text-white, .text-gray-300, .text-muted-foreground {
+  color: white !important;
 }
