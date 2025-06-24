@@ -389,26 +389,18 @@ export default function ModuleDetailPage() {
             <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
               Overview
             </TabsTrigger>
-            {contentTypes.includes('video') && (
-              <TabsTrigger value="videos" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                Videos
-              </TabsTrigger>
-            )}
-            {contentTypes.includes('reading') && (
-              <TabsTrigger value="readings" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                Readings
-              </TabsTrigger>
-            )}
-            {contentTypes.includes('interactive') && (
-              <TabsTrigger value="interactive" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                Interactive
-              </TabsTrigger>
-            )}
-            {contentTypes.includes('quiz') && (
-              <TabsTrigger value="quiz" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-                Quiz
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="videos" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Videos
+            </TabsTrigger>
+            <TabsTrigger value="readings" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Reading
+            </TabsTrigger>
+            <TabsTrigger value="interactive" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Interactive
+            </TabsTrigger>
+            <TabsTrigger value="quiz" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Quiz
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -497,23 +489,23 @@ export default function ModuleDetailPage() {
             </div>
           </TabsContent>
 
-          {/* Videos Tab Content */}
+          {/* Videos Tab Content - ALWAYS PRESENT */}
           <TabsContent value="videos">
             <Card className="border-gray-800">
               <CardHeader>
-                <CardTitle>Video Lessons</CardTitle>
+                <CardTitle className="text-white">Training Videos</CardTitle>
                 <CardDescription>
-                  Watch all video lessons to build your knowledge
+                  Watch instructional videos for {module.title}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {/* Show uploaded videos from instructor portal if available */}
                   {hasUploadedVideos ? (
                     uploadedVideos.map((video: any) => (
                       <div key={video.id} className="space-y-4">
                         <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
-                          <h3 className="text-lg font-medium mb-2">{video.videoTitle}</h3>
+                          <h3 className="text-lg font-medium text-white mb-2">{video.videoTitle}</h3>
                           <p className="text-muted-foreground mb-4">{video.videoDescription}</p>
                           
                           {/* Video Player */}
@@ -548,8 +540,8 @@ export default function ModuleDetailPage() {
                         </div>
                       </div>
                     ))
-                  ) : (
-                    /* Fallback to local content if no uploaded videos */
+                  ) : content.filter(lesson => lesson.type === 'video').length > 0 ? (
+                    /* Show existing video content if available */
                     content
                       .filter(lesson => lesson.type === 'video')
                       .map(lesson => (
@@ -584,6 +576,22 @@ export default function ModuleDetailPage() {
                           </div>
                         </div>
                       ))
+                  ) : (
+                    /* Default video content for all modules */
+                    <div className="space-y-4">
+                      <TrainingVideoPlayer 
+                        title={`${module.title} - Introduction`}
+                        description="Overview and introduction to the module concepts"
+                      />
+                      <TrainingVideoPlayer 
+                        title={`${module.title} - Core Concepts`}
+                        description="Detailed explanation of key principles and procedures"
+                      />
+                      <TrainingVideoPlayer 
+                        title={`${module.title} - Practical Applications`}
+                        description="Real-world scenarios and hands-on demonstrations"
+                      />
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -660,109 +668,181 @@ export default function ModuleDetailPage() {
             </Card>
           </TabsContent>
 
-          {/* Interactive Tab Content */}
+          {/* Interactive Tab Content - ALWAYS PRESENT */}
           <TabsContent value="interactive">
             <Card className="border-gray-800">
               <CardHeader>
-                <CardTitle>Interactive Learning</CardTitle>
+                <CardTitle className="text-white">Interactive Learning</CardTitle>
                 <CardDescription>
-                  Hands-on exercises and simulations
+                  Hands-on exercises and simulations for {module.title}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-8">
-                  {content
-                    .filter(lesson => lesson.type === 'interactive')
-                    .map(lesson => (
-                      <div key={lesson.id} className="space-y-4">
-                        <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
-                          <h3 className="text-lg font-medium mb-2">{lesson.title}</h3>
-                          <p className="text-muted-foreground mb-4">{lesson.description}</p>
-                          
-                          {/* Placeholder for interactive content */}
-                          <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
-                            <div className="text-center">
-                              <div className="text-4xl mb-4">🎮</div>
-                              <h4 className="text-lg font-medium mb-2">Interactive Training Module</h4>
-                              <p className="text-muted-foreground">Click "Start Training" to begin the interactive simulation</p>
+                <div className="space-y-4">
+                  {/* Show existing interactive content if available */}
+                  {content.filter(lesson => lesson.type === 'interactive').length > 0 ? (
+                    content
+                      .filter(lesson => lesson.type === 'interactive')
+                      .map(lesson => (
+                        <div key={lesson.id} className="space-y-4">
+                          <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+                            <h3 className="text-lg font-medium text-white mb-2">{lesson.title}</h3>
+                            <p className="text-muted-foreground mb-4">{lesson.description}</p>
+                            
+                            {/* Placeholder for interactive content */}
+                            <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+                              <div className="text-center">
+                                <div className="text-4xl mb-4">🎮</div>
+                                <h4 className="text-lg font-medium text-white mb-2">Interactive Training Module</h4>
+                                <p className="text-muted-foreground">Click "Start Training" to begin the interactive simulation</p>
+                              </div>
                             </div>
-                          </div>
-                          
-                          <div className="flex justify-between items-center mt-4">
-                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                              {lesson.duration}
-                            </Badge>
-                            <Button 
-                              onClick={() => completeLesson(lesson.id)}
-                              disabled={completedLessons.includes(lesson.id)}
-                              className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                            >
-                              {completedLessons.includes(lesson.id) ? (
-                                <>
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Completed
-                                </>
-                              ) : (
-                                "Start Training"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Quiz Tab Content */}
-          <TabsContent value="quiz">
-            <Card className="border-gray-800">
-              <CardHeader>
-                <CardTitle>Knowledge Assessment</CardTitle>
-                <CardDescription>
-                  Test your understanding of the module content
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-8">
-                  {content
-                    .filter(lesson => lesson.type === 'quiz')
-                    .map(lesson => (
-                      <div key={lesson.id} className="space-y-4">
-                        <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
-                          <h3 className="text-lg font-medium mb-2">{lesson.title}</h3>
-                          <p className="text-muted-foreground mb-4">{lesson.description}</p>
-                          
-                          {/* Quiz placeholder */}
-                          <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
-                            <div className="text-center">
-                              <div className="text-4xl mb-4">📝</div>
-                              <h4 className="text-lg font-medium mb-2">Knowledge Assessment</h4>
-                              <p className="text-muted-foreground">Click "Start Quiz" to begin the assessment</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex justify-between items-center mt-4">
-                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                              {lesson.duration}
-                            </Badge>
-                            <div className="flex gap-2">
-                              <Button variant="outline">
-                                Review Questions
-                              </Button>
+                            
+                            <div className="flex justify-between items-center mt-4">
+                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                                {lesson.duration}
+                              </Badge>
                               <Button 
                                 onClick={() => completeLesson(lesson.id)}
                                 disabled={completedLessons.includes(lesson.id)}
                                 className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
                               >
-                                {completedLessons.includes(lesson.id) ? "Completed" : "Start Quiz"}
+                                {completedLessons.includes(lesson.id) ? (
+                                  <>
+                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                    Completed
+                                  </>
+                                ) : (
+                                  "Start Training"
+                                )}
                               </Button>
                             </div>
                           </div>
                         </div>
+                      ))
+                  ) : (
+                    /* Default interactive content for all modules */
+                    <>
+                      <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 text-center">
+                        <div className="text-4xl mb-4">🎮</div>
+                        <h4 className="font-medium text-white mb-2">Interactive Simulation</h4>
+                        <p className="text-gray-300 text-sm mb-4">
+                          Practice {module.title.toLowerCase()} procedures in a simulated environment
+                        </p>
+                        <Button className="bg-primary hover:bg-primary/90 text-white">
+                          <PlayCircle className="h-4 w-4 mr-2" />
+                          Launch Simulation
+                        </Button>
                       </div>
-                    ))}
+
+                      <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 text-center">
+                        <div className="text-4xl mb-4">📋</div>
+                        <h4 className="font-medium text-white mb-2">Practice Scenarios</h4>
+                        <p className="text-gray-300 text-sm mb-4">
+                          Work through realistic scenarios and case studies
+                        </p>
+                        <Button className="bg-primary hover:bg-primary/90 text-white">
+                          <PlayCircle className="h-4 w-4 mr-2" />
+                          Start Scenarios
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Quiz Tab Content - ALWAYS PRESENT */}
+          <TabsContent value="quiz">
+            <Card className="border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-white">Module Assessment</CardTitle>
+                <CardDescription>
+                  Test your knowledge of {module.title}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Show existing quiz content if available */}
+                  {content.filter(lesson => lesson.type === 'quiz').length > 0 ? (
+                    content
+                      .filter(lesson => lesson.type === 'quiz')
+                      .map(lesson => (
+                        <div key={lesson.id} className="space-y-4">
+                          <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
+                            <h3 className="text-lg font-medium text-white mb-2">{lesson.title}</h3>
+                            <p className="text-muted-foreground mb-4">{lesson.description}</p>
+                            
+                            {/* Quiz placeholder */}
+                            <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
+                              <div className="text-center">
+                                <div className="text-4xl mb-4">📝</div>
+                                <h4 className="text-lg font-medium text-white mb-2">Knowledge Assessment</h4>
+                                <p className="text-muted-foreground">Click "Start Quiz" to begin the assessment</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-between items-center mt-4">
+                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
+                                {lesson.duration}
+                              </Badge>
+                              <div className="flex gap-2">
+                                <Button variant="outline">
+                                  Review Questions
+                                </Button>
+                                <Button 
+                                  onClick={() => completeLesson(lesson.id)}
+                                  disabled={completedLessons.includes(lesson.id)}
+                                  className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                >
+                                  {completedLessons.includes(lesson.id) ? "Completed" : "Start Quiz"}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  ) : (
+                    /* Default quiz content for all modules */
+                    <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h4 className="font-medium text-white mb-2">Knowledge Check Quiz</h4>
+                          <p className="text-gray-300 text-sm">
+                            15 questions covering key concepts from {module.title}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-white">80%</div>
+                          <div className="text-xs text-gray-400">Required to pass</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          30 minutes
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-4 w-4" />
+                          Multiple attempts allowed
+                        </span>
+                      </div>
+
+                      <Button 
+                        className="w-full bg-primary hover:bg-primary/90 text-white"
+                        onClick={() => {
+                          toast({
+                            title: "Quiz Started",
+                            description: `Starting ${module.title} assessment quiz`,
+                          });
+                        }}
+                      >
+                        Start Quiz
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
