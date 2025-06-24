@@ -656,14 +656,12 @@ D) 30% to 45% MAC
   }
 }
 
-// Run seeding if called directly
-if (require.main === module) {
-  seedTrainingModules()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
-}
+// Run seeding directly
+seedTrainingModules()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 
 export { seedTrainingModules };

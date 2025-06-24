@@ -1203,19 +1203,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to delete training module" });
     }
   });
-          lastModified: "2025-01-15",
-          content: "",
-          videoUrl: "",
-          createdDate: "2025-01-15",
-          completionRate: 0
-        },
-        {
-          id: 4,
-          title: "C-17 Tactical Loading Operations",
-          description: "Expert-level tactical loading operations for C-17 in combat environments",
-          aircraft: "c17",
-          difficulty: "expert", 
-          duration: "120 minutes",
           topics: ["Combat Loading Techniques", "Rapid Deployment", "Tactical Airlift Operations"],
           objectives: [
             "Execute rapid loading/unloading in tactical situations",

@@ -269,6 +269,41 @@ export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).pick({
   isActive: true,
 });
 
+export const trainingModules = pgTable("training_modules", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  aircraft: text("aircraft").notNull(),
+  difficulty: text("difficulty").notNull(),
+  duration: text("duration"),
+  topics: text("topics").array(),
+  objectives: text("objectives").array(),
+  readingContent: text("reading_content"),
+  videoContent: text("video_content"),
+  interactiveContent: text("interactive_content"),
+  quizContent: text("quiz_content"),
+  isActive: boolean("is_active").default(true),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTrainingModuleSchema = createInsertSchema(trainingModules).pick({
+  title: true,
+  description: true,
+  aircraft: true,
+  difficulty: true,
+  duration: true,
+  topics: true,
+  objectives: true,
+  readingContent: true,
+  videoContent: true,
+  interactiveContent: true,
+  quizContent: true,
+  isActive: true,
+  createdBy: true,
+});
+
 // Phone Directory schema (moved from later in file to avoid conflicts)
 export const phoneDirectory = pgTable("phone_directory", {
   id: serial("id").primaryKey(),
