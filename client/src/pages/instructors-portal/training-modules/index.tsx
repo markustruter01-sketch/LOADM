@@ -600,12 +600,14 @@ export default function TrainingModulesManagement() {
   const { data: moduleVideos } = useQuery({
     queryKey: ['/api/training-modules', selectedModule?.id, 'videos'],
     queryFn: async () => {
-      if (!selectedModule?.id) return [];
-      const response = await fetch(`/api/training-modules/${selectedModule.id}/videos`);
+      if (!selectedModule?.id || selectedModule.id === "undefined") return [];
+      const moduleIdNum = parseInt(selectedModule.id);
+      if (isNaN(moduleIdNum)) return [];
+      const response = await fetch(`/api/training-modules/${moduleIdNum}/videos`);
       if (!response.ok) throw new Error('Failed to fetch videos');
       return response.json();
     },
-    enabled: !!selectedModule?.id && isEditDialogOpen,
+    enabled: !!selectedModule?.id && selectedModule.id !== "undefined" && !isNaN(parseInt(selectedModule.id)) && isEditDialogOpen,
   });
 
   const openEditDialog = (module: TrainingModule) => {
@@ -1112,7 +1114,7 @@ export default function TrainingModulesManagement() {
                 <TabsContent value="videos" className="flex-1 space-y-4 overflow-y-auto">
                   <div className="space-y-6">
                     {/* Video Upload Section */}
-                    <div className="border rounded-lg p-4 bg-gray-50/50">
+                    <div className="border rounded-lg p-4 bg-gray-800/50">
                       <h4 className="font-medium mb-4 flex items-center gap-2">
                         <Upload className="h-4 w-4" />
                         Direct Video Upload (Up to 3 videos)
@@ -1125,7 +1127,7 @@ export default function TrainingModulesManagement() {
                             variant="outline"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={selectedFiles.length >= 3 || isUploading}
-                            className="w-full"
+                            className="w-full bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
                           >
                             <VideoIcon className="h-4 w-4 mr-2" />
                             Select Video Files ({selectedFiles.length}/3)
@@ -1156,7 +1158,7 @@ export default function TrainingModulesManagement() {
                         {selectedFiles.length > 0 && (
                           <div className="space-y-3">
                             {selectedFiles.map((file, index) => (
-                              <div key={index} className="border rounded-lg p-3 bg-white">
+                              <div key={index} className="border rounded-lg p-3 bg-gray-700">
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="flex items-center gap-2">
                                     <VideoIcon className="h-4 w-4 text-orange-500" />
@@ -1226,7 +1228,7 @@ export default function TrainingModulesManagement() {
                               <Button
                                 type="button"
                                 onClick={() => {
-                                  if (!selectedModule?.id) {
+                                  if (!selectedModule?.id || selectedModule.id === "undefined") {
                                     toast({
                                       title: "Error",
                                       description: "Please save the module first before uploading videos.",
@@ -1235,9 +1237,19 @@ export default function TrainingModulesManagement() {
                                     return;
                                   }
                                   
+                                  const moduleIdNum = parseInt(selectedModule.id);
+                                  if (isNaN(moduleIdNum)) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Invalid module ID. Please try again.",
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+                                  
                                   setIsUploading(true);
                                   uploadVideosMutation.mutate({
-                                    moduleId: parseInt(selectedModule.id),
+                                    moduleId: moduleIdNum,
                                     files: selectedFiles,
                                     titles: videoTitles.slice(0, selectedFiles.length),
                                     descriptions: videoDescriptions.slice(0, selectedFiles.length),
@@ -1273,13 +1285,13 @@ export default function TrainingModulesManagement() {
                         </h4>
                         <div className="space-y-3">
                           {moduleVideos.map((video: any, index: number) => (
-                            <div key={video.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={video.id} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg border border-gray-600">
                               <div className="flex items-center gap-3">
                                 <VideoIcon className="h-5 w-5 text-orange-500" />
                                 <div>
-                                  <p className="font-medium">{video.videoTitle}</p>
-                                  <p className="text-sm text-muted-foreground">{video.videoDescription}</p>
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="font-medium text-white">{video.videoTitle}</p>
+                                  <p className="text-sm text-gray-300">{video.videoDescription}</p>
+                                  <p className="text-xs text-gray-400">
                                     Uploaded by {video.uploadedBy?.email}
                                   </p>
                                 </div>
@@ -1289,6 +1301,7 @@ export default function TrainingModulesManagement() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
+                                  className="bg-gray-600 border-gray-500 text-white hover:bg-gray-500"
                                   onClick={() => {
                                     window.open(`/api/training-modules/videos/stream/${video.id}`, '_blank');
                                   }}
@@ -1299,8 +1312,8 @@ export default function TrainingModulesManagement() {
                                   type="button"
                                   variant="outline"
                                   size="sm"
+                                  className="bg-gray-600 border-gray-500 text-white hover:bg-gray-500"
                                   onClick={() => {
-                                    // Delete video functionality
                                     if (confirm('Are you sure you want to delete this video?')) {
                                       fetch(`/api/training-modules/videos/${video.id}`, {
                                         method: 'DELETE',
@@ -1309,7 +1322,6 @@ export default function TrainingModulesManagement() {
                                           title: "Success",
                                           description: "Video deleted successfully.",
                                         });
-                                        // Refresh videos
                                         queryClient.invalidateQueries({ 
                                           queryKey: ['/api/training-modules', selectedModule?.id?.toString(), 'videos'] 
                                         });
