@@ -1118,7 +1118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Training Modules CRUD endpoints
   app.get("/api/training-modules", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      // Return comprehensive training modules data with full content from instructor portal
+      // Return comprehensive training modules data with full content
       const trainingModules = [
         // C-17 Modules
         {
@@ -1244,27 +1244,6 @@ B) 25% to 35% MAC
 C) 30% to 40% MAC
 D) 35% to 45% MAC
 **Answer: B) 25% to 35% MAC**`,
-          createdDate: "2025-01-15",
-          completionRate: 0
-        },
-        {
-          id: 2,
-          title: "C-17 Weight Distribution",
-          description: "Intermediate training on C-17 weight balancing and cargo distribution",
-          aircraft: "c17",
-          difficulty: "intermediate",
-          duration: "60 minutes", 
-          topics: ["Weight & Balance Management", "CG Calculation", "Load Planning Software"],
-          objectives: [
-            "Calculate center of gravity accurately",
-            "Plan mixed cargo loads effectively",
-            "Develop load plans for various mission profiles"
-          ],
-          isActive: true,
-          createdBy: "System",
-          lastModified: "2025-01-15",
-          content: "",
-          videoUrl: "",
           createdDate: "2025-01-15",
           completionRate: 0
         },
