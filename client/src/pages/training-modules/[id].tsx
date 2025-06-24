@@ -343,7 +343,7 @@ const contentTypeIcons: Record<string, LucideIcon> = {
   quiz: GraduationCap
 };
 
-// Sample module contents for C-17 basics (first module)
+// Sample module contents for all modules
 const moduleContents: Record<string, LessonContent[]> = {
   "c17-basics": [
     {
@@ -577,6 +577,591 @@ const moduleContents: Record<string, LessonContent[]> = {
       duration: "8 min",
       description: "Test your knowledge of C-27J Spartan fundamentals",
       content: "Quiz content would be displayed here",
+      completed: false
+    }
+  ],
+  
+  "c17-intermediate": [
+    {
+      id: "c17-intermediate-1",
+      title: "Weight & Balance Theory",
+      type: "video",
+      duration: "20 min",
+      description: "Advanced weight and balance calculations for C-17",
+      content: "Video content for weight and balance theory",
+      completed: false
+    },
+    {
+      id: "c17-intermediate-2",
+      title: "CG Calculations",
+      type: "reading",
+      duration: "15 min",
+      description: "Center of gravity calculation methods and formulas",
+      content: "Reading content for CG calculations",
+      completed: false
+    },
+    {
+      id: "c17-intermediate-3",
+      title: "Load Planning Software",
+      type: "interactive",
+      duration: "25 min",
+      description: "Hands-on training with load planning software",
+      content: "Interactive software training",
+      completed: false
+    },
+    {
+      id: "c17-intermediate-4",
+      title: "Weight Distribution Assessment",
+      type: "quiz",
+      duration: "15 min",
+      description: "Test your weight distribution knowledge",
+      content: "Quiz content for weight distribution",
+      completed: false
+    }
+  ],
+
+  "c17-advanced": [
+    {
+      id: "c17-advanced-1",
+      title: "Complex Cargo Configuration",
+      type: "video",
+      duration: "30 min",
+      description: "Advanced cargo configuration techniques",
+      content: "Video content for complex configurations",
+      completed: false
+    },
+    {
+      id: "c17-advanced-2",
+      title: "Mixed Cargo Loading",
+      type: "reading",
+      duration: "20 min",
+      description: "Procedures for mixed cargo types",
+      content: "Reading content for mixed cargo",
+      completed: false
+    },
+    {
+      id: "c17-advanced-3",
+      title: "Oversized Equipment Simulation",
+      type: "interactive",
+      duration: "35 min",
+      description: "Interactive simulation for oversized equipment",
+      content: "Interactive oversized equipment training",
+      completed: false
+    },
+    {
+      id: "c17-advanced-4",
+      title: "Advanced Configuration Quiz",
+      type: "quiz",
+      duration: "20 min",
+      description: "Assessment of complex configuration knowledge",
+      content: "Quiz for advanced configurations",
+      completed: false
+    }
+  ],
+
+  "c17-expert": [
+    {
+      id: "c17-expert-1",
+      title: "Tactical Loading Operations",
+      type: "video",
+      duration: "40 min",
+      description: "Expert-level tactical loading procedures",
+      content: "Video content for tactical operations",
+      completed: false
+    },
+    {
+      id: "c17-expert-2",
+      title: "Combat Environment Procedures",
+      type: "reading",
+      duration: "25 min",
+      description: "Loading procedures in combat environments",
+      content: "Reading content for combat procedures",
+      completed: false
+    },
+    {
+      id: "c17-expert-3",
+      title: "Rapid Deployment Simulation",
+      type: "interactive",
+      duration: "45 min",
+      description: "Interactive simulation of rapid deployment scenarios",
+      content: "Interactive rapid deployment training",
+      completed: false
+    },
+    {
+      id: "c17-expert-4",
+      title: "Tactical Operations Assessment",
+      type: "quiz",
+      duration: "25 min",
+      description: "Comprehensive assessment of tactical operations",
+      content: "Quiz for tactical operations",
+      completed: false
+    }
+  ],
+
+  "c130-basics": [
+    {
+      id: "c130-basics-1",
+      title: "C-130 Hercules Overview",
+      type: "video",
+      duration: "18 min",
+      description: "Introduction to C-130 Hercules capabilities",
+      content: "Video content for C-130 overview",
+      completed: false
+    },
+    {
+      id: "c130-basics-2",
+      title: "C-130 Cargo Compartment",
+      type: "reading",
+      duration: "12 min",
+      description: "Detailed study of C-130 cargo compartment",
+      content: "Reading content for cargo compartment",
+      completed: false
+    },
+    {
+      id: "c130-basics-3",
+      title: "Basic Loading Procedures",
+      type: "interactive",
+      duration: "20 min",
+      description: "Interactive training for basic C-130 loading",
+      content: "Interactive basic loading training",
+      completed: false
+    },
+    {
+      id: "c130-basics-4",
+      title: "C-130 Fundamentals Quiz",
+      type: "quiz",
+      duration: "12 min",
+      description: "Test your C-130 fundamental knowledge",
+      content: "Quiz for C-130 fundamentals",
+      completed: false
+    }
+  ],
+
+  "c130-intermediate": [
+    {
+      id: "c130-intermediate-1",
+      title: "Advanced C-130 Loading",
+      type: "video",
+      duration: "25 min",
+      description: "Advanced loading techniques for C-130",
+      content: "Video content for advanced loading",
+      completed: false
+    },
+    {
+      id: "c130-intermediate-2",
+      title: "C-130 Weight Calculations",
+      type: "reading",
+      duration: "18 min",
+      description: "Weight and balance calculations for C-130",
+      content: "Reading content for weight calculations",
+      completed: false
+    },
+    {
+      id: "c130-intermediate-3",
+      title: "Load Planning Practice",
+      type: "interactive",
+      duration: "30 min",
+      description: "Interactive load planning exercises",
+      content: "Interactive load planning training",
+      completed: false
+    },
+    {
+      id: "c130-intermediate-4",
+      title: "C-130 Advanced Quiz",
+      type: "quiz",
+      duration: "18 min",
+      description: "Assessment of advanced C-130 knowledge",
+      content: "Quiz for advanced C-130",
+      completed: false
+    }
+  ],
+
+  "c130-advanced": [
+    {
+      id: "c130-advanced-1",
+      title: "C-130 Special Operations",
+      type: "video",
+      duration: "35 min",
+      description: "Special operations loading for C-130",
+      content: "Video content for special operations",
+      completed: false
+    },
+    {
+      id: "c130-advanced-2",
+      title: "Complex Mission Planning",
+      type: "reading",
+      duration: "22 min",
+      description: "Advanced mission planning procedures",
+      content: "Reading content for mission planning",
+      completed: false
+    },
+    {
+      id: "c130-advanced-3",
+      title: "Multi-Drop Scenarios",
+      type: "interactive",
+      duration: "40 min",
+      description: "Interactive training for multi-drop missions",
+      content: "Interactive multi-drop training",
+      completed: false
+    },
+    {
+      id: "c130-advanced-4",
+      title: "Special Operations Assessment",
+      type: "quiz",
+      duration: "22 min",
+      description: "Assessment of special operations knowledge",
+      content: "Quiz for special operations",
+      completed: false
+    }
+  ],
+
+  "c130-expert": [
+    {
+      id: "c130-expert-1",
+      title: "C-130 Master Operations",
+      type: "video",
+      duration: "45 min",
+      description: "Master-level C-130 operations training",
+      content: "Video content for master operations",
+      completed: false
+    },
+    {
+      id: "c130-expert-2",
+      title: "Advanced Tactical Procedures",
+      type: "reading",
+      duration: "30 min",
+      description: "Expert-level tactical procedures",
+      content: "Reading content for tactical procedures",
+      completed: false
+    },
+    {
+      id: "c130-expert-3",
+      title: "Combat Loading Simulation",
+      type: "interactive",
+      duration: "50 min",
+      description: "Advanced combat loading simulation",
+      content: "Interactive combat loading training",
+      completed: false
+    },
+    {
+      id: "c130-expert-4",
+      title: "Master Operations Assessment",
+      type: "quiz",
+      duration: "30 min",
+      description: "Comprehensive master-level assessment",
+      content: "Quiz for master operations",
+      completed: false
+    }
+  ],
+
+  "kc30a-basics": [
+    {
+      id: "kc30a-basics-1",
+      title: "KC30-A Introduction",
+      type: "video",
+      duration: "20 min",
+      description: "Introduction to KC30-A Multi-Role Tanker Transport",
+      content: "Video content for KC30-A introduction",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-2",
+      title: "Cargo Bay Systems",
+      type: "reading",
+      duration: "15 min",
+      description: "Study of KC30-A cargo bay systems",
+      content: "Reading content for cargo bay systems",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-3",
+      title: "Basic Cargo Operations",
+      type: "interactive",
+      duration: "25 min",
+      description: "Interactive training for basic cargo operations",
+      content: "Interactive basic cargo operations",
+      completed: false
+    },
+    {
+      id: "kc30a-basics-4",
+      title: "KC30-A Basics Quiz",
+      type: "quiz",
+      duration: "15 min",
+      description: "Test your KC30-A basic knowledge",
+      content: "Quiz for KC30-A basics",
+      completed: false
+    }
+  ],
+
+  "kc30a-intermediate": [
+    {
+      id: "kc30a-intermediate-1",
+      title: "Advanced Cargo Handling",
+      type: "video",
+      duration: "28 min",
+      description: "Advanced cargo handling techniques",
+      content: "Video content for advanced cargo handling",
+      completed: false
+    },
+    {
+      id: "kc30a-intermediate-2",
+      title: "Weight Distribution Analysis",
+      type: "reading",
+      duration: "20 min",
+      description: "Weight distribution analysis for KC30-A",
+      content: "Reading content for weight distribution",
+      completed: false
+    },
+    {
+      id: "kc30a-intermediate-3",
+      title: "Load Planning Exercises",
+      type: "interactive",
+      duration: "32 min",
+      description: "Interactive load planning exercises",
+      content: "Interactive load planning training",
+      completed: false
+    },
+    {
+      id: "kc30a-intermediate-4",
+      title: "Advanced Handling Quiz",
+      type: "quiz",
+      duration: "20 min",
+      description: "Assessment of advanced handling knowledge",
+      content: "Quiz for advanced handling",
+      completed: false
+    }
+  ],
+
+  "kc30a-advanced": [
+    {
+      id: "kc30a-advanced-1",
+      title: "Complex Mission Operations",
+      type: "video",
+      duration: "38 min",
+      description: "Complex mission operations for KC30-A",
+      content: "Video content for complex operations",
+      completed: false
+    },
+    {
+      id: "kc30a-advanced-2",
+      title: "Multi-Role Configuration",
+      type: "reading",
+      duration: "25 min",
+      description: "Multi-role configuration procedures",
+      content: "Reading content for multi-role config",
+      completed: false
+    },
+    {
+      id: "kc30a-advanced-3",
+      title: "Advanced Mission Simulation",
+      type: "interactive",
+      duration: "42 min",
+      description: "Interactive simulation of advanced missions",
+      content: "Interactive advanced mission training",
+      completed: false
+    },
+    {
+      id: "kc30a-advanced-4",
+      title: "Complex Operations Assessment",
+      type: "quiz",
+      duration: "25 min",
+      description: "Assessment of complex operations knowledge",
+      content: "Quiz for complex operations",
+      completed: false
+    }
+  ],
+
+  "kc30a-expert": [
+    {
+      id: "kc30a-expert-1",
+      title: "KC30-A Operations Management",
+      type: "video",
+      duration: "45 min",
+      description: "Expert-level operations management",
+      content: "Video content for operations management",
+      completed: false
+    },
+    {
+      id: "kc30a-expert-2",
+      title: "Strategic Mission Planning",
+      type: "reading",
+      duration: "30 min",
+      description: "Strategic mission planning procedures",
+      content: "Reading content for strategic planning",
+      completed: false
+    },
+    {
+      id: "kc30a-expert-3",
+      title: "Master Operations Simulation",
+      type: "interactive",
+      duration: "50 min",
+      description: "Master-level operations simulation",
+      content: "Interactive master operations training",
+      completed: false
+    },
+    {
+      id: "kc30a-expert-4",
+      title: "Operations Management Assessment",
+      type: "quiz",
+      duration: "30 min",
+      description: "Comprehensive operations management assessment",
+      content: "Quiz for operations management",
+      completed: false
+    }
+  ],
+
+  "c27j-basics": [
+    {
+      id: "c27j-basics-1",
+      title: "C-27J Spartan Overview",
+      type: "video",
+      duration: "18 min",
+      description: "Introduction to C-27J Spartan capabilities",
+      content: "Video content for C-27J overview",
+      completed: false
+    },
+    {
+      id: "c27j-basics-2",
+      title: "Spartan Cargo Systems",
+      type: "reading",
+      duration: "14 min",
+      description: "Study of C-27J cargo systems and layout",
+      content: "Reading content for cargo systems",
+      completed: false
+    },
+    {
+      id: "c27j-basics-3",
+      title: "Basic Loading Procedures",
+      type: "interactive",
+      duration: "22 min",
+      description: "Interactive training for basic C-27J loading",
+      content: "Interactive basic loading training",
+      completed: false
+    },
+    {
+      id: "c27j-basics-4",
+      title: "C-27J Fundamentals Quiz",
+      type: "quiz",
+      duration: "14 min",
+      description: "Test your C-27J fundamental knowledge",
+      content: "Quiz for C-27J fundamentals",
+      completed: false
+    }
+  ],
+
+  "c27j-intermediate": [
+    {
+      id: "c27j-intermediate-1",
+      title: "Advanced C-27J Operations",
+      type: "video",
+      duration: "26 min",
+      description: "Advanced operations training for C-27J",
+      content: "Video content for advanced operations",
+      completed: false
+    },
+    {
+      id: "c27j-intermediate-2",
+      title: "Tactical Loading Procedures",
+      type: "reading",
+      duration: "18 min",
+      description: "Tactical loading procedures for C-27J",
+      content: "Reading content for tactical loading",
+      completed: false
+    },
+    {
+      id: "c27j-intermediate-3",
+      title: "Mission Planning Practice",
+      type: "interactive",
+      duration: "28 min",
+      description: "Interactive mission planning exercises",
+      content: "Interactive mission planning training",
+      completed: false
+    },
+    {
+      id: "c27j-intermediate-4",
+      title: "Advanced Operations Quiz",
+      type: "quiz",
+      duration: "18 min",
+      description: "Assessment of advanced operations knowledge",
+      content: "Quiz for advanced operations",
+      completed: false
+    }
+  ],
+
+  "c27j-advanced": [
+    {
+      id: "c27j-advanced-1",
+      title: "C-27J Tactical Operations",
+      type: "video",
+      duration: "35 min",
+      description: "Tactical operations training for C-27J",
+      content: "Video content for tactical operations",
+      completed: false
+    },
+    {
+      id: "c27j-advanced-2",
+      title: "Advanced Mission Profiles",
+      type: "reading",
+      duration: "22 min",
+      description: "Advanced mission profiles and procedures",
+      content: "Reading content for mission profiles",
+      completed: false
+    },
+    {
+      id: "c27j-advanced-3",
+      title: "Tactical Scenarios Simulation",
+      type: "interactive",
+      duration: "38 min",
+      description: "Interactive tactical scenarios training",
+      content: "Interactive tactical scenarios training",
+      completed: false
+    },
+    {
+      id: "c27j-advanced-4",
+      title: "Tactical Operations Assessment",
+      type: "quiz",
+      duration: "22 min",
+      description: "Assessment of tactical operations knowledge",
+      content: "Quiz for tactical operations",
+      completed: false
+    }
+  ],
+
+  "c27j-expert": [
+    {
+      id: "c27j-expert-1",
+      title: "C-27J Master Operations",
+      type: "video",
+      duration: "42 min",
+      description: "Master-level C-27J operational management",
+      content: "Video content for master operations",
+      completed: false
+    },
+    {
+      id: "c27j-expert-2",
+      title: "Complete Platform Management",
+      type: "reading",
+      duration: "28 min",
+      description: "Complete platform management procedures",
+      content: "Reading content for platform management",
+      completed: false
+    },
+    {
+      id: "c27j-expert-3",
+      title: "Austere Field Operations",
+      type: "interactive",
+      duration: "45 min",
+      description: "Interactive training for austere field operations",
+      content: "Interactive austere field training",
+      completed: false
+    },
+    {
+      id: "c27j-expert-4",
+      title: "Master Operations Assessment",
+      type: "quiz",
+      duration: "28 min",
+      description: "Comprehensive master operations assessment",
+      content: "Quiz for master operations",
       completed: false
     }
   ]
