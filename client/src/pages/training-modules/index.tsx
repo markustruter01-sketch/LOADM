@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
 import { useLocation } from "wouter";
 import { 
@@ -302,10 +303,23 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
   const [_, navigate] = useLocation();
   const [activeAircraft, setActiveAircraft] = useState<string>("all");
 
+  // Use API data for consistency with instructor portal
+  const { data: apiModules } = useQuery({
+    queryKey: ['/api/training-modules'],
+    queryFn: async () => {
+      const response = await fetch('/api/training-modules');
+      if (!response.ok) throw new Error('Failed to fetch training modules');
+      return response.json();
+    },
+  });
+
+  // Use API data if available, otherwise fallback to local data
+  const modules = apiModules || trainingModules;
+
   // Filter modules based on selected aircraft
   const filteredModules = activeAircraft === "all" 
-    ? trainingModules 
-    : trainingModules.filter(module => module.aircraft === activeAircraft);
+    ? modules 
+    : modules.filter(module => module.aircraft === activeAircraft);
 
   return (
     <>
