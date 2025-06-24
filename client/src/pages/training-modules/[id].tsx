@@ -298,7 +298,7 @@ export default function ModuleDetailPage() {
   // Early return if module not found
   if (!module) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 training-module-page flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Module Not Found</h1>
           <p className="text-gray-300 mb-6">The training module you're looking for doesn't exist.</p>
@@ -324,7 +324,7 @@ export default function ModuleDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 training-module-page" style={{ backgroundColor: '#111827' }}>
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -660,7 +660,7 @@ export default function ModuleDetailPage() {
                           <p className="text-muted-foreground mb-4">{lesson.description}</p>
                           
                           {/* Placeholder for interactive content */}
-                          <div className="aspect-video bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-lg flex items-center justify-center border border-gray-700">
+                          <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
                             <div className="text-center">
                               <div className="text-4xl mb-4">🎮</div>
                               <h4 className="text-lg font-medium mb-2">Interactive Training Module</h4>
@@ -715,7 +715,7 @@ export default function ModuleDetailPage() {
                           <p className="text-muted-foreground mb-4">{lesson.description}</p>
                           
                           {/* Quiz placeholder */}
-                          <div className="aspect-video bg-gradient-to-br from-green-900/20 to-blue-900/20 rounded-lg flex items-center justify-center border border-gray-700">
+                          <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
                             <div className="text-center">
                               <div className="text-4xl mb-4">📝</div>
                               <h4 className="text-lg font-medium mb-2">Knowledge Assessment</h4>

@@ -119,3 +119,10 @@
   background-color: #e2e8f0 !important; /* slate-200 */
   color: #111827 !important; /* gray-900 */
 }
+
+/* Training Module Page Background Override */
+.training-module-page {
+  background-color: #111827 !important; /* gray-900 */
+  background-image: none !important;
+  background: #111827 !important;
+}
