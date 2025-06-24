@@ -532,7 +532,81 @@ export default function TrainingModulesManagement() {
       prerequisites: "",
       resources: ""
     });
+    setSelectedFiles([]);
+    setVideoTitles(["", "", ""]);
+    setVideoDescriptions(["", "", ""]);
   };
+
+  // Video upload mutation
+  const uploadVideosMutation = useMutation({
+    mutationFn: async ({ moduleId, files, titles, descriptions }: {
+      moduleId: number;
+      files: File[];
+      titles: string[];
+      descriptions: string[];
+    }) => {
+      const formData = new FormData();
+      
+      files.forEach((file, index) => {
+        formData.append('videos', file);
+      });
+      
+      titles.forEach((title, index) => {
+        formData.append('videoTitles', title);
+      });
+      
+      descriptions.forEach((description, index) => {
+        formData.append('videoDescriptions', description);
+      });
+
+      const response = await fetch(`/api/training-modules/${moduleId}/videos`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload videos');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      setSelectedFiles([]);
+      setVideoTitles(["", "", ""]);
+      setVideoDescriptions(["", "", ""]);
+      setIsUploading(false);
+      setUploadProgress(0);
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/training-modules', selectedModule?.id, 'videos'] 
+      });
+      toast({
+        title: "Success",
+        description: "Videos uploaded successfully!",
+      });
+    },
+    onError: (error) => {
+      setIsUploading(false);
+      setUploadProgress(0);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Fetch videos for selected module
+  const { data: moduleVideos } = useQuery({
+    queryKey: ['/api/training-modules', selectedModule?.id, 'videos'],
+    queryFn: async () => {
+      if (!selectedModule?.id) return [];
+      const response = await fetch(`/api/training-modules/${selectedModule.id}/videos`);
+      if (!response.ok) throw new Error('Failed to fetch videos');
+      return response.json();
+    },
+    enabled: !!selectedModule?.id && isEditDialogOpen,
+  });
 
   const openEditDialog = (module: TrainingModule) => {
     setSelectedModule(module);
@@ -1036,7 +1110,222 @@ export default function TrainingModulesManagement() {
 
                 {/* Videos Tab */}
                 <TabsContent value="videos" className="flex-1 space-y-4 overflow-y-auto">
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    {/* Video Upload Section */}
+                    <div className="border rounded-lg p-4 bg-gray-50/50">
+                      <h4 className="font-medium mb-4 flex items-center gap-2">
+                        <Upload className="h-4 w-4" />
+                        Direct Video Upload (Up to 3 videos)
+                      </h4>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={selectedFiles.length >= 3 || isUploading}
+                            className="w-full"
+                          >
+                            <VideoIcon className="h-4 w-4 mr-2" />
+                            Select Video Files ({selectedFiles.length}/3)
+                          </Button>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="video/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || []);
+                              const totalFiles = selectedFiles.length + files.length;
+                              if (totalFiles > 3) {
+                                toast({
+                                  title: "Too many files",
+                                  description: "You can only upload up to 3 videos per module.",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              setSelectedFiles(prev => [...prev, ...files]);
+                            }}
+                          />
+                        </div>
+
+                        {/* Selected Files Display */}
+                        {selectedFiles.length > 0 && (
+                          <div className="space-y-3">
+                            {selectedFiles.map((file, index) => (
+                              <div key={index} className="border rounded-lg p-3 bg-white">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <VideoIcon className="h-4 w-4 text-orange-500" />
+                                    <span className="text-sm font-medium">{file.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({Math.round(file.size / 1024 / 1024)}MB)
+                                    </span>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                                      setVideoTitles(prev => {
+                                        const newTitles = [...prev];
+                                        newTitles[index] = "";
+                                        return newTitles;
+                                      });
+                                      setVideoDescriptions(prev => {
+                                        const newDescriptions = [...prev];
+                                        newDescriptions[index] = "";
+                                        return newDescriptions;
+                                      });
+                                    }}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  <div>
+                                    <Label htmlFor={`video-title-${index}`}>Video Title</Label>
+                                    <Input
+                                      id={`video-title-${index}`}
+                                      value={videoTitles[index] || ""}
+                                      onChange={(e) => {
+                                        setVideoTitles(prev => {
+                                          const newTitles = [...prev];
+                                          newTitles[index] = e.target.value;
+                                          return newTitles;
+                                        });
+                                      }}
+                                      placeholder={`Video ${index + 1} title`}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor={`video-description-${index}`}>Description</Label>
+                                    <Input
+                                      id={`video-description-${index}`}
+                                      value={videoDescriptions[index] || ""}
+                                      onChange={(e) => {
+                                        setVideoDescriptions(prev => {
+                                          const newDescriptions = [...prev];
+                                          newDescriptions[index] = e.target.value;
+                                          return newDescriptions;
+                                        });
+                                      }}
+                                      placeholder="Brief description of video content"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {selectedFiles.length > 0 && (
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  if (!selectedModule?.id) {
+                                    toast({
+                                      title: "Error",
+                                      description: "Please save the module first before uploading videos.",
+                                      variant: "destructive",
+                                    });
+                                    return;
+                                  }
+                                  
+                                  setIsUploading(true);
+                                  uploadVideosMutation.mutate({
+                                    moduleId: parseInt(selectedModule.id),
+                                    files: selectedFiles,
+                                    titles: videoTitles.slice(0, selectedFiles.length),
+                                    descriptions: videoDescriptions.slice(0, selectedFiles.length),
+                                  });
+                                }}
+                                disabled={isUploading || selectedFiles.length === 0}
+                                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                              >
+                                {isUploading ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                                    Uploading Videos...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload {selectedFiles.length} Video{selectedFiles.length > 1 ? 's' : ''}
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Existing Videos Display */}
+                    {moduleVideos && moduleVideos.length > 0 && (
+                      <div className="border rounded-lg p-4">
+                        <h4 className="font-medium mb-4 flex items-center gap-2">
+                          <Play className="h-4 w-4" />
+                          Uploaded Videos ({moduleVideos.length}/3)
+                        </h4>
+                        <div className="space-y-3">
+                          {moduleVideos.map((video: any, index: number) => (
+                            <div key={video.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <VideoIcon className="h-5 w-5 text-orange-500" />
+                                <div>
+                                  <p className="font-medium">{video.videoTitle}</p>
+                                  <p className="text-sm text-muted-foreground">{video.videoDescription}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Uploaded by {video.uploadedBy?.email}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    window.open(`/api/training-modules/videos/stream/${video.id}`, '_blank');
+                                  }}
+                                >
+                                  <Play className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Delete video functionality
+                                    if (confirm('Are you sure you want to delete this video?')) {
+                                      fetch(`/api/training-modules/videos/${video.id}`, {
+                                        method: 'DELETE',
+                                      }).then(() => {
+                                        toast({
+                                          title: "Success",
+                                          description: "Video deleted successfully.",
+                                        });
+                                        // Refresh videos
+                                        queryClient.invalidateQueries({ 
+                                          queryKey: ['/api/training-modules', selectedModule?.id?.toString(), 'videos'] 
+                                        });
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div>
                       <Label htmlFor="edit-video-content">Video Content Description</Label>
                       <Textarea
@@ -1048,27 +1337,15 @@ export default function TrainingModulesManagement() {
                       />
                     </div>
                     
-                    <div>
-                      <Label htmlFor="edit-video-urls">Video URLs (one per line)</Label>
-                      <Textarea
-                        id="edit-video-urls"
-                        value={formData.videoUrls.join('\n')}
-                        onChange={(e) => setFormData(prev => ({ 
-                          ...prev, 
-                          videoUrls: e.target.value.split('\n').filter(url => url.trim()) 
-                        }))}
-                        placeholder="https://example.com/video1&#10;https://example.com/video2"
-                        rows={8}
-                      />
-                    </div>
-                    
                     <div className="bg-gray-800/20 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Video Guidelines:</h4>
+                      <h4 className="font-medium mb-2">Video Upload Guidelines:</h4>
                       <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Use YouTube, Vimeo, or direct video file URLs</li>
-                        <li>• Ensure videos are accessible to military personnel</li>
-                        <li>• Include captions for accessibility compliance</li>
-                        <li>• Video duration should align with module timing</li>
+                        <li>• Maximum file size: 100MB per video</li>
+                        <li>• Supported formats: MP4, WebM, MOV, AVI</li>
+                        <li>• Up to 3 videos per training module</li>
+                        <li>• Include descriptive titles and descriptions</li>
+                        <li>• Ensure videos are accessible and professional quality</li>
+                        <li>• Videos will be stored securely on the server</li>
                       </ul>
                     </div>
                   </div>

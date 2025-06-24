@@ -1038,7 +1038,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderBy: (trainingModuleVideos, { asc }) => [asc(trainingModuleVideos.videoOrder)],
         with: {
           uploadedBy: {
-            columns: { firstName: true, lastName: true, email: true }
+            columns: { email: true }
           }
         }
       });
