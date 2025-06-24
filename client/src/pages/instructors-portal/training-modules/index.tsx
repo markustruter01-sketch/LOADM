@@ -530,7 +530,7 @@ export default function TrainingModulesManagement() {
       isActive: true
     };
 
-    setTrainingModules(prev => [...prev, newModule]);
+    // Use API mutation instead of local state
     setIsCreateDialogOpen(false);
     resetForm();
     
@@ -558,9 +558,7 @@ export default function TrainingModulesManagement() {
       lastModified: new Date().toISOString().split('T')[0]
     };
 
-    setTrainingModules(prev => prev.map(module => 
-      module.id === selectedModule.id ? updatedModule : module
-    ));
+    // Use API mutation instead of local state
     setIsEditDialogOpen(false);
     setSelectedModule(null);
     resetForm();
@@ -680,7 +678,7 @@ export default function TrainingModulesManagement() {
     enabled: !!selectedModule?.id && selectedModule.id !== "undefined" && !isNaN(parseInt(selectedModule.id)) && isEditDialogOpen,
   });
 
-  const openEditDialog = (module: TrainingModule) => {
+  const openEditDialog = (module: any) => {
     setSelectedModule(module);
     setFormData({
       title: module.title,
