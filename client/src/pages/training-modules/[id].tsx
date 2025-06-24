@@ -298,7 +298,7 @@ export default function ModuleDetailPage() {
   // Early return if module not found
   if (!module) {
     return (
-      <div className="min-h-screen bg-gray-900 training-module-page flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
+      <div className="dark-page-background page-training-module bg-force-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Module Not Found</h1>
           <p className="text-gray-300 mb-6">The training module you're looking for doesn't exist.</p>
@@ -324,7 +324,7 @@ export default function ModuleDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 training-module-page" style={{ backgroundColor: '#111827' }}>
+    <div className="dark-page-background page-training-module bg-force-gray-900">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
