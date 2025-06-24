@@ -89,17 +89,8 @@
     color: #ffffff !important;
   }
   
-  /* ABSOLUTE BACKGROUND OVERRIDE - NEVER ALLOW BLUE BACKGROUNDS */
-  html, body, #root, [data-reactroot], .min-h-screen {
-    background-color: #1e1e1e !important;
-    background-image: none !important;
-    background: #1e1e1e !important;
-  }
-  
-  /* Override any bg-gradient or blue backgrounds */
-  .bg-gradient-to-br, .bg-gradient-to-r, .bg-gradient-to-l, .bg-gradient-to-t, .bg-gradient-to-b,
-  [class*="from-blue"], [class*="to-blue"], [class*="via-blue"],
-  [class*="from-slate"], [class*="to-slate"], [class*="via-slate"] {
+  /* Override blue backgrounds only, preserve other images and gradients */
+  [class*="from-blue"], [class*="to-blue"], [class*="via-blue"] {
     background: #1e1e1e !important;
     background-image: none !important;
   }
