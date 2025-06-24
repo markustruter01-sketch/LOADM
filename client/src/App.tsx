@@ -1,6 +1,6 @@
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createOfflineQueryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useState, useEffect } from 'react';
 import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
 import { RedesignedLogin } from './auth-isolated/redesigned-login';
@@ -71,7 +71,7 @@ import BottomNav from "@/components/BottomNav";
 import { ChatSystem } from "@/components/chat-system";
 // import OfflineStatus from "@/components/OfflineStatus";
 
-const queryClient = createOfflineQueryClient();
+// queryClient imported from queryClient.ts
 
 function AuthenticatedApp() {
   const { user, refreshUser } = useIsolatedAuth();
