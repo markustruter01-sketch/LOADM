@@ -20,29 +20,16 @@ const TrainingVideoPlayer = ({ title, description }: { title: string; descriptio
   </div>
 )
 
-// Local training modules data (fallback)
-const trainingModules = [
-  {
-    id: "c17-basics",
-    title: "C-17 Basics",
-    aircraft: "C-17 Globemaster III",
-    difficulty: "Beginner",
-    duration: "2 hours",
-    description: "Learn the fundamentals of C-17 Globemaster III loadmaster operations",
-    objectives: ["Understanding aircraft capabilities", "Basic loading procedures", "Safety protocols"],
-    prerequisites: "None",
-    instructor: "Loadmaster Instructor",
-    lastUpdated: "2024-01-15"
-  }
-]
-
-// Aircraft configurations for display
-const aircraftConfigs = {
-  "c17-basics": { name: "C-17 Globemaster III", type: "Strategic Airlift" },
-  "c130-basics": { name: "C-130 Hercules", type: "Tactical Airlift" },
-  "kc30a-basics": { name: "KC30-A MRTT", type: "Multi-Role Tanker" },
-  "c27j-basics": { name: "C-27J Spartan", type: "Tactical Airlift" }
-}
+// Function to get aircraft display names
+const getAircraftDisplayName = (aircraft: string) => {
+  const names = {
+    'c17': 'C-17 Globemaster III',
+    'c130': 'C-130 Hercules', 
+    'kc30a': 'KC30-A MRTT',
+    'c27j': 'C-27J Spartan'
+  };
+  return names[aircraft as keyof typeof names] || aircraft;
+};
 
 // Clean module contents without duplicates
 const moduleContents: Record<string, any[]> = {
