@@ -46,7 +46,7 @@ interface Module {
 const trainingModules: Module[] = [
   // C-17 Modules
   {
-    id: "c17-globemaster-basics",
+    id: "c17-basics",
     title: "C-17 Globemaster Basics",
     description: "Introduction to C-17 cargo loading fundamentals for beginner loadmasters",
     aircraft: "c17",
@@ -119,7 +119,7 @@ const trainingModules: Module[] = [
     ]
   },
   {
-    id: "c130-load-planning-essentials",
+    id: "c130-intermediate",
     title: "C-130 Load Planning Essentials",
     description: "Intermediate training on C-130 load planning and configuration",
     aircraft: "c130",
@@ -191,8 +191,8 @@ const trainingModules: Module[] = [
     ]
   },
   {
-    id: "kc30a-tanker-operations",
-    title: "KC30-A Tanker Operations",
+    id: "kc30a-advanced",
+    title: "KC30-A Advanced Configuration Management",
     description: "Advanced KC30-A configuration and cargo management",
     aircraft: "kc30a",
     difficulty: "advanced",
@@ -235,7 +235,7 @@ const trainingModules: Module[] = [
     ]
   },
   {
-    id: "c27j-tactical-operations",
+    id: "c27j-intermediate",
     title: "C-27J Tactical Operations",
     description: "Intermediate tactical loading for C-27J operations",
     aircraft: "c27j",
@@ -322,7 +322,7 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
     : modules.filter(module => module.aircraft === activeAircraft);
 
   return (
-    <div className="page-container" style={{ backgroundColor: '#1f2937', minHeight: '100vh' }}>
+    <>
       {!hideHeader && (
         <Helmet>
           <title>Aircraft-Specific Training Modules | LOADMworkflow</title>
@@ -333,7 +333,7 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
         </Helmet>
       )}
 
-      <div className={hideHeader ? "" : "container mx-auto px-4 py-8 mb-16"} style={{ backgroundColor: '#1f2937' }}>
+      <div className={hideHeader ? "" : "container mx-auto px-4 py-8 mb-16"}>
         <div className={hideHeader ? "" : "max-w-6xl mx-auto"}>
 
           
@@ -465,6 +465,6 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
