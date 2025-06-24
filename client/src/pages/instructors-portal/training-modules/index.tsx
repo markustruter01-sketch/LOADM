@@ -955,7 +955,148 @@ D) Extreme threat requiring immediate evacuation
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-130 Hercules - Aircraft Overview
+
+## Aircraft Specifications
+- **Length**: 97.9 feet (29.8 meters)
+- **Wingspan**: 132.2 feet (40.3 meters)
+- **Height**: 38.5 feet (11.7 meters)
+- **Maximum Takeoff Weight**: 155,000 lbs (70,307 kg)
+- **Maximum Payload**: 42,000 lbs (19,050 kg)
+- **Cargo Volume**: 4,500 cubic feet (127.4 cubic meters)
+
+## Cargo Compartment Dimensions
+- **Length**: 40 feet (12.2 meters)
+- **Width**: 10.3 feet (3.1 meters)
+- **Height**: 9 feet (2.7 meters)
+- **Usable Floor Area**: 412 square feet (38.3 square meters)
+
+## Standard Pallet Configurations
+The C-130 can accommodate:
+- **6 Standard 463L Pallets** (88" x 108")
+- **12 Standard Pallets** with rolling stock removed
+- **128 Passengers** in troop seating configuration
+- **92 Paratroopers** with full equipment
+
+## Weight and Balance Fundamentals
+- **Center of Gravity Range**: 25% to 35% MAC
+- **Maximum Floor Loading**: 250 PSF (pounds per square foot)
+- **Rolling Load Limit**: 3,500 lbs per running foot
+- **Fuel Capacity**: 9,680 gallons (61,364 lbs maximum)
+
+## Key Differences from C-17
+- **Smaller cargo bay**: Requires careful space planning
+- **Lower payload**: More restrictive weight limitations
+- **Tactical focus**: Designed for shorter, rough airfields
+- **Manual systems**: More hands-on loading procedures
+
+## Safety Considerations
+- Verify adequate clearance for all cargo
+- Maintain proper aisle space for crew movement
+- Ensure emergency exit accessibility
+- Follow strict weight distribution guidelines
+- Use appropriate restraint systems for cargo type
+
+## Basic Loading Principles
+1. Plan load sequence before aircraft arrival
+2. Position heaviest items near CG
+3. Secure all cargo with military specification restraints
+4. Verify weight and balance within limits
+5. Conduct final safety inspection before flight`,
+    videoContent: `# Video Training Modules
+
+## Module 1: C-130 Aircraft Familiarization (18 minutes)
+- External walkround procedures
+- Cargo door and ramp operations
+- Loading equipment and tools
+- Safety equipment locations
+
+## Module 2: Cargo Bay Layout and Systems (22 minutes)
+- Interior dimensions and limitations
+- Pallet positions and tie-down points
+- Environmental control systems
+- Emergency equipment locations
+
+## Module 3: Basic Loading Procedures (25 minutes)
+- Standard loading sequences
+- Restraint system applications
+- Weight distribution techniques
+- Pre-flight inspection procedures`,
+    interactiveContent: `# Interactive Training Exercises
+
+## Exercise 1: C-130 Cargo Bay Explorer
+Virtual tour of the C-130 cargo compartment:
+- Navigate through 3D cargo bay model
+- Identify 6 standard pallet positions
+- Locate tie-down points and anchor systems
+- Find emergency equipment and exits
+- Practice measuring cargo dimensions
+
+## Exercise 2: Weight and Balance Calculator
+Practice C-130 weight calculations:
+- Empty aircraft weight: 76,469 lbs
+- Fuel load: Variable (up to 61,364 lbs)
+- Cargo weight: Student input (up to 42,000 lbs)
+- Passenger/crew weight: Variable
+- Calculate total weight and CG position
+
+## Exercise 3: Cargo Loading Simulator
+Drag and drop cargo into C-130:
+- 6 standard pallets of varying weights
+- Maintain CG within 25-35% MAC
+- Respect floor loading limits (250 PSF)
+- Ensure proper load distribution
+- Verify emergency egress routes
+
+## Exercise 4: Restraint System Trainer
+Interactive guide to C-130 restraint systems:
+- Chain restraints for heavy cargo
+- Strap systems for standard pallets
+- Net systems for loose cargo
+- Special restraints for vehicles
+- Practice restraint calculations`,
+    quizContent: `# C-130 Fundamentals Knowledge Assessment
+
+## Question 1: Aircraft Specifications
+What is the maximum payload capacity of the C-130 Hercules?
+A) 35,000 lbs
+B) 42,000 lbs
+C) 50,000 lbs
+D) 55,000 lbs
+**Answer: B) 42,000 lbs**
+
+## Question 2: Cargo Bay Dimensions
+What is the usable length of the C-130 cargo compartment?
+A) 35 feet
+B) 40 feet
+C) 45 feet
+D) 50 feet
+**Answer: B) 40 feet**
+
+## Question 3: Standard Pallet Configuration
+How many standard 463L pallets can the C-130 accommodate?
+A) 4 pallets
+B) 6 pallets
+C) 8 pallets
+D) 10 pallets
+**Answer: B) 6 pallets**
+
+## Question 4: Center of Gravity Range
+What is the acceptable CG range for the C-130?
+A) 20% to 30% MAC
+B) 25% to 35% MAC
+C) 30% to 40% MAC
+D) 35% to 45% MAC
+**Answer: B) 25% to 35% MAC**
+
+## Question 5: Maximum Floor Loading
+What is the maximum floor loading limit for the C-130?
+A) 200 PSF
+B) 225 PSF
+C) 250 PSF
+D) 275 PSF
+**Answer: C) 250 PSF**`
   },
   {
     id: "c130-intermediate",
@@ -972,7 +1113,237 @@ D) Extreme threat requiring immediate evacuation
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-130 Advanced Load Planning
+
+## Mission-Specific Configurations
+
+### Tactical Airlift Missions
+**Standard Cargo Configuration**
+- 6 pallets maximum capacity
+- Mixed cargo types (vehicles, supplies, equipment)
+- Optimal weight distribution for short field performance
+- Rapid offload capability for tactical environments
+
+**Passenger Configuration**
+- 128 troops in standard seating
+- 92 paratroopers with equipment
+- 74 litter patients in medical configuration
+- Mixed passenger/cargo combinations
+
+### Weight and Balance Management
+**CG Envelope Calculations**
+- Forward limit: 25% MAC (Critical for nose-heavy conditions)
+- Aft limit: 35% MAC (Critical for tail-heavy conditions)
+- Operational envelope: 27-33% MAC (Optimal performance)
+
+**Loading Sequence Strategy**
+1. **Heavy items first**: Position near aircraft CG
+2. **Progressive loading**: Work from center outward
+3. **Balance verification**: Check CG after each major item
+4. **Final optimization**: Adjust positions for optimal performance
+
+### Fuel Planning Integration
+**Fuel System Overview**
+- Main tanks: 2,300 gallons each (4 tanks)
+- External tanks: 1,400 gallons each (2 optional)
+- Fuel CG impact: Significant on aircraft balance
+- Consumption patterns: Affects CG throughout flight
+
+**Range vs. Payload Trade-offs**
+- Maximum payload: 2,500 nm range
+- Maximum range: 3,800 nm with reduced payload
+- Critical decision points for mission planning
+- Fuel reserve requirements for tactical operations
+
+## Vehicle and Equipment Loading
+
+### Vehicle Specifications
+**Light Vehicles (Under 15,000 lbs)**
+- HMMWV: 5,900 lbs, fits standard pallet positions
+- Light Strike Vehicle: 4,800 lbs, special tie-down required
+- Motorcycle/ATV: Multiple units possible
+
+**Heavy Vehicles (15,000-30,000 lbs)**
+- LAV-25: 14 tons, requires special loading procedures
+- M113 APC: 11 tons, center loading mandatory
+- Engineering vehicles: Case-by-case analysis
+
+### Equipment Handling
+**Palletized Loading**
+- Standard 463L pallets: 10,000 lbs maximum
+- Special handling pallets: 12,000 lbs maximum
+- Bulk cargo pallets: Height restrictions apply
+
+**Roll-on/Roll-off Procedures**
+- Vehicle self-loading capabilities
+- Ramp angle limitations: 15 degrees maximum
+- Ground clearance requirements
+- Turning radius considerations
+
+## Mixed Load Configurations
+
+### Passenger + Cargo Combinations
+**75% Passenger / 25% Cargo**
+- 96 passengers + 2 pallets
+- Optimal for personnel movement with equipment
+- Emergency egress considerations
+
+**50% Passenger / 50% Cargo**
+- 64 passengers + 4 pallets
+- Balanced mission capability
+- Flexible configuration options
+
+**25% Passenger / 75% Cargo**
+- 32 passengers + 5-6 pallets
+- Equipment-heavy missions
+- Specialist team deployment
+
+### Performance Implications
+**Takeoff Performance**
+- Field length requirements increase with weight
+- Temperature and altitude effects
+- Obstacle clearance considerations
+- Abort procedures for overweight conditions
+
+**Landing Performance**
+- Approach speed increases with weight
+- Runway condition factors (wet, soft, short)
+- Reverse thrust effectiveness
+- Ground roll distance calculations
+
+## Environmental Considerations
+
+### Climate Operations
+**Hot Weather Operations**
+- Reduced payload capacity in high temperatures
+- Engine performance degradation
+- Cooling system limitations
+- Crew endurance factors
+
+**Cold Weather Operations**
+- Aircraft heating requirements
+- Cargo environmental protection
+- Ground equipment limitations
+- Ice and snow considerations
+
+### Altitude Operations
+**High Altitude Factors**
+- Reduced engine performance
+- Longer takeoff and landing distances
+- Cargo compartment pressurization
+- Oxygen requirements for personnel
+
+**Low Altitude Factors**
+- Increased fuel consumption
+- Turbulence effects on cargo
+- Navigation challenges
+- Terrain clearance requirements`,
+    videoContent: `# Advanced Load Planning Video Series
+
+## Module 1: Mission Planning and Configuration (25 minutes)
+- Mission analysis and requirements
+- Configuration selection criteria
+- Load planning software utilization
+- Performance calculations and trade-offs
+
+## Module 2: Vehicle and Heavy Equipment Loading (20 minutes)
+- Vehicle loading procedures and safety
+- Equipment restraint systems
+- Special handling requirements
+- Multi-vehicle configurations
+
+## Module 3: Mixed Load Operations (15 minutes)
+- Passenger and cargo combinations
+- Safety considerations and procedures
+- Emergency evacuation planning
+- Crew coordination requirements`,
+    interactiveContent: `# Advanced Load Planning Simulations
+
+## Mission Planning Simulator
+Plan complex C-130 mission:
+- Destination: Remote airfield, 2,400 nm
+- Cargo: 2 vehicles, 4 pallets of supplies
+- Personnel: 24 specialists with equipment
+- Constraints: Short runway, high altitude, hot weather
+
+Requirements:
+- Calculate fuel requirements
+- Optimize cargo placement
+- Verify performance limitations
+- Plan alternate configurations
+
+## Vehicle Loading Challenge
+Load multiple vehicles safely:
+- 1 LAV-25 (14 tons)
+- 2 HMMWVs (6 tons each)
+- Support equipment and supplies
+- Calculate restraint requirements
+- Verify CG and floor loading
+- Plan loading sequence
+
+## Mixed Configuration Optimizer
+Balance competing requirements:
+- 64 medical personnel
+- 8 litter patients
+- Medical equipment (4 pallets)
+- Life support systems
+- Emergency medical supplies
+
+Optimize for:
+- Patient care accessibility
+- Equipment functionality
+- Emergency procedures
+- Weight and balance
+
+## Performance Trade-off Analyzer
+Interactive tool showing effects of:
+- Weight changes on range
+- CG position on handling
+- Altitude on performance
+- Temperature on capabilities
+- Fuel load on payload`,
+    quizContent: `# Intermediate Load Planning Assessment
+
+## Question 1: CG Envelope
+Optimal CG range for C-130 operations:
+A) 25-30% MAC
+B) 27-33% MAC
+C) 30-35% MAC
+D) 32-37% MAC
+**Answer: B) 27-33% MAC**
+
+## Question 2: Vehicle Loading
+Maximum weight for LAV-25 vehicle:
+A) 12 tons
+B) 14 tons
+C) 16 tons
+D) 18 tons
+**Answer: B) 14 tons**
+
+## Question 3: Mixed Configuration
+Maximum passengers with 4 standard pallets:
+A) 48 passengers
+B) 56 passengers
+C) 64 passengers
+D) 72 passengers
+**Answer: C) 64 passengers**
+
+## Question 4: Fuel Capacity
+Total fuel capacity with external tanks:
+A) 7,200 gallons
+B) 8,400 gallons
+C) 9,680 gallons
+D) 12,080 gallons
+**Answer: D) 12,080 gallons (4×2,300 + 2×1,400)**
+
+## Question 5: Performance Factor
+Primary factor affecting C-130 takeoff distance:
+A) Aircraft weight only
+B) Temperature only
+C) Altitude only
+D) Weight, temperature, and altitude combined
+**Answer: D) Weight, temperature, and altitude combined**`
   },
   {
     id: "c130-advanced",
@@ -989,7 +1360,343 @@ D) Extreme threat requiring immediate evacuation
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-130 Specialized Operations Manual
+
+## Airdrop Operations
+
+### Personnel Airdrop Configurations
+**Static Line Jumpers**
+- Maximum 64 personnel with equipment
+- Door configuration: Both paratroop doors operational
+- Jump altitude: 800-1,250 feet AGL
+- Airspeed: 130-140 KIAS during drop
+
+**HALO/HAHO Operations**
+- Maximum 32 personnel with oxygen equipment
+- Altitude range: 15,000-25,000 feet MSL
+- Extended flight time considerations
+- Specialized breathing apparatus required
+
+### Equipment Airdrop Systems
+**Container Delivery System (CDS)**
+- Maximum 12 bundles per aircraft
+- Individual bundle weight: 2,200 lbs maximum
+- Velocity: 125-140 KIAS
+- Altitude: 600-1,000 feet AGL
+- Sequential release timing: 1-second intervals
+
+**Low Velocity Airdrop (LVAD)**
+- Platform weight: up to 20,000 lbs (C-130 limitation)
+- Single platform deployment only
+- Velocity: 130-140 KIAS
+- Altitude: 800-1,200 feet AGL
+- Parachute system: G-11/G-12 cargo chutes
+
+**Heavy Equipment Drop**
+- Maximum item weight: 35,000 lbs
+- Special rigging required
+- Engineering analysis mandatory
+- Multiple parachute systems
+- Specialized extraction procedures
+
+## Dangerous Goods Handling
+
+### Classification and Restrictions
+**Explosive Materials (Class 1)**
+- Maximum net explosive weight: 3,000 lbs
+- Segregation requirements strictly enforced
+- Special documentation required
+- Crew protective equipment mandatory
+
+**Hazardous Chemicals (Classes 2-9)**
+- Limited quantities based on compatibility
+- Special ventilation procedures
+- Emergency response equipment required
+- Crew training certification needed
+
+### Loading Procedures
+**Segregation Requirements**
+- Class 1 explosives: Minimum 12 feet from personnel
+- Flammable materials: Isolated from ignition sources
+- Toxic substances: Special containment required
+- Radioactive materials: Dosimeter monitoring
+
+**Emergency Procedures**
+- Spill containment protocols
+- Fire suppression systems
+- Evacuation procedures
+- Crew protection measures
+
+## Combat Offload Operations
+
+### Tactical Offload Procedures
+**Engine Running Offload (ERO)**
+- Maximum ground time: 3 minutes
+- Continuous engine operation
+- Rapid cargo deployment
+- Immediate departure capability
+
+**Combat Offload**
+- Hostile environment procedures
+- Minimal ground exposure time
+- Priority cargo identification
+- Emergency departure protocols
+
+### Equipment and Techniques
+**Cargo Handling Equipment**
+- 25K loader operation in tactical environment
+- Manual handling procedures
+- Expedient unloading techniques
+- Equipment recovery and security
+
+**Communication Procedures**
+- Ground-to-air coordination
+- Visual signal protocols
+- Radio communication backup
+- Emergency abort signals
+
+## Special Cargo Categories
+
+### Live Animal Transport
+**Livestock Handling**
+- Ventilation requirements
+- Temperature control
+- Feeding and watering systems
+- Waste management procedures
+
+**Military Working Dogs**
+- Individual crate requirements
+- Sedation protocols
+- Handler accompaniment
+- Emergency veterinary procedures
+
+### Oversized Cargo
+**Dimensional Limitations**
+- Length: 40 feet maximum
+- Width: 10.3 feet maximum
+- Height: 9 feet maximum
+- Weight: 42,000 lbs total
+
+**Special Handling**
+- Custom restraint systems
+- Engineering analysis required
+- Load distribution calculations
+- Center of gravity verification
+
+### Medical Cargo
+**Blood and Organ Transport**
+- Temperature control requirements
+- Chain of custody procedures
+- Time-critical handling
+- Emergency medical protocols
+
+**Medical Equipment**
+- Fragile item protection
+- Calibration considerations
+- Power requirements
+- Contamination prevention
+
+## Environmental Operations
+
+### Arctic Operations
+**Cold Weather Procedures**
+- Aircraft heating requirements
+- Cargo protection from freezing
+- Ground equipment limitations
+- Personnel endurance factors
+
+**Equipment Considerations**
+- Cold weather lubricants
+- Battery performance degradation
+- Metal brittleness factors
+- Ice formation prevention
+
+### Desert Operations
+**Hot Weather Limitations**
+- Reduced payload in high temperatures
+- Increased takeoff distances
+- Cargo heat protection
+- Crew heat stress management
+
+**Sand and Dust Protection**
+- Engine intake protection
+- Cargo sealing procedures
+- Equipment maintenance intervals
+- Visibility considerations
+
+### Humanitarian Operations
+**Disaster Relief Configuration**
+- Rapid distribution systems
+- Bulk commodity handling
+- Multi-drop capabilities
+- Coordination with relief agencies
+
+**Medical Evacuation**
+- Litter patient configuration: 36 patients
+- Medical equipment integration
+- Life support systems
+- Medical team accommodation
+
+## Advanced Restraint Systems
+
+### Chain Systems
+**Grade 70 Transport Chain**
+- Working load limit: 11,300 lbs
+- Standard for heavy cargo
+- Proper tensioning techniques
+- Inspection requirements
+
+**Aircraft Cable**
+- Working load limit: 20,000 lbs
+- Special applications only
+- Engineering approval required
+- Installation procedures
+
+### Specialized Restraints
+**Net Systems**
+- Cargo nets: 5,000 lbs distributed
+- Barrier nets: 7,500 lbs point load
+- Installation and inspection
+- Proper application techniques
+
+**Custom Restraints**
+- Designed for specific cargo
+- Engineering analysis required
+- Load testing procedures
+- Documentation requirements`,
+    videoContent: `# Specialized Operations Video Training
+
+## Module 1: Airdrop Operations (35 minutes)
+- Personnel and equipment airdrop procedures
+- Rigging and safety checks
+- Drop zone coordination
+- Emergency procedures during drops
+- Real-world airdrop examples
+
+## Module 2: Dangerous Goods Operations (30 minutes)
+- Classification and handling procedures
+- Safety protocols and equipment
+- Documentation requirements
+- Emergency response procedures
+- Case studies and lessons learned
+
+## Module 3: Combat and Tactical Operations (25 minutes)
+- Combat offload procedures
+- Tactical environment considerations
+- Communication protocols
+- Risk assessment and mitigation
+- Mission adaptability training`,
+    interactiveContent: `# Specialized Operations Training Center
+
+## Airdrop Mission Planner
+Complex airdrop scenario:
+- 48 paratroopers with equipment
+- 8 CDS bundles of supplies
+- 1 vehicle (HMMWV) on platform
+- Weather: 15-knot crosswind
+- Terrain: Mountainous drop zone
+
+Calculate:
+- Drop zone requirements
+- Release points and timing
+- Weight and balance for each phase
+- Emergency abort procedures
+- Backup landing zones
+
+## Dangerous Goods Trainer
+Interactive hazmat scenario:
+- 12 different hazardous materials
+- Proper classification and segregation
+- Documentation requirements
+- Emergency response planning
+- Violation consequence modeling
+
+Tasks:
+- Sort materials by compatibility
+- Calculate segregation distances
+- Complete shipping documentation
+- Plan emergency procedures
+- Assess risk factors
+
+## Combat Offload Simulator
+High-stress tactical scenario:
+- Enemy activity in area
+- 3-minute maximum ground time
+- Priority cargo selection
+- Equipment positioning
+- Crew coordination under fire
+
+Objectives:
+- Identify mission-critical cargo
+- Execute rapid offload procedures
+- Maintain situational awareness
+- Coordinate with ground forces
+- Prepare for emergency departure
+
+## Special Cargo Challenge
+Handle multiple special cargo types:
+- Live animals (military working dogs)
+- Medical supplies (blood products)
+- Oversized equipment (radar system)
+- Dangerous goods (ammunition)
+- Time-critical materials (organs)
+
+Requirements:
+- Plan loading sequence
+- Verify environmental controls
+- Calculate restraint requirements
+- Develop contingency procedures
+- Coordinate with specialists`,
+    quizContent: `# Advanced Specialized Operations Assessment
+
+## Question 1: CDS Operations
+Maximum CDS bundles per C-130:
+A) 8 bundles
+B) 10 bundles
+C) 12 bundles
+D) 16 bundles
+**Answer: C) 12 bundles**
+
+## Question 2: LVAD Limitations
+Maximum platform weight for C-130 LVAD:
+A) 15,000 lbs
+B) 20,000 lbs
+C) 25,000 lbs
+D) 30,000 lbs
+**Answer: B) 20,000 lbs**
+
+## Question 3: Explosive Materials
+Maximum net explosive weight for Class 1 dangerous goods:
+A) 2,000 lbs
+B) 3,000 lbs
+C) 4,000 lbs
+D) 5,000 lbs
+**Answer: B) 3,000 lbs**
+
+## Question 4: Combat Offload
+Maximum ground time for engine running offload:
+A) 2 minutes
+B) 3 minutes
+C) 5 minutes
+D) 10 minutes
+**Answer: B) 3 minutes**
+
+## Question 5: Medical Configuration
+Litter patient capacity for C-130:
+A) 24 patients
+B) 30 patients
+C) 36 patients
+D) 42 patients
+**Answer: C) 36 patients**
+
+## Question 6: Grade 70 Chain
+Working load limit for Grade 70 transport chain:
+A) 9,800 lbs
+B) 11,300 lbs
+C) 13,500 lbs
+D) 15,200 lbs
+**Answer: B) 11,300 lbs**`
   },
   {
     id: "c130-expert",
@@ -1006,7 +1713,381 @@ D) Extreme threat requiring immediate evacuation
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-130 Master Loadmaster Operations Manual
+
+## Advanced Mission Planning
+
+### Multi-Drop Mission Coordination
+**Sequential Drop Operations**
+- Multiple drop zones per mission
+- Cargo reconfiguration between drops
+- Timing and coordination requirements
+- Navigation and communication protocols
+
+**Mission Profile Analysis**
+- Route planning and optimization
+- Fuel consumption calculations
+- Weather impact assessment
+- Threat environment evaluation
+- Alternative route planning
+
+### Complex Load Configurations
+**Multi-Phase Loading**
+- Phase 1: Long-range cargo (secured for entire mission)
+- Phase 2: Intermediate drops (accessible for offload)
+- Phase 3: Final destination cargo (optimized position)
+- Emergency cargo (accessible throughout mission)
+
+**Load Reconfiguration Procedures**
+- In-flight cargo movement protocols
+- Safety considerations during reconfiguration
+- Crew coordination requirements
+- Weight and balance monitoring
+- Emergency procedures during reconfiguration
+
+## Tactical Operations Mastery
+
+### Special Operations Support
+**SOCOM Mission Requirements**
+- Covert insertion/extraction operations
+- Specialized equipment and vehicles
+- Time-critical delivery windows
+- Stealth and noise considerations
+- Rapid departure capabilities
+
+**Joint Operations Coordination**
+- Multi-service mission integration
+- Communication protocols
+- Command and control procedures
+- Coordination with ground forces
+- Air-to-air coordination requirements
+
+### Combat Environment Operations
+**Threat Assessment and Mitigation**
+- Surface-to-air missile (SAM) threats
+- Small arms fire exposure
+- Electronic warfare considerations
+- Countermeasures deployment
+- Escape and evasion procedures
+
+**Tactical Approach Procedures**
+- Low-level navigation techniques
+- Terrain masking utilization
+- Formation flying considerations
+- Communication discipline
+- Emergency abort procedures
+
+## Advanced Airdrop Operations
+
+### Precision Airdrop Systems
+**Joint Precision Airdrop System (JPADS)**
+- GPS-guided parachute systems
+- Accuracy requirements: 50-meter CEP
+- Weather compensation algorithms
+- Real-time tracking capabilities
+- Recovery procedures
+
+**Containerized Delivery System (CDS) Advanced**
+- Sequential release programming
+- Wind compensation calculations
+- Drop pattern optimization
+- Impact zone safety procedures
+- Equipment recovery operations
+
+### Heavy Equipment Airdrop
+**Vehicle Airdrop Procedures**
+- HMMWV airdrop configuration
+- All-terrain vehicle (ATV) multi-drop
+- Engineering equipment deployment
+- Rigging inspection requirements
+- Ground recovery coordination
+
+**Platform Extraction Systems**
+- Low Altitude Parachute Extraction System (LAPES)
+- Ground Proximity Extraction System (GPES)
+- Container Delivery System variations
+- Safety procedures and limitations
+- Equipment maintenance requirements
+
+## Emergency Operations Management
+
+### In-Flight Emergency Procedures
+**Cargo Fire Emergency**
+1. Immediate crew actions and communication
+2. Fire suppression system activation
+3. Cabin pressurization considerations
+4. Emergency descent procedures
+5. Diversion planning and execution
+
+**Cargo Shift Emergency**
+1. Aircraft control and stabilization
+2. Cargo assessment and securing
+3. Weight and balance recalculation
+4. Performance limitation assessment
+5. Emergency landing preparation
+
+**Decompression Emergency**
+1. Immediate oxygen procedures
+2. Emergency descent execution
+3. Cargo securing and assessment
+4. Passenger safety management
+5. Diversion and landing procedures
+
+### Ground Emergency Procedures
+**Hostile Fire During Operations**
+1. Immediate defensive procedures
+2. Critical cargo prioritization
+3. Expedited loading/offloading
+4. Crew protection protocols
+5. Emergency departure procedures
+
+**Equipment Failure Management**
+1. Backup procedure implementation
+2. Mission modification planning
+3. Alternative equipment utilization
+4. Maintenance coordination
+5. Mission continuation assessment
+
+## Leadership and Training
+
+### Crew Resource Management
+**Team Leadership Principles**
+- Situational awareness maintenance
+- Decision-making under pressure
+- Communication effectiveness
+- Workload distribution
+- Error prevention and management
+
+**Training and Mentorship**
+- Junior loadmaster development
+- Standard operating procedure (SOP) enforcement
+- Safety culture promotion
+- Continuous improvement processes
+- Knowledge transfer protocols
+
+### Quality Assurance
+**Mission Planning Review**
+- Load plan verification procedures
+- Safety assessment protocols
+- Regulatory compliance checking
+- Risk mitigation planning
+- Contingency procedure development
+
+**Post-Mission Analysis**
+- Performance evaluation metrics
+- Lesson learned identification
+- Procedure improvement recommendations
+- Training requirement updates
+- Safety incident reporting
+
+## Advanced Systems Integration
+
+### Load Planning Software Mastery
+**Advanced CAPS Utilization**
+- Complex scenario modeling
+- Multi-phase mission planning
+- Performance optimization algorithms
+- Risk assessment integration
+- Real-time modification capabilities
+
+**Manual Calculation Proficiency**
+- Backup calculation procedures
+- Verification methodologies
+- Error checking protocols
+- Quick estimation techniques
+- Field expedient methods
+
+### Communication Systems
+**Advanced Radio Procedures**
+- Multi-frequency coordination
+- Secure communication protocols
+- International aviation standards
+- Emergency communication procedures
+- Backup communication methods
+
+**Data Link Integration**
+- Real-time mission updates
+- Weather information integration
+- Threat information sharing
+- Navigation data coordination
+- Mission modification protocols
+
+## Specialized Mission Types
+
+### Humanitarian Operations
+**Disaster Relief Coordination**
+- International relief agency coordination
+- Multi-national operation procedures
+- Cultural sensitivity considerations
+- Language barrier management
+- Local authority coordination
+
+**Medical Evacuation Leadership**
+- Medical team coordination
+- Patient care integration
+- Equipment compatibility verification
+- Flight medical procedures
+- Emergency medical protocols
+
+### Special Mission Requirements
+**VIP Transport Operations**
+- Security protocol compliance
+- Special handling requirements
+- Communication restrictions
+- Route security considerations
+- Emergency evacuation procedures
+
+**Scientific Mission Support**
+- Research equipment handling
+- Environmental control requirements
+- Data protection protocols
+- Scientific team coordination
+- Specialized cargo considerations`,
+    videoContent: `# Master Loadmaster Video Training Series
+
+## Module 1: Advanced Mission Planning (45 minutes)
+- Multi-drop mission coordination
+- Complex load configuration planning
+- Risk assessment and mitigation
+- Contingency planning procedures
+- Leadership decision-making scenarios
+
+## Module 2: Tactical Operations Leadership (40 minutes)
+- Special operations support procedures
+- Combat environment decision-making
+- Crew resource management
+- Emergency leadership protocols
+- Real-world case study analysis
+
+## Module 3: Advanced Airdrop Operations (35 minutes)
+- Precision airdrop system operation
+- Heavy equipment drop procedures
+- Weather compensation techniques
+- Safety management protocols
+- Recovery operation coordination`,
+    interactiveContent: `# Master Loadmaster Training Simulation Suite
+
+## Multi-Drop Mission Commander
+Lead complex 8-hour mission:
+- 4 different drop zones
+- Mixed cargo and personnel
+- Weather complications
+- Equipment failures
+- Route modifications
+- Fuel management decisions
+
+Responsibilities:
+- Mission planning and execution
+- Crew coordination and leadership
+- Real-time decision making
+- Emergency response management
+- Post-mission analysis
+
+## Combat Operations Decision Trainer
+High-stress scenario simulation:
+- Hostile environment insertion
+- Equipment malfunction during approach
+- Injured crew member
+- Mission priority changes
+- Limited communication
+- Time-critical decisions
+
+Leadership challenges:
+- Crew safety vs. mission success
+- Resource allocation decisions
+- Risk assessment under pressure
+- Communication management
+- Contingency plan execution
+
+## Emergency Response Leadership
+Multiple simultaneous emergencies:
+- Cargo fire during flight
+- Partial decompression
+- Engine failure indication
+- Hostile fire on ground
+- Injured passengers
+- Communication system failure
+
+Test abilities:
+- Priority management
+- Crew coordination
+- Passenger safety
+- Mission continuation decisions
+- Emergency procedure execution
+
+## Advanced Airdrop Coordinator
+Plan and execute precision airdrop:
+- Multiple aircraft coordination
+- Sequential drop timing
+- Weather delay management
+- Ground force coordination
+- Equipment tracking
+- Recovery operations
+
+Master coordination of:
+- Multi-platform operations
+- Real-time communication
+- Weather impact assessment
+- Safety protocol enforcement
+- Mission success evaluation`,
+    quizContent: `# Master Loadmaster Expert Assessment
+
+## Question 1: JPADS Accuracy
+Required accuracy for Joint Precision Airdrop System:
+A) 25-meter CEP
+B) 50-meter CEP
+C) 75-meter CEP
+D) 100-meter CEP
+**Answer: B) 50-meter CEP**
+
+## Question 2: Multi-Drop Planning
+Primary consideration for multi-drop mission cargo arrangement:
+A) Weight distribution only
+B) Accessibility for each drop zone
+C) Fuel consumption optimization
+D) Crew convenience
+**Answer: B) Accessibility for each drop zone**
+
+## Question 3: Emergency Priorities
+During cargo fire emergency, first priority after crew actions:
+A) Cargo preservation
+B) Mission continuation
+C) Aircraft and passenger safety
+D) Equipment protection
+**Answer: C) Aircraft and passenger safety**
+
+## Question 4: Combat Operations
+Maximum acceptable risk level for hostile environment operations:
+A) Minimal risk acceptable
+B) Moderate risk with mitigation
+C) High risk if mission critical
+D) Risk level determined by mission commander
+**Answer: D) Risk level determined by mission commander**
+
+## Question 5: Crew Resource Management
+Most critical element of effective crew leadership:
+A) Technical knowledge
+B) Communication skills
+C) Situational awareness
+D) All elements equally important
+**Answer: D) All elements equally important**
+
+## Question 6: LAPES Operations
+Low Altitude Parachute Extraction System altitude:
+A) 5-10 feet AGL
+B) 10-15 feet AGL
+C) 15-20 feet AGL
+D) 20-25 feet AGL
+**Answer: A) 5-10 feet AGL**
+
+## Question 7: Mission Modification
+Authority required for major mission modification during flight:
+A) Aircraft commander only
+B) Mission commander approval
+C) Ground control authorization
+D) Crew consensus decision
+**Answer: B) Mission commander approval**`
   },
   
   // KC30A Modules
