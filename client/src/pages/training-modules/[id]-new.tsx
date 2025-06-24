@@ -192,7 +192,7 @@ export default function TrainingModuleDetail() {
 
   if (!module) {
     return (
-      <div className="min-h-screen bg-gray-900" style={{ backgroundColor: '#1f2937' }}>
+      <div className="page-container" style={{ backgroundColor: '#1f2937', minHeight: '100vh', background: '#1f2937' }}>
         <div className="container mx-auto px-4 py-6 max-w-6xl">
           <div className="text-center py-20">
             <h1 className="text-2xl font-bold text-white mb-4">Module Not Found</h1>
@@ -208,8 +208,8 @@ export default function TrainingModuleDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900" style={{ backgroundColor: '#1f2937' }}>
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="page-container" style={{ backgroundColor: '#1f2937', minHeight: '100vh', background: '#1f2937' }}>
+      <div className="container mx-auto px-4 py-6 max-w-6xl" style={{ backgroundColor: '#1f2937' }}>
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button 

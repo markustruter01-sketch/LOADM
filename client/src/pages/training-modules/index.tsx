@@ -322,7 +322,7 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
     : modules.filter(module => module.aircraft === activeAircraft);
 
   return (
-    <>
+    <div className="page-container" style={{ backgroundColor: '#1f2937', minHeight: '100vh' }}>
       {!hideHeader && (
         <Helmet>
           <title>Aircraft-Specific Training Modules | LOADMworkflow</title>
@@ -333,7 +333,7 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
         </Helmet>
       )}
 
-      <div className={hideHeader ? "" : "container mx-auto px-4 py-8 mb-16"}>
+      <div className={hideHeader ? "" : "container mx-auto px-4 py-8 mb-16"} style={{ backgroundColor: '#1f2937' }}>
         <div className={hideHeader ? "" : "max-w-6xl mx-auto"}>
 
           
@@ -465,6 +465,6 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

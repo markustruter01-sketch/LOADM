@@ -158,3 +158,47 @@ body, html {
   background-color: #1f2937 !important;
   background: #1f2937 !important;
 }
+
+/* Force all page containers to have grey background */
+.container {
+  background-color: #1f2937 !important;
+}
+
+/* Override any component backgrounds */
+div[class*="min-h-screen"] {
+  background-color: #1f2937 !important;
+  background-image: none !important;
+}
+
+/* Force all pages to use grey background */
+body, html, #root, [data-reactroot] {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+  background-image: none !important;
+}
+
+/* Override all background classes */
+*[class*="bg-"] {
+  background-image: none !important;
+}
+
+/* Specific override for page containers */
+.page-container {
+  background: #1f2937 !important;
+  background-color: #1f2937 !important;
+}
+
+/* Nuclear option - force all elements to use grey background */
+* {
+  background-color: #1f2937 !important;
+  background: #1f2937 !important;
+}
+
+/* Allow specific component backgrounds but override gradients */
+.bg-gray-800, .bg-gray-900, .border-gray-800, .border-gray-700 {
+  background-color: #374151 !important;
+}
+
+.bg-orange-500 {
+  background-color: #f97316 !important;
+}
