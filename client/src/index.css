@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 11% 12%;
+  --background: 0 0% 12%;
   --foreground: 0 0% 98%;
   --muted: 0 0% 18%;
   --muted-foreground: 0 0% 88%;
@@ -40,7 +40,7 @@
 }
 
 .dark {
-  --background: 210 11% 12%;
+  --background: 0 0% 12%;
   --foreground: 0 0% 98%;
   --muted: 0 0% 18%;
   --muted-foreground: 0 0% 88%;
@@ -87,6 +87,21 @@
     @apply font-sans antialiased;
     background-color: #1e1e1e !important;
     color: #ffffff !important;
+  }
+  
+  /* ABSOLUTE BACKGROUND OVERRIDE - NEVER ALLOW BLUE BACKGROUNDS */
+  html, body, #root, [data-reactroot], .min-h-screen {
+    background-color: #1e1e1e !important;
+    background-image: none !important;
+    background: #1e1e1e !important;
+  }
+  
+  /* Override any bg-gradient or blue backgrounds */
+  .bg-gradient-to-br, .bg-gradient-to-r, .bg-gradient-to-l, .bg-gradient-to-t, .bg-gradient-to-b,
+  [class*="from-blue"], [class*="to-blue"], [class*="via-blue"],
+  [class*="from-slate"], [class*="to-slate"], [class*="via-slate"] {
+    background: #1e1e1e !important;
+    background-image: none !important;
   }
   
   h1, h2, h3, h4, h5, h6 {
