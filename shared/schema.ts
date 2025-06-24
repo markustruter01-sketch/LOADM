@@ -75,7 +75,7 @@ export const licenseAuditLog = pgTable("license_audit_log", {
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
+  lastLogin: true,
 });
 
 export const insertLicenseSchema = createInsertSchema(licenses).omit({

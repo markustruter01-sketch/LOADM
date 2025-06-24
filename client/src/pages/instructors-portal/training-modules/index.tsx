@@ -990,7 +990,7 @@ export default function TrainingModulesManagement() {
                 <CardTitle className="text-sm font-medium">Active Modules</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{filteredModules.filter(m => m.isActive).length}</div>
+                <div className="text-2xl font-bold">{filteredModules.filter((m: any) => m.isActive).length}</div>
                 <p className="text-xs text-muted-foreground">Currently available</p>
               </CardContent>
             </Card>
@@ -1000,7 +1000,7 @@ export default function TrainingModulesManagement() {
                 <CardTitle className="text-sm font-medium">Difficulty Levels</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{new Set(filteredModules.map(m => m.difficulty)).size}</div>
+                <div className="text-2xl font-bold">{new Set(filteredModules.map((m: any) => m.difficulty)).size}</div>
                 <p className="text-xs text-muted-foreground">Available levels</p>
               </CardContent>
             </Card>
@@ -1018,14 +1018,14 @@ export default function TrainingModulesManagement() {
 
           {/* Module Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredModules.map((module) => (
+            {filteredModules.map((module: any) => (
               <Card key={module.id} className="border-gray-800 bg-card hover:bg-card/90 transition-colors">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between mb-2">
-                    <Badge variant="outline" className={`${difficultyColors[module.difficulty]} border`}>
+                    <Badge variant="outline" className={`${(difficultyColors as any)[module.difficulty]} border`}>
                       {module.difficulty.charAt(0).toUpperCase() + module.difficulty.slice(1)}
                       {' '}
-                      {[...Array(difficultyStars[module.difficulty])].map((_, i) => (
+                      {[...Array((difficultyStars as any)[module.difficulty])].map((_, i) => (
                         <Star key={i} className="h-3 w-3 inline ml-0.5 fill-current" />
                       ))}
                     </Badge>
@@ -1046,7 +1046,7 @@ export default function TrainingModulesManagement() {
                 <CardContent className="pb-2">
                   <h4 className="text-sm font-medium mb-1.5">Topics Covered:</h4>
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {module.topics.slice(0, 3).map((topic, index) => (
+                    {module.topics.slice(0, 3).map((topic: any, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs bg-gray-800/30 text-gray-400">
                         {topic}
                       </Badge>
