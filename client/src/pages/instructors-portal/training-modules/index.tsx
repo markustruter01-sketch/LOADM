@@ -93,7 +93,132 @@ const initialTrainingModules: TrainingModule[] = [
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-17 Globemaster III - Aircraft Overview
+
+## Aircraft Specifications
+- **Length**: 174 feet (53 meters)
+- **Wingspan**: 169.8 feet (51.75 meters)  
+- **Height**: 55.1 feet (16.8 meters)
+- **Maximum Takeoff Weight**: 585,000 lbs (265,350 kg)
+- **Maximum Payload**: 170,900 lbs (77,519 kg)
+- **Cargo Volume**: 18,216 cubic feet (515.8 cubic meters)
+
+## Cargo Compartment Dimensions
+- **Length**: 88 feet (26.82 meters)
+- **Width**: 18 feet (5.49 meters)
+- **Height**: 12.4 feet (3.78 meters)
+- **Usable Floor Area**: 1,584 square feet (147.2 square meters)
+
+## Standard Pallet Positions
+The C-17 can accommodate:
+- **18 Standard 463L Pallets** (88" x 108")
+- **36 Standard Pallets** with rolling stock removed
+- **102 Passengers** in airline seating configuration
+- **188 Combat Troops** on sidewall seats
+
+## Weight and Balance Fundamentals
+- **Center of Gravity Range**: Station 1036 to 1046 (depending on configuration)
+- **Maximum Floor Loading**: 250 PSF (pounds per square foot)
+- **Rolling Load Limit**: 10,500 lbs per running foot
+
+## Safety Considerations
+- Always verify cargo restraint before flight
+- Maintain proper load distribution
+- Follow 25% safety margin for CG calculations
+- Ensure emergency egress routes remain clear
+
+## Basic Loading Principles
+1. Load heaviest items first and center them
+2. Distribute weight evenly across the cargo floor
+3. Secure all cargo with appropriate restraint systems
+4. Verify weight and balance calculations before flight`,
+    videoContent: `# Video Training Modules
+
+## Module 1: C-17 Walk-Around Inspection (15 minutes)
+- External aircraft familiarization
+- Cargo door operations
+- Safety equipment locations
+
+## Module 2: Cargo Compartment Layout (20 minutes)  
+- Interior dimensions and features
+- Pallet positions and tie-down points
+- Loading system components
+
+## Module 3: Basic Loading Procedures (25 minutes)
+- Step-by-step loading process
+- Equipment operation
+- Safety protocols and checks`,
+    interactiveContent: `# Interactive Training Exercises
+
+## Exercise 1: Virtual Cargo Bay Tour
+Navigate through a 3D model of the C-17 cargo bay and identify:
+- Pallet positions (18 standard locations)
+- Tie-down points and anchor locations
+- Emergency equipment locations
+- Loading system controls
+
+## Exercise 2: Basic Weight Calculation
+Practice calculating total aircraft weight using:
+- Empty aircraft weight: 282,500 lbs
+- Fuel load: Variable (up to 180,000 lbs)
+- Cargo weight: Student input
+- Passenger/crew weight: Variable
+
+## Exercise 3: Pallet Positioning Simulator
+Drag and drop virtual pallets into correct positions while maintaining:
+- Proper weight distribution
+- CG within limits
+- Floor loading restrictions
+- Emergency egress requirements
+
+## Exercise 4: Safety Equipment Identification
+Interactive quiz identifying locations of:
+- Fire extinguishers
+- Emergency exits  
+- First aid equipment
+- Communication systems`,
+    quizContent: `# C-17 Basics Knowledge Assessment
+
+## Question 1: Aircraft Specifications
+What is the maximum payload capacity of the C-17 Globemaster III?
+A) 150,000 lbs
+B) 170,900 lbs
+C) 185,000 lbs  
+D) 200,000 lbs
+**Answer: B) 170,900 lbs**
+
+## Question 2: Cargo Bay Dimensions
+What is the usable length of the C-17 cargo compartment?
+A) 75 feet
+B) 82 feet
+C) 88 feet
+D) 95 feet
+**Answer: C) 88 feet**
+
+## Question 3: Standard Pallet Configuration
+How many standard 463L pallets can the C-17 accommodate?
+A) 16 pallets
+B) 18 pallets  
+C) 20 pallets
+D) 24 pallets
+**Answer: B) 18 pallets**
+
+## Question 4: Weight Distribution
+What is the maximum floor loading limit for the C-17?
+A) 200 PSF
+B) 225 PSF
+C) 250 PSF
+D) 275 PSF
+**Answer: C) 250 PSF**
+
+## Question 5: Safety Procedures
+What is the required safety margin for CG calculations?
+A) 15%
+B) 20%
+C) 25%
+D) 30%
+**Answer: C) 25%**`
   },
   {
     id: "c17-intermediate",
@@ -110,7 +235,161 @@ const initialTrainingModules: TrainingModule[] = [
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-17 Advanced Weight & Balance Operations
+
+## Center of Gravity Calculations
+The C-17's CG must remain within specific limits for safe flight:
+
+### CG Limits by Configuration
+- **Cargo Only**: 25.0% to 35.0% MAC (Mean Aerodynamic Chord)
+- **Mixed Load**: 25.0% to 33.0% MAC  
+- **Passenger Config**: 27.0% to 35.0% MAC
+- **Combat Load**: 25.0% to 31.0% MAC
+
+### Weight Stations
+- **Nose Gear**: Station 582
+- **Main Gear**: Station 1373
+- **Cargo Bay Center**: Station 1041
+- **Reference Datum**: Nose of aircraft (Station 0)
+
+## Load Planning Software
+### CAPS (Computer Aided Pallet System)
+- Real-time weight and balance calculations
+- Automated load planning optimization
+- Restraint pattern recommendations
+- Performance prediction capabilities
+
+### Manual Calculation Method
+**Formula**: CG = (Σ(Weight × Arm)) / Total Weight
+
+**Example Calculation:**
+- Empty Aircraft: 282,500 lbs @ Station 1041
+- Fuel: 120,000 lbs @ Station 1125  
+- Cargo: 80,000 lbs @ Station 1000
+- Total: 482,500 lbs
+
+CG = ((282,500 × 1041) + (120,000 × 1125) + (80,000 × 1000)) / 482,500
+CG = (294,082,500 + 135,000,000 + 80,000,000) / 482,500 = 1054.4
+
+## Mixed Cargo Considerations
+### Vehicle Loading
+- **Wheeled vehicles**: Maximum 40,000 lbs each
+- **Tracked vehicles**: Special handling required
+- **Multiple vehicles**: Maintain 5-foot separation
+
+### Bulk Cargo Guidelines  
+- **Maximum single item**: 45,000 lbs
+- **Concentrated loads**: Distribute over multiple pallets
+- **Height restrictions**: 9 feet maximum with standard pallets
+
+## Performance Impact
+Weight and balance affects:
+- **Takeoff distance**: +10% per 1% aft CG shift
+- **Landing distance**: +5% per 1% aft CG shift  
+- **Fuel consumption**: +3% per 10,000 lbs over optimal
+- **Climb performance**: Reduced with aft CG
+
+## Critical Loading Scenarios
+1. **Forward CG Issues**: Nose-heavy condition, difficult rotation
+2. **Aft CG Issues**: Tail-heavy condition, pitch instability
+3. **Overweight**: Reduced performance, structural stress
+4. **Improper distribution**: Uneven floor loading, structural damage`,
+    videoContent: `# Advanced Weight & Balance Video Training
+
+## Module 1: CAPS Software Operation (25 minutes)
+- System navigation and input procedures
+- Load planning optimization features
+- Generating and interpreting reports
+- Troubleshooting common issues
+
+## Module 2: Complex Load Scenarios (20 minutes)
+- Mixed cargo configurations
+- Vehicle and equipment loading
+- Dangerous goods integration
+- Emergency load modifications
+
+## Module 3: Performance Calculations (15 minutes)  
+- Takeoff and landing distance calculations
+- Fuel planning considerations
+- Altitude and temperature effects
+- Mission planning integration`,
+    interactiveContent: `# Advanced Interactive Simulations
+
+## Simulation 1: Multi-Cargo Load Planner
+Plan a complex mission with:
+- 6 vehicles (various weights and dimensions)
+- 8 standard cargo pallets  
+- 45 passengers with baggage
+- Fuel for 2,500 nm mission
+
+Calculate optimal placement for:
+- CG within limits
+- Balanced floor loading
+- Emergency egress compliance
+- Weight distribution efficiency
+
+## Simulation 2: CG Envelope Explorer
+Interactive graph showing:
+- CG limits for different configurations
+- Real-time CG calculation as cargo is moved
+- Visual representation of MAC percentage
+- Warning indicators for limit violations
+
+## Simulation 3: Mission Modification Trainer
+Start with base load plan, then accommodate:
+- Last-minute cargo additions
+- Passenger count changes
+- Fuel load adjustments
+- Equipment substitutions
+
+## Simulation 4: Performance Impact Calculator
+Adjust weight and CG to observe effects on:
+- Takeoff and landing distances
+- Climb performance
+- Fuel consumption
+- Maximum altitude capability`,
+    quizContent: `# Intermediate Weight & Balance Assessment
+
+## Question 1: CG Calculation
+An aircraft weighs 450,000 lbs with CG at station 1050. Adding 25,000 lbs at station 900 moves the CG to:
+A) Station 1041.7
+B) Station 1042.8  
+C) Station 1045.3
+D) Station 1048.2
+**Answer: A) Station 1041.7**
+
+## Question 2: Mixed Load Limits  
+What is the maximum CG limit for mixed cargo configuration?
+A) 31.0% MAC
+B) 33.0% MAC
+C) 35.0% MAC
+D) 37.0% MAC
+**Answer: B) 33.0% MAC**
+
+## Question 3: Vehicle Loading
+Maximum weight for a single wheeled vehicle on C-17:
+A) 35,000 lbs
+B) 40,000 lbs
+C) 45,000 lbs
+D) 50,000 lbs  
+**Answer: B) 40,000 lbs**
+
+## Question 4: Floor Loading
+Distributing 60,000 lbs over a 12-foot section results in:
+A) 125 PSF
+B) 150 PSF
+C) 175 PSF
+D) 208 PSF
+**Answer: D) 208 PSF (60,000 ÷ (12 × 24) = 208)**
+
+## Question 5: Performance Impact
+A 1% aft CG shift increases takeoff distance by:
+A) 5%
+B) 8%
+C) 10%
+D) 12%
+**Answer: C) 10%**`
   },
   {
     id: "c17-advanced",
@@ -127,7 +406,231 @@ const initialTrainingModules: TrainingModule[] = [
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-17 Complex Cargo Operations
+
+## Oversized Cargo Handling
+
+### Dimensional Limits
+- **Length**: Up to 88 feet (full cargo bay)
+- **Width**: 18 feet maximum (wall to wall)
+- **Height**: 12.4 feet maximum
+- **Weight**: Up to 170,900 lbs total payload
+
+### Special Equipment Categories
+**Class I - Standard Oversized**
+- Single items 15,000-45,000 lbs
+- Standard restraint systems adequate
+- Normal loading procedures apply
+
+**Class II - Heavy Oversized**  
+- Single items 45,000-85,000 lbs
+- Special restraint patterns required
+- Engineering analysis needed
+
+**Class III - Maximum Oversized**
+- Single items over 85,000 lbs
+- Custom restraint solutions
+- Manufacturer coordination required
+
+### Vehicle Transport Specifications
+**Main Battle Tanks**
+- M1A2 Abrams: 68 tons, special loading procedures
+- Challenger 2: 63 tons, requires shoring
+- Leopard 2: 62 tons, standard tie-down points
+
+**Armored Vehicles**
+- Bradley Fighting Vehicle: 27 tons
+- Stryker: 19 tons  
+- LAV-25: 14 tons
+
+## Dangerous Goods Integration
+
+### Classification System
+**Class 1 - Explosives**
+- 1.1: Mass explosion hazard
+- 1.2: Projection hazard
+- 1.3: Fire hazard with minor blast
+- 1.4: No significant hazard
+- 1.5: Very insensitive with mass explosion hazard
+- 1.6: Extremely insensitive
+
+**Class 2 - Gases**
+- 2.1: Flammable gases
+- 2.2: Non-flammable, non-toxic gases
+- 2.3: Toxic gases
+
+**Classes 3-9**: Flammable liquids, solids, oxidizers, toxic substances, radioactive materials, corrosives, miscellaneous
+
+### Segregation Requirements
+- **Class 1.1 from Class 1.1**: 50 feet minimum
+- **Class 1 from passengers**: Prohibited
+- **Class 2.3 from food**: 12 feet minimum
+- **Radioactive materials**: Special isolation requirements
+
+### Loading Restrictions
+- Maximum 15,000 lbs net explosive weight
+- Segregation distances strictly enforced
+- Special placarding and documentation required
+- Emergency response procedures mandatory
+
+## Mixed Load Configurations
+
+### Passenger + Cargo Combinations
+**Standard Configuration**
+- 102 passengers + 8 pallets
+- 54 passengers + 12 pallets  
+- 18 passengers + 16 pallets
+
+**Combat Configuration**  
+- 188 troops + 6 pallets
+- 134 troops + 10 pallets
+- 80 troops + 14 pallets
+
+### Cargo Combination Strategies
+1. **Heavy Forward, Light Aft**: Optimal CG management
+2. **Bulk Distributed**: Even floor loading
+3. **Priority Access**: Mission-critical items accessible
+4. **Hazmat Isolated**: Dangerous goods properly segregated
+
+## Restraint Systems
+
+### Chain Restraints
+- **Grade 70**: 11,300 lbs working load
+- **Grade 80**: 12,800 lbs working load  
+- **Grade 100**: 15,800 lbs working load
+
+### Strap Systems
+- **CGU-1/B**: 5,000 lbs working load
+- **CGU-1/B (double)**: 10,000 lbs working load
+- **Aircraft tie-down**: 25,000 lbs ultimate
+
+### Net Systems
+- **Cargo nets**: 5,000 lbs distributed load
+- **Barrier nets**: 7,500 lbs concentrated load
+- **Aircraft restraint nets**: 10,000 lbs working load
+
+## Environmental Considerations
+
+### Temperature Control
+- Cargo bay heating: -40°F to +160°F capability
+- Refrigerated container support
+- Temperature monitoring systems
+- Environmental protection protocols
+
+### Altitude Effects
+- Pressurization to 8,000 feet equivalent
+- Oxygen requirements for live cargo
+- Pressure-sensitive equipment considerations
+- Decompression emergency procedures`,
+    videoContent: `# Complex Cargo Operations Video Series
+
+## Module 1: Oversized Equipment Loading (35 minutes)
+- Tank and heavy vehicle loading procedures
+- Special equipment and rigging techniques
+- Multi-person coordination protocols
+- Safety considerations and risk mitigation
+
+## Module 2: Dangerous Goods Operations (30 minutes)
+- Classification and segregation procedures
+- Documentation and placarding requirements
+- Emergency response protocols
+- Real-world case studies and lessons learned
+
+## Module 3: Mixed Load Integration (25 minutes)
+- Passenger and cargo combinations
+- Balancing competing requirements
+- Load optimization strategies
+- Mission flexibility considerations`,
+    interactiveContent: `# Advanced Cargo Simulation Center
+
+## Complex Mission Simulator
+Plan and load a humanitarian relief mission:
+- 8 vehicles (ambulances, trucks, generators)
+- 12 pallets of medical supplies
+- 4 pallets of food and water
+- 65 medical personnel with equipment
+- Mixed dangerous goods (medical oxygen, fuel)
+
+Requirements:
+- Maintain CG within 25-33% MAC
+- Comply with all DG segregation rules
+- Ensure rapid offload capability
+- Optimize for 3,200 nm range
+
+## Dangerous Goods Trainer
+Interactive scenario with:
+- 15 different hazmat classes represented
+- Real-time segregation distance calculator
+- Documentation requirement checklist
+- Emergency procedure decision tree
+- Violation consequence simulator
+
+## Vehicle Loading Mastermind
+Load multiple vehicle types:
+- 2 M1A2 Abrams tanks (68 tons each)
+- 1 M88 Recovery Vehicle (63 tons)
+- Support equipment and supplies
+- Calculate restraint requirements
+- Verify floor loading limits
+- Plan loading sequence
+
+## Emergency Reconfiguration Challenge
+Mid-flight scenario requiring:
+- Cargo redistribution due to CG shift
+- Medical emergency patient accommodation
+- Equipment failure workarounds
+- Priority cargo access modification
+- Real-time decision making under pressure`,
+    quizContent: `# Advanced Cargo Operations Assessment
+
+## Question 1: Oversized Cargo Classification
+A single cargo item weighing 55,000 lbs is classified as:
+A) Class I - Standard Oversized
+B) Class II - Heavy Oversized  
+C) Class III - Maximum Oversized
+D) Requires special authorization
+**Answer: B) Class II - Heavy Oversized**
+
+## Question 2: Dangerous Goods Segregation
+Minimum separation between Class 1.1 explosives and Class 1.1 explosives:
+A) 25 feet
+B) 40 feet
+C) 50 feet
+D) 100 feet
+**Answer: C) 50 feet**
+
+## Question 3: Chain Restraint Capacity
+Working load limit for Grade 80 chain:
+A) 11,300 lbs
+B) 12,800 lbs
+C) 15,800 lbs
+D) 18,000 lbs
+**Answer: B) 12,800 lbs**
+
+## Question 4: Mixed Load Configuration  
+Maximum passengers with 12 standard pallets:
+A) 48 passengers
+B) 54 passengers
+C) 62 passengers
+D) 78 passengers
+**Answer: B) 54 passengers**
+
+## Question 5: M1A2 Abrams Specifications
+Weight of M1A2 Abrams tank:
+A) 62 tons
+B) 65 tons  
+C) 68 tons
+D) 72 tons
+**Answer: C) 68 tons**
+
+## Question 6: Environmental Limits
+Cargo bay temperature control range:
+A) -20°F to +120°F
+B) -30°F to +140°F
+C) -40°F to +160°F
+D) -50°F to +180°F
+**Answer: C) -40°F to +160°F**`
   },
   {
     id: "c17-expert",
@@ -144,7 +647,296 @@ const initialTrainingModules: TrainingModule[] = [
     ],
     isActive: true,
     createdBy: "System",
-    lastModified: "2025-01-15"
+    lastModified: "2025-01-15",
+    readingContent: `# C-17 Tactical Operations Manual
+
+## Combat Loading Procedures
+
+### Rapid Deployment Standards
+**15-Minute Combat Load**
+- Pre-positioned pallets and equipment
+- Optimized load sequence planning
+- Multiple loading team coordination
+- Real-time communication protocols
+
+**30-Minute Full Load**
+- Complete mission package loading
+- Mixed cargo and personnel integration
+- Final systems checks and verification
+- Launch readiness confirmation
+
+### Threat Environment Operations
+**Level 1 - Permissive Environment**
+- Standard procedures with security awareness
+- Normal loading timelines acceptable
+- Full equipment complement available
+
+**Level 2 - Uncertain Environment**  
+- Accelerated procedures implemented
+- Essential equipment prioritized
+- Continuous security monitoring
+
+**Level 3 - Hostile Environment**
+- Minimum time on ground protocols
+- Combat loading procedures mandatory
+- Emergency departure capability maintained
+
+## Airdrop Operations
+
+### Personnel Airdrop Configurations
+**Static Line Jumpers**
+- Maximum 102 personnel (full seating)
+- Equipment bundles on 4 pallets maximum
+- Jump doors and ramp operations
+- Altitude: 800-1,250 feet AGL
+
+**HALO/HAHO Operations**
+- Maximum 64 personnel with equipment
+- Specialized oxygen systems required
+- Altitude: 15,000-35,000 feet MSL
+- Extended flight time considerations
+
+### Equipment Airdrop Systems
+**Container Delivery System (CDS)**
+- Maximum 16 bundles per aircraft
+- Individual bundle weight: 2,200 lbs maximum
+- Velocity: 130-150 KIAS
+- Altitude: 600-1,000 feet AGL
+
+**Low Velocity Airdrop (LVAD)**
+- Platform weight: up to 42,000 lbs
+- Single platform deployment
+- Velocity: 130-140 KIAS  
+- Altitude: 800-1,200 feet AGL
+
+**High Velocity Airdrop (HVAD)**
+- Multiple platform capability
+- Platform weight: up to 60,000 lbs
+- Velocity: 140-160 KIAS
+- Altitude: 1,200-2,500 feet AGL
+
+## Emergency Procedures
+
+### In-Flight Emergencies
+**Cargo Shift Emergency**
+1. Immediately secure aircraft control
+2. Assess cargo restraint integrity
+3. Reposition or jettison as required
+4. Calculate new CG and performance limits
+
+**Fire in Cargo Compartment**
+1. Don oxygen masks and protective equipment
+2. Activate cargo compartment fire suppression
+3. Isolate electrical systems as required
+4. Prepare for emergency landing
+
+**Decompression Emergency**
+1. Emergency descent to 10,000 feet
+2. Secure loose cargo and equipment
+3. Check passenger oxygen systems
+4. Assess structural damage
+
+### Ground Emergencies
+**Hostile Fire During Loading**
+1. Immediate defensive positions
+2. Protect critical personnel and equipment
+3. Continue essential loading operations
+4. Prepare for emergency departure
+
+**Equipment Failure**
+1. Assess mission criticality
+2. Implement backup procedures
+3. Modify load plan as required
+4. Coordinate with maintenance personnel
+
+## Special Mission Configurations
+
+### Medical Evacuation (MEDEVAC)
+**Patient Transport Setup**
+- Litter patient capacity: 36 patients
+- Ambulatory patient capacity: 54 patients
+- Medical equipment integration
+- Life support system requirements
+
+**Critical Care Air Transport Team (CCATT)**
+- Intensive care capability
+- Specialized medical equipment
+- Extended flight duration support
+- Multiple patient monitoring
+
+### Humanitarian Operations
+**Disaster Relief Configuration**
+- Maximum supply capacity: 18 pallets
+- Rapid offload capability
+- Mixed passenger/cargo operations
+- Flexible mission modification
+
+**Food Distribution Operations**
+- Optimized for bulk commodities
+- Rapid distribution systems
+- Multiple delivery point capability
+- Real-time inventory management
+
+## Advanced Load Planning
+
+### Mission Analysis Framework
+1. **Threat Assessment**: Environmental and tactical considerations
+2. **Cargo Priority Matrix**: Mission-critical vs. nice-to-have
+3. **Timeline Constraints**: Loading, flight, and offload windows
+4. **Resource Allocation**: Personnel, equipment, and facility requirements
+
+### Contingency Planning
+**Primary Plan**: Optimal configuration for stated mission
+**Alternate Plan**: Modified configuration for changed requirements  
+**Emergency Plan**: Minimum essential configuration for survival
+**Abort Plan**: Safe configuration for mission termination
+
+### Multi-Aircraft Coordination
+**Formation Loading**: Synchronized operations across multiple aircraft
+**Sequential Loading**: Prioritized loading based on departure sequence
+**Backup Aircraft**: Redundant capability planning
+**Cross-Loading**: Load distribution across multiple platforms`,
+    videoContent: `# Tactical Operations Video Training
+
+## Module 1: Combat Loading Procedures (45 minutes)
+- Threat environment assessment
+- Rapid loading techniques and team coordination
+- Equipment positioning and restraint
+- Communication protocols under stress
+- Real combat loading exercises
+
+## Module 2: Airdrop Operations (40 minutes)
+- Personnel airdrop configurations and procedures
+- Equipment delivery systems (CDS, LVAD, HVAD)
+- Jump master coordination
+- Safety procedures and emergency protocols
+- Case studies from recent operations
+
+## Module 3: Emergency Response Procedures (35 minutes)
+- In-flight emergency scenarios and responses
+- Ground emergency procedures
+- Cargo shift and fire suppression
+- Medical emergency protocols
+- Decision-making under pressure training`,
+    interactiveContent: `# Tactical Operations Simulation Suite
+
+## Combat Loading Challenge
+High-pressure scenario simulation:
+- 20-minute countdown timer
+- Incoming threat reports
+- Equipment failures and delays
+- Personnel injuries requiring medical attention
+- Communication system disruptions
+- Mission priority changes
+
+Objectives:
+- Complete mission-essential loading within time limit
+- Maintain safety standards under pressure
+- Adapt to changing tactical situation
+- Coordinate multiple teams effectively
+
+## Airdrop Mission Planner
+Plan complex airdrop operation:
+- 64 special operations personnel
+- 8 vehicles (various types and weights)
+- 12 equipment bundles
+- Weather constraints (wind, visibility)
+- Terrain considerations (mountains, urban areas)
+- Enemy threat assessment
+
+Calculate:
+- Drop zone requirements
+- Aircraft approach parameters
+- Load sequence optimization
+- Backup landing zones
+- Emergency abort procedures
+
+## Emergency Response Trainer
+Real-time emergency scenarios:
+- Cargo fire during flight
+- Rapid decompression at altitude
+- Engine failure requiring weight reduction
+- Medical emergency requiring reconfiguration
+- Hostile fire during ground operations
+
+Decision points:
+- Immediate action requirements
+- Risk assessment and mitigation
+- Mission continuation vs. abort
+- Resource allocation priorities
+- Communication and coordination
+
+## Multi-Platform Coordination Simulator
+Coordinate loading across 4 C-17 aircraft:
+- Different departure times and routes
+- Varying cargo and personnel loads
+- Equipment cross-loading requirements
+- Backup aircraft assignments
+- Real-time mission modifications
+
+Challenge elements:
+- Weather delays affecting timeline
+- Aircraft maintenance issues
+- Cargo priority changes
+- Personnel reassignments
+- Communication system failures`,
+    quizContent: `# Tactical Operations Expert Assessment
+
+## Question 1: Combat Loading Standards
+Standard time limit for 15-minute combat load:
+A) 10 minutes for essential items only
+B) 15 minutes for complete mission package
+C) 15 minutes for pre-positioned equipment only
+D) 20 minutes including final checks
+**Answer: C) 15 minutes for pre-positioned equipment only**
+
+## Question 2: HALO Operations
+Maximum personnel capacity for HALO operations:
+A) 48 personnel
+B) 54 personnel
+C) 64 personnel
+D) 72 personnel
+**Answer: C) 64 personnel**
+
+## Question 3: Low Velocity Airdrop
+Maximum platform weight for LVAD operations:
+A) 35,000 lbs
+B) 42,000 lbs
+C) 50,000 lbs
+D) 60,000 lbs
+**Answer: B) 42,000 lbs**
+
+## Question 4: CDS Operations
+Maximum number of CDS bundles per aircraft:
+A) 12 bundles
+B) 14 bundles
+C) 16 bundles
+D) 18 bundles
+**Answer: C) 16 bundles**
+
+## Question 5: Medical Evacuation
+Litter patient capacity in MEDEVAC configuration:
+A) 24 patients
+B) 30 patients
+C) 36 patients
+D) 42 patients
+**Answer: C) 36 patients**
+
+## Question 6: Emergency Descent
+Target altitude for emergency decompression descent:
+A) 8,000 feet
+B) 10,000 feet
+C) 12,000 feet
+D) 15,000 feet
+**Answer: B) 10,000 feet**
+
+## Question 7: Threat Levels
+Level 3 threat environment is characterized by:
+A) Permissive environment with security awareness
+B) Uncertain environment with accelerated procedures
+C) Hostile environment with minimum ground time
+D) Extreme threat requiring immediate evacuation
+**Answer: C) Hostile environment with minimum ground time**`
   },
   
   // C-130 Modules
