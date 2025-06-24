@@ -1208,8 +1208,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const server = createServer(app);
   const PORT = parseInt(process.env.PORT || "5000", 10);
   
-  server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Training modules backend ready - Server running on port ${PORT}`);
-  });
+  // Server will be started by index.ts
   return server;
 }
