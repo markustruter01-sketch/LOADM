@@ -288,6 +288,37 @@ export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pic
 export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
 export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
 
+// Training Module Videos schema - For direct video uploads
+export const trainingModuleVideos = pgTable("training_module_videos", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull(), // Will reference training modules when that table exists
+  videoTitle: text("video_title").notNull(),
+  videoDescription: text("video_description"),
+  fileName: text("file_name").notNull(), // Original filename
+  filePath: text("file_path").notNull(), // Storage path on server
+  fileSize: integer("file_size").notNull(), // File size in bytes
+  mimeType: text("mime_type").notNull(), // video/mp4, video/webm, etc.
+  duration: integer("duration"), // Video duration in seconds
+  uploadedById: integer("uploaded_by_id").notNull().references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  videoOrder: integer("video_order").default(1).notNull(), // For ordering videos in a module (1-3)
+});
+
+export const insertTrainingModuleVideoSchema = createInsertSchema(trainingModuleVideos).pick({
+  moduleId: true,
+  videoTitle: true,
+  videoDescription: true,
+  fileName: true,
+  filePath: true,
+  fileSize: true,
+  mimeType: true,
+  duration: true,
+  uploadedById: true,
+  videoOrder: true,
+  isActive: true,
+});
+
 // Chat Messages schema
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
@@ -413,6 +444,13 @@ export const quizQuestionsRelations = relations(quizQuestions, ({ one }) => ({
   }),
 }));
 
+export const trainingModuleVideosRelations = relations(trainingModuleVideos, ({ one }) => ({
+  uploadedBy: one(users, {
+    fields: [trainingModuleVideos.uploadedById],
+    references: [users.id],
+  }),
+}));
+
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
     fields: [chatMessages.userId],
@@ -421,6 +459,9 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
 }));
 
 // Types
+export type InsertTrainingModuleVideo = z.infer<typeof insertTrainingModuleVideoSchema>;
+export type TrainingModuleVideo = typeof trainingModuleVideos.$inferSelect;
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
