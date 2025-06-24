@@ -278,14 +278,14 @@ export const trainingModules = pgTable("training_modules", {
   duration: text("duration"),
   topics: text("topics").array(),
   objectives: text("objectives").array(),
-  readingContent: text("reading_content"),
-  videoContent: text("video_content"),
-  interactiveContent: text("interactive_content"),
-  quizContent: text("quiz_content"),
-  isActive: boolean("is_active").default(true),
-  createdBy: text("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  reading_content: text("reading_content"),
+  video_content: text("video_content"),
+  interactive_content: text("interactive_content"),
+  quiz_content: text("quiz_content"),
+  is_active: boolean("is_active").default(true),
+  created_by: text("created_by").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
 });
 
 export const insertTrainingModuleSchema = createInsertSchema(trainingModules).pick({
@@ -296,12 +296,12 @@ export const insertTrainingModuleSchema = createInsertSchema(trainingModules).pi
   duration: true,
   topics: true,
   objectives: true,
-  readingContent: true,
-  videoContent: true,
-  interactiveContent: true,
-  quizContent: true,
-  isActive: true,
-  createdBy: true,
+  reading_content: true,
+  video_content: true,
+  interactive_content: true,
+  quiz_content: true,
+  is_active: true,
+  created_by: true,
 });
 
 // Phone Directory schema (moved from later in file to avoid conflicts)

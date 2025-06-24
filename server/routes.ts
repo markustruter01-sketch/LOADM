@@ -1118,7 +1118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Training Modules CRUD endpoints - Remove auth for testing
   app.get("/api/training-modules", async (req, res) => {
     try {
-      const modules = await db.select().from(trainingModules).where(eq(trainingModules.isActive, true));
+      console.log("API: Fetching training modules...");
+      const modules = await db.select().from(trainingModules).where(eq(trainingModules.is_active, true));
+      console.log("API: Found modules:", modules.length);
       res.json(modules);
     } catch (error) {
       console.error("Failed to fetch training modules:", error);
