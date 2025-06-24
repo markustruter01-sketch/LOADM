@@ -1542,7 +1542,7 @@ Explanation: Forward positions have greater impact...`}
               </Tabs>
               
               <DialogFooter className="mt-4">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600">
                   Cancel
                 </Button>
                 <Button onClick={handleEditModule} className="bg-primary hover:bg-primary/90 text-white">
