@@ -838,7 +838,7 @@ export default function LoadPlanningPage() {
                 </div>
                 <div className="relative h-8 bg-gray-700 rounded-lg overflow-hidden">
                   {/* Background gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-green-500 to-red-500 opacity-30"></div>
+                  <div className="absolute inset-0 bg-gray-700 opacity-30"></div>
                   
                   {/* Center line */}
                   <div className="absolute left-1/2 top-0 w-0.5 h-full bg-white/50 transform -trangray-x-0.5"></div>
