@@ -202,7 +202,9 @@ function AppContent() {
 function App() {
   return (
     <IsolatedAuthProvider>
-      <AppContent />
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
     </IsolatedAuthProvider>
   );
 }
