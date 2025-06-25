@@ -43,6 +43,45 @@ app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
 
+// Add training modules API directly before middleware to avoid auth conflicts
+app.get('/api/training-modules', async (req, res) => {
+  try {
+    console.log('DIRECT API: Fetching training modules...');
+    const { db } = await import('./db');
+    const { trainingModules } = await import('../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const modules = await db.select().from(trainingModules).where(eq(trainingModules.is_active, true));
+    console.log('DIRECT API: Found modules:', modules.length);
+    res.json(modules);
+  } catch (error) {
+    console.error('DIRECT API: Error fetching training modules:', error);
+    res.status(500).json({ error: 'Failed to fetch training modules', details: error.message });
+  }
+});
+
+app.get('/api/training-modules/:id', async (req, res) => {
+  try {
+    console.log('DIRECT API: Fetching training module:', req.params.id);
+    const { db } = await import('./db');
+    const { trainingModules } = await import('../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const moduleId = parseInt(req.params.id);
+    const [module] = await db.select().from(trainingModules).where(eq(trainingModules.id, moduleId));
+    
+    if (!module) {
+      return res.status(404).json({ error: 'Training module not found' });
+    }
+    
+    console.log('DIRECT API: Found module:', module.title);
+    res.json(module);
+  } catch (error) {
+    console.error('DIRECT API: Error fetching training module:', error);
+    res.status(500).json({ error: 'Failed to fetch training module', details: error.message });
+  }
+});
+
 
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware

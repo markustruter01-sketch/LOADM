@@ -1115,7 +1115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Training Modules CRUD endpoints - Remove auth for testing
+  // Training Modules endpoints - No auth required for viewing
   app.get("/api/training-modules", async (req, res) => {
     try {
       console.log("API: Fetching training modules...");
@@ -1124,7 +1124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(modules);
     } catch (error) {
       console.error("Failed to fetch training modules:", error);
-      res.status(500).json({ error: "Failed to fetch training modules" });
+      res.status(500).json({ error: "Failed to fetch training modules", details: error.message });
     }
   });
 
@@ -1140,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(module);
     } catch (error) {
       console.error("Failed to fetch training module:", error);
-      res.status(500).json({ error: "Failed to fetch training module" });
+      res.status(500).json({ error: "Failed to fetch training module", details: error.message });
     }
   });
 
