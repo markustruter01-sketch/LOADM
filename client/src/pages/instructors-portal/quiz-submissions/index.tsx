@@ -50,11 +50,10 @@ const COLORS = {
   warning: "#F59E0B",
   info: "#3B82F6",
   squadrons: {
-    "33SQN": "#FF9500",
-    "35SQN": "#10B981", 
-    "36SQN": "#3B82F6",
-    "37SQN": "#8B5CF6",
-    "AMG": "#F59E0B"
+    "33 Squadron": "#FF9500",
+    "35 Squadron": "#10B981", 
+    "36 Squadron": "#3B82F6",
+    "37 Squadron": "#8B5CF6"
   },
   scoreRanges: {
     "0-49%": "#EF4444",
@@ -64,7 +63,7 @@ const COLORS = {
   }
 };
 
-const SQUADRONS = ["33SQN", "35SQN", "36SQN", "37SQN", "AMG"];
+const SQUADRONS = ["33 Squadron", "35 Squadron", "36 Squadron", "37 Squadron"];
 
 interface QuizSubmission {
   id: number;
@@ -269,13 +268,7 @@ export default function QuizAnalytics() {
               <SelectContent>
                 <SelectItem value="all">All Squadrons</SelectItem>
                 {SQUADRONS.map(squadron => (
-                  <SelectItem key={squadron} value={squadron}>
-                    {squadron === "33SQN" ? "33 Squadron" :
-                     squadron === "35SQN" ? "35 Squadron" :
-                     squadron === "36SQN" ? "36 Squadron" :
-                     squadron === "37SQN" ? "37 Squadron" :
-                     squadron}
-                  </SelectItem>
+                  <SelectItem key={squadron} value={squadron}>{squadron}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

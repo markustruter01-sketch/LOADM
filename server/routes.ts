@@ -453,7 +453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Get quiz submissions with proper ordering and joins - prioritize user squadron over submission squadron
+      // Get quiz submissions with proper ordering and joins
       const submissions = await sql`
         SELECT 
           qs.id,
@@ -462,7 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qs.submission_date,
           qs.answers,
           qs.score,
-          COALESCE(u.squadron, qs.squadron, 'AMG') as squadron,
+          qs.squadron,
           qs.status,
           u.email,
           u.first_name,
@@ -483,7 +483,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         submissionDate: submission.submission_date,
         answers: submission.answers,
         score: submission.score,
-        squadron: submission.squadron,
+        squadron: submission.squadron || 'AMG',
         status: submission.status || 'submitted',
         email: submission.email || 'Unknown User',
         firstName: submission.first_name || '',
