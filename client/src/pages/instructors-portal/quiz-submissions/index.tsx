@@ -63,7 +63,7 @@ const COLORS = {
   }
 };
 
-const SQUADRONS = ["33 Squadron", "35 Squadron", "36 Squadron", "37 Squadron"];
+const SQUADRONS = ["33SQN", "35SQN", "36SQN", "37SQN", "AMG"];
 
 interface QuizSubmission {
   id: number;
