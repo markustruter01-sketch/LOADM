@@ -18,7 +18,7 @@ async function seedTrainingModules() {
           "Learn standard pallet configurations and positions",
           "Master basic weight and balance principles"
         ],
-        readingContent: `# C-17 Globemaster III - Aircraft Overview
+        reading_content: `# C-17 Globemaster III - Aircraft Overview
 
 ## Aircraft Specifications
 - **Length**: 174 feet (53.0 meters)
