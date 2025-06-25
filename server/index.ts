@@ -1,29 +1,32 @@
-// ISOLATED AUTHENTICATION SERVER
-import express, { type Request, Response, NextFunction } from "express";
+import express from "express";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
-import { WebSocketServer, WebSocket } from "ws";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupVite, serveStatic } from "./vite";
 import isolatedAuthRoutes from './auth-isolated/auth-routes';
 import * as authCore from './auth-isolated/auth-core';
 import { licenseExpiryService } from './license-expiry-service';
+import { unifiedAuthMiddleware } from './auth-middleware-unified';
 import path from "path";
 
 const app = express();
+const PORT = 5000;
+const httpServer = createServer(app);
+
+console.log('🚀 Starting LOADMworkflow application...');
 
 // Clear all sessions on startup
 authCore.clearAllIsolatedSessions();
+console.log('✅ ISOLATED AUTH: All sessions cleared');
 
 // Start license expiry monitoring
 licenseExpiryService.startPeriodicCheck();
+console.log('🕒 LICENSE EXPIRY: Starting periodic license expiry checks (every 4 hours)');
 
+// Basic middleware
 app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Apply unified authentication middleware globally to add user info to all requests
-import { unifiedAuthMiddleware } from './auth-middleware-unified';
 app.use(unifiedAuthMiddleware);
 
 // Serve PDF files from attached_assets directory
@@ -35,7 +38,7 @@ app.use('/pdfs', express.static(path.join(process.cwd(), 'attached_assets'), {
   }
 }));
 
-// Mount isolated auth routes FIRST (before Vite middleware)
+// Mount auth routes
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
@@ -719,29 +722,25 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
-const PORT = 5000;
-const httpServer = createServer(app);
+// Setup development environment
+if (process.env.NODE_ENV === "development") {
+  console.log('🔧 Setting up Vite for development...');
+  setupVite(app, httpServer);
+} else {
+  console.log('🔧 Setting up static serving...');
+  serveStatic(app);
+}
 
-// WebSocket disabled to resolve port conflicts with training modules backend
-console.log('WebSocket chat disabled - training modules system prioritized');
-
-// Register all routes and setup server in correct order
-registerRoutes(app).then((server) => {
+// Register all routes
+registerRoutes(app).then(() => {
   console.log('✅ All routes registered successfully');
-  
-  // Setup Vite middleware for development
-  if (process.env.NODE_ENV === "development") {
-    setupVite(app, httpServer);
-  } else {
-    serveStatic(app);
-  }
-  
-  // Start server only once after everything is configured
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
-    console.log(`✅ ISOLATED SERVER: Authentication system ready`);
-  });
-  
 }).catch(err => {
   console.error('❌ Route registration failed:', err);
+});
+
+// Start server
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
+  console.log(`✅ ISOLATED SERVER: Authentication system ready`);
+  console.log(`🌐 Frontend available at: http://localhost:${PORT}`);
 });
