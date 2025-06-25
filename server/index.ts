@@ -40,6 +40,11 @@ app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
 
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.sendFile(__dirname + '/../test-minimal.html');
+});
+
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
 import { phoneDirectory, chatMessages } from '../shared/schema';
@@ -717,28 +722,24 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
-// Register API routes BEFORE Vite middleware to prevent interception
-registerRoutes(app).then(() => {
+const PORT = 5000;
+const httpServer = createServer(app);
+
+// WebSocket disabled to resolve port conflicts with training modules backend
+console.log('WebSocket chat disabled - training modules system prioritized');
+
+// Register all routes and setup server in correct order
+registerRoutes(app).then((server) => {
   console.log('✅ All routes registered successfully');
   
-  // API routes are already registered above - no catch-all needed
-  
-  // Only add Vite middleware after routes are registered
-  app.use((req, res, next) => {
-    if (req.path.endsWith(".html")) {
-      res.redirect(req.path.slice(0, -5));
-    } else {
-      next();
-    }
-  });
-
-  if (app.get("env") === "development") {
+  // Setup Vite middleware for development
+  if (process.env.NODE_ENV === "development") {
     setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
   
-  // Start server after everything is configured
+  // Start server only once after everything is configured
   httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
     console.log(`✅ ISOLATED SERVER: Authentication system ready`);
@@ -746,16 +747,4 @@ registerRoutes(app).then(() => {
   
 }).catch(err => {
   console.error('❌ Route registration failed:', err);
-});
-
-const PORT = 5000;
-const httpServer = createServer(app);
-
-// WebSocket disabled to resolve port conflicts with training modules backend
-console.log('WebSocket chat disabled - training modules system prioritized');
-
-// Start server immediately
-httpServer.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
-  console.log(`✅ ISOLATED SERVER: Authentication system ready`);
 });
