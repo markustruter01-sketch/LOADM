@@ -12,7 +12,7 @@ import {
   BookOpen,
   Plane 
 } from "lucide-react";
-import cargoBayImage from "../assets/cargo-bay.png";
+import cargoBayImage from "@assets/Desktop-1200x900_loadmaster.avif";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 
 export default function HomePage() {

@@ -7,20 +7,20 @@
 :root {
   --background: 0 0% 12% !important;
   --foreground: 0 0% 98% !important;
-  --card: 0 0% 18% !important;
+  --card: 0 0% 32% !important;
   --card-foreground: 0 0% 98% !important;
   --primary: 30 100% 54% !important;
   --primary-foreground: 0 0% 100% !important;
-  --secondary: 220 13% 22% !important;
+  --secondary: 220 13% 35% !important;
   --secondary-foreground: 0 0% 98% !important;
-  --muted: 0 0% 12% !important;
+  --muted: 0 0% 28% !important;
   --muted-foreground: 0 0% 63% !important;
   --accent: 30 100% 54% !important;
   --accent-foreground: 0 0% 100% !important;
   --destructive: 0 84% 60% !important;
   --destructive-foreground: 0 0% 98% !important;
-  --border: 220 13% 22% !important;
-  --input: 220 13% 22% !important;
+  --border: 220 13% 35% !important;
+  --input: 220 13% 35% !important;
   --ring: 30 100% 54% !important;
 }
 
