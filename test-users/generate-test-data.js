@@ -113,7 +113,7 @@ async function insertTestUsers(users) {
   console.log('📝 Inserting test users into database...');
   
   const insertUserQuery = `
-    INSERT INTO users (email, password, first_name, last_name, squadron, role, is_first_login, has_completed_onboarding)
+    INSERT INTO users (email, hashed_password, first_name, last_name, squadron, role, is_first_login, has_completed_onboarding)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING id
   `;
@@ -247,8 +247,8 @@ async function insertTestSubmissions(submissions) {
   console.log('💾 Inserting test submissions into database...');
   
   const insertSubmissionQuery = `
-    INSERT INTO quiz_submissions (user_id, quiz_id, score, answers, marked_answers, submitted_at)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO quiz_submissions (user_id, quiz_id, score, answers, submitted_at)
+    VALUES ($1, $2, $3, $4, $5)
   `;
   
   let successCount = 0;
@@ -260,7 +260,6 @@ async function insertTestSubmissions(submissions) {
         submission.quizId,
         submission.score,
         JSON.stringify(submission.answers),
-        JSON.stringify(submission.markedAnswers),
         submission.submittedAt
       ]);
       
