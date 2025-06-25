@@ -40,10 +40,7 @@ app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
 
-// Test endpoint
-app.get('/test', (req, res) => {
-  res.sendFile(__dirname + '/../test-minimal.html');
-});
+
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
