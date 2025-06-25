@@ -20,11 +20,7 @@ import {
   Activity,
   TrendingUp,
   MessageCircle,
-  Trash2,
-  FileText,
-  Monitor,
-  Upload,
-  BookOpen
+  Trash2
 } from "lucide-react";
 
 interface DashboardStats {
@@ -262,113 +258,23 @@ export default function SuperAdminDashboard() {
               <Card className="bg-slate-800 border-slate-700">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-green-400" />
-                    Training Analytics
+                    <Users className="w-5 h-5 text-green-400" />
+                    User Registration
                   </CardTitle>
                   <CardDescription className="text-slate-400">
-                    Monitor training progress and performance
+                    Manage the license registration process
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Button 
-                    onClick={() => setLocation('/analytics')}
+                    onClick={() => setLocation('/license-registration')}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
-                    View Training Analytics
+                    View Registration Portal
                   </Button>
                   <div className="bg-slate-700 p-3 rounded-lg">
                     <div className="text-slate-300 text-sm">
-                      Track quiz scores, completion rates, and squadron performance
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-orange-400" />
-                    Content Management
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Manage training modules and documents
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => setLocation('/instructors-portal/training-modules')}
-                    className="w-full bg-orange-600 hover:bg-orange-700"
-                  >
-                    Manage Training Content
-                  </Button>
-                  <div className="bg-slate-700 p-3 rounded-lg">
-                    <div className="text-slate-300 text-sm">
-                      Add, edit, and organize training modules and documents
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Monitor className="w-5 h-5 text-cyan-400" />
-                    System Monitor
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Real-time system health and performance
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => {
-                      toast({
-                        title: "System Monitor",
-                        description: "Opening system health dashboard...",
-                      });
-                      // Could navigate to a detailed system monitoring page
-                    }}
-                    className="w-full bg-cyan-600 hover:bg-cyan-700"
-                  >
-                    View System Health
-                  </Button>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-700 p-2 rounded">
-                      <div className="text-green-400 font-semibold">99.9%</div>
-                      <div className="text-slate-400">Uptime</div>
-                    </div>
-                    <div className="bg-slate-700 p-2 rounded">
-                      <div className="text-blue-400 font-semibold">12ms</div>
-                      <div className="text-slate-400">Response</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Upload className="w-5 h-5 text-pink-400" />
-                    Bulk Operations
-                  </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Mass user operations and data management
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => {
-                      toast({
-                        title: "Bulk Operations",
-                        description: "Opening bulk management tools...",
-                      });
-                    }}
-                    className="w-full bg-pink-600 hover:bg-pink-700"
-                  >
-                    Bulk License Management
-                  </Button>
-                  <div className="bg-slate-700 p-3 rounded-lg">
-                    <div className="text-slate-300 text-sm">
-                      Import/export licenses, bulk user operations, data backups
+                      Users can register with valid license keys
                     </div>
                   </div>
                 </CardContent>
@@ -407,139 +313,58 @@ export default function SuperAdminDashboard() {
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Database className="w-5 h-5 text-blue-400" />
-                    System Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-white font-medium">Database</span>
-                      </div>
-                      <Badge variant="default" className="bg-green-500">Healthy</Badge>
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Database className="w-5 h-5 text-blue-400" />
+                  System Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <span className="text-white font-medium">Database</span>
                     </div>
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-white font-medium">Authentication</span>
-                      </div>
-                      <Badge variant="default" className="bg-green-500">Operational</Badge>
-                    </div>
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-white font-medium">Licensing</span>
-                      </div>
-                      <Badge variant="default" className="bg-green-500">Active</Badge>
-                    </div>
+                    <Badge variant="default" className="bg-green-500">Healthy</Badge>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-purple-400" />
-                    Training System
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-medium">Quiz System</span>
-                        <Badge variant="default" className="bg-green-500">Active</Badge>
-                      </div>
-                      <p className="text-sm text-slate-400">97+ questions available</p>
+                  <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <span className="text-white font-medium">Authentication</span>
                     </div>
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-medium">Training Modules</span>
-                        <Badge variant="default" className="bg-green-500">Ready</Badge>
-                      </div>
-                      <p className="text-sm text-slate-400">Aircraft-specific content</p>
-                    </div>
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-medium">Load Planning</span>
-                        <Badge variant="default" className="bg-green-500">Operational</Badge>
-                      </div>
-                      <p className="text-sm text-slate-400">Multi-aircraft support</p>
-                    </div>
+                    <Badge variant="default" className="bg-green-500">Operational</Badge>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="bg-slate-700 p-4 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <span className="text-white font-medium">Licensing</span>
+                    </div>
+                    <Badge variant="default" className="bg-green-500">Active</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-purple-400" />
-                    Training Performance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-medium">Average Quiz Score</span>
-                        <span className="text-green-400 font-bold">78.5%</span>
-                      </div>
-                      <div className="w-full bg-slate-600 rounded-full h-2">
-                        <div className="bg-green-400 h-2 rounded-full" style={{width: '78.5%'}}></div>
-                      </div>
-                    </div>
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-medium">Module Completion</span>
-                        <span className="text-blue-400 font-bold">85%</span>
-                      </div>
-                      <div className="w-full bg-slate-600 rounded-full h-2">
-                        <div className="bg-blue-400 h-2 rounded-full" style={{width: '85%'}}></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Users className="w-5 h-5 text-cyan-400" />
-                    Squadron Analytics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-slate-700 rounded-lg">
-                      <span className="text-white">33 SQN</span>
-                      <Badge variant="outline" className="bg-green-600/20 border-green-600">Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-slate-700 rounded-lg">
-                      <span className="text-white">35 SQN</span>
-                      <Badge variant="outline" className="bg-green-600/20 border-green-600">Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-slate-700 rounded-lg">
-                      <span className="text-white">36 SQN</span>
-                      <Badge variant="outline" className="bg-green-600/20 border-green-600">Active</Badge>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-slate-700 rounded-lg">
-                      <span className="text-white">37 SQN</span>
-                      <Badge variant="outline" className="bg-yellow-600/20 border-yellow-600">Training</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-purple-400" />
+                  System Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-slate-300">
+                  <p>Detailed analytics and reporting features will be available here.</p>
+                  <p className="text-sm text-slate-400 mt-2">
+                    Track license usage, user engagement, and system performance over time.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

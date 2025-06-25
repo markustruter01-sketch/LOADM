@@ -269,41 +269,6 @@ export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).pick({
   isActive: true,
 });
 
-export const trainingModules = pgTable("training_modules", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
-  aircraft: text("aircraft").notNull(),
-  difficulty: text("difficulty").notNull(),
-  duration: text("duration"),
-  topics: text("topics").array(),
-  objectives: text("objectives").array(),
-  reading_content: text("reading_content"),
-  video_content: text("video_content"),
-  interactive_content: text("interactive_content"),
-  quiz_content: text("quiz_content"),
-  is_active: boolean("is_active").default(true),
-  created_by: text("created_by").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
-});
-
-export const insertTrainingModuleSchema = createInsertSchema(trainingModules).pick({
-  title: true,
-  description: true,
-  aircraft: true,
-  difficulty: true,
-  duration: true,
-  topics: true,
-  objectives: true,
-  reading_content: true,
-  video_content: true,
-  interactive_content: true,
-  quiz_content: true,
-  is_active: true,
-  created_by: true,
-});
-
 // Phone Directory schema (moved from later in file to avoid conflicts)
 export const phoneDirectory = pgTable("phone_directory", {
   id: serial("id").primaryKey(),
@@ -528,9 +493,6 @@ export type QuizSubmission = typeof quizSubmissions.$inferSelect;
 
 export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
-
-export type InsertTrainingModule = z.infer<typeof insertTrainingModuleSchema>;
-export type TrainingModule = typeof trainingModules.$inferSelect;
 
 // Field type for document forms
 export type FormField = {

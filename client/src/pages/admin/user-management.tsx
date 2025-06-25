@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { ArrowLeft, Trash2, UserCircle, ShieldAlert } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { 
   Table, 
   TableBody, 
@@ -28,9 +28,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
 export default function UserManagement() {
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user: currentUser } = useIsolatedAuth();
+  const { user: currentUser } = useAuth();
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
@@ -83,15 +82,13 @@ export default function UserManagement() {
       </Helmet>
 
       <div className="container mx-auto px-4 py-8 mb-16">
-        <Button 
-          variant="outline" 
-          className="mb-6 border-gray-600 text-gray-700 hover:bg-gray-100" 
-          onClick={() => setLocation('/superadmin-dashboard')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admin Dashboard
-        </Button>
-
         <div className="flex items-center mb-8">
+          <Link href="/admin/admin-dashboard">
+            <Button variant="ghost" size="sm" className="mr-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
           <h2 className="text-3xl font-bold">User Management</h2>
         </div>
 

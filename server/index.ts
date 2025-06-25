@@ -1,32 +1,29 @@
-import express from "express";
+// ISOLATED AUTHENTICATION SERVER
+import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
+import { setupVite, serveStatic, log } from "./vite";
 import isolatedAuthRoutes from './auth-isolated/auth-routes';
 import * as authCore from './auth-isolated/auth-core';
 import { licenseExpiryService } from './license-expiry-service';
-import { unifiedAuthMiddleware } from './auth-middleware-unified';
 import path from "path";
 
 const app = express();
-const PORT = 5000;
-const httpServer = createServer(app);
-
-console.log('🚀 Starting LOADMworkflow application...');
 
 // Clear all sessions on startup
 authCore.clearAllIsolatedSessions();
-console.log('✅ ISOLATED AUTH: All sessions cleared');
 
 // Start license expiry monitoring
 licenseExpiryService.startPeriodicCheck();
-console.log('🕒 LICENSE EXPIRY: Starting periodic license expiry checks (every 4 hours)');
 
-// Basic middleware
 app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Apply unified authentication middleware globally to add user info to all requests
+import { unifiedAuthMiddleware } from './auth-middleware-unified';
 app.use(unifiedAuthMiddleware);
 
 // Serve PDF files from attached_assets directory
@@ -38,51 +35,10 @@ app.use('/pdfs', express.static(path.join(process.cwd(), 'attached_assets'), {
   }
 }));
 
-// Mount auth routes
+// Mount isolated auth routes FIRST (before Vite middleware)
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
-
-// Add training modules API directly before middleware to avoid auth conflicts
-app.get('/api/training-modules', async (req, res) => {
-  try {
-    console.log('DIRECT API: Fetching training modules...');
-    const { db } = await import('./db');
-    const { trainingModules } = await import('../shared/schema');
-    const { eq } = await import('drizzle-orm');
-    
-    const modules = await db.select().from(trainingModules).where(eq(trainingModules.is_active, true));
-    console.log('DIRECT API: Found modules:', modules.length);
-    res.json(modules);
-  } catch (error) {
-    console.error('DIRECT API: Error fetching training modules:', error);
-    res.status(500).json({ error: 'Failed to fetch training modules', details: error.message });
-  }
-});
-
-app.get('/api/training-modules/:id', async (req, res) => {
-  try {
-    console.log('DIRECT API: Fetching training module:', req.params.id);
-    const { db } = await import('./db');
-    const { trainingModules } = await import('../shared/schema');
-    const { eq } = await import('drizzle-orm');
-    
-    const moduleId = parseInt(req.params.id);
-    const [module] = await db.select().from(trainingModules).where(eq(trainingModules.id, moduleId));
-    
-    if (!module) {
-      return res.status(404).json({ error: 'Training module not found' });
-    }
-    
-    console.log('DIRECT API: Found module:', module.title);
-    res.json(module);
-  } catch (error) {
-    console.error('DIRECT API: Error fetching training module:', error);
-    res.status(500).json({ error: 'Failed to fetch training module', details: error.message });
-  }
-});
-
-
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
@@ -761,25 +717,169 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
-// Setup development environment
-if (process.env.NODE_ENV === "development") {
-  console.log('🔧 Setting up Vite for development...');
-  setupVite(app, httpServer);
-} else {
-  console.log('🔧 Setting up static serving...');
-  serveStatic(app);
-}
-
-// Register all routes
+// Register API routes BEFORE Vite middleware to prevent interception
 registerRoutes(app).then(() => {
   console.log('✅ All routes registered successfully');
+  
+  // API routes are already registered above - no catch-all needed
+  
+  // Only add Vite middleware after routes are registered
+  app.use((req, res, next) => {
+    if (req.path.endsWith(".html")) {
+      res.redirect(req.path.slice(0, -5));
+    } else {
+      next();
+    }
+  });
+
+  if (app.get("env") === "development") {
+    setupVite(app, httpServer);
+  } else {
+    serveStatic(app);
+  }
+  
+  // Start server after everything is configured
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
+    console.log(`✅ ISOLATED SERVER: Authentication system ready`);
+  });
+  
 }).catch(err => {
   console.error('❌ Route registration failed:', err);
 });
 
-// Start server
-httpServer.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
-  console.log(`✅ ISOLATED SERVER: Authentication system ready`);
-  console.log(`🌐 Frontend available at: http://localhost:${PORT}`);
+const PORT = 5000;
+const httpServer = createServer(app);
+
+// WebSocket server for chat
+const wss = new WebSocketServer({ 
+  server: httpServer, 
+  path: '/ws',
+  perMessageDeflate: false,
+  clientTracking: true
 });
+
+// Store connected clients with user info
+const connectedClients = new Map<WebSocket, { userId: number, userName: string, userRole: string }>();
+
+wss.on('connection', (ws, req) => {
+  console.log('WebSocket connection established');
+  
+  // Handle connection errors
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
+  
+  ws.on('close', () => {
+    connectedClients.delete(ws);
+  });
+  
+  ws.on('message', async (data) => {
+    try {
+      const message = JSON.parse(data.toString());
+      console.log('WebSocket message received:', message);
+      
+      if (message.type === 'auth') {
+        console.log('Processing auth message:', message);
+        // Store user info for this connection
+        connectedClients.set(ws, {
+          userId: message.userId,
+          userName: message.userName,
+          userRole: message.userRole
+        });
+        console.log('User authenticated:', message.userName);
+        ws.send(JSON.stringify({ type: 'auth_success' }));
+        return;
+      }
+      
+      if (message.type === 'chat_message') {
+        console.log('Processing chat message:', message);
+        const userInfo = connectedClients.get(ws);
+        if (!userInfo) {
+          console.log('User not authenticated');
+          ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
+          return;
+        }
+        
+        console.log('User info for message:', userInfo);
+        
+        // Validate message type permissions
+        if (message.messageType === 'answer' && userInfo.userRole !== 'instructor' && userInfo.userRole !== 'superadmin') {
+          console.log('Permission denied: only instructors can post answers');
+          ws.send(JSON.stringify({ type: 'error', message: 'Only instructors can post answers' }));
+          return;
+        }
+        
+        try {
+          // Save message to database
+          const { chatMessages, users } = await import('../shared/schema');
+          const { db } = await import('./db');
+          
+          // Find the actual user ID from the users table based on email
+          // Since the isolated auth uses different user IDs, we need to map them
+          let actualUserId = userInfo.userId;
+          
+          // Map to the correct user ID and get proper user details
+          let displayName = userInfo.userName;
+          if (userInfo.userRole === 'superadmin') {
+            const userRecord = await db.select().from(users).where(eq(users.email, 'markustruter01@gmail.com')).limit(1);
+            if (userRecord.length > 0) {
+              actualUserId = userRecord[0].id;
+              console.log('Mapped superadmin to user ID:', actualUserId);
+            }
+          }
+          
+          // Get user details from licenses table for proper name display
+          const { licenses } = await import('../shared/schema');
+          const licenseRecord = await db.select().from(licenses).where(eq(licenses.email, userInfo.userName)).limit(1);
+          if (licenseRecord.length > 0) {
+            displayName = `${licenseRecord[0].firstName} ${licenseRecord[0].lastName}`.trim();
+            console.log('Found license record, display name:', displayName);
+          }
+          
+          const messageData = {
+            userId: actualUserId,
+            messageType: message.messageType,
+            content: message.content,
+            userName: displayName,
+            userRole: userInfo.userRole,
+          };
+          
+          console.log('Inserting message with data:', messageData);
+          
+          const newMessage = await db.insert(chatMessages).values(messageData).returning();
+          
+          console.log('Message inserted successfully:', newMessage[0]);
+          
+          // Broadcast to all connected clients
+          const broadcastMessage = {
+            type: 'new_message',
+            message: newMessage[0]
+          };
+          
+          console.log('Broadcasting message to', wss.clients.size, 'clients');
+          
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(broadcastMessage));
+            }
+          });
+        } catch (error) {
+          console.error('Error saving message to database:', error);
+          ws.send(JSON.stringify({ type: 'error', message: 'Failed to save message' }));
+        }
+      }
+      
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+      ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+    }
+  });
+  
+  ws.on('close', () => {
+    connectedClients.delete(ws);
+    console.log('WebSocket connection closed');
+  });
+});
+
+// Server is already started in the route registration callback above
