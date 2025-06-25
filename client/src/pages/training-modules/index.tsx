@@ -41,7 +41,7 @@ export default function TrainingModules() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white p-8" style={{ backgroundColor: '#1e1e1e' }}>
+      <div className="min-h-screen bg-gray-900 text-white p-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>

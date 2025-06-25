@@ -1,49 +1,65 @@
-import { useQuery } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
-import { ArrowLeft, Clock, Target, BookOpen, Play, Users, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from 'react'
+import { useRoute, useLocation } from 'wouter'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users, Plane } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useQuery } from '@tanstack/react-query'
 
-interface TrainingModule {
-  id: number;
-  title: string;
-  description: string;
-  aircraft: string;
-  difficulty: string;
-  duration: string;
-  topics: string[];
-  objectives: string[];
-  reading_content?: string;
-  video_content?: string;
-  interactive_content?: string;
-  quiz_content?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+// Function to get aircraft display names
+const getAircraftDisplayName = (aircraft: string) => {
+  const names = {
+    'c17': 'C-17 Globemaster III',
+    'c130': 'C-130 Hercules', 
+    'kc30a': 'KC30-A MRTT',
+    'c27j': 'C-27J Spartan'
+  };
+  return names[aircraft as keyof typeof names] || aircraft;
+};
+
+// Simple placeholder components for content that doesn't exist yet
+const TrainingVideoPlayer = ({ title, description }: { title: string; description: string }) => (
+  <div className="aspect-video bg-black rounded-lg flex items-center justify-center border border-gray-700">
+    <div className="text-center">
+      <div className="text-4xl mb-4">🎥</div>
+      <h4 className="text-lg font-medium mb-2">{title}</h4>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  </div>
+)
 
 export default function TrainingModuleDetail() {
-  const [match, params] = useRoute("/training-modules/:id");
-  const moduleId = params?.id;
+  const [match, params] = useRoute("/training-modules/:id")
+  const [, setLocation] = useLocation()
+  const [currentTab, setCurrentTab] = useState("reading")
+  const [progress, setProgress] = useState(0)
+  const { toast } = useToast()
 
-  const { data: module, isLoading, error } = useQuery<TrainingModule>({
+  if (!match) return null
+
+  const moduleId = params?.id
+
+  // Fetch specific training module from API
+  const { data: module, isLoading, error } = useQuery({
     queryKey: ['/api/training-modules', moduleId],
-    enabled: !!moduleId,
+    queryFn: async () => {
+      const response = await fetch(`/api/training-modules/${moduleId}`);
+      if (!response.ok) throw new Error('Failed to fetch training module');
+      return response.json();
+    },
+    enabled: !!moduleId
   });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6" style={{ backgroundColor: '#1e1e1e' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 rounded mb-4 w-1/3" style={{ backgroundColor: '#374151' }}></div>
-            <div className="h-12 rounded mb-6 w-2/3" style={{ backgroundColor: '#374151' }}></div>
-            <div className="grid gap-6">
-              <div className="h-64 rounded" style={{ backgroundColor: '#374151' }}></div>
-              <div className="h-32 rounded" style={{ backgroundColor: '#374151' }}></div>
-            </div>
+      <div className="min-h-screen bg-gray-900 text-white p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p>Loading training module...</p>
           </div>
         </div>
       </div>
@@ -52,221 +68,203 @@ export default function TrainingModuleDetail() {
 
   if (error || !module) {
     return (
-      <div className="min-h-screen p-6" style={{ backgroundColor: '#1e1e1e' }}>
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Module Not Found</h1>
-          <p className="text-gray-300 mb-6">The requested training module could not be found.</p>
-          <Link href="/training-modules">
-            <Button style={{ backgroundColor: '#ff8c00', color: '#ffffff' }}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
+      <div className="min-h-screen bg-gray-900 text-white p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Module Not Found</h1>
+            <p className="text-gray-400 mb-6">The training module you're looking for doesn't exist.</p>
+            <Button onClick={() => setLocation("/training-modules")} className="bg-orange-500 hover:bg-orange-600">
               Back to Training Modules
             </Button>
-          </Link>
+          </div>
         </div>
       </div>
-    );
+    )
+  }
+
+  const handleMarkComplete = () => {
+    setProgress(100)
+    toast({
+      title: "Module Completed!",
+      description: `You have successfully completed ${module.title}`,
+    })
   }
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: '#1e1e1e' }}>
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-900 text-white p-8">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <Link href="/training-modules">
-            <Button variant="ghost" className="mb-4 text-white hover:text-orange-400">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Training Modules
-            </Button>
-          </Link>
+        <div className="mb-8">
+          <Button 
+            variant="ghost" 
+            onClick={() => setLocation("/training-modules")}
+            className="mb-4 text-gray-400 hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Training Modules
+          </Button>
           
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{module.title}</h1>
-              <p className="text-gray-300 text-lg">{module.description}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="capitalize" style={{ backgroundColor: '#ff8c00', color: '#ffffff' }}>
-                {module.aircraft.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-              </Badge>
-              <Badge variant="outline" className="capitalize text-white border-white">
-                {module.difficulty}
-              </Badge>
-              <Badge variant="outline" className="text-white border-white">
-                <Clock className="w-3 h-3 mr-1" />
-                {module.duration}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Course Overview */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
-          <Card className="lg:col-span-2" style={{ backgroundColor: '#2d2d2d', borderColor: '#374151' }}>
+          <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Target className="w-5 h-5 mr-2 text-orange-400" />
-                Learning Objectives
-              </CardTitle>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-orange-500/10 rounded-lg">
+                  <Plane className="h-6 w-6 text-orange-500" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white">{module.title}</h1>
+                  <p className="text-gray-400">{getAircraftDisplayName(module.aircraft)}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 text-sm text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  {module.duration || "2 hours"}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  {module.instructor || "Loadmaster Instructor"}
+                </div>
+                <div className="flex items-center gap-1">
+                  <GraduationCap className="h-4 w-4" />
+                  {module.difficulty}
+                </div>
+              </div>
             </CardHeader>
+            
             <CardContent>
-              <ul className="space-y-2">
-                {module.objectives.map((objective, index) => (
-                  <li key={index} className="flex items-start text-gray-300">
-                    <CheckCircle className="w-4 h-4 mr-2 mt-0.5 text-green-400 flex-shrink-0" />
-                    {objective}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card style={{ backgroundColor: '#2d2d2d', borderColor: '#374151' }}>
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <BookOpen className="w-5 h-5 mr-2 text-orange-400" />
-                Course Topics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {module.topics.map((topic, index) => (
-                  <Badge key={index} variant="outline" className="text-gray-300 border-gray-500">
-                    {topic}
-                  </Badge>
-                ))}
+              <p className="text-gray-300 mb-4">{module.description}</p>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Progress</span>
+                  <span className="text-white">{progress}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Content Tabs */}
-        <Card style={{ backgroundColor: '#2d2d2d', borderColor: '#374151' }}>
-          <CardContent className="p-0">
-            <Tabs defaultValue="reading" className="w-full">
-              <TabsList className="grid w-full grid-cols-4" style={{ backgroundColor: '#374151' }}>
-                <TabsTrigger value="reading" className="text-white data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Reading
-                </TabsTrigger>
-                <TabsTrigger value="videos" className="text-white data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-                  <Play className="w-4 h-4 mr-2" />
-                  Videos
-                </TabsTrigger>
-                <TabsTrigger value="interactive" className="text-white data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-                  <Users className="w-4 h-4 mr-2" />
-                  Interactive
-                </TabsTrigger>
-                <TabsTrigger value="assessment" className="text-white data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Assessment
-                </TabsTrigger>
-              </TabsList>
+        {/* Training Content */}
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
+            <TabsTrigger value="reading" className="data-[state=active]:bg-orange-500">Reading</TabsTrigger>
+            <TabsTrigger value="videos" className="data-[state=active]:bg-orange-500">Videos</TabsTrigger>
+            <TabsTrigger value="interactive" className="data-[state=active]:bg-orange-500">Interactive</TabsTrigger>
+            <TabsTrigger value="assessment" className="data-[state=active]:bg-orange-500">Assessment</TabsTrigger>
+          </TabsList>
 
-              <div className="p-6">
-                <TabsContent value="reading" className="mt-0">
-                  <div className="prose prose-invert max-w-none">
-                    <h3 className="text-xl font-semibold text-white mb-4">Reading Materials</h3>
-                    <p className="text-gray-300 mb-6">Comprehensive study materials for this module</p>
-                    
-                    {module.reading_content ? (
-                      <div className="space-y-4">
-                        <div style={{ backgroundColor: '#374151' }} className="rounded-lg p-4">
-                          <h4 className="text-lg font-medium text-white mb-2">
-                            {module.title} - Study Guide
-                          </h4>
-                          <p className="text-gray-300 text-sm mb-3">
-                            {module.description}
-                          </p>
-                          <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                            {module.reading_content}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>Reading materials will be available soon</p>
-                      </div>
-                    )}
+          <TabsContent value="reading" className="space-y-6">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Reading Materials</CardTitle>
+                <CardDescription>Comprehensive study materials for this module</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {module.reading_content ? (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">{module.title} - Study Guide</h4>
+                    <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{module.reading_content}</div>
                   </div>
-                </TabsContent>
+                ) : (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">No Reading Materials Available</h4>
+                    <p className="text-gray-300 text-sm">Reading materials for this module are being prepared.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <TabsContent value="videos" className="mt-0">
+          <TabsContent value="videos" className="space-y-6">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Video Content</CardTitle>
+                <CardDescription>Interactive video training materials</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {module.video_content ? (
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-white mb-4">Video Training</h3>
-                    <p className="text-gray-300 mb-6">Interactive video content and demonstrations</p>
-                    
-                    {module.video_content ? (
-                      <div className="space-y-4">
-                        <div style={{ backgroundColor: '#374151' }} className="rounded-lg p-4">
-                          <h4 className="text-lg font-medium text-white mb-2">Training Videos</h4>
-                          <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                            {module.video_content}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>Video content will be available soon</p>
-                      </div>
-                    )}
+                    <TrainingVideoPlayer 
+                      title={`${module.title} - Training Video`}
+                      description="Interactive training video with demonstrations"
+                    />
+                    <div className="p-4 bg-gray-700 rounded-lg">
+                      <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{module.video_content}</div>
+                    </div>
                   </div>
-                </TabsContent>
+                ) : (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">No Video Content Available</h4>
+                    <p className="text-gray-300 text-sm">Video content for this module is being prepared.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <TabsContent value="interactive" className="mt-0">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-white mb-4">Interactive Training</h3>
-                    <p className="text-gray-300 mb-6">Hands-on exercises and simulations</p>
-                    
-                    {module.interactive_content ? (
-                      <div className="space-y-4">
-                        <div style={{ backgroundColor: '#374151' }} className="rounded-lg p-4">
-                          <h4 className="text-lg font-medium text-white mb-2">Interactive Exercises</h4>
-                          <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                            {module.interactive_content}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>Interactive content will be available soon</p>
-                      </div>
-                    )}
+          <TabsContent value="interactive" className="space-y-6">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Interactive Exercises</CardTitle>
+                <CardDescription>Hands-on training exercises and simulations</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {module.interactive_content ? (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">Interactive Training Exercises</h4>
+                    <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{module.interactive_content}</div>
                   </div>
-                </TabsContent>
+                ) : (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">No Interactive Content Available</h4>
+                    <p className="text-gray-300 text-sm">Interactive exercises for this module are being prepared.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <TabsContent value="assessment" className="mt-0">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-white mb-4">Assessment</h3>
-                    <p className="text-gray-300 mb-6">Test your knowledge and skills</p>
-                    
-                    {module.quiz_content ? (
-                      <div className="space-y-4">
-                        <div style={{ backgroundColor: '#374151' }} className="rounded-lg p-4">
-                          <h4 className="text-lg font-medium text-white mb-2">Knowledge Assessment</h4>
-                          <div className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                            {module.quiz_content}
-                          </div>
-                        </div>
-                        <Button className="w-full" style={{ backgroundColor: '#ff8c00', color: '#ffffff' }}>
-                          Start Assessment
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <CheckCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                        <p>Assessment will be available soon</p>
-                      </div>
-                    )}
+          <TabsContent value="assessment" className="space-y-6">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Assessment</CardTitle>
+                <CardDescription>Test your knowledge with module assessments</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {module.quiz_content ? (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">Module Assessment</h4>
+                    <div className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{module.quiz_content}</div>
                   </div>
-                </TabsContent>
-              </div>
-            </Tabs>
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="p-4 bg-gray-700 rounded-lg">
+                    <h4 className="font-medium text-white mb-2">No Assessment Available</h4>
+                    <p className="text-gray-300 text-sm">Assessment content for this module is being prepared.</p>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  onClick={handleMarkComplete} 
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={progress === 100}
+                >
+                  {progress === 100 ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Completed
+                    </>
+                  ) : (
+                    "Mark as Complete"
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
-  );
+  )
 }
