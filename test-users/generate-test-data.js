@@ -147,58 +147,15 @@ async function insertTestUsers(users) {
   return userIds;
 }
 
-async function generateTestQuizzes() {
-  console.log('🎯 Creating test quizzes...');
+async function getExistingQuizzes() {
+  console.log('🎯 Getting existing quizzes...');
   
-  const quizzes = [];
+  const quizzesQuery = `SELECT id FROM quizzes WHERE is_active = true LIMIT 10`;
+  const result = await pool.query(quizzesQuery);
   
-  for (const category of quizCategories) {
-    const quiz = {
-      title: `${category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Assessment`,
-      description: `Comprehensive assessment covering ${category.replace('-', ' ')} procedures and regulations`,
-      questionCount: 15,
-      timeLimit: 30,
-      passingScore: 80,
-      categories: [category],
-      isActive: true
-    };
-    
-    quizzes.push(quiz);
-  }
+  const quizIds = result.rows.map(row => row.id);
+  console.log(`✅ Found ${quizIds.length} existing quizzes to use for test data`);
   
-  return quizzes;
-}
-
-async function insertTestQuizzes(quizzes) {
-  console.log('📚 Inserting test quizzes into database...');
-  
-  const insertQuizQuery = `
-    INSERT INTO quizzes (title, description, question_count, time_limit, passing_score, categories, is_active)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING id
-  `;
-  
-  const quizIds = [];
-  
-  for (const quiz of quizzes) {
-    try {
-      const result = await pool.query(insertQuizQuery, [
-        quiz.title,
-        quiz.description,
-        quiz.questionCount,
-        quiz.timeLimit,
-        quiz.passingScore,
-        quiz.categories,
-        quiz.isActive
-      ]);
-      
-      quizIds.push(result.rows[0].id);
-    } catch (error) {
-      console.error(`Failed to insert quiz ${quiz.title}:`, error.message);
-    }
-  }
-  
-  console.log(`✅ Successfully inserted ${quizIds.length} test quizzes`);
   return quizIds;
 }
 
@@ -247,7 +204,7 @@ async function insertTestSubmissions(submissions) {
   console.log('💾 Inserting test submissions into database...');
   
   const insertSubmissionQuery = `
-    INSERT INTO quiz_submissions (user_id, quiz_id, score, answers, submitted_at)
+    INSERT INTO quiz_submissions (user_id, quiz_id, score, answers, submission_date)
     VALUES ($1, $2, $3, $4, $5)
   `;
   
@@ -286,9 +243,8 @@ async function generateAllTestData() {
     const users = await generateTestUsers();
     const userIds = await insertTestUsers(users);
     
-    // Generate quizzes
-    const quizzes = await generateTestQuizzes();
-    const quizIds = await insertTestQuizzes(quizzes);
+    // Get existing quizzes
+    const quizIds = await getExistingQuizzes();
     
     // Generate submissions
     const submissions = await generateTestSubmissions(userIds, quizIds);
@@ -299,7 +255,7 @@ async function generateAllTestData() {
     console.log('🎉 TEST DATA GENERATION COMPLETE!');
     console.log('📊 Summary:');
     console.log(`   - ${userIds.length} test users created`);
-    console.log(`   - ${quizIds.length} test quizzes created`);
+    console.log(`   - ${quizIds.length} existing quizzes used`);
     console.log(`   - 800 test submissions created`);
     console.log('');
     console.log('Squadron Distribution:');
