@@ -3,6 +3,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ISOLATED BACKGROUND COLOR SYSTEM - HIGHEST PRIORITY */
+:root {
+  --background: 0 0% 12% !important;
+  --foreground: 0 0% 98% !important;
+  --card: 0 0% 18% !important;
+  --card-foreground: 0 0% 98% !important;
+  --primary: 30 100% 54% !important;
+  --primary-foreground: 0 0% 100% !important;
+  --secondary: 220 13% 22% !important;
+  --secondary-foreground: 0 0% 98% !important;
+  --muted: 0 0% 12% !important;
+  --muted-foreground: 0 0% 63% !important;
+  --accent: 30 100% 54% !important;
+  --accent-foreground: 0 0% 100% !important;
+  --destructive: 0 84% 60% !important;
+  --destructive-foreground: 0 0% 98% !important;
+  --border: 220 13% 22% !important;
+  --input: 220 13% 22% !important;
+  --ring: 30 100% 54% !important;
+}
+
+/* Force override all background colors */
+body, html, #root {
+  background-color: #1e1e1e !important;
+  color: #ffffff !important;
+}
+
+/* Override any blue backgrounds */
+.bg-blue-50, .bg-blue-100, .bg-blue-200, .bg-blue-300, .bg-blue-400, .bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900 {
+  background-color: #1e1e1e !important;
+}
+
+/* Override any gradient backgrounds */
+.bg-gradient-to-br, .bg-gradient-to-r, .bg-gradient-to-l, .bg-gradient-to-t, .bg-gradient-to-b {
+  background: #1e1e1e !important;
+}
+
+/* Training modules specific overrides */
+.training-module-card {
+  background-color: #2d2d2d !important;
+  border-color: #374151 !important;
+}
+
+.training-module-content {
+  background-color: #1e1e1e !important;
+}
+
 :root {
   --background: 0 0% 12%;
   --foreground: 0 0% 98%;
