@@ -754,6 +754,8 @@ const httpServer = createServer(app);
 // WebSocket disabled to resolve port conflicts with training modules backend
 console.log('WebSocket chat disabled - training modules system prioritized');
 
-// WebSocket chat functionality temporarily disabled
-
-// HTTP server startup handled by routes.ts
+// Start server immediately
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
+  console.log(`✅ ISOLATED SERVER: Authentication system ready`);
+});
