@@ -156,7 +156,7 @@ router.get('/user', async (req, res) => {
 router.post('/complete-onboarding', async (req, res) => {
   try {
     console.log('✅ ISOLATED: Complete onboarding request');
-    const sessionId = req.cookies?.sessionId;
+    const sessionId = req.cookies?.isolated_session;
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
       console.log('✅ ISOLATED: No valid session for onboarding completion');
@@ -201,7 +201,7 @@ router.post('/change-password', async (req, res) => {
     console.log('✅ ISOLATED: Password change request received');
     console.log('✅ ISOLATED: Request body:', req.body);
     
-    const sessionId = req.cookies?.sessionId;
+    const sessionId = req.cookies?.isolated_session;
     console.log('✅ ISOLATED: Session ID:', sessionId);
     
     if (!sessionId || !sessionId.startsWith('isolated_')) {
