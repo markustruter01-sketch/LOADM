@@ -72,9 +72,13 @@ export default function LicensingManagement() {
       const response = await fetch('/api/licensing/licenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error('Failed to create license');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create license');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -86,10 +90,10 @@ export default function LicensingManagement() {
         description: "The new license has been generated and is ready for use."
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error creating license",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive"
       });
     }
@@ -224,7 +228,9 @@ export default function LicensingManagement() {
   const CreateLicenseForm = () => {
     const [formData, setFormData] = useState({
       email: '',
-      username: '',
+      firstName: '',
+      lastName: '',
+      licenseType: 'loadmaster',
       durationType: 'days',
       duration: 30,
       maxConcurrentSessions: 1,
@@ -249,7 +255,9 @@ export default function LicensingManagement() {
       
       const submitData = {
         email: formData.email,
-        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        licenseType: formData.licenseType,
         expiryDate: expiryDate.toISOString(),
         maxConcurrentSessions: formData.maxConcurrentSessions,
         maxDevices: formData.maxDevices,
@@ -263,23 +271,50 @@ export default function LicensingManagement() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email *</Label>
             <Input
               id="email"
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
+              placeholder="user@example.com"
             />
           </div>
           <div>
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="firstName">First Name *</Label>
             <Input
-              id="username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              id="firstName"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               required
+              placeholder="Enter first name"
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              placeholder="Enter last name"
+            />
+          </div>
+          <div>
+            <Label htmlFor="licenseType">License Type *</Label>
+            <Select value={formData.licenseType} onValueChange={(value) => setFormData({ ...formData, licenseType: value })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="loadmaster">Loadmaster License</SelectItem>
+                <SelectItem value="instructor">Instructor License</SelectItem>
+                <SelectItem value="superadmin">Superadmin License</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
