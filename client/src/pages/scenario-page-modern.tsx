@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import SuccessAnimation from "@/components/SuccessAnimation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePermissions } from "@/hooks/usePermissions";
+import { PermissionDialog } from "@/components/PermissionDialog";
 import {
   Card,
   CardContent,
@@ -40,6 +42,7 @@ export default function ModernScenarioPage() {
   const [, setLocation] = useLocation();
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
+  const { checkPermission, showPermissionError, showPermissionDialog, setShowPermissionDialog, permissionAction } = usePermissions();
 
   // State management
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -199,6 +202,11 @@ export default function ModernScenarioPage() {
 
   const handleSubmitClick = () => {
     console.log('🔘 MODERN SCENARIO - Submit button clicked');
+    
+    if (!checkPermission('canSubmit')) {
+      showPermissionError('submit assessments');
+      return;
+    }
     
     if (!user) {
       console.log('❌ No user - redirecting to auth');
@@ -494,6 +502,12 @@ export default function ModernScenarioPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <PermissionDialog
+        open={showPermissionDialog}
+        onOpenChange={setShowPermissionDialog}
+        action={permissionAction}
+      />
     </>
   );
 }

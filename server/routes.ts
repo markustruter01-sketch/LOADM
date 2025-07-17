@@ -229,7 +229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isFirstLogin: true,
         licenseId: newLicense[0].id,
         createdBy: req.user?.id || 9,
-        userRole: licenseType === 'instructor' ? 'instructor' : 'loadmaster',
+        userRole: licenseType === 'instructor' ? 'instructor' : licenseType === 'readonly' ? 'readonly' : 'loadmaster',
         isAdmin: licenseType === 'instructor',
         isSuperAdmin: false
       }).returning();

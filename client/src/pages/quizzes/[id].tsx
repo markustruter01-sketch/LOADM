@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { usePermissions } from "@/hooks/usePermissions";
+import { PermissionDialog } from "@/components/PermissionDialog";
 
 export default function QuizPage() {
   const [, params] = useRoute('/quizzes/:id');
@@ -18,6 +20,7 @@ export default function QuizPage() {
   const quizId = params?.id;
   const { toast } = useToast();
   const { user } = useIsolatedAuth();
+  const { checkPermission, showPermissionError, showPermissionDialog, setShowPermissionDialog, permissionAction } = usePermissions();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [squadron, setSquadron] = useState<string>("AMG");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -115,6 +118,11 @@ export default function QuizPage() {
   };
 
   const handleSubmit = async () => {
+    if (!checkPermission('canSubmit')) {
+      showPermissionError('submit assessments');
+      return;
+    }
+    
     if (!user) {
       toast({
         title: "Authentication required",
@@ -483,6 +491,12 @@ export default function QuizPage() {
           </Button>
         </CardFooter>
       </Card>
+      
+      <PermissionDialog
+        open={showPermissionDialog}
+        onOpenChange={setShowPermissionDialog}
+        action={permissionAction}
+      />
     </div>
   );
 }

@@ -9,6 +9,8 @@ interface User {
   firstName?: string;
   lastName?: string;
   role: string;
+  userRole?: string;
+  licenseType?: string;
   squadron?: string;
   isFirstLogin?: boolean;
   hasCompletedOnboarding?: boolean;

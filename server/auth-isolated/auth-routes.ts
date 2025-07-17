@@ -119,12 +119,15 @@ router.get('/user', async (req, res) => {
     
     const userResult = await sql`
       SELECT 
-        id,
-        email,
-        is_first_login as "isFirstLogin",
-        has_completed_onboarding as "hasCompletedOnboarding"
-      FROM users 
-      WHERE id = ${session.userId}
+        u.id,
+        u.email,
+        u.is_first_login as "isFirstLogin",
+        u.has_completed_onboarding as "hasCompletedOnboarding",
+        u.user_role as "userRole",
+        l.license_type as "licenseType"
+      FROM users u
+      LEFT JOIN licenses l ON u.license_id = l.id
+      WHERE u.id = ${session.userId}
       LIMIT 1
     `;
     
@@ -142,6 +145,8 @@ router.get('/user', async (req, res) => {
       id: user.id,
       email: session.email,
       role: session.role,
+      userRole: user.userRole,
+      licenseType: user.licenseType,
       isFirstLogin: user.isFirstLogin,
       hasCompletedOnboarding: user.hasCompletedOnboarding
     });

@@ -313,6 +313,7 @@ export default function LicensingManagement() {
                 <SelectItem value="loadmaster">Loadmaster License</SelectItem>
                 <SelectItem value="instructor">Instructor License</SelectItem>
                 <SelectItem value="superadmin">Superadmin License</SelectItem>
+                <SelectItem value="readonly">Read-Only License</SelectItem>
               </SelectContent>
             </Select>
           </div>

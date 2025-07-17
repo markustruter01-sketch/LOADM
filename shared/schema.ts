@@ -18,7 +18,7 @@ export const licenses = pgTable("licenses", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").default(""),
   licenseKey: text("license_key").notNull().unique(),
-  licenseType: text("license_type").notNull().default("loadmaster"), // loadmaster, instructor, superadmin
+  licenseType: text("license_type").notNull().default("loadmaster"), // loadmaster, instructor, superadmin, readonly
   squadron: text("squadron").default("AMG").notNull(), // 33SQN, 35SQN, 36SQN, 37SQN, AMG
   category: text("category").default("D").notNull(), // D, C, B, A (seniority level)
   isActive: boolean("is_active").default(true).notNull(),
