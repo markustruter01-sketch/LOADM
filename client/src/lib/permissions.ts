@@ -22,6 +22,23 @@ export interface PermissionCheck {
   canManageLicenses: boolean;
 }
 
+/**
+ * PERMISSION MATRIX
+ * 
+ * License Type    | View | Edit | Create | Delete | Submit | Admin Panel | Manage Users | Manage Licenses
+ * ---------------|------|------|--------|--------|--------|-------------|--------------|----------------
+ * readonly       |  ✓   |  ✗   |   ✗    |   ✗    |   ✗    |     ✗       |      ✗       |       ✗
+ * loadmaster     |  ✓   |  ✗   |   ✗    |   ✗    |   ✓    |     ✗       |      ✗       |       ✗
+ * instructor     |  ✓   |  ✓   |   ✓    |   ✓    |   ✓    |     ✓       |      ✗       |       ✗
+ * superadmin     |  ✓   |  ✓   |   ✓    |   ✓    |   ✓    |     ✓       |      ✓       |       ✓
+ * 
+ * Access Details:
+ * - readonly: Can view all content, documents, quizzes, scenarios but cannot interact or submit
+ * - loadmaster: Can submit quizzes and scenarios but cannot create/edit content
+ * - instructor: Can create/edit training content, manage scenarios, view admin dashboard
+ * - superadmin: Full system access including user and license management
+ */
+
 export function getUserPermissions(user: User | null): PermissionCheck {
   if (!user) {
     return {

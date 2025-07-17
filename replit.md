@@ -213,6 +213,8 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Readonly users can view all content but cannot edit, create, or submit assessments
   - Permission dialog shows when readonly users attempt restricted actions
   - System provides clear feedback about access limitations under readonly license
+  - Created comprehensive permission matrix documentation showing all license types and their capabilities
+  - Updated permission system with detailed comments and usage guidelines
 
 ## User Preferences
 
