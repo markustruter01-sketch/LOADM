@@ -6,7 +6,7 @@ import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-import { requireAuth, requireInstructor, requireSuperAdmin, AuthenticatedRequest } from "./middleware/auth";
+import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
@@ -1607,97 +1607,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Checklist Management Routes
-
-  // Get all checklists (for students)  
+  // ===== CHECKLIST API ROUTES - REBUILT FROM SCRATCH =====
+  
+  // Get all active checklists - simplified and reliable
   app.get("/api/checklists", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      console.log('DEBUG: Checklists API called with user:', req.user);
-      const allChecklists = await db.query.checklists.findMany({
-        where: eq(checklists.isActive, true),
-        with: {
-          items: {
-            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
-          },
-          creator: {
-            columns: { email: true }
-          }
-        },
-        orderBy: (checklists, { desc }) => [desc(checklists.createdAt)]
-      });
+      console.log('🔧 CHECKLIST API: Fetching all checklists for user:', req.user?.email);
+      
+      // Simple query to get all active checklists with their items
+      const allChecklists = await db.select({
+        id: checklists.id,
+        title: checklists.title,
+        description: checklists.description,
+        aircraftType: checklists.aircraftType,
+        category: checklists.category,
+        isActive: checklists.isActive,
+        createdAt: checklists.createdAt,
+        createdById: checklists.createdById
+      })
+      .from(checklists)
+      .where(eq(checklists.isActive, true))
+      .orderBy(desc(checklists.createdAt));
 
-      console.log('DEBUG: Found', allChecklists.length, 'checklists');
-      res.json(allChecklists);
+      console.log('🔧 CHECKLIST API: Found', allChecklists.length, 'active checklists');
+
+      // Get items for each checklist
+      const checklistsWithItems = await Promise.all(
+        allChecklists.map(async (checklist) => {
+          const items = await db.select()
+            .from(checklistItems)
+            .where(eq(checklistItems.checklistId, checklist.id))
+            .orderBy(checklistItems.itemOrder);
+
+          // Get creator email
+          const creator = await db.select({ email: users.email })
+            .from(users)
+            .where(eq(users.id, checklist.createdById))
+            .limit(1);
+
+          return {
+            ...checklist,
+            items: items,
+            creator: { email: creator[0]?.email || 'Unknown' }
+          };
+        })
+      );
+
+      console.log('🔧 CHECKLIST API: Returning', checklistsWithItems.length, 'checklists with items');
+      res.json(checklistsWithItems);
     } catch (error) {
-      console.error("Failed to fetch checklists:", error);
+      console.error('🔧 CHECKLIST API ERROR:', error);
       res.status(500).json({ error: "Failed to fetch checklists" });
     }
   });
 
-  // Get user's checklist completions (must come before /:id route)
+  // Get user's checklist completions
   app.get("/api/checklists/completions", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      const completions = await db.query.checklistCompletions.findMany({
-        where: eq(checklistCompletions.userId, req.user!.id),
-        with: {
-          checklist: {
-            columns: { title: true, description: true, aircraftType: true, category: true }
-          }
-        },
-        orderBy: (checklistCompletions, { desc }) => [desc(checklistCompletions.startedAt)]
-      });
+      console.log('🔧 COMPLETION API: Fetching completions for user:', req.user?.id);
+      
+      const completions = await db.select()
+        .from(checklistCompletions)
+        .where(eq(checklistCompletions.userId, req.user!.id))
+        .orderBy(desc(checklistCompletions.startedAt));
 
+      console.log('🔧 COMPLETION API: Found', completions.length, 'completions');
       res.json(completions);
     } catch (error) {
-      console.error("Failed to fetch completions:", error);
+      console.error('🔧 COMPLETION API ERROR:', error);
       res.status(500).json({ error: "Failed to fetch completions" });
     }
   });
 
-
-  // Get checklist by ID with completion status for user
+  // Get specific checklist by ID with user's completion status
   app.get("/api/checklists/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
       const checklistId = parseInt(id);
       
+      console.log('🔧 CHECKLIST DETAIL API: Fetching checklist ID:', checklistId, 'for user:', req.user?.email);
+      
       if (isNaN(checklistId)) {
+        console.log('🔧 CHECKLIST DETAIL API: Invalid ID provided:', id);
         return res.status(400).json({ error: "Invalid checklist ID" });
       }
       
-      const checklist = await db.query.checklists.findFirst({
-        where: and(eq(checklists.id, checklistId), eq(checklists.isActive, true)),
-        with: {
-          items: {
-            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
-          },
-          creator: {
-            columns: { email: true }
-          }
-        }
-      });
+      // Get the checklist
+      const checklist = await db.select()
+        .from(checklists)
+        .where(and(
+          eq(checklists.id, checklistId),
+          eq(checklists.isActive, true)
+        ))
+        .limit(1);
 
-      if (!checklist) {
+      if (checklist.length === 0) {
+        console.log('🔧 CHECKLIST DETAIL API: Checklist not found with ID:', checklistId);
         return res.status(404).json({ error: "Checklist not found" });
       }
 
-      // Get user's completion status for this checklist
-      const userCompletion = await db.query.checklistCompletions.findFirst({
-        where: and(
+      console.log('🔧 CHECKLIST DETAIL API: Found checklist:', checklist[0].title);
+
+      // Get checklist items
+      const items = await db.select()
+        .from(checklistItems)
+        .where(eq(checklistItems.checklistId, checklistId))
+        .orderBy(checklistItems.itemOrder);
+
+      console.log('🔧 CHECKLIST DETAIL API: Found', items.length, 'items for checklist');
+
+      // Get creator info
+      const creator = await db.select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, checklist[0].createdById))
+        .limit(1);
+
+      // Get user's completion status
+      const userCompletion = await db.select()
+        .from(checklistCompletions)
+        .where(and(
           eq(checklistCompletions.checklistId, checklistId),
           eq(checklistCompletions.userId, req.user!.id)
-        )
-      });
+        ))
+        .limit(1);
 
       const response = {
-        ...checklist,
-        userCompletion: userCompletion || null
+        ...checklist[0],
+        items: items,
+        creator: { email: creator[0]?.email || 'Unknown' },
+        userCompletion: userCompletion[0] || null
       };
 
+      console.log('🔧 CHECKLIST DETAIL API: Returning checklist with', items.length, 'items');
       res.json(response);
     } catch (error) {
-      console.error("Failed to fetch checklist:", error);
+      console.error('🔧 CHECKLIST DETAIL API ERROR:', error);
       res.status(500).json({ error: "Failed to fetch checklist" });
+    }
+  });
+
+  // Create new checklist completion or update existing one
+  app.post("/api/checklists/:id/completion", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { completedItems } = req.body;
+      const checklistId = parseInt(id);
+
+      console.log('🔧 COMPLETION UPDATE API: Updating completion for checklist:', checklistId, 'user:', req.user?.id);
+
+      if (!Array.isArray(completedItems)) {
+        return res.status(400).json({ error: "completedItems must be an array" });
+      }
+
+      // Get checklist and its items
+      const checklist = await db.select()
+        .from(checklists)
+        .where(and(eq(checklists.id, checklistId), eq(checklists.isActive, true)))
+        .limit(1);
+
+      if (checklist.length === 0) {
+        return res.status(404).json({ error: "Checklist not found" });
+      }
+
+      const items = await db.select()
+        .from(checklistItems)
+        .where(eq(checklistItems.checklistId, checklistId));
+
+      const totalItems = items.length;
+      const completedCount = completedItems.length;
+      const requiredItems = items.filter(item => item.isRequired);
+      const completedRequiredItems = completedItems.filter(itemId => 
+        requiredItems.some(req => req.id === itemId)
+      );
+      
+      const completionStatus = (completedRequiredItems.length === requiredItems.length && completedCount === totalItems) 
+        ? "completed" 
+        : "in_progress";
+
+      // Check for existing completion
+      const existingCompletion = await db.select()
+        .from(checklistCompletions)
+        .where(and(
+          eq(checklistCompletions.checklistId, checklistId),
+          eq(checklistCompletions.userId, req.user!.id)
+        ))
+        .limit(1);
+
+      if (existingCompletion.length > 0) {
+        // Update existing
+        const [updated] = await db.update(checklistCompletions)
+          .set({
+            completedItems,
+            completedCount,
+            completionStatus,
+            completedAt: completionStatus === "completed" ? new Date() : null
+          })
+          .where(eq(checklistCompletions.id, existingCompletion[0].id))
+          .returning();
+
+        console.log('🔧 COMPLETION UPDATE API: Updated existing completion');
+        res.json(updated);
+      } else {
+        // Create new
+        const [newCompletion] = await db.insert(checklistCompletions)
+          .values({
+            checklistId,
+            userId: req.user!.id,
+            completedItems,
+            totalItems,
+            completedCount,
+            completionStatus,
+            completedAt: completionStatus === "completed" ? new Date() : null
+          })
+          .returning();
+
+        console.log('🔧 COMPLETION UPDATE API: Created new completion');
+        res.json(newCompletion);
+      }
+    } catch (error) {
+      console.error('🔧 COMPLETION UPDATE API ERROR:', error);
+      res.status(500).json({ error: "Failed to update checklist completion" });
     }
   });
 

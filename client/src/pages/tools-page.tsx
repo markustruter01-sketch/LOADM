@@ -461,8 +461,6 @@ function ChecklistsGrid() {
     queryKey: ['/api/checklists'],
     enabled: true
   });
-  
-  console.log('DEBUG: Checklists query:', { checklists, checklistsLoading, checklistsError });
 
   const { data: completions = [] } = useQuery({
     queryKey: ['/api/checklists/completions'],
