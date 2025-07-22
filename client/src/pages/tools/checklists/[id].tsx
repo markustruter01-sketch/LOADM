@@ -262,7 +262,7 @@ export default function ChecklistDetailPage() {
         <meta name="description" content={`Complete ${checklist.title} checklist for ${checklist.aircraftType}`} />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-900 p-6">
+      <div className="min-h-screen p-6" style={{ backgroundColor: '#1e1e1e' }}>
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -283,7 +283,7 @@ export default function ChecklistDetailPage() {
           </div>
 
           {/* Checklist Header */}
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700" style={{ backgroundColor: '#2d2d2d', borderColor: '#404040' }}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3 mb-3">
@@ -333,7 +333,7 @@ export default function ChecklistDetailPage() {
           {/* Checklist Items */}
           <div className="space-y-6">
             {Object.entries(groupedItems).map(([categoryName, items]) => (
-              <Card key={categoryName} className="bg-gray-800 border-gray-700">
+              <Card key={categoryName} className="bg-gray-800 border-gray-700" style={{ backgroundColor: '#2d2d2d', borderColor: '#404040' }}>
                 <CardHeader className="pb-4">
                   <CardTitle className="text-lg text-white flex items-center gap-2">
                     <CheckSquare className="h-5 w-5 text-orange-500" />
@@ -350,9 +350,12 @@ export default function ChecklistDetailPage() {
                         key={item.id}
                         className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
                           checkedItems.has(item.id)
-                            ? 'bg-green-900/20 border-green-700'
-                            : 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
+                            ? 'border-green-700'
+                            : 'border-gray-600 hover:bg-gray-700'
                         }`}
+                        style={{
+                          backgroundColor: checkedItems.has(item.id) ? '#166534' : '#404040'
+                        }}
                       >
                         <Checkbox
                           checked={checkedItems.has(item.id)}
@@ -381,7 +384,7 @@ export default function ChecklistDetailPage() {
 
           {/* Complete Button */}
           {!isCompleted && (
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-gray-800 border-gray-700" style={{ backgroundColor: '#2d2d2d', borderColor: '#404040' }}>
               <CardContent className="p-6 text-center">
                 <h3 className="text-lg font-semibold text-white mb-2">Ready to Complete?</h3>
                 <p className="text-gray-400 mb-4">
