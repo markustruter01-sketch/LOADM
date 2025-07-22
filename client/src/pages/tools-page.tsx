@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target, Anchor, CheckSquare } from "lucide-react";
+import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target, Anchor, CheckSquare, Plane, Clock, Filter } from "lucide-react";
 import { useLocation } from "wouter";
 import {
   Card,
@@ -19,6 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { PermissionDialog } from "@/components/PermissionDialog";
 
 interface MissionData {
   airframe: 'C-17' | 'C-130' | 'C-27J' | 'KC30A';
@@ -40,6 +42,43 @@ interface ComplexityResult {
   color: string;
   icon: any;
   factors: Array<{ name: string; points: number; maxPoints: number }>;
+}
+
+interface ChecklistItem {
+  id: number;
+  itemText: string;
+  itemOrder: number;
+  isRequired: boolean;
+  category?: string;
+}
+
+interface Checklist {
+  id: number;
+  title: string;
+  description?: string;
+  aircraftType: string;
+  category: string;
+  isActive: boolean;
+  createdAt: string;
+  items: ChecklistItem[];
+  creator: {
+    email: string;
+  };
+}
+
+interface ChecklistCompletion {
+  id: number;
+  checklistId: number;
+  completionStatus: "in_progress" | "completed";
+  completedCount: number;
+  totalItems: number;
+  startedAt: string;
+  completedAt?: string;
+  checklist: {
+    title: string;
+    aircraftType: string;
+    category: string;
+  };
 }
 
 function MissionComplexityAnalyzer() {
@@ -411,6 +450,218 @@ function MissionComplexityAnalyzer() {
   );
 }
 
+function ChecklistsGrid() {
+  const [, setLocation] = useLocation();
+  const [aircraftFilter, setAircraftFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const canSubmit = true; // Permissions checked server-side
+
+  const { data: checklists = [], isLoading: checklistsLoading } = useQuery({
+    queryKey: ['/api/checklists'],
+    enabled: true
+  });
+
+  const { data: completions = [] } = useQuery({
+    queryKey: ['/api/checklists/completions'],
+    enabled: canSubmit
+  });
+
+  const handleChecklistClick = (checklistId: number) => {
+    if (!canSubmit) {
+      setShowPermissionDialog(true);
+      return;
+    }
+    setLocation(`/tools/checklists/${checklistId}`);
+  };
+
+  const getCompletionStatus = (checklistId: number) => {
+    if (!canSubmit) return null;
+    return (completions as ChecklistCompletion[]).find((c: ChecklistCompletion) => c.checklistId === checklistId);
+  };
+
+  const getAircraftIcon = (aircraftType: string) => {
+    return <Plane className="h-4 w-4" />;
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'startup': return 'bg-green-100 text-green-800 border-green-200';
+      case 'shutdown': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pre-flight': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'post-flight': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'emergency': return 'bg-orange-100 text-orange-800 border-orange-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const filteredChecklists = (checklists as Checklist[]).filter((checklist: Checklist) => {
+    const aircraftMatch = aircraftFilter === "all" || checklist.aircraftType.toLowerCase() === aircraftFilter.toLowerCase();
+    const categoryMatch = categoryFilter === "all" || checklist.category === categoryFilter;
+    return aircraftMatch && categoryMatch;
+  });
+
+  const aircraftTypes = Array.from(new Set((checklists as Checklist[]).map((c: Checklist) => c.aircraftType)));
+  const categories = Array.from(new Set((checklists as Checklist[]).map((c: Checklist) => c.category)));
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <CheckSquare className="h-12 w-12 text-orange-500 mx-auto mb-3" />
+        <h3 className="text-xl font-semibold mb-2">Aircraft Checklists</h3>
+        <p className="text-muted-foreground max-w-2xl mx-auto text-sm">
+          Complete digital checklists for various aircraft operations. Track your progress and ensure all procedures are followed correctly.
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <Select value={aircraftFilter} onValueChange={setAircraftFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Aircraft" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Aircraft</SelectItem>
+              {aircraftTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {checklistsLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
+                  <div className="h-3 bg-muted rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredChecklists.map((checklist: Checklist) => {
+            const completion = getCompletionStatus(checklist.id);
+            const isCompleted = completion?.completionStatus === "completed";
+            const completionPercentage = completion ? Math.round((completion.completedCount / completion.totalItems) * 100) : 0;
+
+            return (
+              <Card 
+                key={checklist.id}
+                className="hover:shadow-lg transition-all cursor-pointer group border-2 hover:border-orange-200"
+                onClick={() => handleChecklistClick(checklist.id)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2 mb-2">
+                      {getAircraftIcon(checklist.aircraftType)}
+                      <Badge variant="outline" className="text-xs border-orange-400 text-orange-600 bg-orange-50">
+                        {checklist.aircraftType}
+                      </Badge>
+                    </div>
+                    {completion && (
+                      <Badge 
+                        className={`text-xs ${isCompleted 
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                        }`}
+                      >
+                        {isCompleted ? 'Completed' : 'In Progress'}
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-base group-hover:text-orange-600 transition-colors">
+                    {checklist.title}
+                  </CardTitle>
+                  {checklist.description && (
+                    <CardDescription className="text-sm">
+                      {checklist.description}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <Badge className={getCategoryColor(checklist.category)}>
+                        {checklist.category.charAt(0).toUpperCase() + checklist.category.slice(1).replace('-', ' ')}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        {checklist.items.length} items
+                      </span>
+                    </div>
+
+                    {completion && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Progress</span>
+                          <span>{completionPercentage}%</span>
+                        </div>
+                        <Progress value={completionPercentage} className="h-2" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>Created {new Date(checklist.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      {completion?.completedAt && (
+                        <span>Completed {new Date(completion.completedAt).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {filteredChecklists.length === 0 && !checklistsLoading && (
+        <div className="text-center py-12">
+          <CheckSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-muted-foreground mb-2">No Checklists Found</h3>
+          <p className="text-muted-foreground">
+            {aircraftFilter !== "all" || categoryFilter !== "all" 
+              ? "Try adjusting your filters to see more checklists."
+              : "No checklists have been created yet."}
+          </p>
+        </div>
+      )}
+
+      <PermissionDialog 
+        isOpen={showPermissionDialog}
+        onClose={() => setShowPermissionDialog(false)}
+        action="access checklists"
+        feature="Checklist Access"
+      />
+    </div>
+  );
+}
+
 export default function ToolsPage() {
   const [_, navigate] = useLocation();
 
@@ -750,50 +1001,7 @@ export default function ToolsPage() {
 
             {/* Checklists */}
             <TabsContent value="checklists" className="mt-6">
-              <div className="mb-10">
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="bg-primary/10">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Aircraft Checklists</CardTitle>
-                      <CheckSquare className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardDescription>Digital aircraft operational checklists with completion tracking</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="text-center py-8">
-                      <CheckSquare className="h-16 w-16 text-orange-500 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold mb-2">Digital Checklists</h3>
-                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                        Access instructor-created aircraft checklists for various operations. Complete items with tickboxes and track your progress.
-                      </p>
-                      <Button 
-                        onClick={() => navigateToTool('checklists')}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2"
-                      >
-                        View Available Checklists
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-sm text-gray-600">
-                      <div className="text-center">
-                        <div className="font-medium text-orange-600">C-17</div>
-                        <div>Startup • Shutdown</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium text-orange-600">C-130</div>
-                        <div>Pre-flight • Emergency</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium text-orange-600">KC30A</div>
-                        <div>Systems • Operations</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium text-orange-600">C-27J</div>
-                        <div>Configuration • Safety</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <ChecklistsGrid />
             </TabsContent>
           </Tabs>
         </div>
