@@ -6,7 +6,7 @@ import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth";
+import { requireAuth, requireInstructor, requireSuperAdmin, AuthenticatedRequest } from "./middleware/auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
@@ -1609,9 +1609,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Checklist Management Routes
 
-  // Get all checklists (for students)
+  // Get all checklists (for students)  
   app.get("/api/checklists", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
+      console.log('DEBUG: Checklists API called with user:', req.user);
       const allChecklists = await db.query.checklists.findMany({
         where: eq(checklists.isActive, true),
         with: {
@@ -1625,6 +1626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         orderBy: (checklists, { desc }) => [desc(checklists.createdAt)]
       });
 
+      console.log('DEBUG: Found', allChecklists.length, 'checklists');
       res.json(allChecklists);
     } catch (error) {
       console.error("Failed to fetch checklists:", error);

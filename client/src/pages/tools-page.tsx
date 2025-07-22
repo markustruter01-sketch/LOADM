@@ -457,10 +457,12 @@ function ChecklistsGrid() {
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const canSubmit = true; // Permissions checked server-side
 
-  const { data: checklists = [], isLoading: checklistsLoading } = useQuery({
+  const { data: checklists = [], isLoading: checklistsLoading, error: checklistsError } = useQuery({
     queryKey: ['/api/checklists'],
     enabled: true
   });
+  
+  console.log('DEBUG: Checklists query:', { checklists, checklistsLoading, checklistsError });
 
   const { data: completions = [] } = useQuery({
     queryKey: ['/api/checklists/completions'],
