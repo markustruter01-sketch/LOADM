@@ -1616,19 +1616,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Remove the redundant query - we already have the data from the optimized query below
 
-      // Use optimized query with joins to get all data efficiently
-      const checklistsWithItems = await db.query.checklists.findMany({
-        where: eq(checklists.isActive, true),
-        with: {
-          items: {
-            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
-          },
-          creator: {
-            columns: { email: true }
-          }
-        },
-        orderBy: (checklists, { desc }) => [desc(checklists.createdAt)]
+      // Get active checklists
+      const allChecklists = await db.select()
+        .from(checklists)
+        .where(eq(checklists.isActive, true))
+        .orderBy(desc(checklists.createdAt));
+
+      // Get all checklist items in one query
+      const allItems = await db.select()
+        .from(checklistItems)
+        .orderBy(checklistItems.itemOrder);
+
+      // Get creators using simpler approach
+      const creatorMap = new Map();
+      for (const checklist of allChecklists) {
+        if (!creatorMap.has(checklist.createdById)) {
+          const creator = await db.select({ email: users.email })
+            .from(users)
+            .where(eq(users.id, checklist.createdById))
+            .limit(1);
+          creatorMap.set(checklist.createdById, creator[0]?.email || 'Unknown');
+        }
+      }
+
+      // Create lookup maps
+      const itemsMap = new Map();
+      allItems.forEach(item => {
+        if (!itemsMap.has(item.checklistId)) {
+          itemsMap.set(item.checklistId, []);
+        }
+        itemsMap.get(item.checklistId).push(item);
       });
+
+      // Combine data efficiently
+      const checklistsWithItems = allChecklists.map(checklist => ({
+        ...checklist,
+        items: itemsMap.get(checklist.id) || [],
+        creator: { email: creatorMap.get(checklist.createdById) || 'Unknown' }
+      }));
 
       // Get all user completions in one query
       const userCompletions = await db.select()
