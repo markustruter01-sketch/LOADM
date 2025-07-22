@@ -40,9 +40,22 @@ export function createIsolatedSession(userId: number, email: string, role: strin
 
 export function getIsolatedSession(sessionId: string) {
   if (!sessionId || !sessionId.startsWith('isolated_')) {
+    console.log('🔧 SESSION: Invalid session ID format:', sessionId?.substring(0, 20) + '...');
     return null;
   }
-  return ISOLATED_SESSIONS.get(sessionId) || null;
+  
+  const session = ISOLATED_SESSIONS.get(sessionId);
+  if (!session) {
+    console.log('🔧 SESSION: Session not found in store. Active sessions:', ISOLATED_SESSIONS.size);
+    console.log('🔧 SESSION: Looking for:', sessionId.substring(0, 20) + '...');
+    // List first few session IDs for debugging
+    const sessionIds = Array.from(ISOLATED_SESSIONS.keys()).slice(0, 3);
+    console.log('🔧 SESSION: Available sessions:', sessionIds.map(id => id.substring(0, 20) + '...'));
+  } else {
+    console.log('🔧 SESSION: Found session for:', session.email);
+  }
+  
+  return session || null;
 }
 
 export function deleteIsolatedSession(sessionId: string): boolean {

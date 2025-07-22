@@ -56,10 +56,23 @@ export default function ChecklistDetailPage() {
   const canSubmit = true;
 
   const checklistId = match?.params?.id ? parseInt(match.params.id) : null;
+  
+  console.log('DEBUG CHECKLIST DETAIL: Route match:', match);
+  console.log('DEBUG CHECKLIST DETAIL: Checklist ID:', checklistId);
+  console.log('DEBUG CHECKLIST DETAIL: Query enabled:', !!checklistId && !isNaN(checklistId));
+  console.log('DEBUG CHECKLIST DETAIL: URL:', window.location.href);
 
   const { data: checklist, isLoading, error } = useQuery({
     queryKey: [`/api/checklists/${checklistId}`],
     enabled: !!checklistId && !isNaN(checklistId)
+  });
+  
+  console.log('DEBUG CHECKLIST DETAIL: Query result:', { checklist, isLoading, error });
+  
+  // Add authentication check
+  const { data: authData } = useQuery({
+    queryKey: ['/api/user/check'],
+    retry: false
   });
 
   // Initialize checked items from user completion data
@@ -181,30 +194,42 @@ export default function ChecklistDetailPage() {
   };
 
   if (isLoading) {
+    console.log('DEBUG CHECKLIST DETAIL: Showing loading state');
     return (
       <div className="min-h-screen bg-gray-900 p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-700 rounded w-1/4 mb-6"></div>
-            <div className="h-12 bg-gray-700 rounded w-3/4 mb-4"></div>
-            <div className="space-y-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-800 rounded"></div>
-              ))}
-            </div>
-          </div>
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <h1 className="text-2xl font-bold text-white mb-2">Loading Checklist...</h1>
+          <p className="text-gray-400">Please wait while we fetch the checklist details.</p>
         </div>
       </div>
     );
   }
 
-  if (error || !checklist) {
+  if (error) {
+    console.log('DEBUG CHECKLIST DETAIL: Showing error state:', error);
+    return (
+      <div className="min-h-screen bg-gray-900 p-6">
+        <div className="max-w-4xl mx-auto text-center py-12">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Error Loading Checklist</h1>
+          <p className="text-gray-400 mb-6">Error: {error.message}</p>
+          <Button onClick={handleBackClick} className="bg-orange-500 hover:bg-orange-600">
+            Back to Checklists
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!checklist) {
+    console.log('DEBUG CHECKLIST DETAIL: Showing not found state - checklist is null/undefined');
     return (
       <div className="min-h-screen bg-gray-900 p-6">
         <div className="max-w-4xl mx-auto text-center py-12">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Checklist Not Found</h1>
-          <p className="text-gray-400 mb-6">The requested checklist could not be found.</p>
+          <p className="text-gray-400 mb-6">The requested checklist could not be found. ID: {checklistId}</p>
           <Button onClick={handleBackClick} className="bg-orange-500 hover:bg-orange-600">
             Back to Checklists
           </Button>

@@ -1686,6 +1686,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const checklistId = parseInt(id);
       
       console.log('🔧 CHECKLIST DETAIL API: Fetching checklist ID:', checklistId, 'for user:', req.user?.email);
+      console.log('🔧 CHECKLIST DETAIL API: Session cookies:', req.cookies);
+      console.log('🔧 CHECKLIST DETAIL API: Request headers:', req.headers.cookie);
       
       if (isNaN(checklistId)) {
         console.log('🔧 CHECKLIST DETAIL API: Invalid ID provided:', id);

@@ -13,7 +13,9 @@ import path from "path";
 const app = express();
 
 // Clear all sessions on startup
-authCore.clearAllIsolatedSessions();
+// PRESERVE SESSIONS ON RESTART - DO NOT CLEAR
+// authCore.clearAllIsolatedSessions();
+console.log('✅ ISOLATED AUTH: Sessions preserved on restart');
 
 // Start license expiry monitoring
 licenseExpiryService.startPeriodicCheck();
