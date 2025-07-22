@@ -1636,9 +1636,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/checklists/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
+      console.log('DEBUG: Received checklist ID parameter:', id);
+      
+      const checklistId = parseInt(id);
+      console.log('DEBUG: Parsed checklist ID:', checklistId, 'isNaN:', isNaN(checklistId));
+      
+      if (isNaN(checklistId)) {
+        return res.status(400).json({ error: "Invalid checklist ID" });
+      }
       
       const checklist = await db.query.checklists.findFirst({
-        where: and(eq(checklists.id, parseInt(id)), eq(checklists.isActive, true)),
+        where: and(eq(checklists.id, checklistId), eq(checklists.isActive, true)),
         with: {
           items: {
             orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
@@ -1656,7 +1664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user's completion status for this checklist
       const userCompletion = await db.query.checklistCompletions.findFirst({
         where: and(
-          eq(checklistCompletions.checklistId, parseInt(id)),
+          eq(checklistCompletions.checklistId, checklistId),
           eq(checklistCompletions.userId, req.user!.id)
         )
       });

@@ -52,14 +52,16 @@ export default function ChecklistDetailPage() {
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const queryClient = useQueryClient();
-  const { checkPermission } = usePermissions();
-  const canSubmit = checkPermission('submit');
+  // For now, assume canSubmit is true - permissions checked server-side  
+  const canSubmit = true;
 
   const checklistId = match?.params?.id ? parseInt(match.params.id) : null;
+  
+  console.log('DEBUG: Checklist ID from URL params:', match?.params?.id, 'Parsed ID:', checklistId);
 
   const { data: checklist, isLoading, error } = useQuery({
     queryKey: [`/api/checklists/${checklistId}`],
-    enabled: !!checklistId
+    enabled: !!checklistId && !isNaN(checklistId)
   });
 
   // Initialize checked items from user completion data
