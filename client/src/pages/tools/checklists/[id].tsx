@@ -168,7 +168,7 @@ export default function ChecklistDetailPage() {
   };
 
   const handleBackClick = () => {
-    setLocation("/tools/checklists");
+    setLocation("/tools");
   };
 
   const getCategoryColor = (category: string) => {
@@ -224,7 +224,7 @@ export default function ChecklistDetailPage() {
           <h1 className="text-2xl font-bold text-white mb-2">Error Loading Checklist</h1>
           <p className="text-gray-400 mb-6">Error: {error.message}</p>
           <Button onClick={handleBackClick} className="bg-orange-500 hover:bg-orange-600">
-            Back to Checklists
+            Back to Tools
           </Button>
         </div>
       </div>
@@ -240,7 +240,7 @@ export default function ChecklistDetailPage() {
           <h1 className="text-2xl font-bold text-white mb-2">Checklist Not Found</h1>
           <p className="text-gray-400 mb-6">The requested checklist could not be found. ID: {checklistId}</p>
           <Button onClick={handleBackClick} className="bg-orange-500 hover:bg-orange-600">
-            Back to Checklists
+            Back to Tools
           </Button>
         </div>
       </div>
@@ -271,7 +271,7 @@ export default function ChecklistDetailPage() {
               className="border-gray-600 text-gray-200 hover:bg-gray-800" 
               onClick={handleBackClick}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Checklists
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Tools
             </Button>
             
             {isCompleted && (
