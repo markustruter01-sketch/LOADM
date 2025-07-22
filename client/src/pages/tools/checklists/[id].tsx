@@ -173,12 +173,12 @@ export default function ChecklistDetailPage() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'startup': return 'bg-green-100 text-green-800 border-green-200';
-      case 'shutdown': return 'bg-red-100 text-red-800 border-red-200';
-      case 'pre-flight': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'post-flight': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'emergency': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'startup': return 'bg-gray-700 text-green-400 border-gray-600';
+      case 'shutdown': return 'bg-gray-700 text-red-400 border-gray-600';
+      case 'pre-flight': return 'bg-gray-700 text-blue-400 border-gray-600';
+      case 'post-flight': return 'bg-gray-700 text-purple-400 border-gray-600';
+      case 'emergency': return 'bg-orange-500 text-white border-orange-400';
+      default: return 'bg-gray-700 text-gray-300 border-gray-600';
     }
   };
 
@@ -275,7 +275,7 @@ export default function ChecklistDetailPage() {
             </Button>
             
             {isCompleted && (
-              <Badge className="bg-green-100 text-green-800 border-green-200 px-3 py-1">
+              <Badge className="bg-green-600 text-white border-green-500 px-3 py-1">
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Completed
               </Badge>
@@ -288,7 +288,7 @@ export default function ChecklistDetailPage() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3 mb-3">
                   <Plane className="h-6 w-6 text-orange-500" />
-                  <Badge variant="outline" className="border-orange-400 text-orange-400">
+                  <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700">
                     {checklist.aircraftType}
                   </Badge>
                   <Badge className={getCategoryColor(checklist.category)}>
@@ -320,10 +320,10 @@ export default function ChecklistDetailPage() {
                     background: "rgb(55, 65, 81)" // gray-700
                   } as any}
                 />
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{completionPercentage}% Complete</span>
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span className="text-orange-400">{completionPercentage}% Complete</span>
                   {requiredItems.length > 0 && (
-                    <span>Required: {completedRequiredItems}/{requiredItems.length}</span>
+                    <span>Required: <span className="text-orange-400">{completedRequiredItems}/{requiredItems.length}</span></span>
                   )}
                 </div>
               </div>
@@ -338,7 +338,7 @@ export default function ChecklistDetailPage() {
                   <CardTitle className="text-lg text-white flex items-center gap-2">
                     <CheckSquare className="h-5 w-5 text-orange-500" />
                     {categoryName}
-                    <Badge variant="outline" className="ml-2 text-xs">
+                    <Badge variant="outline" className="ml-2 text-xs border-gray-600 text-gray-300 bg-gray-700">
                       {items.filter(item => checkedItems.has(item.id)).length}/{items.length}
                     </Badge>
                   </CardTitle>
@@ -350,8 +350,8 @@ export default function ChecklistDetailPage() {
                         key={item.id}
                         className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
                           checkedItems.has(item.id)
-                            ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700/50 dark:border-gray-600 dark:hover:bg-gray-700'
+                            ? 'bg-green-900/20 border-green-700'
+                            : 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
                         }`}
                       >
                         <Checkbox
@@ -361,11 +361,11 @@ export default function ChecklistDetailPage() {
                         />
                         <div className="flex-1">
                           <div className={`font-medium ${
-                            checkedItems.has(item.id) ? 'text-green-800 dark:text-green-200' : 'text-gray-900 dark:text-gray-100'
+                            checkedItems.has(item.id) ? 'text-green-300' : 'text-gray-100'
                           }`}>
                             {item.itemText}
                             {item.isRequired && (
-                              <Badge variant="outline" className="ml-2 text-xs border-red-300 text-red-600">
+                              <Badge className="ml-2 text-xs bg-orange-500 text-white border-orange-400">
                                 Required
                               </Badge>
                             )}
@@ -405,7 +405,7 @@ export default function ChecklistDetailPage() {
                   )}
                 </Button>
                 {completedRequiredItems !== requiredItems.length && requiredItems.length > 0 && (
-                  <p className="text-xs text-yellow-500 mt-2">
+                  <p className="text-xs text-orange-400 mt-2">
                     Complete all {requiredItems.length} required items to finish
                   </p>
                 )}
