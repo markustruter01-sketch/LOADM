@@ -1614,47 +1614,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔧 CHECKLIST API: Fetching all checklists for user:', req.user?.email);
       
-      // Simple query to get all active checklists with their items
-      const allChecklists = await db.select({
-        id: checklists.id,
-        title: checklists.title,
-        description: checklists.description,
-        aircraftType: checklists.aircraftType,
-        category: checklists.category,
-        isActive: checklists.isActive,
-        createdAt: checklists.createdAt,
-        createdById: checklists.createdById
-      })
-      .from(checklists)
-      .where(eq(checklists.isActive, true))
-      .orderBy(desc(checklists.createdAt));
+      // Remove the redundant query - we already have the data from the optimized query below
 
-      console.log('🔧 CHECKLIST API: Found', allChecklists.length, 'active checklists');
+      // Use optimized query with joins to get all data efficiently
+      const checklistsWithItems = await db.query.checklists.findMany({
+        where: eq(checklists.isActive, true),
+        with: {
+          items: {
+            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
+          },
+          creator: {
+            columns: { email: true }
+          }
+        },
+        orderBy: (checklists, { desc }) => [desc(checklists.createdAt)]
+      });
 
-      // Get items for each checklist
-      const checklistsWithItems = await Promise.all(
-        allChecklists.map(async (checklist) => {
-          const items = await db.select()
-            .from(checklistItems)
-            .where(eq(checklistItems.checklistId, checklist.id))
-            .orderBy(checklistItems.itemOrder);
+      // Get all user completions in one query
+      const userCompletions = await db.select()
+        .from(checklistCompletions)
+        .where(eq(checklistCompletions.userId, req.user!.id));
 
-          // Get creator email
-          const creator = await db.select({ email: users.email })
-            .from(users)
-            .where(eq(users.id, checklist.createdById))
-            .limit(1);
+      // Create completion lookup map
+      const completionMap = new Map();
+      userCompletions.forEach(completion => {
+        completionMap.set(completion.checklistId, completion);
+      });
 
-          return {
-            ...checklist,
-            items: items,
-            creator: { email: creator[0]?.email || 'Unknown' }
-          };
-        })
-      );
+      // Add completion data to each checklist
+      const enrichedChecklists = checklistsWithItems.map(checklist => ({
+        ...checklist,
+        userCompletion: completionMap.get(checklist.id) || null
+      }));
 
-      console.log('🔧 CHECKLIST API: Returning', checklistsWithItems.length, 'checklists with items');
-      res.json(checklistsWithItems);
+      console.log('🔧 CHECKLIST API: Returning', enrichedChecklists.length, 'checklists with completion data');
+      res.json(enrichedChecklists);
     } catch (error) {
       console.error('🔧 CHECKLIST API ERROR:', error);
       res.status(500).json({ error: "Failed to fetch checklists" });

@@ -64,6 +64,7 @@ interface Checklist {
   creator: {
     email: string;
   };
+  userCompletion?: ChecklistCompletion | null;
 }
 
 interface ChecklistCompletion {
@@ -462,10 +463,7 @@ function ChecklistsGrid() {
     enabled: true
   });
 
-  const { data: completions = [] } = useQuery({
-    queryKey: ['/api/checklists/completions'],
-    enabled: canSubmit
-  });
+  // Completions are now included in the main checklists response - no separate call needed
 
   const handleChecklistClick = (checklistId: number) => {
     if (!canSubmit) {
@@ -475,9 +473,9 @@ function ChecklistsGrid() {
     setLocation(`/tools/checklists/${checklistId}`);
   };
 
-  const getCompletionStatus = (checklistId: number) => {
+  const getCompletionStatus = (checklist: Checklist) => {
     if (!canSubmit) return null;
-    return (completions as ChecklistCompletion[]).find((c: ChecklistCompletion) => c.checklistId === checklistId);
+    return checklist.userCompletion;
   };
 
   const getAircraftIcon = (aircraftType: string) => {
@@ -564,7 +562,7 @@ function ChecklistsGrid() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredChecklists.map((checklist: Checklist) => {
-            const completion = getCompletionStatus(checklist.id);
+            const completion = getCompletionStatus(checklist);
             const isCompleted = completion?.completionStatus === "completed";
             const completionPercentage = completion ? Math.round((completion.completedCount / completion.totalItems) * 100) : 0;
 
