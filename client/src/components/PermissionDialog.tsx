@@ -3,24 +3,26 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, Lock } from "lucide-react";
 
 interface PermissionDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
   action: string;
+  feature?: string;
   title?: string;
   description?: string;
 }
 
 export function PermissionDialog({ 
-  open, 
-  onOpenChange, 
+  isOpen, 
+  onClose, 
   action, 
+  feature,
   title = "Access Restricted",
   description 
 }: PermissionDialogProps) {
   const defaultDescription = `You don't have permission to ${action} under your current license. Please contact your administrator to upgrade your access level.`;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -45,7 +47,7 @@ export function PermissionDialog({
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={onClose}>
             Understood
           </Button>
         </div>

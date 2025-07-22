@@ -53,7 +53,7 @@ export function getUserPermissions(user: User | null): PermissionCheck {
   }
 
   const role = user.role;
-  const licenseType = user.licenseType || user.userRole || role;
+  const licenseType = user.licenseType || role;
 
   switch (licenseType) {
     case 'readonly':
@@ -139,4 +139,13 @@ export function requiresPermission(user: User | null, action: keyof PermissionCh
   }
   
   return { allowed: true, message: '' };
+}
+
+// Hook for using permissions in components
+export function usePermissions(user: User | null) {
+  return {
+    permissions: getUserPermissions(user),
+    canPerformAction: (action: keyof PermissionCheck) => canPerformAction(user, action),
+    requiresPermission: (action: keyof PermissionCheck) => requiresPermission(user, action)
+  };
 }
