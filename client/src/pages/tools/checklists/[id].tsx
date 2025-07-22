@@ -49,16 +49,25 @@ interface Checklist {
 export default function ChecklistDetailPage() {
   const [, setLocation] = useLocation();
   const [match] = useRoute("/tools/checklists/:id");
+  
+  console.log('DEBUG CHECKLIST DETAIL: Raw match object:', match);
+  console.log('DEBUG CHECKLIST DETAIL: Match params:', match?.params);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
   const queryClient = useQueryClient();
   // For now, assume canSubmit is true - permissions checked server-side  
   const canSubmit = true;
 
-  const checklistId = match?.params?.id ? parseInt(match.params.id) : null;
+  // Extract ID from URL directly as fallback
+  const urlPath = window.location.pathname;
+  const urlIdMatch = urlPath.match(/\/tools\/checklists\/(\d+)/);
+  const urlId = urlIdMatch ? parseInt(urlIdMatch[1]) : null;
+  
+  const checklistId = match?.params?.id ? parseInt(match.params.id) : urlId;
   
   console.log('DEBUG CHECKLIST DETAIL: Route match:', match);
-  console.log('DEBUG CHECKLIST DETAIL: Checklist ID:', checklistId);
+  console.log('DEBUG CHECKLIST DETAIL: URL ID from regex:', urlId);
+  console.log('DEBUG CHECKLIST DETAIL: Final Checklist ID:', checklistId);
   console.log('DEBUG CHECKLIST DETAIL: Query enabled:', !!checklistId && !isNaN(checklistId));
   console.log('DEBUG CHECKLIST DETAIL: URL:', window.location.href);
 
