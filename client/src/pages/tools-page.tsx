@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target, Anchor } from "lucide-react";
+import { ArrowLeft, Calculator, Scale, BarChart2, TrendingUp, Truck, Box, Cylinder, Package, Circle, Target, Anchor, CheckSquare } from "lucide-react";
 import { useLocation } from "wouter";
 import {
   Card,
@@ -458,10 +458,11 @@ export default function ToolsPage() {
 
           {/* Tools Categories */}
           <Tabs defaultValue="weight-balance" className="mb-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="weight-balance">Weight & Balance</TabsTrigger>
               <TabsTrigger value="psi-calculators">PSI Calculators</TabsTrigger>
               <TabsTrigger value="mission-analysis">Mission Analysis</TabsTrigger>
+              <TabsTrigger value="checklists">Checklists</TabsTrigger>
             </TabsList>
             
             {/* Weight & Balance Tools */}
@@ -742,6 +743,54 @@ export default function ToolsPage() {
                   </CardHeader>
                   <CardContent className="p-6">
                     <MissionComplexityAnalyzer />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Checklists */}
+            <TabsContent value="checklists" className="mt-6">
+              <div className="mb-10">
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="bg-primary/10">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Aircraft Checklists</CardTitle>
+                      <CheckSquare className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardDescription>Digital aircraft operational checklists with completion tracking</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="text-center py-8">
+                      <CheckSquare className="h-16 w-16 text-orange-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Digital Checklists</h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        Access instructor-created aircraft checklists for various operations. Complete items with tickboxes and track your progress.
+                      </p>
+                      <Button 
+                        onClick={() => navigateToTool('checklists')}
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2"
+                      >
+                        View Available Checklists
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-sm text-gray-600">
+                      <div className="text-center">
+                        <div className="font-medium text-orange-600">C-17</div>
+                        <div>Startup • Shutdown</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-orange-600">C-130</div>
+                        <div>Pre-flight • Emergency</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-orange-600">KC30A</div>
+                        <div>Systems • Operations</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-orange-600">C-27J</div>
+                        <div>Configuration • Safety</div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

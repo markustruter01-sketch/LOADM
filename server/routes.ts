@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertTrainingModuleVideoSchema, phoneDirectory, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
@@ -1604,6 +1604,294 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to delete training module:", error);
       res.status(500).json({ error: "Failed to delete training module" });
+    }
+  });
+
+  // Checklist Management Routes
+
+  // Get all checklists (for students)
+  app.get("/api/checklists", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const allChecklists = await db.query.checklists.findMany({
+        where: eq(checklists.isActive, true),
+        with: {
+          items: {
+            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
+          },
+          creator: {
+            columns: { email: true }
+          }
+        },
+        orderBy: (checklists, { desc }) => [desc(checklists.createdAt)]
+      });
+
+      res.json(allChecklists);
+    } catch (error) {
+      console.error("Failed to fetch checklists:", error);
+      res.status(500).json({ error: "Failed to fetch checklists" });
+    }
+  });
+
+  // Get checklist by ID with completion status for user
+  app.get("/api/checklists/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      
+      const checklist = await db.query.checklists.findFirst({
+        where: and(eq(checklists.id, parseInt(id)), eq(checklists.isActive, true)),
+        with: {
+          items: {
+            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
+          },
+          creator: {
+            columns: { email: true }
+          }
+        }
+      });
+
+      if (!checklist) {
+        return res.status(404).json({ error: "Checklist not found" });
+      }
+
+      // Get user's completion status for this checklist
+      const userCompletion = await db.query.checklistCompletions.findFirst({
+        where: and(
+          eq(checklistCompletions.checklistId, parseInt(id)),
+          eq(checklistCompletions.userId, req.user!.id)
+        )
+      });
+
+      const response = {
+        ...checklist,
+        userCompletion: userCompletion || null
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to fetch checklist:", error);
+      res.status(500).json({ error: "Failed to fetch checklist" });
+    }
+  });
+
+  // Create checklist (instructors only)
+  app.post("/api/checklists", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const validatedData = insertChecklistSchema.parse({
+        ...req.body,
+        createdById: req.user!.id
+      });
+
+      const [newChecklist] = await db.insert(checklists).values(validatedData).returning();
+
+      // Create checklist items if provided
+      if (req.body.items && Array.isArray(req.body.items)) {
+        const itemsData = req.body.items.map((item: any, index: number) => ({
+          checklistId: newChecklist.id,
+          itemText: item.itemText,
+          itemOrder: item.itemOrder || index + 1,
+          isRequired: item.isRequired !== false,
+          category: item.category || null
+        }));
+
+        await db.insert(checklistItems).values(itemsData);
+      }
+
+      // Return checklist with items
+      const checklistWithItems = await db.query.checklists.findFirst({
+        where: eq(checklists.id, newChecklist.id),
+        with: {
+          items: {
+            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
+          }
+        }
+      });
+
+      res.json(checklistWithItems);
+    } catch (error) {
+      console.error("Failed to create checklist:", error);
+      res.status(500).json({ error: "Failed to create checklist" });
+    }
+  });
+
+  // Update checklist (instructors only)
+  app.put("/api/checklists/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { items, ...checklistData } = req.body;
+
+      // Update checklist
+      const [updatedChecklist] = await db.update(checklists)
+        .set({ ...checklistData, updatedAt: new Date() })
+        .where(eq(checklists.id, parseInt(id)))
+        .returning();
+
+      if (!updatedChecklist) {
+        return res.status(404).json({ error: "Checklist not found" });
+      }
+
+      // Update items if provided
+      if (items && Array.isArray(items)) {
+        // Delete existing items
+        await db.delete(checklistItems).where(eq(checklistItems.checklistId, parseInt(id)));
+        
+        // Insert new items
+        const itemsData = items.map((item: any, index: number) => ({
+          checklistId: parseInt(id),
+          itemText: item.itemText,
+          itemOrder: item.itemOrder || index + 1,
+          isRequired: item.isRequired !== false,
+          category: item.category || null
+        }));
+
+        await db.insert(checklistItems).values(itemsData);
+      }
+
+      // Return updated checklist with items
+      const checklistWithItems = await db.query.checklists.findFirst({
+        where: eq(checklists.id, parseInt(id)),
+        with: {
+          items: {
+            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
+          }
+        }
+      });
+
+      res.json(checklistWithItems);
+    } catch (error) {
+      console.error("Failed to update checklist:", error);
+      res.status(500).json({ error: "Failed to update checklist" });
+    }
+  });
+
+  // Delete checklist (instructors only)
+  app.delete("/api/checklists/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      
+      await db.delete(checklists).where(eq(checklists.id, parseInt(id)));
+      
+      res.json({ message: "Checklist deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete checklist:", error);
+      res.status(500).json({ error: "Failed to delete checklist" });
+    }
+  });
+
+  // Start/update checklist completion
+  app.post("/api/checklists/:id/completion", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { completedItems } = req.body;
+
+      if (!Array.isArray(completedItems)) {
+        return res.status(400).json({ error: "completedItems must be an array" });
+      }
+
+      // Get checklist to validate
+      const checklist = await db.query.checklists.findFirst({
+        where: eq(checklists.id, parseInt(id)),
+        with: {
+          items: true
+        }
+      });
+
+      if (!checklist) {
+        return res.status(404).json({ error: "Checklist not found" });
+      }
+
+      const totalItems = checklist.items.length;
+      const completedCount = completedItems.length;
+      const completionStatus = completedCount === totalItems ? "completed" : "in_progress";
+
+      // Check if completion already exists
+      const existingCompletion = await db.query.checklistCompletions.findFirst({
+        where: and(
+          eq(checklistCompletions.checklistId, parseInt(id)),
+          eq(checklistCompletions.userId, req.user!.id)
+        )
+      });
+
+      if (existingCompletion) {
+        // Update existing completion
+        const [updatedCompletion] = await db.update(checklistCompletions)
+          .set({
+            completedItems,
+            completedCount,
+            completionStatus,
+            completedAt: completionStatus === "completed" ? new Date() : null
+          })
+          .where(eq(checklistCompletions.id, existingCompletion.id))
+          .returning();
+
+        res.json(updatedCompletion);
+      } else {
+        // Create new completion
+        const [newCompletion] = await db.insert(checklistCompletions)
+          .values({
+            checklistId: parseInt(id),
+            userId: req.user!.id,
+            completedItems,
+            totalItems,
+            completedCount,
+            completionStatus,
+            completedAt: completionStatus === "completed" ? new Date() : null
+          })
+          .returning();
+
+        res.json(newCompletion);
+      }
+    } catch (error) {
+      console.error("Failed to update checklist completion:", error);
+      res.status(500).json({ error: "Failed to update checklist completion" });
+    }
+  });
+
+  // Get user's checklist completion history
+  app.get("/api/checklists/completions", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const completions = await db.query.checklistCompletions.findMany({
+        where: eq(checklistCompletions.userId, req.user!.id),
+        with: {
+          checklist: {
+            columns: { title: true, description: true, aircraftType: true, category: true }
+          }
+        },
+        orderBy: (checklistCompletions, { desc }) => [desc(checklistCompletions.startedAt)]
+      });
+
+      res.json(completions);
+    } catch (error) {
+      console.error("Failed to fetch completion history:", error);
+      res.status(500).json({ error: "Failed to fetch completion history" });
+    }
+  });
+
+  // Get all checklists for instructor management
+  app.get("/api/instructor/checklists", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const instructorChecklists = await db.query.checklists.findMany({
+        with: {
+          items: {
+            orderBy: (checklistItems, { asc }) => [asc(checklistItems.itemOrder)]
+          },
+          creator: {
+            columns: { email: true }
+          },
+          completions: {
+            with: {
+              user: {
+                columns: { email: true }
+              }
+            }
+          }
+        },
+        orderBy: (checklists, { desc }) => [desc(checklists.createdAt)]
+      });
+
+      res.json(instructorChecklists);
+    } catch (error) {
+      console.error("Failed to fetch instructor checklists:", error);
+      res.status(500).json({ error: "Failed to fetch instructor checklists" });
     }
   });
 

@@ -341,6 +341,79 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 
+// Checklists schema - For instructor-created checklists
+export const checklists = pgTable("checklists", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  aircraftType: text("aircraft_type").notNull(), // C-17, C-130, C-27J, KC30A, General
+  category: text("category").notNull().default("startup"), // startup, shutdown, pre-flight, post-flight, emergency
+  isActive: boolean("is_active").default(true).notNull(),
+  createdById: integer("created_by_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertChecklistSchema = createInsertSchema(checklists).pick({
+  title: true,
+  description: true,
+  aircraftType: true,
+  category: true,
+  isActive: true,
+  createdById: true,
+});
+
+export type Checklist = typeof checklists.$inferSelect;
+export type InsertChecklist = z.infer<typeof insertChecklistSchema>;
+
+// Checklist items schema - Individual items within a checklist
+export const checklistItems = pgTable("checklist_items", {
+  id: serial("id").primaryKey(),
+  checklistId: integer("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
+  itemText: text("item_text").notNull(),
+  itemOrder: integer("item_order").notNull(),
+  isRequired: boolean("is_required").default(true).notNull(),
+  category: text("category"), // Optional grouping like "Engine Start", "Systems Check"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertChecklistItemSchema = createInsertSchema(checklistItems).pick({
+  checklistId: true,
+  itemText: true,
+  itemOrder: true,
+  isRequired: true,
+  category: true,
+});
+
+export type ChecklistItem = typeof checklistItems.$inferSelect;
+export type InsertChecklistItem = z.infer<typeof insertChecklistItemSchema>;
+
+// Checklist completions schema - User completions of checklists
+export const checklistCompletions = pgTable("checklist_completions", {
+  id: serial("id").primaryKey(),
+  checklistId: integer("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  completedItems: json("completed_items").$type<number[]>().notNull(), // Array of completed item IDs
+  completionStatus: text("completion_status").notNull().default("in_progress"), // in_progress, completed
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  totalItems: integer("total_items").notNull(),
+  completedCount: integer("completed_count").notNull().default(0),
+});
+
+export const insertChecklistCompletionSchema = createInsertSchema(checklistCompletions).pick({
+  checklistId: true,
+  userId: true,
+  completedItems: true,
+  completionStatus: true,
+  completedAt: true,
+  totalItems: true,
+  completedCount: true,
+});
+
+export type ChecklistCompletion = typeof checklistCompletions.$inferSelect;
+export type InsertChecklistCompletion = z.infer<typeof insertChecklistCompletionSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   documentSubmissions: many(documentSubmissions),
@@ -348,6 +421,8 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   quizzes: many(quizzes),
   quizSubmissions: many(quizSubmissions),
   chatMessages: many(chatMessages),
+  checklists: many(checklists),
+  checklistCompletions: many(checklistCompletions),
   license: one(licenses, {
     fields: [users.licenseId],
     references: [licenses.id],
@@ -454,6 +529,33 @@ export const trainingModuleVideosRelations = relations(trainingModuleVideos, ({ 
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   user: one(users, {
     fields: [chatMessages.userId],
+    references: [users.id],
+  }),
+}));
+
+export const checklistsRelations = relations(checklists, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [checklists.createdById],
+    references: [users.id],
+  }),
+  items: many(checklistItems),
+  completions: many(checklistCompletions),
+}));
+
+export const checklistItemsRelations = relations(checklistItems, ({ one }) => ({
+  checklist: one(checklists, {
+    fields: [checklistItems.checklistId],
+    references: [checklists.id],
+  }),
+}));
+
+export const checklistCompletionsRelations = relations(checklistCompletions, ({ one }) => ({
+  checklist: one(checklists, {
+    fields: [checklistCompletions.checklistId],
+    references: [checklists.id],
+  }),
+  user: one(users, {
+    fields: [checklistCompletions.userId],
     references: [users.id],
   }),
 }));

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
-  HelpCircle, Users, ArrowLeft, Edit
+  HelpCircle, Users, ArrowLeft, Edit, CheckSquare
 } from "lucide-react";
 import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -199,7 +199,7 @@ export default function InstructorsPortal() {
 
         {/* Core Management Actions */}
         <h3 className="text-xl font-semibold mb-4 text-foreground">Core Management Functions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -266,6 +266,33 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
           
+          {/* Checklist Management Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Checklist Management</CardTitle>
+                <CheckSquare className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>Create and manage aircraft operation checklists</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Design digital checklists for aircraft operations that students can complete with tickbox tracking
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/checklist-management">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
+                  Manage Checklists
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+
+        {/* Additional Management Tools */}
+        <h3 className="text-xl font-semibold mb-4 text-foreground">Additional Tools</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Pop Quizzes Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>

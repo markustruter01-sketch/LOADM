@@ -62,6 +62,9 @@ import WorkforcePage from "@/pages/instructors-portal/workforce";
 import PermissionsDashboard from "@/pages/permissions-dashboard";
 import QuizQuestionsManagement from "@/pages/instructors-portal/quiz-questions";
 import TrainingModulesManagement from "@/pages/instructors-portal/training-modules";
+import ChecklistsPage from "@/pages/tools/checklists";
+import ChecklistDetailPage from "@/pages/tools/checklists/[id]";
+import ChecklistManagement from "@/pages/instructors-portal/checklist-management";
 
 
 // Import route protection components (we'll adapt these)
@@ -124,6 +127,8 @@ function AuthenticatedApp() {
             <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
             <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
             <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
+            <AuthenticatedRoute path="/tools/checklists" component={ChecklistsPage} />
+            <AuthenticatedRoute path="/tools/checklists/:id" component={ChecklistDetailPage} />
             <Route path="/training-modules" component={TrainingModulesPage} />
             <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
             <ProtectedRoute path="/admin" component={AdminDashboard} />
@@ -160,6 +165,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
             <InstructorRoute path="/instructors-portal/quiz-questions" component={QuizQuestionsManagement} />
             <InstructorRoute path="/instructors-portal/training-modules" component={TrainingModulesManagement} />
+            <InstructorRoute path="/instructors-portal/checklist-management" component={ChecklistManagement} />
             <Route component={NotFound} />
           </Switch>
         </main>
