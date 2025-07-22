@@ -1955,74 +1955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start/update checklist completion
-  app.post("/api/checklists/:id/completion", requireAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { id } = req.params;
-      const { completedItems } = req.body;
 
-      if (!Array.isArray(completedItems)) {
-        return res.status(400).json({ error: "completedItems must be an array" });
-      }
-
-      // Get checklist to validate
-      const checklist = await db.query.checklists.findFirst({
-        where: eq(checklists.id, parseInt(id)),
-        with: {
-          items: true
-        }
-      });
-
-      if (!checklist) {
-        return res.status(404).json({ error: "Checklist not found" });
-      }
-
-      const totalItems = checklist.items.length;
-      const completedCount = completedItems.length;
-      const completionStatus = completedCount === totalItems ? "completed" : "in_progress";
-
-      // Check if completion already exists
-      const existingCompletion = await db.query.checklistCompletions.findFirst({
-        where: and(
-          eq(checklistCompletions.checklistId, parseInt(id)),
-          eq(checklistCompletions.userId, req.user!.id)
-        )
-      });
-
-      if (existingCompletion) {
-        // Update existing completion
-        const [updatedCompletion] = await db.update(checklistCompletions)
-          .set({
-            completedItems,
-            completedCount,
-            completionStatus,
-            completedAt: completionStatus === "completed" ? new Date() : null
-          })
-          .where(eq(checklistCompletions.id, existingCompletion.id))
-          .returning();
-
-        res.json(updatedCompletion);
-      } else {
-        // Create new completion
-        const [newCompletion] = await db.insert(checklistCompletions)
-          .values({
-            checklistId: parseInt(id),
-            userId: req.user!.id,
-            completedItems,
-            totalItems,
-            completedCount,
-            completionStatus,
-            completedAt: completionStatus === "completed" ? new Date() : null
-          })
-          .returning();
-
-        res.json(newCompletion);
-      }
-    } catch (error) {
-      console.error("Failed to update checklist completion:", error);
-      res.status(500).json({ error: "Failed to update checklist completion" });
-    }
-  });
 
 
 

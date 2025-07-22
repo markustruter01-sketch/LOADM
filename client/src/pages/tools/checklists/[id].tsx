@@ -54,6 +54,7 @@ export default function ChecklistDetailPage() {
   console.log('DEBUG CHECKLIST DETAIL: Match params:', match?.params);
   const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
   const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const queryClient = useQueryClient();
   // For now, assume canSubmit is true - permissions checked server-side  
   const canSubmit = true;
@@ -155,16 +156,19 @@ export default function ChecklistDetailPage() {
     const allItemIds = checklist.items.map(item => item.id);
     setCheckedItems(new Set(allItemIds));
 
+    // Show completion animation
+    setShowCompletionAnimation(true);
+
     updateCompletionMutation.mutate({
       checklistId: checklistId!,
       completedItems: allItemIds
     });
 
-    toast({
-      title: "Checklist Completed!",
-      description: `${checklist.title} has been successfully completed.`,
-      variant: "default"
-    });
+    // Hide animation after 3 seconds and navigate back to tools
+    setTimeout(() => {
+      setShowCompletionAnimation(false);
+      setLocation("/tools");
+    }, 3000);
   };
 
   const handleBackClick = () => {
@@ -440,6 +444,44 @@ export default function ChecklistDetailPage() {
         action="complete checklists"
         feature="Checklist Completion"
       />
+
+      {/* Completion Animation Overlay */}
+      {showCompletionAnimation && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="text-center">
+            <div className="relative">
+              {/* Main check mark animation */}
+              <div className="mx-auto mb-6">
+                <div className="relative w-32 h-32 mx-auto">
+                  {/* Animated background circle */}
+                  <div className="absolute inset-0 rounded-full border-4 border-green-500 animate-ping opacity-75"></div>
+                  <div className="absolute inset-0 rounded-full bg-green-500 animate-pulse"></div>
+                  
+                  {/* Check mark */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <CheckCircle className="w-20 h-20 text-white animate-bounce" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Text animation */}
+              <div className="space-y-4">
+                <h1 className="text-4xl font-bold text-white animate-pulse">
+                  Down to the Line
+                </h1>
+                <h2 className="text-2xl font-semibold text-green-400 animate-bounce">
+                  Checklist Complete!
+                </h2>
+                <div className="flex items-center justify-center gap-2 mt-6">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
