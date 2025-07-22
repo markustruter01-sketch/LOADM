@@ -1632,14 +1632,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user's checklist completions (must come before /:id route)
+  app.get("/api/checklists/completions", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const completions = await db.query.checklistCompletions.findMany({
+        where: eq(checklistCompletions.userId, req.user!.id),
+        with: {
+          checklist: {
+            columns: { title: true, description: true, aircraftType: true, category: true }
+          }
+        },
+        orderBy: (checklistCompletions, { desc }) => [desc(checklistCompletions.startedAt)]
+      });
+
+      res.json(completions);
+    } catch (error) {
+      console.error("Failed to fetch completions:", error);
+      res.status(500).json({ error: "Failed to fetch completions" });
+    }
+  });
+
+
   // Get checklist by ID with completion status for user
   app.get("/api/checklists/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
-      console.log('DEBUG: Received checklist ID parameter:', id);
-      
       const checklistId = parseInt(id);
-      console.log('DEBUG: Parsed checklist ID:', checklistId, 'isNaN:', isNaN(checklistId));
       
       if (isNaN(checklistId)) {
         return res.status(400).json({ error: "Invalid checklist ID" });
@@ -1854,25 +1872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's checklist completion history
-  app.get("/api/checklists/completions", requireAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const completions = await db.query.checklistCompletions.findMany({
-        where: eq(checklistCompletions.userId, req.user!.id),
-        with: {
-          checklist: {
-            columns: { title: true, description: true, aircraftType: true, category: true }
-          }
-        },
-        orderBy: (checklistCompletions, { desc }) => [desc(checklistCompletions.startedAt)]
-      });
 
-      res.json(completions);
-    } catch (error) {
-      console.error("Failed to fetch completion history:", error);
-      res.status(500).json({ error: "Failed to fetch completion history" });
-    }
-  });
 
   // Get all checklists for instructor management
   app.get("/api/instructor/checklists", requireInstructor, async (req: AuthenticatedRequest, res) => {

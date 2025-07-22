@@ -56,8 +56,6 @@ export default function ChecklistDetailPage() {
   const canSubmit = true;
 
   const checklistId = match?.params?.id ? parseInt(match.params.id) : null;
-  
-  console.log('DEBUG: Checklist ID from URL params:', match?.params?.id, 'Parsed ID:', checklistId);
 
   const { data: checklist, isLoading, error } = useQuery({
     queryKey: [`/api/checklists/${checklistId}`],
