@@ -3,14 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Scale, Package, AlertTriangle, MessageCircle, Bot, Send, Download, Mail, FileText } from "lucide-react";
+import { ArrowLeft, Scale, Package, AlertTriangle, Download, Mail, FileText } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLocation, useRoute } from "wouter";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -81,20 +81,7 @@ export default function LoadPlanningPage() {
     totalWeight: 0
   });
 
-  // Chatbot state
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<Array<{
-    type: 'user' | 'bot';
-    message: string;
-    timestamp: Date;
-  }>>([
-    {
-      type: 'bot',
-      message: `Welcome to your ${config.name} Load Planning Assistant! I can help you optimize cargo placement and provide safety recommendations for dangerous goods positioning.`,
-      timestamp: new Date()
-    }
-  ]);
+
 
   // Cargo edit dialog state
   const [editingPosition, setEditingPosition] = useState<string | null>(null);
@@ -119,142 +106,7 @@ export default function LoadPlanningPage() {
     setBalanceResult(result);
   }, [cargoPositions, aircraftId]);
 
-  // AI Chatbot functions
-  const generateAIResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-    const totalWeight = balanceResult.totalWeight;
-    const balance = balanceResult.balance;
-    const status = balanceResult.status;
-    
-    // Analyze current load state
-    const loadedPositions = cargoPositions.filter(pos => pos.weight > 0);
-    const hasHeavyItems = loadedPositions.some(pos => pos.weight > 10000);
-    const hasDangerousGoods = message.includes('dg') || message.includes('dangerous') || message.includes('hazmat');
-    const actualDangerousGoods = cargoPositions.some(pos => pos.cargoType === 'DG');
-    
-    // Check if DG is placed but not in aft positions
-    if (actualDangerousGoods) {
-      const dangerousPositions = cargoPositions.filter(pos => pos.cargoType === 'DG');
-      const getAftPositions = () => {
-        if (aircraftId === 'kc30a') {
-          return kc30aCargoType === 'LD3' ? ['P21', 'P22', 'P23', 'P24', 'P25', 'P26'] : ['P7', 'P8'];
-        } else if (config.name === 'C-17') {
-          return ['P15', 'P16', 'P17', 'P18'];
-        } else {
-          return ['P7', 'P8'];
-        }
-      };
-      const aftPositions = getAftPositions();
-      const dgNotInAft = dangerousPositions.some(pos => !aftPositions.includes(pos.id));
-      
-      if (dgNotInAft) {
-        const aftRange = aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? 'P21-P26' : 'P7-P8') : (config.name === 'C-17' ? 'P15-P18' : 'P7-P8');
-        const centerPositions = aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6') : (config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8');
-        const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-        return `🔄 SAFETY & BALANCE OPTIMIZATION: Dangerous goods should be moved to aft positions (${aftRange}) for emergency jettison capability. Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%, target: ${optimalCG.toFixed(1)}%. For optimal balance, place heavy cargo in center positions (${centerPositions}) and maintain DG safety protocols.`;
-      }
-    }
-    
-    // Safety and balance recommendations
-    if (message.includes('balance') || message.includes('weight') || message.includes('optimize')) {
-      const getCenterPositions = () => {
-        if (aircraftId === 'kc30a') {
-          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
-        }
-        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
-      };
-      const centerPositions = getCenterPositions();
-      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-      
-      if (status === 'critical') {
-        return `⚠️ CRITICAL BALANCE ISSUE: Your current load is ${balance > 0 ? 'too aft' : 'too forward'}. IMMEDIATE ACTION: Move heavy items to center positions (${centerPositions}) to achieve optimal center of gravity at ${optimalCG.toFixed(1)}%. This will provide maximum stability and performance.`;
-      } else if (status === 'warning') {
-        return `⚡ Balance is approaching limits. Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%. OPTIMIZATION: Move cargo closer to center positions (${centerPositions}) for optimal CG at ${optimalCG.toFixed(1)}%. Even within limits, center loading provides better aircraft handling.`;
-      } else {
-        return `✅ Balance is within limits (CG: ${balanceResult.centerOfGravity.toFixed(1)}%). OPTIMIZATION OPPORTUNITY: For maximum efficiency and handling, redistribute cargo to center positions (${centerPositions}). Target optimal CG: ${optimalCG.toFixed(1)}%. Center loading reduces structural stress and improves fuel efficiency.`;
-      }
-    }
-    
-    if (hasDangerousGoods || message.includes('rear') || message.includes('emergency')) {
-      return `🔥 DANGEROUS GOODS SAFETY: Always place dangerous goods (DG) toward the rear of the aircraft. This allows for emergency jettison if needed. Rear positions like ${config.name === 'C-17' ? 'P15-P18' : 'P7-P8'} are ideal for DG cargo. Never place DG near crew areas or fuel systems.`;
-    }
-    
-    if (message.includes('heavy') || message.includes('distribution')) {
-      const getCenterPositions = () => {
-        if (aircraftId === 'kc30a') {
-          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
-        }
-        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
-      };
-      const centerPositions = getCenterPositions();
-      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-      return `📦 HEAVY CARGO OPTIMIZATION: Always prioritize center positions (${centerPositions}) for heavy items. This achieves optimal CG at ${optimalCG.toFixed(1)}% and minimizes structural stress. Distribute evenly across center positions rather than concentrating weight. Avoid forward/aft positions unless necessary for balance correction.`;
-    }
-    
-    if (message.includes('center') || message.includes('cg')) {
-      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-      const getCenterPositions = () => {
-        if (aircraftId === 'kc30a') {
-          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
-        }
-        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
-      };
-      const centerPositions = getCenterPositions();
-      return `⚖️ CENTER OF GRAVITY OPTIMIZATION: Current CG: ${balanceResult.centerOfGravity.toFixed(1)}%. Target optimal CG: ${optimalCG.toFixed(1)}%. Legal range: ${config.forwardLimit}%-${config.aftLimit}%. For best performance, place all cargo in center positions (${centerPositions}) to achieve optimal CG and minimize fuel consumption.`;
-    }
-    
-    if (message.includes('positions') || message.includes('where')) {
-      const getCenterPositions = () => {
-        if (aircraftId === 'kc30a') {
-          return kc30aCargoType === 'LD3' ? 'P6-P8 and P19-P21' : 'P3-P6';
-        }
-        return config.name === 'C-17' ? 'P4-P6 and P13-P15' : 'P3-P4 and P7-P8';
-      };
-      const centerPositions = getCenterPositions();
-      const optimalCG = (config.forwardLimit + config.aftLimit) / 2;
-      return `📍 OPTIMAL POSITION STRATEGY: ${config.name} has ${aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? '26' : '8') : config.positions} positions. PRIORITY ORDER: 1) Center positions (${centerPositions}) for optimal CG at ${optimalCG.toFixed(1)}%. 2) Use forward/aft positions only for fine balance adjustment. Always start with center loading for maximum efficiency.`;
-    }
-    
-    // Default helpful response
-    return `🚁 LOADMASTER ASSISTANT: I can help with cargo balance, dangerous goods placement, weight distribution, and safety recommendations. Try asking about "balance optimization", "dangerous goods safety", or "heavy cargo distribution". What specific guidance do you need?`;
-  };
 
-  const handleChatSubmit = () => {
-    if (!chatInput.trim()) return;
-    
-    // Add user message
-    const userMessage = {
-      type: 'user' as const,
-      message: chatInput,
-      timestamp: new Date()
-    };
-    
-    // Generate AI response
-    const aiResponse = {
-      type: 'bot' as const,
-      message: generateAIResponse(chatInput),
-      timestamp: new Date()
-    };
-    
-    setChatMessages(prev => [...prev, userMessage, aiResponse]);
-    setChatInput("");
-  };
-
-  const handleAnalyzeBalance = () => {
-    const analysisMessage = {
-      type: 'user' as const,
-      message: "Analyze my current load balance",
-      timestamp: new Date()
-    };
-    
-    const aiResponse = {
-      type: 'bot' as const,
-      message: generateAIResponse("analyze balance weight optimize"),
-      timestamp: new Date()
-    };
-    
-    setChatMessages(prev => [...prev, analysisMessage, aiResponse]);
-  };
 
   // PDF Export Functions
   const generateLoadPlanPDF = async (shouldEmail: boolean = false) => {
@@ -903,17 +755,7 @@ export default function LoadPlanningPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-card-foreground">Cargo Bay Layout</CardTitle>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  const aiSection = document.querySelector('#ai-assistant-section');
-                  aiSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="border-orange-500 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300"
-              >
-                <Bot className="h-4 w-4 mr-2" />
-                AI Assistant
-              </Button>
+
               <Button 
                 variant="outline" 
                 onClick={resetAllCargo}
@@ -1129,64 +971,7 @@ export default function LoadPlanningPage() {
 
 
 
-        {/* AI Load Planning Assistant Section */}
-        <Card id="ai-assistant-section" className="bg-card border-border">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Load Planning Assistant</CardTitle>
-              </div>
-              <Button 
-                onClick={handleAnalyzeBalance}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                size="sm"
-              >
-                <Scale className="h-4 w-4 mr-2" />
-                Analyse Balance
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Chat Messages */}
-            <div className="h-64 overflow-y-auto space-y-3 mb-4 p-3 bg-muted/30 rounded-lg">
-              {chatMessages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
-                    msg.type === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-card text-card-foreground border border-border'
-                  }`}>
-                    {msg.message}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Chat Input */}
-            <div className="flex gap-2">
-              <Textarea
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask about balance, dangerous goods, or cargo placement..."
-                className="flex-1 min-h-0 h-10 resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleChatSubmit();
-                  }
-                }}
-              />
-              <Button 
-                onClick={handleChatSubmit}
-                size="sm"
-                className="h-10 w-10 p-0 bg-primary hover:bg-primary/90"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+
 
         <div className="mt-8 text-center">
           <Button 

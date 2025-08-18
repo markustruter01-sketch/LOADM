@@ -4,7 +4,7 @@ import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
-import { generateAnalytics, analyzeCargoBalance, generateAdvancedAnalytics } from "./openai";
+
 import { sendLicenseWelcomeEmail } from "./services/email-service";
 import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth";
 import multer from "multer";
@@ -925,60 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics routes
-  app.post("/api/analytics/generate", requireAuth, async (req, res) => {
-    try {
-      const { scenarioName, selectedScenarioId, totalSubmissions, averageScore, passRate, scoreDistribution, passFailRatio } = req.body;
-      const analytics = await generateAnalytics({ 
-        scenarioName, 
-        selectedScenarioId, 
-        totalSubmissions, 
-        averageScore, 
-        passRate, 
-        scoreDistribution, 
-        passFailRatio 
-      });
-      res.json(analytics);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to generate analytics" });
-    }
-  });
 
-  app.post("/api/analytics/cargo-balance", requireAuth, async (req, res) => {
-    try {
-      const { cargoData } = req.body;
-      const analysis = await analyzeCargoBalance(cargoData);
-      res.json(analysis);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to analyze cargo balance" });
-    }
-  });
-
-  app.post("/api/analytics/advanced", requireAuth, async (req, res) => {
-    try {
-      const { 
-        analysisType,
-        overallStats,
-        squadronData,
-        assessmentTypeData,
-        scoreDistribution,
-        trendData,
-        selectedFilters
-      } = req.body;
-      const analytics = await generateAdvancedAnalytics({ 
-        analysisType,
-        overallStats,
-        squadronData,
-        assessmentTypeData,
-        scoreDistribution,
-        trendData,
-        selectedFilters
-      });
-      res.json(analytics);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to generate advanced analytics" });
-    }
-  });
 
   // Training Module Video Upload endpoints
   app.post("/api/training-modules/:moduleId/videos", requireInstructor, uploadVideo.array('videos', 3), async (req: AuthenticatedRequest, res) => {
