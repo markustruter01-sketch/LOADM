@@ -34,12 +34,14 @@ export default function LoadPlanningPage() {
   }
 
   // KC30A cargo type selector state
-  const [kc30aCargoType, setKc30aCargoType] = useState<'LD3' | 'Pallets'>('LD3');
+  const [kc30aCargoType, setKc30aCargoType] = useState<'LD3' | 'Pallets' | 'GalleyCarts'>('LD3');
 
   // Initialize cargo positions for the aircraft
   const getCargoPositionsCount = () => {
     if (aircraftId === 'kc30a') {
-      return kc30aCargoType === 'LD3' ? 26 : 8;
+      if (kc30aCargoType === 'LD3') return 26;
+      if (kc30aCargoType === 'Pallets') return 8;
+      if (kc30aCargoType === 'GalleyCarts') return 16; // A330 galley cart configuration
     }
     return config.positions;
   };
@@ -59,7 +61,10 @@ export default function LoadPlanningPage() {
   // Update cargo positions when KC30A cargo type changes
   useEffect(() => {
     if (aircraftId === 'kc30a') {
-      const newPositionCount = kc30aCargoType === 'LD3' ? 26 : 8;
+      let newPositionCount = 26; // Default LD3
+      if (kc30aCargoType === 'Pallets') newPositionCount = 8;
+      if (kc30aCargoType === 'GalleyCarts') newPositionCount = 16;
+      
       setCargoPositions(
         Array.from({ length: newPositionCount }, (_, i) => ({
           id: `P${i + 1}`,
@@ -616,7 +621,7 @@ export default function LoadPlanningPage() {
             <h1 className="text-3xl font-bold text-card-foreground">{config.name} Load Planning</h1>
             <p className="text-muted-foreground300">
               Max Payload: {aircraftId === 'kc30a' ? '34,000 kg' : `${config.maxWeight.toLocaleString()} lbs`} | 
-              Max Positions: {aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? '26' : '8') : config.positions}
+              Max Positions: {aircraftId === 'kc30a' ? (kc30aCargoType === 'LD3' ? '26' : kc30aCargoType === 'Pallets' ? '8' : '16') : config.positions}
             </p>
           </div>
         </div>
@@ -831,17 +836,20 @@ export default function LoadPlanningPage() {
                   <div className="mb-4">
                     <div className="flex items-center gap-3">
                       <Label className="text-sm font-medium text-card-foreground">Cargo Configuration:</Label>
-                      <Select value={kc30aCargoType} onValueChange={(value: 'LD3' | 'Pallets') => setKc30aCargoType(value)}>
+                      <Select value={kc30aCargoType} onValueChange={(value: 'LD3' | 'Pallets' | 'GalleyCarts') => setKc30aCargoType(value)}>
                         <SelectTrigger className="w-40 bg-gray-800 border-gray-600">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-gray-800 border-gray-600">
                           <SelectItem value="LD3">LD3 Containers</SelectItem>
                           <SelectItem value="Pallets">463L Pallets</SelectItem>
+                          <SelectItem value="GalleyCarts">Galley Carts</SelectItem>
                         </SelectContent>
                       </Select>
                       <div className="text-xs text-muted-foreground">
-                        {kc30aCargoType === 'LD3' ? '26 positions (2×13)' : '8 positions (1×8)'}
+                        {kc30aCargoType === 'LD3' ? '26 positions (2×13)' : 
+                         kc30aCargoType === 'Pallets' ? '8 positions (1×8)' : 
+                         '16 positions (2×8)'}
                       </div>
                     </div>
                   </div>
@@ -943,6 +951,97 @@ export default function LoadPlanningPage() {
                       {cargoPositions.map((position) => renderCargoPosition(position, 6800))}
                     </div>
                   )}
+
+                  {/* Galley Cart Configuration (2 rows x 8 columns) - A330 Layout */}
+                  {kc30aCargoType === 'GalleyCarts' && (
+                    <div className="space-y-2">
+                      {/* Upper Row (P1-P8) */}
+                      <div className="grid grid-cols-8 gap-2">
+                        {cargoPositions.slice(0, 8).map((position) => (
+                          <div key={position.id} className="space-y-1">
+                            <div 
+                              className={`relative border-2 rounded-lg p-2 transition-all duration-300 cursor-pointer hover:border-primary ${
+                                position.weight > 0 
+                                  ? 'border-orange-500 bg-orange-500/20' 
+                                  : 'border-gray-600 bg-gray-700/30'
+                              }`}
+                              onClick={() => openCargoEdit(position)}
+                            >
+                              <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
+                                {position.label}
+                              </Label>
+                              
+                              {/* Weight display */}
+                              <div className="text-center text-sm font-semibold text-card-foreground mb-1">
+                                {position.weight > 0 ? position.weight.toLocaleString() : '0'}
+                              </div>
+                              <div className="text-xs text-muted-foreground400 text-center">kg</div>
+                              
+                              {/* Cargo type display */}
+                              {position.cargoType !== 'General' && (
+                                <div className="text-xs text-center mt-1">
+                                  <Badge variant="secondary" className="text-xs px-1 py-0">
+                                    {position.cargoType === 'DG' ? 'DG' : position.cargoType}
+                                  </Badge>
+                                </div>
+                              )}
+                              
+                              {position.dgClass && (
+                                <div className="text-xs text-center mt-1">
+                                  <Badge variant="destructive" className="text-xs px-1 py-0">
+                                    {position.dgClass}
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Lower Row (P9-P16) */}
+                      <div className="grid grid-cols-8 gap-2">
+                        {cargoPositions.slice(8, 16).map((position) => (
+                          <div key={position.id} className="space-y-1">
+                            <div 
+                              className={`relative border-2 rounded-lg p-2 transition-all duration-300 cursor-pointer hover:border-primary ${
+                                position.weight > 0 
+                                  ? 'border-orange-500 bg-orange-500/20' 
+                                  : 'border-gray-600 bg-gray-700/30'
+                              }`}
+                              onClick={() => openCargoEdit(position)}
+                            >
+                              <Label className="text-muted-foreground300 font-bold text-center block mb-1 text-xs">
+                                {position.label}
+                              </Label>
+                              
+                              {/* Weight display */}
+                              <div className="text-center text-sm font-semibold text-card-foreground mb-1">
+                                {position.weight > 0 ? position.weight.toLocaleString() : '0'}
+                              </div>
+                              <div className="text-xs text-muted-foreground400 text-center">kg</div>
+                              
+                              {/* Cargo type display */}
+                              {position.cargoType !== 'General' && (
+                                <div className="text-xs text-center mt-1">
+                                  <Badge variant="secondary" className="text-xs px-1 py-0">
+                                    {position.cargoType === 'DG' ? 'DG' : position.cargoType}
+                                  </Badge>
+                                </div>
+                              )}
+                              
+                              {position.dgClass && (
+                                <div className="text-xs text-center mt-1">
+                                  <Badge variant="destructive" className="text-xs px-1 py-0">
+                                    {position.dgClass}
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Cargo Bay Labels */}
                   <div className="flex justify-between text-xs text-muted-foreground500 mt-3">
@@ -999,7 +1098,7 @@ export default function LoadPlanningPage() {
                 type="number"
                 min="0"
                 max={aircraftId === 'kc30a' ? 
-                  (kc30aCargoType === 'LD3' ? 1478 : 4404) : 
+                  (kc30aCargoType === 'LD3' ? 1478 : kc30aCargoType === 'Pallets' ? 4404 : 200) : 
                   9710
                 }
                 value={editWeight}
