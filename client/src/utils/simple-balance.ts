@@ -67,7 +67,7 @@ export const AIRCRAFT_CONFIGS: Record<string, AircraftConfig> = {
 /**
  * Calculate aircraft balance using simple physics
  */
-export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: string): BalanceResult {
+export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: string, kc30aCargoType?: 'LD3' | 'Pallets' | 'GalleyCarts'): BalanceResult {
   const config = AIRCRAFT_CONFIGS[aircraftId];
   if (!config) {
     throw new Error(`Unknown aircraft: ${aircraftId}`);
@@ -118,6 +118,37 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
         // P9,P18 = column 8 (most aft) = +4
         const column = cargo.position % 9;
         longitudinalPosition = column - 4;
+      } else if (aircraftId === 'kc30a' && kc30aCargoType) {
+        // KC30A specific configurations
+        if (kc30aCargoType === 'LD3') {
+          // LD3: 2x13 layout - positions in same column have same longitudinal effect
+          // P1,P14 = column 0 (most forward) = -6
+          // P2,P15 = column 1 = -5
+          // ... through to ...
+          // P13,P26 = column 12 (most aft) = +6
+          const column = cargo.position % 13;
+          longitudinalPosition = column - 6;
+        } else if (kc30aCargoType === 'Pallets') {
+          // Pallets: 1x8 layout
+          // P1 = -3.5, P2 = -2.5, P3 = -1.5, P4 = -0.5, P5 = +0.5, P6 = +1.5, P7 = +2.5, P8 = +3.5
+          longitudinalPosition = cargo.position - 3.5;
+        } else if (kc30aCargoType === 'GalleyCarts') {
+          // Galley Carts: 2x8 layout - A330 configuration (top-down view)
+          // For top-down view: left side = forward (nose), right side = aft (tail)
+          // P1,P9 = column 0 (leftmost/forward) = -3.5
+          // P2,P10 = column 1 = -2.5
+          // P3,P11 = column 2 = -1.5
+          // P4,P12 = column 3 = -0.5
+          // P5,P13 = column 4 = +0.5
+          // P6,P14 = column 5 = +1.5
+          // P7,P15 = column 6 = +2.5
+          // P8,P16 = column 7 (rightmost/aft) = +3.5
+          const column = cargo.position % 8;
+          longitudinalPosition = column - 3.5;
+        } else {
+          // Default KC30A layout
+          longitudinalPosition = cargo.position - (config.positions - 1) / 2;
+        }
       } else {
         // Default: single row layout
         longitudinalPosition = cargo.position - (config.positions - 1) / 2;
@@ -138,6 +169,14 @@ export function calculateBalance(cargoPositions: CargoPosition[], aircraftId: st
       maxPosition = 1;
     } else if (aircraftId === 'c17') {
       maxPosition = 4; // C-17 has 9 columns, range -4 to +4
+    } else if (aircraftId === 'kc30a' && kc30aCargoType) {
+      if (kc30aCargoType === 'LD3') {
+        maxPosition = 6; // LD3 has 13 columns, range -6 to +6
+      } else if (kc30aCargoType === 'Pallets') {
+        maxPosition = 3.5; // Pallets have 8 positions, range -3.5 to +3.5
+      } else if (kc30aCargoType === 'GalleyCarts') {
+        maxPosition = 3.5; // Galley Carts have 8 columns, range -3.5 to +3.5
+      }
     } else if (aircraftId === 'kc30a') {
       maxPosition = (config.positions - 1) / 2;
     }

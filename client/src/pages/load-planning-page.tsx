@@ -107,9 +107,9 @@ export default function LoadPlanningPage() {
 
   // Recalculate balance whenever cargo changes
   useEffect(() => {
-    const result = calculateBalance(cargoPositions, aircraftId);
+    const result = calculateBalance(cargoPositions, aircraftId, kc30aCargoType);
     setBalanceResult(result);
-  }, [cargoPositions, aircraftId]);
+  }, [cargoPositions, aircraftId, kc30aCargoType]);
 
 
 
