@@ -758,7 +758,9 @@ export default function LoadPlanningPage() {
         {/* Cargo Positions */}
         <Card className="bg-card mb-6">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-card-foreground">Cargo Bay Layout</CardTitle>
+            <CardTitle className="text-card-foreground">
+              {aircraftId === 'kc30a' && kc30aCargoType === 'GalleyCarts' ? 'Galley Cart Layout' : 'Cargo Bay Layout'}
+            </CardTitle>
             <div className="flex gap-2">
 
               <Button 
