@@ -721,39 +721,7 @@ export default function LoadPlanningPage() {
           </CardContent>
         </Card>
 
-        {/* PDF Export Section */}
-        <Card className="bg-card mb-4">
-          <CardHeader>
-            <CardTitle className="text-card-foreground flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Export Load Plan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              <Button 
-                onClick={handleDownloadPDF}
-                disabled={isExporting}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {isExporting ? 'Generating...' : 'Download PDF'}
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={handleEmailPDF}
-                disabled={isExporting}
-                className="border-blue-500 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Email PDF
-              </Button>
-              <div className="text-sm text-muted-foreground flex items-center">
-                Exports cargo bay layout with CG: {balanceResult.centerOfGravity.toFixed(1)}%
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Cargo Positions */}
         <Card className="bg-card mb-6">
