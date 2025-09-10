@@ -31,7 +31,7 @@ interface CargoItem {
   length: number;
   width: number;
   height: number;
-  type: 'pallet' | 'container' | 'vehicle' | 'personnel';
+  type: 'pallet' | 'container' | 'vehicle' | 'personnel' | 'ld3' | 'galley_cart';
   position?: { x: number; y: number };
 }
 
@@ -43,6 +43,7 @@ interface LoadPlan {
   totalWeight: number;
   centerOfGravity: number;
   balanceStatus: 'within_limits' | 'forward_limit' | 'aft_limit' | 'overweight';
+  kc30aCargoType?: 'LD3' | 'Pallets' | 'GalleyCarts';
 }
 
 const AIRCRAFT_SPECS = {
@@ -61,7 +62,9 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
     totalWeight: 0,
     centerOfGravity: 0,
     balanceStatus: 'within_limits',
+    kc30aCargoType: aircraftType === 'KC30A' ? 'LD3' : undefined,
   });
+  const [kc30aCargoType, setKc30aCargoType] = useState<'LD3' | 'Pallets' | 'GalleyCarts'>('LD3');
   const [selectedCargo, setSelectedCargo] = useState<CargoItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showCargoLibrary, setShowCargoLibrary] = useState(false);
@@ -127,8 +130,22 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
 
     loadPlan.cargoItems.forEach(item => {
       totalWeight += item.weight;
-      const itemCG = item.position ? item.position.x : 30; // Default CG position
-      totalMoment += item.weight * itemCG;
+      let longitudinalPosition = 0;
+      
+      // Handle KC30A galley cart calculations with proper orientation
+      if (loadPlan.aircraftType === 'KC30A' && kc30aCargoType === 'GalleyCarts') {
+        if (item.position && typeof item.position.x === 'number') {
+          // For galley carts: left side = forward, right side = aft (top-down view)
+          // Position is from 0-100%, convert to longitudinal coordinate
+          const normalizedX = item.position.x / 100; // 0-1 range
+          longitudinalPosition = (normalizedX - 0.5) * 7; // -3.5 to +3.5 range
+        }
+      } else {
+        // Standard calculation for other aircraft/configurations
+        longitudinalPosition = item.position ? item.position.x : 30;
+      }
+      
+      totalMoment += item.weight * longitudinalPosition;
     });
 
     const centerOfGravity = totalWeight > 0 ? totalMoment / totalWeight : 0;
@@ -176,6 +193,8 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
       case 'container': return 1000;
       case 'vehicle': return 3000;
       case 'personnel': return 80;
+      case 'ld3': return 800;
+      case 'galley_cart': return 200;
       default: return 500;
     }
   };
@@ -186,6 +205,8 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
       case 'container': return 6.06;
       case 'vehicle': return 4.5;
       case 'personnel': return 0.6;
+      case 'ld3': return 1.5;
+      case 'galley_cart': return 0.8;
       default: return 2.0;
     }
   };
@@ -196,6 +217,8 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
       case 'container': return 2.44;
       case 'vehicle': return 2.0;
       case 'personnel': return 0.5;
+      case 'ld3': return 1.5;
+      case 'galley_cart': return 0.6;
       default: return 1.5;
     }
   };
@@ -206,6 +229,8 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
       case 'container': return 2.59;
       case 'vehicle': return 2.5;
       case 'personnel': return 1.8;
+      case 'ld3': return 1.6;
+      case 'galley_cart': return 1.2;
       default: return 1.5;
     }
   };
@@ -223,6 +248,15 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
       ...prev,
       cargoItems: prev.cargoItems.map(item =>
         item.id === itemId ? { ...item, weight: newWeight } : item
+      ),
+    }));
+  };
+
+  const updateCargoPosition = (itemId: string, newPosition: { x: number; y: number }) => {
+    setLoadPlan(prev => ({
+      ...prev,
+      cargoItems: prev.cargoItems.map(item =>
+        item.id === itemId ? { ...item, position: newPosition } : item
       ),
     }));
   };
@@ -324,12 +358,71 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </View>
 
+      {/* KC30A Configuration Selector */}
+      {loadPlan.aircraftType === 'KC30A' && (
+        <View style={styles.configContainer}>
+          <Text style={styles.configLabel}>Configuration Type:</Text>
+          <View style={styles.configButtons}>
+            {['LD3', 'Pallets', 'GalleyCarts'].map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.configButton,
+                  kc30aCargoType === type && styles.configButtonActive,
+                ]}
+                onPress={() => setKc30aCargoType(type as 'LD3' | 'Pallets' | 'GalleyCarts')}
+              >
+                <Text style={[
+                  styles.configButtonText,
+                  kc30aCargoType === type && styles.configButtonTextActive,
+                ]}>
+                  {type === 'GalleyCarts' ? 'Galley Carts' : type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
       {/* Aircraft Visualization */}
       <View style={styles.aircraftContainer}>
-        <Text style={styles.sectionTitle}>Cargo Layout</Text>
+        <Text style={styles.sectionTitle}>
+          {loadPlan.aircraftType === 'KC30A' && kc30aCargoType === 'GalleyCarts' 
+            ? 'Galley Cart Layout' 
+            : 'Cargo Layout'
+          }
+        </Text>
         <View style={styles.aircraftView}>
           {/* Aircraft outline */}
           <View style={styles.aircraftOutline}>
+            {/* Galley Cart Grid for KC30A */}
+            {loadPlan.aircraftType === 'KC30A' && kc30aCargoType === 'GalleyCarts' && (
+              <View style={styles.galleyCartGrid}>
+                {Array.from({ length: 16 }, (_, index) => {
+                  const row = Math.floor(index / 8);
+                  const col = index % 8;
+                  const positionLabel = `P${index + 1}`;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.galleyCartPosition}
+                      onPress={() => {
+                        if (selectedCargo) {
+                          updateCargoPosition(selectedCargo.id, {
+                            x: (col / 7) * 100, // Convert to percentage
+                            y: (row / 1) * 100
+                          });
+                        }
+                      }}
+                    >
+                      <Text style={styles.positionLabel}>{positionLabel}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+            
             {/* Cargo items */}
             {loadPlan.cargoItems.map((item, index) => (
               <TouchableOpacity
@@ -345,7 +438,7 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
                 onPress={() => setSelectedCargo(item)}
               >
                 <Text style={styles.cargoItemText}>
-                  {item.type.charAt(0).toUpperCase()}
+                  {item.type === 'galley_cart' ? 'GC' : item.type.charAt(0).toUpperCase()}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -418,6 +511,22 @@ const LoadPlannerScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <Text style={styles.cargoTypeText}>👤 Personnel</Text>
             </TouchableOpacity>
+            {loadPlan.aircraftType === 'KC30A' && kc30aCargoType === 'LD3' && (
+              <TouchableOpacity
+                style={styles.cargoTypeButton}
+                onPress={() => addCargoItem('ld3')}
+              >
+                <Text style={styles.cargoTypeText}>📦 LD3 Container</Text>
+              </TouchableOpacity>
+            )}
+            {loadPlan.aircraftType === 'KC30A' && kc30aCargoType === 'GalleyCarts' && (
+              <TouchableOpacity
+                style={styles.cargoTypeButton}
+                onPress={() => addCargoItem('galley_cart')}
+              >
+                <Text style={styles.cargoTypeText}>🍽️ Galley Cart</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setShowCargoLibrary(false)}
@@ -645,6 +754,65 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  configContainer: {
+    padding: 16,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+  },
+  configLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#374151',
+    marginBottom: 12,
+  },
+  configButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  configButton: {
+    flex: 1,
+    padding: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  configButtonActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#3b82f6',
+  },
+  configButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  configButtonTextActive: {
+    color: '#3b82f6',
+    fontWeight: 'bold',
+  },
+  galleyCartGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignContent: 'stretch',
+    padding: 4,
+  },
+  galleyCartPosition: {
+    width: '12.5%',
+    aspectRatio: 1,
+    backgroundColor: '#e5e7eb',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 1,
+  },
+  positionLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#374151',
   },
 });
 
