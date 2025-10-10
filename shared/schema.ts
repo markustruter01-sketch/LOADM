@@ -48,6 +48,18 @@ export const users = pgTable("users", {
   lastLogin: timestamp("last_login"),
 });
 
+// WebAuthn credentials for biometric authentication
+export const webauthnCredentials = pgTable("webauthn_credentials", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  credentialId: text("credential_id").notNull().unique(),
+  publicKey: text("public_key").notNull(),
+  counter: integer("counter").notNull().default(0),
+  deviceName: text("device_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
 // License sessions tracking
 export const licenseSessions = pgTable("license_sessions", {
   id: serial("id").primaryKey(),
@@ -90,6 +102,12 @@ export const insertLicenseSessionSchema = createInsertSchema(licenseSessions).pi
   deviceFingerprint: true,
   ipAddress: true,
   userAgent: true,
+});
+
+export const insertWebAuthnCredentialSchema = createInsertSchema(webauthnCredentials).omit({
+  id: true,
+  createdAt: true,
+  lastUsedAt: true,
 });
 
 // Document schema
