@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plane, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
+import c130Image from "@assets/P0019-12 copy_1760056529560.png";
+import c17Image from "@assets/P0031_C-17_1000px copy_1760056529561.png";
 import c27jImage from "@assets/C-27J-Black-Frame copy_1760056207717.png";
 import kc30aImage from "@assets/P0028-KC-30A_1760056207717.png";
 
@@ -21,14 +23,16 @@ const aircraftList: Aircraft[] = [
     name: "C-130 Hercules",
     description: "Medium tactical transport aircraft",
     maxPayload: "42,000 lbs",
-    positions: 8
+    positions: 8,
+    image: c130Image
   },
   {
     id: "c17",
     name: "C-17 Globemaster",
     description: "Strategic heavy-lift transport",
     maxPayload: "170,900 lbs", 
-    positions: 18
+    positions: 18,
+    image: c17Image
   },
   {
     id: "c27j",
