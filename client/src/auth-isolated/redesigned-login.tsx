@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useIsolatedAuth } from './auth-context';
 import { Eye, EyeOff, Key, Lock, Mail, AlertCircle, CheckCircle } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
+import c130Image from "@assets/Untitled-1_1760057285982.png";
 
 export function RedesignedLogin() {
   const { login } = useIsolatedAuth();
@@ -191,9 +192,16 @@ export function RedesignedLogin() {
 
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 text-sm mb-4">
                 Royal Australian Air Force • LOADMworkflow
               </p>
+              <div className="flex items-center justify-center">
+                <img 
+                  src={c130Image} 
+                  alt="C-130 Hercules"
+                  className="h-20 object-contain"
+                />
+              </div>
             </div>
           </div>
         </div>
