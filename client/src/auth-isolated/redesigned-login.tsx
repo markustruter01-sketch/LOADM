@@ -199,7 +199,7 @@ export function RedesignedLogin() {
                 <img 
                   src={c130Image} 
                   alt="C-130 Hercules"
-                  className="h-20 object-contain"
+                  className="h-80 object-contain"
                 />
               </div>
             </div>
