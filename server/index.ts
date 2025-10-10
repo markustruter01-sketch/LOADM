@@ -42,10 +42,6 @@ app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
 app.use('/auth', isolatedAuthRoutes);
 
-// Mount biometric authentication routes (isolated for easy disabling)
-import biometricRoutes from './biometric/routes';
-app.use('/api/biometric', biometricRoutes);
-
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
 import { phoneDirectory, chatMessages } from '../shared/schema';

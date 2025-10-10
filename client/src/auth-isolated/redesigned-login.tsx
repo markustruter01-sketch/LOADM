@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useIsolatedAuth } from './auth-context';
 import { Eye, EyeOff, Key, Lock, Mail, AlertCircle, CheckCircle } from "lucide-react";
 import cargoBayImage from "../assets/cargo-bay.png";
+import c130Image from "@assets/Untitled-1_1760057285982.png";
 
 export function RedesignedLogin() {
   const { login } = useIsolatedAuth();
@@ -93,8 +94,8 @@ export function RedesignedLogin() {
 
       {/* Login Form Overlay */}
       <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30">
-        <div className="w-full max-w-md mx-4">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8">
+        <div className="w-full max-w-md mx-4 flex flex-col items-center">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 w-full">
             <div className="text-center mb-8">
               <div className="mx-auto w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8 text-white" />
@@ -195,6 +196,16 @@ export function RedesignedLogin() {
                 Royal Australian Air Force • LOADMworkflow
               </p>
             </div>
+          </div>
+          
+          {/* C-130 Image outside white box */}
+          <div className="flex items-center justify-center mt-4">
+            <img 
+              src={c130Image} 
+              alt="C-130 Hercules"
+              className="h-84 object-contain"
+              style={{ height: '333px' }}
+            />
           </div>
         </div>
       </div>
