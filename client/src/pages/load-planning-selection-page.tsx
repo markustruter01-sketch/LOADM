@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plane, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
+import c27jImage from "@assets/C-27J-Black-Frame copy_1760056207717.png";
+import kc30aImage from "@assets/P0028-KC-30A_1760056207717.png";
 
 interface Aircraft {
   id: string;
@@ -33,14 +35,16 @@ const aircraftList: Aircraft[] = [
     name: "C-27J Spartan",
     description: "Light tactical transport aircraft",
     maxPayload: "25,000 lbs",
-    positions: 3
+    positions: 3,
+    image: c27jImage
   },
   {
     id: "kc30a",
     name: "KC30-A Airbus",
     description: "Multi-role tanker transport",
     maxPayload: "75,000 lbs",
-    positions: 26
+    positions: 26,
+    image: kc30aImage
   }
 ];
 
@@ -78,9 +82,19 @@ export default function LoadPlanningSelectionPage() {
               onClick={() => handleAircraftSelect(aircraft.id)}
             >
               <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-16 h-16 flex items-center justify-center">
-                  <Plane className="h-8 w-8 text-primary group-hover:text-primary/80 transition-colors" />
-                </div>
+                {aircraft.image ? (
+                  <div className="mx-auto mb-4 h-24 flex items-center justify-center">
+                    <img 
+                      src={aircraft.image} 
+                      alt={aircraft.name}
+                      className="max-h-24 max-w-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="mx-auto mb-4 p-4 bg-primary/20 rounded-full w-16 h-16 flex items-center justify-center">
+                    <Plane className="h-8 w-8 text-primary group-hover:text-primary/80 transition-colors" />
+                  </div>
+                )}
                 <CardTitle className="text-card-foreground text-xl">{aircraft.name}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
