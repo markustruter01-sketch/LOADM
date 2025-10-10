@@ -94,8 +94,8 @@ export function RedesignedLogin() {
 
       {/* Login Form Overlay */}
       <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30">
-        <div className="w-full max-w-md mx-4">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8">
+        <div className="w-full max-w-md mx-4 flex flex-col items-center">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 w-full">
             <div className="text-center mb-8">
               <div className="mx-auto w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-4">
                 <Lock className="w-8 h-8 text-white" />
@@ -192,17 +192,20 @@ export function RedesignedLogin() {
 
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-500 text-sm mb-4">
+              <p className="text-gray-500 text-sm">
                 Royal Australian Air Force • LOADMworkflow
               </p>
-              <div className="flex items-center justify-center">
-                <img 
-                  src={c130Image} 
-                  alt="C-130 Hercules"
-                  className="h-80 object-contain"
-                />
-              </div>
             </div>
+          </div>
+          
+          {/* C-130 Image outside white box */}
+          <div className="flex items-center justify-center mt-4">
+            <img 
+              src={c130Image} 
+              alt="C-130 Hercules"
+              className="h-84 object-contain"
+              style={{ height: '333px' }}
+            />
           </div>
         </div>
       </div>
