@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plane, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import c130Image from "@assets/P0019-12 copy_1760056529560.png";
-import c17Image from "@assets/P0031_C-17_1000px copy_1760056529561.png";
+import c17Image from "@assets/P0031_C-17_1000px copy_1760056733929.png";
 import c27jImage from "@assets/C-27J-Black-Frame copy_1760056207717.png";
 import kc30aImage from "@assets/P0028-KC-30A_1760056207717.png";
 
@@ -87,11 +87,11 @@ export default function LoadPlanningSelectionPage() {
             >
               <CardHeader className="text-center">
                 {aircraft.image ? (
-                  <div className="mx-auto mb-4 h-24 flex items-center justify-center">
+                  <div className="mx-auto mb-4 h-36 flex items-center justify-center">
                     <img 
                       src={aircraft.image} 
                       alt={aircraft.name}
-                      className="max-h-24 max-w-full object-contain"
+                      className="max-h-36 max-w-full object-contain"
                     />
                   </div>
                 ) : (
