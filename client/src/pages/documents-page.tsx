@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft, FileText, Eye, Download } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft, FileText, Eye, Download, Briefcase } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -280,10 +280,14 @@ export default function DocumentsPage() {
         </div>
 
         <Tabs defaultValue="pdfs" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="pdfs" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               PDF Documents
+            </TabsTrigger>
+            <TabsTrigger value="missions" className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              Mission Documents
             </TabsTrigger>
             <TabsTrigger value="directory" className="flex items-center gap-2">
               <Phone className="h-4 w-4" />
@@ -347,6 +351,23 @@ export default function DocumentsPage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="missions" className="mt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">Mission Documents</h2>
+                  <p className="text-muted-foreground">Mission-specific documents and operational briefings</p>
+                </div>
+              </div>
+
+              <div className="text-center py-12">
+                <Briefcase className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">No mission documents available</h3>
+                <p className="text-muted-foreground">Mission documents will be displayed here</p>
               </div>
             </div>
           </TabsContent>
