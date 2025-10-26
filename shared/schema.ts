@@ -288,6 +288,31 @@ export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pic
 export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
 export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
 
+// Missions schema
+export const missions = pgTable("missions", {
+  id: serial("id").primaryKey(),
+  missionName: text("mission_name").notNull(),
+  aircraftCallSign: text("aircraft_call_sign").notNull(),
+  captainName: text("captain_name").notNull(),
+  departureLocation: text("departure_location").notNull(),
+  arrivalDestination: text("arrival_destination").notNull(),
+  loadmaster1Name: text("loadmaster1_name").notNull(),
+  loadmaster2Name: text("loadmaster2_name").default(""),
+  hasDangerousGoods: boolean("has_dangerous_goods").default(false).notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertMissionSchema = createInsertSchema(missions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertMission = z.infer<typeof insertMissionSchema>;
+export type Mission = typeof missions.$inferSelect;
+
 // Training Module Videos schema - For direct video uploads
 export const trainingModuleVideos = pgTable("training_module_videos", {
   id: serial("id").primaryKey(),

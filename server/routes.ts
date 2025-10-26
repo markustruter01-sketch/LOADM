@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, missions, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -99,6 +99,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching phone directory:", error);
       res.status(500).json({ message: "Failed to fetch phone directory" });
+    }
+  });
+
+  // Missions API endpoints
+  app.get("/api/missions", async (req, res) => {
+    try {
+      const allMissions = await db.select().from(missions).orderBy(missions.createdAt);
+      res.json(allMissions);
+    } catch (error) {
+      console.error("Error fetching missions:", error);
+      res.status(500).json({ message: "Failed to fetch missions" });
+    }
+  });
+
+  app.post("/api/missions", async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const validatedData = insertMissionSchema.parse({
+        ...req.body,
+        userId: req.user.id,
+      });
+
+      const [newMission] = await db.insert(missions).values(validatedData).returning();
+      res.status(201).json(newMission);
+    } catch (error) {
+      console.error("Error creating mission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid mission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create mission" });
+    }
+  });
+
+  app.delete("/api/missions/:id", async (req, res) => {
+    try {
+      const missionId = parseInt(req.params.id);
+      if (isNaN(missionId)) {
+        return res.status(400).json({ message: "Invalid mission ID" });
+      }
+
+      await db.delete(missions).where(eq(missions.id, missionId));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting mission:", error);
+      res.status(500).json({ message: "Failed to delete mission" });
     }
   });
 

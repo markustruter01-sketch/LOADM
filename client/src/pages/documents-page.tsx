@@ -38,6 +38,21 @@ interface PdfDocument {
   size: string;
 }
 
+interface Mission {
+  id: number;
+  missionName: string;
+  aircraftCallSign: string;
+  captainName: string;
+  departureLocation: string;
+  arrivalDestination: string;
+  loadmaster1Name: string;
+  loadmaster2Name: string;
+  hasDangerousGoods: boolean;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function DocumentsPage() {
   const [, setLocation] = useLocation();
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -58,6 +73,20 @@ export default function DocumentsPage() {
   // PDF Modal state
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<PdfDocument | null>(null);
+
+  // Mission management state
+  const [isCreatingMission, setIsCreatingMission] = useState(false);
+  const [selectedMissions, setSelectedMissions] = useState<Set<number>>(new Set());
+  const [newMissionData, setNewMissionData] = useState({
+    missionName: "",
+    aircraftCallSign: "",
+    captainName: "",
+    departureLocation: "",
+    arrivalDestination: "",
+    loadmaster1Name: "",
+    loadmaster2Name: "",
+    hasDangerousGoods: false,
+  });
 
   // Available PDF documents
   const pdfDocuments: PdfDocument[] = [
@@ -153,6 +182,50 @@ export default function DocumentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+    },
+  });
+
+  // Missions queries and mutations
+  const {
+    data: missions = [],
+    isLoading: missionsLoading,
+  } = useQuery<Mission[]>({
+    queryKey: ["/api/missions"],
+  });
+
+  const createMissionMutation = useMutation({
+    mutationFn: async (data: typeof newMissionData) => {
+      return await apiRequest("/api/missions", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      setIsCreatingMission(false);
+      setNewMissionData({
+        missionName: "",
+        aircraftCallSign: "",
+        captainName: "",
+        departureLocation: "",
+        arrivalDestination: "",
+        loadmaster1Name: "",
+        loadmaster2Name: "",
+        hasDangerousGoods: false,
+      });
+    },
+  });
+
+  const deleteMissionsMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await Promise.all(ids.map(id => 
+        apiRequest(`/api/missions/${id}`, { method: "DELETE" })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      setSelectedMissions(new Set());
     },
   });
 
