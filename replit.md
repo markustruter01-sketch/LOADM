@@ -215,6 +215,16 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - System provides clear feedback about access limitations under readonly license
   - Created comprehensive permission matrix documentation showing all license types and their capabilities
   - Updated permission system with detailed comments and usage guidelines
+- October 27, 2025. Fixed critical mobile app production readiness issues:
+  - Removed all hardcoded localhost:5000 URLs from mobile app (critical security vulnerability)
+  - Created centralized API configuration system (mobile-app/src/config/api.ts)
+  - Implemented environment-aware API URL selection (development vs production)
+  - Updated AuthContext and SyncContext to use API_ENDPOINTS configuration
+  - Mobile app now automatically uses production URL when built for App Store
+  - Production API URL set to actual Replit deployment URL
+  - Development mode continues to use localhost for local testing
+  - Fixed 10 hardcoded API endpoint references across authentication and sync systems
+  - Mobile app is now truly production-ready with proper environment configuration
 - October 27, 2025. Completed Mission Documents feature with full CRUD functionality:
   - Added missions table to database schema with comprehensive mission data fields
   - Implemented backend API routes for mission management (GET, POST, DELETE)

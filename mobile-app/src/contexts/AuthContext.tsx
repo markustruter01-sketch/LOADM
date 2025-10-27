@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { useDatabase } from './DatabaseContext';
+import { API_ENDPOINTS } from '../config/api';
 
 interface User {
   id: number;
@@ -31,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       // First try to authenticate with the backend server
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(API_ENDPOINTS.AUTH_LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Clear session from server
       const sessionToken = await SecureStore.getItemAsync('sessionToken');
       if (sessionToken) {
-        await fetch('http://localhost:5000/api/auth/logout', {
+        await fetch(API_ENDPOINTS.AUTH_LOGOUT, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${sessionToken}`,
@@ -151,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/auth/user', {
+      const response = await fetch(API_ENDPOINTS.AUTH_USER, {
         headers: {
           'Authorization': `Bearer ${sessionToken}`,
         },

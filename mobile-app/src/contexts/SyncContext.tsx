@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Network from 'expo-network';
 import { useDatabase } from './DatabaseContext';
 import { useAuth } from './AuthContext';
+import { API_ENDPOINTS, buildApiUrl } from '../config/api';
 
 interface SyncContextValue {
   isOnline: boolean;
@@ -59,7 +60,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       for (const submission of pendingSubmissions) {
         try {
-          const response = await fetch('http://localhost:5000/api/quiz-submissions', {
+          const response = await fetch(API_ENDPOINTS.QUIZ_SUBMISSIONS, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -98,7 +99,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       for (const submission of pendingSubmissions) {
         try {
-          const response = await fetch('http://localhost:5000/api/scenario-submissions', {
+          const response = await fetch(API_ENDPOINTS.SCENARIO_SUBMISSIONS, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -136,7 +137,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       for (const message of pendingMessages) {
         try {
-          const response = await fetch('http://localhost:5000/api/chat', {
+          const response = await fetch(API_ENDPOINTS.CHAT, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Also fetch new messages from server
-      const response = await fetch('http://localhost:5000/api/chat');
+      const response = await fetch(API_ENDPOINTS.CHAT);
       if (response.ok) {
         const messages = await response.json();
         for (const msg of messages) {
@@ -181,7 +182,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       // Download latest quizzes
-      const quizzesResponse = await fetch('http://localhost:5000/api/quizzes');
+      const quizzesResponse = await fetch(buildApiUrl('/api/quizzes'));
       if (quizzesResponse.ok) {
         const quizzes = await quizzesResponse.json();
         for (const quiz of quizzes) {
@@ -206,7 +207,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Download latest scenarios
-      const scenariosResponse = await fetch('http://localhost:5000/api/scenarios');
+      const scenariosResponse = await fetch(API_ENDPOINTS.SCENARIOS);
       if (scenariosResponse.ok) {
         const scenarios = await scenariosResponse.json();
         for (const scenario of scenarios) {
@@ -231,7 +232,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Download documents list
-      const documentsResponse = await fetch('http://localhost:5000/api/documents');
+      const documentsResponse = await fetch(API_ENDPOINTS.DOCUMENTS);
       if (documentsResponse.ok) {
         const documents = await documentsResponse.json();
         for (const doc of documents) {
