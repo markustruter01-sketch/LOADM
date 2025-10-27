@@ -4,19 +4,19 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 12%;
+  --background: 0 0% 8%;
   --foreground: 0 0% 98%;
-  --muted: 0 0% 18%;
+  --muted: 0 0% 14%;
   --muted-foreground: 0 0% 88%;
-  --popover: 0 0% 15%;
+  --popover: 0 0% 11%;
   --popover-foreground: 0 0% 98%;
-  --card: 0 0% 18%;
+  --card: 0 0% 14%;
   --card-foreground: 0 0% 98%;
-  --border: 0 0% 25%;
-  --input: 0 0% 25%;
+  --border: 0 0% 22%;
+  --input: 0 0% 22%;
   --primary: 30 100% 54%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 15%;
+  --secondary: 0 0% 11%;
   --secondary-foreground: 0 0% 98%;
   --accent: 30 100% 54%;
   --accent-foreground: 0 0% 100%;
@@ -29,30 +29,30 @@
   --chart-3: 150 76% 47%;
   --chart-4: 270 65% 55%;
   --chart-5: 0 84% 60%;
-  --sidebar-background: 0 0% 15%;
+  --sidebar-background: 0 0% 11%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-primary: 30 100% 54%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 30 100% 54%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 25%;
+  --sidebar-border: 0 0% 22%;
   --sidebar-ring: 30 100% 54%;
 }
 
 .dark {
-  --background: 0 0% 12%;
+  --background: 0 0% 8%;
   --foreground: 0 0% 98%;
-  --muted: 0 0% 18%;
+  --muted: 0 0% 14%;
   --muted-foreground: 0 0% 88%;
-  --popover: 0 0% 15%;
+  --popover: 0 0% 11%;
   --popover-foreground: 0 0% 98%;
-  --card: 0 0% 18%;
+  --card: 0 0% 14%;
   --card-foreground: 0 0% 98%;
-  --border: 0 0% 25%;
-  --input: 0 0% 25%;
+  --border: 0 0% 22%;
+  --input: 0 0% 22%;
   --primary: 30 100% 54%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 15%;
+  --secondary: 0 0% 11%;
   --secondary-foreground: 0 0% 98%;
   --accent: 30 100% 54%;
   --accent-foreground: 0 0% 100%;
@@ -64,13 +64,13 @@
   --chart-3: 150 76% 47%;
   --chart-4: 270 65% 55%;
   --chart-5: 0 84% 60%;
-  --sidebar-background: 0 0% 15%;
+  --sidebar-background: 0 0% 11%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-primary: 30 100% 54%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 30 100% 54%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 25%;
+  --sidebar-border: 0 0% 22%;
   --sidebar-ring: 30 100% 54%;
 }
 
@@ -80,7 +80,7 @@
   }
   
   html {
-    background-color: #1e1e1e !important;
+    background-color: #141414 !important;
   }
 
   body {
@@ -89,7 +89,7 @@
   
   /* Override blue backgrounds only, preserve other images and gradients */
   [class*="from-blue"], [class*="to-blue"], [class*="via-blue"] {
-    background: #1e1e1e !important;
+    background: #141414 !important;
     background-image: none !important;
   }
   
