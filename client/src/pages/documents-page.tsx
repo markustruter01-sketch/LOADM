@@ -198,10 +198,10 @@ export default function DocumentsPage() {
   const createMissionMutation = useMutation({
     mutationFn: async (data: typeof newMissionData) => {
       console.log("Creating mission with data:", data);
-      const response = await apiRequest("/api/missions", {
+      const response = await apiRequest({
+        url: "/api/missions",
         method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
+        body: data,
       });
       console.log("Mission created successfully:", response);
       return response;
@@ -237,12 +237,23 @@ export default function DocumentsPage() {
   const deleteMissionsMutation = useMutation({
     mutationFn: async (ids: number[]) => {
       await Promise.all(ids.map(id => 
-        apiRequest(`/api/missions/${id}`, { method: "DELETE" })
+        apiRequest({ url: `/api/missions/${id}`, method: "DELETE" })
       ));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      toast({
+        title: "Missions Deleted",
+        description: `Successfully deleted ${Array.from(selectedMissions).length} mission(s).`,
+      });
       setSelectedMissions(new Set());
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Deleting Missions",
+        description: error.message || "Failed to delete missions. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
