@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, ClipboardList, Plane, FileCheck, Wrench, GraduationCap } from "lucide-react";
+import { Home, ClipboardList, Plane, FolderOpen, Wrench, GraduationCap } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
@@ -39,7 +39,7 @@ export default function BottomNav() {
     {
       href: "/documents",
       label: "Documents",
-      icon: FileCheck,
+      icon: FolderOpen,
       active: location === "/documents" || location === "/cargo-manifest" || location.startsWith("/documents/")
     },
     {
