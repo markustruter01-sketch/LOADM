@@ -149,10 +149,10 @@ export default function DocumentsPage() {
 
   const createDirectoryMutation = useMutation({
     mutationFn: async (data: { airbaseCode: string; airbaseName: string }) => {
-      return await apiRequest("/api/phone-directory", {
+      return await apiRequest({
+        url: "/api/phone-directory",
         method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
+        body: data,
       });
     },
     onSuccess: () => {
@@ -164,10 +164,10 @@ export default function DocumentsPage() {
 
   const updateDirectoryMutation = useMutation({
     mutationFn: async (data: DirectoryEntry) => {
-      return await apiRequest(`/api/phone-directory/${data.id}`, {
+      return await apiRequest({
+        url: `/api/phone-directory/${data.id}`,
         method: "PATCH",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
+        body: data,
       });
     },
     onSuccess: () => {
@@ -178,7 +178,8 @@ export default function DocumentsPage() {
 
   const deleteDirectoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/phone-directory/${id}`, {
+      await apiRequest({
+        url: `/api/phone-directory/${id}`,
         method: "DELETE",
       });
     },
@@ -193,6 +194,9 @@ export default function DocumentsPage() {
     isLoading: missionsLoading,
   } = useQuery<Mission[]>({
     queryKey: ["/api/missions"],
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   const createMissionMutation = useMutation({
@@ -267,10 +271,10 @@ export default function DocumentsPage() {
         contacts: [...entry.contacts, contact],
       };
       
-      await apiRequest(`/api/phone-directory/${entryId}`, {
+      await apiRequest({
+        url: `/api/phone-directory/${entryId}`,
         method: "PATCH",
-        body: JSON.stringify(updatedEntry),
-        headers: { "Content-Type": "application/json" },
+        body: updatedEntry,
       });
     },
     onSuccess: () => {
@@ -292,10 +296,10 @@ export default function DocumentsPage() {
         ),
       };
       
-      await apiRequest(`/api/phone-directory/${entryId}`, {
+      await apiRequest({
+        url: `/api/phone-directory/${entryId}`,
         method: "PATCH",
-        body: JSON.stringify(updatedEntry),
-        headers: { "Content-Type": "application/json" },
+        body: updatedEntry,
       });
     },
     onSuccess: () => {
@@ -314,10 +318,10 @@ export default function DocumentsPage() {
         contacts: entry.contacts.filter((contact: Contact) => contact.id !== contactId),
       };
       
-      await apiRequest(`/api/phone-directory/${entryId}`, {
+      await apiRequest({
+        url: `/api/phone-directory/${entryId}`,
         method: "PATCH",
-        body: JSON.stringify(updatedEntry),
-        headers: { "Content-Type": "application/json" },
+        body: updatedEntry,
       });
     },
     onSuccess: () => {
