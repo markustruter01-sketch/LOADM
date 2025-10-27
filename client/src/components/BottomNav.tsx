@@ -56,37 +56,39 @@ export default function BottomNav() {
     }
   ];
 
-  // Create a combined array of all navigation items for consistent spacing
   const allNavItems = [...navItems];
 
   const handleNavClick = (href: string) => {
-    // User is authenticated through our new system, allow direct navigation
     setLocation(href);
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full border-t border-border bg-card shadow-lg z-50 bottom-nav">
-      <div className="grid grid-cols-6 h-16">
+    <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center items-center pointer-events-none">
+      <div className="flex gap-3 px-6 pointer-events-auto">
         {allNavItems.map((item) => (
-          <div key={item.href} className="flex justify-center">
-            <div 
-              className="flex flex-col items-center justify-center w-full p-2 cursor-pointer"
-              onClick={() => handleNavClick(item.href)}
-            >
-              <div 
-                className={cn(
-                  "flex flex-col items-center justify-center",
-                  item.active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <item.icon className="h-5 w-5 mb-1" />
-                <span className="text-xs">{item.label}</span>
-              </div>
-            </div>
-          </div>
+          <button
+            key={item.href}
+            onClick={() => handleNavClick(item.href)}
+            className={cn(
+              "relative group flex items-center justify-center rounded-full",
+              "w-14 h-14 transition-all duration-300 shadow-lg hover:shadow-xl",
+              "backdrop-blur-sm border-2",
+              item.active 
+                ? "bg-primary border-primary text-primary-foreground scale-110" 
+                : "bg-card/90 border-border text-muted-foreground hover:text-foreground hover:scale-105 hover:bg-card"
+            )}
+            aria-label={item.label}
+            data-testid={`nav-${item.label.toLowerCase()}`}
+          >
+            <item.icon className="h-6 w-6" />
+            
+            {/* Tooltip on hover */}
+            <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-popover text-popover-foreground text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-md border border-border">
+              {item.label}
+            </span>
+          </button>
         ))}
       </div>
-
     </div>
   );
 }
