@@ -55,6 +55,15 @@ interface Mission {
   updatedAt: string;
 }
 
+interface MissionDocument {
+  id: number;
+  missionId: number;
+  documentFilename: string;
+  documentTitle: string;
+  addedAt: string;
+  addedBy: number;
+}
+
 export default function DocumentsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -270,7 +279,7 @@ export default function DocumentsPage() {
   const {
     data: missionDocs = [],
     isLoading: missionDocsLoading,
-  } = useQuery({
+  } = useQuery<MissionDocument[]>({
     queryKey: ["/api/missions", selectedMission?.id, "documents"],
     enabled: !!selectedMission?.id,
   });
@@ -1319,7 +1328,7 @@ export default function DocumentsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {missionDocs.map((doc: any) => {
+                        {missionDocs.map((doc) => {
                           const pdfInfo = pdfDocuments.find(p => p.filename === doc.documentFilename);
                           return (
                             <tr key={doc.id} className="border-t hover:bg-muted/50">
