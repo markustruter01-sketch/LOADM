@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import PdfModal from "@/components/PdfModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface Contact {
   id: string;
@@ -55,6 +56,7 @@ interface Mission {
 
 export default function DocumentsPage() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
   const [expandedAirfields, setExpandedAirfields] = useState<Set<number>>(new Set());
@@ -195,14 +197,21 @@ export default function DocumentsPage() {
 
   const createMissionMutation = useMutation({
     mutationFn: async (data: typeof newMissionData) => {
-      return await apiRequest("/api/missions", {
+      console.log("Creating mission with data:", data);
+      const response = await apiRequest("/api/missions", {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" },
       });
+      console.log("Mission created successfully:", response);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      toast({
+        title: "Mission Created",
+        description: "Your mission has been created successfully.",
+      });
       setIsCreatingMission(false);
       setNewMissionData({
         missionName: "",
@@ -213,6 +222,14 @@ export default function DocumentsPage() {
         loadmaster1Name: "",
         loadmaster2Name: "",
         hasDangerousGoods: false,
+      });
+    },
+    onError: (error: any) => {
+      console.error("Failed to create mission:", error);
+      toast({
+        title: "Error Creating Mission",
+        description: error.message || "Failed to create mission. Please try again.",
+        variant: "destructive",
       });
     },
   });
