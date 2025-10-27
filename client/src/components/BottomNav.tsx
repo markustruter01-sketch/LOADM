@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, ClipboardList, Package2, FileCheck, Wrench, GraduationCap } from "lucide-react";
+import { Home, ClipboardList, Plane, FileCheck, Wrench, GraduationCap } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
@@ -33,7 +33,7 @@ export default function BottomNav() {
     {
       href: "/airframe",
       label: "Airframe",
-      icon: Package2,
+      icon: Plane,
       active: location.startsWith("/airframe") || location.startsWith("/load-planning") || location.startsWith("/training-modules")
     },
     {
