@@ -225,6 +225,14 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Added empty state UI with call-to-action for first mission creation
   - Designed missions table with route visualization (departure → arrival) and DG badges
   - Integrated with authentication system to track mission creators
+  - Created mission_documents join table for many-to-many relationship between missions and PDF documents
+  - Built clickable mission rows that open detailed mission information dialog
+  - Implemented complete document attachment system with dropdown selector for available PDFs
+  - Added document management interface with View and Remove capabilities
+  - Mission detail dialog displays mission information grid and attached documents table
+  - Real-time table updates with instant refresh (staleTime: 0) for immediate mission visibility
+  - Fixed apiRequest bug by correcting to single options object format
+  - Authorization system restricts mission deletion to creator, instructors, or superadmins
   - All inputs include data-testid attributes for testing compatibility
 
 ## User Preferences

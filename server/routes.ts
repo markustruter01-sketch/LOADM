@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, missions, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -168,6 +168,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting mission:", error);
       res.status(500).json({ message: "Failed to delete mission" });
+    }
+  });
+
+  // Mission Documents API endpoints
+  app.get("/api/missions/:missionId/documents", requireAuth, async (req, res) => {
+    try {
+      const missionId = parseInt(req.params.missionId);
+      if (isNaN(missionId)) {
+        return res.status(400).json({ message: "Invalid mission ID" });
+      }
+
+      const docs = await db.select().from(missionDocuments).where(eq(missionDocuments.missionId, missionId));
+      res.json(docs);
+    } catch (error) {
+      console.error("Error fetching mission documents:", error);
+      res.status(500).json({ message: "Failed to fetch mission documents" });
+    }
+  });
+
+  app.post("/api/missions/:missionId/documents", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const missionId = parseInt(req.params.missionId);
+      if (isNaN(missionId)) {
+        return res.status(400).json({ message: "Invalid mission ID" });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Fetch the mission to check ownership
+      const mission = await db.select().from(missions).where(eq(missions.id, missionId)).limit(1);
+      
+      if (mission.length === 0) {
+        return res.status(404).json({ message: "Mission not found" });
+      }
+
+      // Check authorization: mission owner, instructor, or superadmin can add documents
+      const isOwner = mission[0].userId === req.user.id;
+      const isInstructor = req.user.role === 'instructor';
+      const isSuperAdmin = req.user.role === 'superadmin';
+      const isAuthorized = isOwner || isInstructor || isSuperAdmin;
+
+      if (!isAuthorized) {
+        return res.status(403).json({ message: "You can only add documents to your own missions" });
+      }
+
+      const validatedData = insertMissionDocumentSchema.parse({
+        ...req.body,
+        missionId,
+        addedBy: req.user.id,
+      });
+
+      const [newDoc] = await db.insert(missionDocuments).values(validatedData).returning();
+      res.status(201).json(newDoc);
+    } catch (error) {
+      console.error("Error adding document to mission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to add document to mission" });
+    }
+  });
+
+  app.delete("/api/missions/:missionId/documents/:docId", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const missionId = parseInt(req.params.missionId);
+      const docId = parseInt(req.params.docId);
+      
+      if (isNaN(missionId)) {
+        return res.status(400).json({ message: "Invalid mission ID" });
+      }
+      
+      if (isNaN(docId)) {
+        return res.status(400).json({ message: "Invalid document ID" });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Fetch the mission document to verify it belongs to the mission
+      const doc = await db.select().from(missionDocuments).where(eq(missionDocuments.id, docId)).limit(1);
+      
+      if (doc.length === 0) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      // Verify the document belongs to the specified mission
+      if (doc[0].missionId !== missionId) {
+        return res.status(400).json({ message: "Document does not belong to this mission" });
+      }
+
+      // Fetch the mission to check ownership
+      const mission = await db.select().from(missions).where(eq(missions.id, missionId)).limit(1);
+      
+      if (mission.length === 0) {
+        return res.status(404).json({ message: "Mission not found" });
+      }
+
+      // Check authorization: mission owner, instructor, or superadmin can remove documents
+      const isOwner = mission[0].userId === req.user.id;
+      const isInstructor = req.user.role === 'instructor';
+      const isSuperAdmin = req.user.role === 'superadmin';
+      const isAuthorized = isOwner || isInstructor || isSuperAdmin;
+
+      if (!isAuthorized) {
+        return res.status(403).json({ message: "You can only remove documents from your own missions" });
+      }
+
+      await db.delete(missionDocuments).where(eq(missionDocuments.id, docId));
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing document from mission:", error);
+      res.status(500).json({ message: "Failed to remove document from mission" });
     }
   });
 

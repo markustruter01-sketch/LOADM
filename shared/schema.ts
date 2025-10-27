@@ -313,6 +313,24 @@ export const insertMissionSchema = createInsertSchema(missions).omit({
 export type InsertMission = z.infer<typeof insertMissionSchema>;
 export type Mission = typeof missions.$inferSelect;
 
+// Mission Documents - Links missions to PDF documents
+export const missionDocuments = pgTable("mission_documents", {
+  id: serial("id").primaryKey(),
+  missionId: integer("mission_id").notNull().references(() => missions.id, { onDelete: "cascade" }),
+  documentFilename: text("document_filename").notNull(),
+  documentTitle: text("document_title").notNull(),
+  addedAt: timestamp("added_at").defaultNow().notNull(),
+  addedBy: integer("added_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const insertMissionDocumentSchema = createInsertSchema(missionDocuments).omit({
+  id: true,
+  addedAt: true,
+});
+
+export type InsertMissionDocument = z.infer<typeof insertMissionDocumentSchema>;
+export type MissionDocument = typeof missionDocuments.$inferSelect;
+
 // Training Module Videos schema - For direct video uploads
 export const trainingModuleVideos = pgTable("training_module_videos", {
   id: serial("id").primaryKey(),

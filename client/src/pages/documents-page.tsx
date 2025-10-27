@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import PdfModal from "@/components/PdfModal";
@@ -79,6 +80,10 @@ export default function DocumentsPage() {
   // Mission management state
   const [isCreatingMission, setIsCreatingMission] = useState(false);
   const [selectedMissions, setSelectedMissions] = useState<Set<number>>(new Set());
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [missionDetailOpen, setMissionDetailOpen] = useState(false);
+  const [isAddingDocument, setIsAddingDocument] = useState(false);
+  const [selectedDocumentToAdd, setSelectedDocumentToAdd] = useState("");
   const [newMissionData, setNewMissionData] = useState({
     missionName: "",
     aircraftCallSign: "",
@@ -256,6 +261,64 @@ export default function DocumentsPage() {
       toast({
         title: "Error Deleting Missions",
         description: error.message || "Failed to delete missions. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mission Documents queries and mutations
+  const {
+    data: missionDocs = [],
+    isLoading: missionDocsLoading,
+  } = useQuery({
+    queryKey: ["/api/missions", selectedMission?.id, "documents"],
+    enabled: !!selectedMission?.id,
+  });
+
+  const addDocumentToMissionMutation = useMutation({
+    mutationFn: async ({ missionId, documentFilename, documentTitle }: { missionId: number; documentFilename: string; documentTitle: string }) => {
+      return await apiRequest({
+        url: `/api/missions/${missionId}/documents`,
+        method: "POST",
+        body: { documentFilename, documentTitle },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions", selectedMission?.id, "documents"] });
+      toast({
+        title: "Document Added",
+        description: "Document successfully added to mission.",
+      });
+      setSelectedDocumentToAdd("");
+      setIsAddingDocument(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Adding Document",
+        description: error.message || "Failed to add document to mission.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeDocumentFromMissionMutation = useMutation({
+    mutationFn: async ({ missionId, docId }: { missionId: number; docId: number }) => {
+      return await apiRequest({
+        url: `/api/missions/${missionId}/documents/${docId}`,
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions", selectedMission?.id, "documents"] });
+      toast({
+        title: "Document Removed",
+        description: "Document successfully removed from mission.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Removing Document",
+        description: error.message || "Failed to remove document from mission.",
         variant: "destructive",
       });
     },
@@ -535,8 +598,15 @@ export default function DocumentsPage() {
                     </thead>
                     <tbody>
                       {missions.map((mission) => (
-                        <tr key={mission.id} className="border-t hover:bg-muted/50">
-                          <td className="px-4 py-3">
+                        <tr 
+                          key={mission.id} 
+                          className="border-t hover:bg-muted/50 cursor-pointer"
+                          onClick={() => {
+                            setSelectedMission(mission);
+                            setMissionDetailOpen(true);
+                          }}
+                        >
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={selectedMissions.has(mission.id)}
@@ -1120,6 +1190,193 @@ export default function DocumentsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mission Detail Dialog */}
+      {selectedMission && (
+        <Dialog open={missionDetailOpen} onOpenChange={setMissionDetailOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">{selectedMission.missionName}</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Mission Details */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Aircraft</p>
+                  <p className="font-medium">{selectedMission.aircraftCallSign}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Captain</p>
+                  <p className="font-medium">{selectedMission.captainName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Departure</p>
+                  <p className="font-medium">{selectedMission.departureLocation}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Arrival</p>
+                  <p className="font-medium">{selectedMission.arrivalDestination}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Loadmaster 1</p>
+                  <p className="font-medium">{selectedMission.loadmaster1Name}</p>
+                </div>
+                {selectedMission.loadmaster2Name && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Loadmaster 2</p>
+                    <p className="font-medium">{selectedMission.loadmaster2Name}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Documents Section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Mission Documents</h3>
+                  <Button 
+                    onClick={() => setIsAddingDocument(true)}
+                    disabled={isAddingDocument}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Document
+                  </Button>
+                </div>
+
+                {/* Add Document Dropdown */}
+                {isAddingDocument && (
+                  <div className="flex gap-2 p-4 bg-muted rounded-lg">
+                    <Select
+                      value={selectedDocumentToAdd}
+                      onValueChange={setSelectedDocumentToAdd}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select a document to add" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pdfDocuments.map((pdf) => (
+                          <SelectItem key={pdf.filename} value={pdf.filename}>
+                            {pdf.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => {
+                        if (selectedDocumentToAdd && selectedMission) {
+                          const selectedPdf = pdfDocuments.find(p => p.filename === selectedDocumentToAdd);
+                          if (selectedPdf) {
+                            addDocumentToMissionMutation.mutate({
+                              missionId: selectedMission.id,
+                              documentFilename: selectedPdf.filename,
+                              documentTitle: selectedPdf.title,
+                            });
+                          }
+                        }
+                      }}
+                      disabled={!selectedDocumentToAdd || addDocumentToMissionMutation.isPending}
+                    >
+                      {addDocumentToMissionMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        "Add"
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddingDocument(false);
+                        setSelectedDocumentToAdd("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+
+                {/* Documents Table */}
+                {missionDocsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : missionDocs.length === 0 ? (
+                  <div className="text-center py-12 border rounded-lg">
+                    <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No documents attached to this mission</p>
+                    <p className="text-sm text-muted-foreground mt-2">Click "Add Document" to attach documents</p>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold">Document</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold">Added</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {missionDocs.map((doc: any) => {
+                          const pdfInfo = pdfDocuments.find(p => p.filename === doc.documentFilename);
+                          return (
+                            <tr key={doc.id} className="border-t hover:bg-muted/50">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <p className="font-medium">{doc.documentTitle}</p>
+                                  {pdfInfo && (
+                                    <p className="text-sm text-muted-foreground">{pdfInfo.description}</p>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                {new Date(doc.addedAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      if (pdfInfo) {
+                                        handleViewPdf(pdfInfo);
+                                      }
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    View
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => {
+                                      if (selectedMission) {
+                                        removeDocumentFromMissionMutation.mutate({
+                                          missionId: selectedMission.id,
+                                          docId: doc.id,
+                                        });
+                                      }
+                                    }}
+                                    disabled={removeDocumentFromMissionMutation.isPending}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
