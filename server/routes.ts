@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Missions API endpoints
-  app.get("/api/missions", async (req, res) => {
+  app.get("/api/missions", requireAuth, async (req, res) => {
     try {
       const allMissions = await db.select().from(missions).orderBy(missions.createdAt);
       res.json(allMissions);
@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/missions", async (req: AuthenticatedRequest, res) => {
+  app.post("/api/missions", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -135,11 +135,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/missions/:id", async (req, res) => {
+  app.delete("/api/missions/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const missionId = parseInt(req.params.id);
       if (isNaN(missionId)) {
         return res.status(400).json({ message: "Invalid mission ID" });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Fetch the mission to check ownership
+      const mission = await db.select().from(missions).where(eq(missions.id, missionId)).limit(1);
+      
+      if (mission.length === 0) {
+        return res.status(404).json({ message: "Mission not found" });
+      }
+
+      // Check authorization: mission owner, instructor, or superadmin can delete
+      const isOwner = mission[0].userId === req.user.id;
+      const isInstructor = req.user.role === 'instructor';
+      const isSuperAdmin = req.user.role === 'superadmin';
+      const isAuthorized = isOwner || isInstructor || isSuperAdmin;
+
+      if (!isAuthorized) {
+        return res.status(403).json({ message: "You can only delete your own missions. Contact an instructor if you need to delete this mission." });
       }
 
       await db.delete(missions).where(eq(missions.id, missionId));

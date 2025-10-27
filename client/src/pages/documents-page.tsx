@@ -437,11 +437,112 @@ export default function DocumentsPage() {
                 </div>
               </div>
 
-              <div className="text-center py-12">
-                <Briefcase className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">No mission documents available</h3>
-                <p className="text-muted-foreground">Mission documents will be displayed here</p>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setIsCreatingMission(true)}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Mission
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    if (selectedMissions.size === 0) return;
+                    deleteMissionsMutation.mutate(Array.from(selectedMissions));
+                  }}
+                  disabled={selectedMissions.size === 0 || deleteMissionsMutation.isPending}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected ({selectedMissions.size})
+                </Button>
               </div>
+
+              {/* Missions Table */}
+              {missionsLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : missions.length === 0 ? (
+                <div className="text-center py-12 border rounded-lg">
+                  <Briefcase className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No missions created</h3>
+                  <p className="text-muted-foreground mb-4">Create your first mission to get started</p>
+                  <Button onClick={() => setIsCreatingMission(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Mission
+                  </Button>
+                </div>
+              ) : (
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="px-4 py-3 text-left">
+                          <input
+                            type="checkbox"
+                            checked={selectedMissions.size === missions.length && missions.length > 0}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedMissions(new Set(missions.map(m => m.id)));
+                              } else {
+                                setSelectedMissions(new Set());
+                              }
+                            }}
+                            className="rounded"
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">Mission Name</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">Aircraft</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">Captain</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">Route</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">Loadmasters</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold">DG</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {missions.map((mission) => (
+                        <tr key={mission.id} className="border-t hover:bg-muted/50">
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedMissions.has(mission.id)}
+                              onChange={(e) => {
+                                const newSelected = new Set(selectedMissions);
+                                if (e.target.checked) {
+                                  newSelected.add(mission.id);
+                                } else {
+                                  newSelected.delete(mission.id);
+                                }
+                                setSelectedMissions(newSelected);
+                              }}
+                              className="rounded"
+                            />
+                          </td>
+                          <td className="px-4 py-3 font-medium">{mission.missionName}</td>
+                          <td className="px-4 py-3">{mission.aircraftCallSign}</td>
+                          <td className="px-4 py-3">{mission.captainName}</td>
+                          <td className="px-4 py-3 text-sm">
+                            {mission.departureLocation} → {mission.arrivalDestination}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {mission.loadmaster1Name}
+                            {mission.loadmaster2Name && `, ${mission.loadmaster2Name}`}
+                          </td>
+                          <td className="px-4 py-3">
+                            {mission.hasDangerousGoods ? (
+                              <Badge variant="destructive">Yes</Badge>
+                            ) : (
+                              <Badge variant="secondary">No</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -820,6 +921,173 @@ export default function DocumentsPage() {
           title={selectedPdf.title}
         />
       )}
+
+      {/* Create Mission Dialog */}
+      <Dialog open={isCreatingMission} onOpenChange={setIsCreatingMission}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Mission</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="mission-name">Mission Name *</Label>
+              <Input
+                id="mission-name"
+                data-testid="input-mission-name"
+                value={newMissionData.missionName}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, missionName: e.target.value }))
+                }
+                placeholder="e.g., Operation Phoenix Flight"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="aircraft-callsign">Aircraft Call Sign *</Label>
+              <Input
+                id="aircraft-callsign"
+                data-testid="input-aircraft-callsign"
+                value={newMissionData.aircraftCallSign}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, aircraftCallSign: e.target.value }))
+                }
+                placeholder="e.g., RAAF C-17A A41-210"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="captain-name">Captain Name *</Label>
+              <Input
+                id="captain-name"
+                data-testid="input-captain-name"
+                value={newMissionData.captainName}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, captainName: e.target.value }))
+                }
+                placeholder="e.g., SQNLDR John Smith"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="departure-location">Departure Location *</Label>
+                <Input
+                  id="departure-location"
+                  data-testid="input-departure-location"
+                  value={newMissionData.departureLocation}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, departureLocation: e.target.value }))
+                  }
+                  placeholder="e.g., RAAF Base Amberley"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="arrival-destination">Arrival Destination *</Label>
+                <Input
+                  id="arrival-destination"
+                  data-testid="input-arrival-destination"
+                  value={newMissionData.arrivalDestination}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, arrivalDestination: e.target.value }))
+                  }
+                  placeholder="e.g., RAAF Base Darwin"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="loadmaster1-name">Loadmaster 1 *</Label>
+                <Input
+                  id="loadmaster1-name"
+                  data-testid="input-loadmaster1-name"
+                  value={newMissionData.loadmaster1Name}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, loadmaster1Name: e.target.value }))
+                  }
+                  placeholder="e.g., SGT Jane Doe"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="loadmaster2-name">Loadmaster 2</Label>
+                <Input
+                  id="loadmaster2-name"
+                  data-testid="input-loadmaster2-name"
+                  value={newMissionData.loadmaster2Name}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, loadmaster2Name: e.target.value }))
+                  }
+                  placeholder="e.g., CPL Mike Johnson (optional)"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="dangerous-goods"
+                data-testid="checkbox-dangerous-goods"
+                checked={newMissionData.hasDangerousGoods}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, hasDangerousGoods: e.target.checked }))
+                }
+                className="rounded"
+              />
+              <Label htmlFor="dangerous-goods" className="cursor-pointer">
+                Contains Dangerous Goods
+              </Label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreatingMission(false);
+                  setNewMissionData({
+                    missionName: "",
+                    aircraftCallSign: "",
+                    captainName: "",
+                    departureLocation: "",
+                    arrivalDestination: "",
+                    loadmaster1Name: "",
+                    loadmaster2Name: "",
+                    hasDangerousGoods: false,
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                data-testid="button-create-mission"
+                onClick={() => createMissionMutation.mutate(newMissionData)}
+                disabled={
+                  !newMissionData.missionName ||
+                  !newMissionData.aircraftCallSign ||
+                  !newMissionData.captainName ||
+                  !newMissionData.departureLocation ||
+                  !newMissionData.arrivalDestination ||
+                  !newMissionData.loadmaster1Name ||
+                  createMissionMutation.isPending
+                }
+              >
+                {createMissionMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Mission
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
