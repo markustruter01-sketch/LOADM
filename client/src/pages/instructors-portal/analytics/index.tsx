@@ -130,6 +130,31 @@ export default function AdvancedAnalytics() {
     queryKey: ["/api/users"],
   });
   
+  // Fetch advanced analytics data
+  const { data: topicMastery, isLoading: isLoadingTopic } = useQuery<any[]>({
+    queryKey: ["/api/analytics/topic-mastery"],
+  });
+  
+  const { data: questionDifficulty, isLoading: isLoadingDifficulty } = useQuery<any[]>({
+    queryKey: ["/api/analytics/question-difficulty"],
+  });
+  
+  const { data: studentVsSquadron, isLoading: isLoadingComparison } = useQuery<any[]>({
+    queryKey: ["/api/analytics/student-vs-squadron"],
+  });
+  
+  const { data: moduleCompletion, isLoading: isLoadingModules } = useQuery<any[]>({
+    queryKey: ["/api/analytics/module-completion"],
+  });
+  
+  const { data: certificationReadiness, isLoading: isLoadingCertification } = useQuery<any[]>({
+    queryKey: ["/api/analytics/certification-readiness"],
+  });
+  
+  const { data: atRiskStudents, isLoading: isLoadingAtRisk } = useQuery<any[]>({
+    queryKey: ["/api/analytics/at-risk-students"],
+  });
+  
   // Derived state for analytics
   const [overviewStats, setOverviewStats] = useState({
     totalStudents: 0,
@@ -866,6 +891,262 @@ export default function AdvancedAnalytics() {
                   </div>
                 </CardContent>
               </Card>
+              
+              {/* Advanced Analytics Section - Consolidated into Overview */}
+              <Separator className="my-8" />
+              
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-2">Advanced Performance Analytics</h2>
+                <p className="text-muted-foreground">Detailed insights and metrics for comprehensive training assessment</p>
+              </div>
+              
+              {/* Row 1: Topic Mastery Matrix & Question Difficulty Analysis */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Topic Mastery Matrix */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Layers className="h-5 w-5" />
+                      Topic Mastery Matrix
+                    </CardTitle>
+                    <CardDescription>Performance breakdown by quiz category</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[350px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={topicMastery || []} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" domain={[0, 100]} />
+                          <YAxis type="category" dataKey="category" width={150} />
+                          <Tooltip />
+                          <Bar dataKey="masteryPercentage" name="Mastery %" fill={COLORS.primary}>
+                            {(topicMastery || []).map((entry: any, index: number) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.masteryPercentage >= 80 ? COLORS.success : 
+                                      entry.masteryPercentage >= 60 ? COLORS.warning : COLORS.danger} 
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Question Difficulty Analysis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Question Difficulty Analysis
+                    </CardTitle>
+                    <CardDescription>Top 10 most challenging questions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto">
+                      {(questionDifficulty || []).map((q: any, idx: number) => (
+                        <div key={q.questionId} className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-semibold text-muted-foreground">#{idx + 1}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                  {q.category}
+                                </span>
+                              </div>
+                              <p className="text-sm line-clamp-2">{q.questionText}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-lg font-bold ${
+                                q.successRate >= 70 ? 'text-success' : 
+                                q.successRate >= 50 ? 'text-warning' : 'text-danger'
+                              }`}>
+                                {q.successRate}%
+                              </div>
+                              <div className="text-xs text-muted-foreground">{q.attempts} attempts</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Row 2: Student vs Squadron Average & Training Module Completion */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Student vs Squadron Average */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Student vs Squadron Average
+                    </CardTitle>
+                    <CardDescription>Individual performance compared to squadron</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                      {(studentVsSquadron || []).slice(0, 15).map((student: any) => (
+                        <div key={student.userId} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{student.name}</div>
+                            <div className="text-xs text-muted-foreground">{student.squadron}</div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="text-sm font-semibold">{student.studentAverage}%</div>
+                              <div className="text-xs text-muted-foreground">Student</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm text-muted-foreground">{student.squadronAverage}%</div>
+                              <div className="text-xs text-muted-foreground">Squadron</div>
+                            </div>
+                            <div className={`text-sm font-bold min-w-[50px] text-right ${
+                              student.difference > 0 ? 'text-success' : 
+                              student.difference < 0 ? 'text-danger' : 'text-muted-foreground'
+                            }`}>
+                              {student.difference > 0 ? '+' : ''}{student.difference}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Training Module Completion Progress */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5" />
+                      Training Module Completion
+                    </CardTitle>
+                    <CardDescription>Progress tracking across all modules</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {(moduleCompletion || []).map((module: any) => (
+                        <div key={module.moduleId} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium text-sm">{module.moduleName}</div>
+                            <div className="text-sm font-bold text-primary">{module.completionRate}%</div>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${module.completionRate}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{module.studentsCompleted} completed</span>
+                            <span>{module.studentsStarted} started</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Row 3: Certification Readiness Score & At-Risk Students */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Certification Readiness Score */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Medal className="h-5 w-5" />
+                      Certification Readiness Score
+                    </CardTitle>
+                    <CardDescription>Students ranked by overall readiness</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                      {(certificationReadiness || []).slice(0, 12).map((student: any, idx: number) => (
+                        <div key={student.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+                          <div className={`text-lg font-bold min-w-[40px] text-center ${
+                            idx < 3 ? 'text-primary' : 'text-muted-foreground'
+                          }`}>
+                            #{idx + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{student.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {student.squadron} • {student.quizCount} quizzes • {student.scenarioCount} scenarios
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-lg font-bold ${
+                              student.status === 'ready' ? 'text-success' : 
+                              student.status === 'near-ready' ? 'text-warning' : 'text-muted-foreground'
+                            }`}>
+                              {student.readinessScore}
+                            </div>
+                            <div className="text-xs text-muted-foreground capitalize">{student.status.replace('-', ' ')}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* At-Risk Students Alert Table */}
+                <Card className="border-danger/50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-danger">
+                      <XCircle className="h-5 w-5" />
+                      At-Risk Students
+                    </CardTitle>
+                    <CardDescription>Students requiring immediate attention</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto">
+                      {(atRiskStudents || []).length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <CheckCircle className="h-12 w-12 mx-auto mb-2 text-success" />
+                          <p>No at-risk students identified</p>
+                        </div>
+                      ) : (
+                        (atRiskStudents || []).map((student: any) => (
+                          <div key={student.userId} className={`p-3 rounded-lg border ${
+                            student.riskLevel === 'high' ? 'bg-danger/5 border-danger/50' :
+                            student.riskLevel === 'medium' ? 'bg-warning/5 border-warning/50' :
+                            'bg-muted/50 border-border'
+                          }`}>
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{student.name}</div>
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  {student.squadron} • {student.totalSubmissions} submissions
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {student.riskFactors.map((factor: string, idx: number) => (
+                                    <span key={idx} className="text-xs px-2 py-0.5 rounded-full bg-danger/10 text-danger">
+                                      {factor}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
+                                student.riskLevel === 'high' ? 'bg-danger text-white' :
+                                student.riskLevel === 'medium' ? 'bg-warning text-white' :
+                                'bg-muted text-muted-foreground'
+                              }`}>
+                                {student.riskLevel}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs">
+                              <span className="text-muted-foreground">Quiz: {student.avgQuizScore}%</span>
+                              <span className="text-muted-foreground">Scenario: {student.avgScenarioScore}%</span>
+                              <span className="text-muted-foreground">Last active: {student.daysSinceActivity}d ago</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
           
@@ -1041,313 +1322,9 @@ export default function AdvancedAnalytics() {
               </Card>
             </div>
           )}
-          
-          {selectedView === "advanced" && (
-            <AdvancedMetricsView />
-          )}
 
         </>
       )}
-    </div>
-  );
-}
-
-// Advanced Metrics View Component with all 6 new analytics features
-function AdvancedMetricsView() {
-  // Fetch all new analytics data
-  const { data: topicMastery, isLoading: isLoadingTopic } = useQuery<any[]>({
-    queryKey: ["/api/analytics/topic-mastery"],
-  });
-  
-  const { data: questionDifficulty, isLoading: isLoadingDifficulty } = useQuery<any[]>({
-    queryKey: ["/api/analytics/question-difficulty"],
-  });
-  
-  const { data: studentVsSquadron, isLoading: isLoadingComparison } = useQuery<any[]>({
-    queryKey: ["/api/analytics/student-vs-squadron"],
-  });
-  
-  const { data: moduleCompletion, isLoading: isLoadingModules } = useQuery<any[]>({
-    queryKey: ["/api/analytics/module-completion"],
-  });
-  
-  const { data: certificationReadiness, isLoading: isLoadingCertification } = useQuery<any[]>({
-    queryKey: ["/api/analytics/certification-readiness"],
-  });
-  
-  const { data: atRiskStudents, isLoading: isLoadingAtRisk } = useQuery<any[]>({
-    queryKey: ["/api/analytics/at-risk-students"],
-  });
-  
-  const isLoading = isLoadingTopic || isLoadingDifficulty || isLoadingComparison || 
-                    isLoadingModules || isLoadingCertification || isLoadingAtRisk;
-  
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[1,2,3,4,5,6].map(i => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[300px] w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-  
-  return (
-    <div className="space-y-6">
-      {/* Row 1: Topic Mastery Matrix & Question Difficulty Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Topic Mastery Matrix */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5" />
-              Topic Mastery Matrix
-            </CardTitle>
-            <CardDescription>Performance breakdown by quiz category</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topicMastery || []} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis type="category" dataKey="category" width={150} />
-                  <Tooltip />
-                  <Bar dataKey="masteryPercentage" name="Mastery %" fill={COLORS.primary}>
-                    {(topicMastery || []).map((entry: any, index: number) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.masteryPercentage >= 80 ? COLORS.success : 
-                              entry.masteryPercentage >= 60 ? COLORS.warning : COLORS.danger} 
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Question Difficulty Analysis */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Question Difficulty Analysis
-            </CardTitle>
-            <CardDescription>Top 10 most challenging questions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-[350px] overflow-y-auto">
-              {(questionDifficulty || []).map((q: any, idx: number) => (
-                <div key={q.questionId} className="p-3 rounded-lg bg-muted/50 border border-border">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-semibold text-muted-foreground">#{idx + 1}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {q.category}
-                        </span>
-                      </div>
-                      <p className="text-sm line-clamp-2">{q.questionText}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-lg font-bold ${
-                        q.successRate >= 70 ? 'text-success' : 
-                        q.successRate >= 50 ? 'text-warning' : 'text-danger'
-                      }`}>
-                        {q.successRate}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">{q.attempts} attempts</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Row 2: Student vs Squadron Average & Training Module Completion */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Student vs Squadron Average */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Student vs Squadron Average
-            </CardTitle>
-            <CardDescription>Individual performance compared to squadron</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-[350px] overflow-y-auto">
-              {(studentVsSquadron || []).slice(0, 15).map((student: any) => (
-                <div key={student.userId} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{student.name}</div>
-                    <div className="text-xs text-muted-foreground">{student.squadron}</div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-sm font-semibold">{student.studentAverage}%</div>
-                      <div className="text-xs text-muted-foreground">Student</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">{student.squadronAverage}%</div>
-                      <div className="text-xs text-muted-foreground">Squadron</div>
-                    </div>
-                    <div className={`text-sm font-bold min-w-[50px] text-right ${
-                      student.difference > 0 ? 'text-success' : 
-                      student.difference < 0 ? 'text-danger' : 'text-muted-foreground'
-                    }`}>
-                      {student.difference > 0 ? '+' : ''}{student.difference}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Training Module Completion Progress */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5" />
-              Training Module Completion
-            </CardTitle>
-            <CardDescription>Progress tracking across all modules</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {(moduleCompletion || []).map((module: any) => (
-                <div key={module.moduleId} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium text-sm">{module.moduleName}</div>
-                    <div className="text-sm font-bold text-primary">{module.completionRate}%</div>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${module.completionRate}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{module.studentsCompleted} completed</span>
-                    <span>{module.studentsStarted} started</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Row 3: Certification Readiness Score & At-Risk Students */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Certification Readiness Score */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Medal className="h-5 w-5" />
-              Certification Readiness Score
-            </CardTitle>
-            <CardDescription>Students ranked by overall readiness</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-[350px] overflow-y-auto">
-              {(certificationReadiness || []).slice(0, 12).map((student: any, idx: number) => (
-                <div key={student.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                  <div className={`text-lg font-bold min-w-[40px] text-center ${
-                    idx < 3 ? 'text-primary' : 'text-muted-foreground'
-                  }`}>
-                    #{idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{student.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {student.squadron} • {student.quizCount} quizzes • {student.scenarioCount} scenarios
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-lg font-bold ${
-                      student.status === 'ready' ? 'text-success' : 
-                      student.status === 'near-ready' ? 'text-warning' : 'text-muted-foreground'
-                    }`}>
-                      {student.readinessScore}
-                    </div>
-                    <div className="text-xs text-muted-foreground capitalize">{student.status.replace('-', ' ')}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* At-Risk Students Alert Table */}
-        <Card className="border-danger/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-danger">
-              <XCircle className="h-5 w-5" />
-              At-Risk Students
-            </CardTitle>
-            <CardDescription>Students requiring immediate attention</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-[350px] overflow-y-auto">
-              {(atRiskStudents || []).length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-2 text-success" />
-                  <p>No at-risk students identified</p>
-                </div>
-              ) : (
-                (atRiskStudents || []).map((student: any) => (
-                  <div key={student.userId} className={`p-3 rounded-lg border ${
-                    student.riskLevel === 'high' ? 'bg-danger/5 border-danger/50' :
-                    student.riskLevel === 'medium' ? 'bg-warning/5 border-warning/50' :
-                    'bg-muted/50 border-border'
-                  }`}>
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{student.name}</div>
-                        <div className="text-xs text-muted-foreground mb-1">
-                          {student.squadron} • {student.totalSubmissions} submissions
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {student.riskFactors.map((factor: string, idx: number) => (
-                            <span key={idx} className="text-xs px-2 py-0.5 rounded-full bg-danger/10 text-danger">
-                              {factor}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
-                        student.riskLevel === 'high' ? 'bg-danger text-white' :
-                        student.riskLevel === 'medium' ? 'bg-warning text-white' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {student.riskLevel}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs">
-                      <span className="text-muted-foreground">Quiz: {student.avgQuizScore}%</span>
-                      <span className="text-muted-foreground">Scenario: {student.avgScenarioScore}%</span>
-                      <span className="text-muted-foreground">Last active: {student.daysSinceActivity}d ago</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
