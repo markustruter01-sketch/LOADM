@@ -823,21 +823,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const categoriesMap: Record<string, { total: number; correct: number; questions: number }> = {};
       
       submissions.forEach((sub: any) => {
-        const answers = sub.answers || [];
-        answers.forEach((ans: any) => {
-          const question = loadmasterQuestions.find(q => q.id === ans.questionId);
-          if (question) {
-            const category = question.category;
-            if (!categoriesMap[category]) {
-              categoriesMap[category] = { total: 0, correct: 0, questions: 0 };
+        // Parse answers if it's a string, otherwise use as-is
+        const answers = typeof sub.answers === 'string' 
+          ? JSON.parse(sub.answers) 
+          : (sub.answers || []);
+        
+        if (Array.isArray(answers)) {
+          answers.forEach((ans: any) => {
+            const question = loadmasterQuestions.find(q => q.id === ans.questionId);
+            if (question) {
+              const category = question.category;
+              if (!categoriesMap[category]) {
+                categoriesMap[category] = { total: 0, correct: 0, questions: 0 };
+              }
+              categoriesMap[category].total += 1;
+              categoriesMap[category].questions += 1;
+              if (ans.answeredOption === question.correctAnswer) {
+                categoriesMap[category].correct += 1;
+              }
             }
-            categoriesMap[category].total += 1;
-            categoriesMap[category].questions += 1;
-            if (ans.answeredOption === question.correctAnswer) {
-              categoriesMap[category].correct += 1;
-            }
-          }
-        });
+          });
+        }
       });
       
       // Calculate mastery percentage for each category
@@ -872,21 +878,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questionStats: Record<string, { attempts: number; correct: number }> = {};
       
       submissions.forEach((sub: any) => {
-        const answers = sub.answers || [];
-        answers.forEach((ans: any) => {
-          const questionId = ans.questionId;
-          const question = loadmasterQuestions.find(q => q.id === questionId);
-          
-          if (question) {
-            if (!questionStats[questionId]) {
-              questionStats[questionId] = { attempts: 0, correct: 0 };
+        // Parse answers if it's a string, otherwise use as-is
+        const answers = typeof sub.answers === 'string' 
+          ? JSON.parse(sub.answers) 
+          : (sub.answers || []);
+        
+        if (Array.isArray(answers)) {
+          answers.forEach((ans: any) => {
+            const questionId = ans.questionId;
+            const question = loadmasterQuestions.find(q => q.id === questionId);
+            
+            if (question) {
+              if (!questionStats[questionId]) {
+                questionStats[questionId] = { attempts: 0, correct: 0 };
+              }
+              questionStats[questionId].attempts += 1;
+              if (ans.answeredOption === question.correctAnswer) {
+                questionStats[questionId].correct += 1;
+              }
             }
-            questionStats[questionId].attempts += 1;
-            if (ans.answeredOption === question.correctAnswer) {
-              questionStats[questionId].correct += 1;
-            }
-          }
-        });
+          });
+        }
       });
       
       // Calculate difficulty scores
