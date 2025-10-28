@@ -991,8 +991,8 @@ export default function AdvancedAnalytics() {
                             {(topicMastery || []).map((entry: any, index: number) => (
                               <Cell 
                                 key={`cell-${index}`} 
-                                fill={entry.masteryPercentage >= 80 ? COLORS.success : 
-                                      entry.masteryPercentage >= 60 ? COLORS.warning : COLORS.danger} 
+                                fill={entry.masteryPercentage >= 70 ? COLORS.success : 
+                                      entry.masteryPercentage >= 50 ? COLORS.warning : COLORS.danger} 
                               />
                             ))}
                           </Bar>
