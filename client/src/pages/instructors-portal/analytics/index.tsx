@@ -805,6 +805,112 @@ export default function AdvancedAnalytics() {
                 </Card>
               </div>
               
+              {/* Squadron Performance Comparison */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Squadron Performance Comparison</CardTitle>
+                  <CardDescription>Detailed analysis of performance metrics by squadron</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[400px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={performanceData.squadronPerformance} 
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="squadron" />
+                        <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
+                        <YAxis yAxisId="right" orientation="right" />
+                        <Tooltip />
+                        <Legend />
+                        <Bar 
+                          yAxisId="left"
+                          dataKey="avgScore" 
+                          name="Average Score (%)" 
+                          fill={COLORS.primary}
+                        >
+                          {performanceData.squadronPerformance.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={COLORS.squadrons[entry.squadron as keyof typeof COLORS.squadrons] || COLORS.primary} 
+                            />
+                          ))}
+                        </Bar>
+                        <Bar 
+                          yAxisId="left"
+                          dataKey="passRate" 
+                          name="Pass Rate (%)" 
+                          fill={COLORS.success}
+                        >
+                          {performanceData.squadronPerformance.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={COLORS.squadrons[entry.squadron as keyof typeof COLORS.squadrons] 
+                                ? `${COLORS.squadrons[entry.squadron as keyof typeof COLORS.squadrons]}80` 
+                                : `${COLORS.success}80`} 
+                            />
+                          ))}
+                        </Bar>
+                        <Bar 
+                          yAxisId="right"
+                          dataKey="submissions" 
+                          name="Total Submissions" 
+                          fill={COLORS.secondary}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Performance Trends Over Time */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Performance Trends</CardTitle>
+                  <CardDescription>Analysis of student performance over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[400px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={performanceData.trendOverTime}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis 
+                          yAxisId="left" 
+                          orientation="left" 
+                          domain={[0, 100]} 
+                          label={{ value: 'Average Score (%)', angle: -90, position: 'insideLeft' }} 
+                        />
+                        <YAxis 
+                          yAxisId="right" 
+                          orientation="right" 
+                          domain={[0, 'dataMax + 5']} 
+                          label={{ value: 'Submissions', angle: 90, position: 'insideRight' }} 
+                        />
+                        <Tooltip />
+                        <Legend />
+                        <Area 
+                          yAxisId="left"
+                          type="monotone" 
+                          dataKey="avgScore" 
+                          name="Average Score (%)" 
+                          fill={`${COLORS.primary}20`}
+                          stroke={COLORS.primary}
+                          strokeWidth={2}
+                        />
+                        <Bar 
+                          yAxisId="right"
+                          dataKey="submissions" 
+                          name="Submissions" 
+                          fill={COLORS.secondary}
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
               {/* Assessment Type Performance */}
               <Card>
                 <CardHeader className="pb-2">
@@ -1169,128 +1275,6 @@ export default function AdvancedAnalytics() {
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Squadron Performance Section */}
-              <Separator className="my-8" />
-              
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Squadron Performance Comparison</h2>
-                <p className="text-muted-foreground">Detailed analysis of performance metrics by squadron</p>
-              </div>
-              
-              {/* Squadron Performance Comparison */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Squadron Performance Comparison</CardTitle>
-                  <CardDescription>Detailed analysis of performance metrics by squadron</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[400px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart 
-                        data={performanceData.squadronPerformance} 
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="squadron" />
-                        <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
-                        <YAxis yAxisId="right" orientation="right" />
-                        <Tooltip />
-                        <Legend />
-                        <Bar 
-                          yAxisId="left"
-                          dataKey="avgScore" 
-                          name="Average Score (%)" 
-                          fill={COLORS.primary}
-                        >
-                          {performanceData.squadronPerformance.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={COLORS.squadrons[entry.squadron as keyof typeof COLORS.squadrons] || COLORS.primary} 
-                            />
-                          ))}
-                        </Bar>
-                        <Bar 
-                          yAxisId="left"
-                          dataKey="passRate" 
-                          name="Pass Rate (%)" 
-                          fill={COLORS.success}
-                        >
-                          {performanceData.squadronPerformance.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={COLORS.squadrons[entry.squadron as keyof typeof COLORS.squadrons] 
-                                ? `${COLORS.squadrons[entry.squadron as keyof typeof COLORS.squadrons]}80` 
-                                : `${COLORS.success}80`} 
-                            />
-                          ))}
-                        </Bar>
-                        <Bar 
-                          yAxisId="right"
-                          dataKey="submissions" 
-                          name="Total Submissions" 
-                          fill={COLORS.secondary}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Performance Trends Section */}
-              <Separator className="my-8" />
-              
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Performance Trends Over Time</h2>
-                <p className="text-muted-foreground">Analysis of student performance over time</p>
-              </div>
-              
-              {/* Performance Trends Over Time */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Trends</CardTitle>
-                  <CardDescription>Analysis of student performance over time</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[400px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={performanceData.trendOverTime}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis 
-                          yAxisId="left" 
-                          orientation="left" 
-                          domain={[0, 100]} 
-                          label={{ value: 'Average Score (%)', angle: -90, position: 'insideLeft' }} 
-                        />
-                        <YAxis 
-                          yAxisId="right" 
-                          orientation="right" 
-                          domain={[0, 'dataMax + 5']} 
-                          label={{ value: 'Submissions', angle: 90, position: 'insideRight' }} 
-                        />
-                        <Tooltip />
-                        <Legend />
-                        <Area 
-                          yAxisId="left"
-                          type="monotone" 
-                          dataKey="avgScore" 
-                          name="Average Score (%)" 
-                          fill={`${COLORS.primary}20`}
-                          stroke={COLORS.primary}
-                          strokeWidth={2}
-                        />
-                        <Bar 
-                          yAxisId="right"
-                          dataKey="submissions" 
-                          name="Submissions" 
-                          fill={COLORS.secondary}
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
                   </div>
                 </CardContent>
               </Card>
