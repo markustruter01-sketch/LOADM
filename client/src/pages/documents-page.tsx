@@ -281,16 +281,21 @@ export default function DocumentsPage() {
     isLoading: missionDocsLoading,
   } = useQuery<MissionDocument[]>({
     queryKey: ["/api/missions", selectedMission?.id, "documents"],
+    queryFn: async () => {
+      if (!selectedMission?.id) return [];
+      const response = await fetch(`/api/missions/${selectedMission.id}/documents`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch mission documents: ${response.status}`);
+      }
+      return response.json();
+    },
     enabled: !!selectedMission?.id,
   });
-
-  // Log mission documents for debugging
-  useEffect(() => {
-    if (missionDocs) {
-      console.log(`📄 Mission ${selectedMission?.id} documents:`, missionDocs);
-      console.log(`📄 Document count: ${missionDocs.length}`);
-    }
-  }, [missionDocs, selectedMission?.id]);
 
   const addDocumentToMissionMutation = useMutation({
     mutationFn: async ({ missionId, documentFilename, documentTitle }: { missionId: number; documentFilename: string; documentTitle: string }) => {
