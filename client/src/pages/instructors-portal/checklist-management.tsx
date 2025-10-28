@@ -410,12 +410,12 @@ export default function ChecklistManagement() {
         <title>Checklist Management - Instructor Portal - LOADMworkflow</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gray-900 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Checklist Management</h1>
-              <p className="text-gray-400">Create and manage aircraft operational checklists</p>
+              <h1 className="text-3xl font-bold mb-2">Checklist Management</h1>
+              <p className="text-muted-foreground">Create and manage aircraft operational checklists</p>
             </div>
             
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -440,12 +440,12 @@ export default function ChecklistManagement() {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <Card key={i} className="bg-gray-800 border-gray-700">
+                <Card key={i}>
                   <CardContent className="p-6">
                     <div className="animate-pulse space-y-3">
-                      <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-                      <div className="h-3 bg-gray-700 rounded w-2/3"></div>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                      <div className="h-3 bg-muted rounded w-2/3"></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -458,7 +458,7 @@ export default function ChecklistManagement() {
                 const totalCompletions = checklist.completions.length;
 
                 return (
-                  <Card key={checklist.id} className="bg-gray-800 border-gray-700">
+                  <Card key={checklist.id}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2 mb-2">
@@ -488,11 +488,11 @@ export default function ChecklistManagement() {
                           </Button>
                         </div>
                       </div>
-                      <CardTitle className="text-lg text-white">
+                      <CardTitle className="text-lg">
                         {checklist.title}
                       </CardTitle>
                       {checklist.description && (
-                        <CardDescription className="text-gray-400 text-sm">
+                        <CardDescription className="text-sm">
                           {checklist.description}
                         </CardDescription>
                       )}
@@ -501,22 +501,22 @@ export default function ChecklistManagement() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-1">
-                            <CheckSquare className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-400">{checklist.items.length} items</span>
+                            <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{checklist.items.length} items</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-400">{totalCompletions} attempts</span>
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{totalCompletions} attempts</span>
                           </div>
                         </div>
 
                         {totalCompletions > 0 && (
                           <div className="space-y-2">
-                            <div className="flex justify-between text-xs text-gray-400">
+                            <div className="flex justify-between text-xs text-muted-foreground">
                               <span>Completion Rate</span>
                               <span>{Math.round((completedCompletions / totalCompletions) * 100)}%</span>
                             </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2">
+                            <div className="w-full bg-muted rounded-full h-2">
                               <div 
                                 className="h-2 rounded-full bg-green-500"
                                 style={{ 
@@ -527,7 +527,7 @@ export default function ChecklistManagement() {
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             <span>Created {new Date(checklist.createdAt).toLocaleDateString()}</span>
@@ -543,9 +543,9 @@ export default function ChecklistManagement() {
 
           {(checklists as Checklist[]).length === 0 && !isLoading && (
             <div className="text-center py-12">
-              <CheckSquare className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-400 mb-2">No Checklists Created</h3>
-              <p className="text-gray-500 mb-6">
+              <CheckSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Checklists Created</h3>
+              <p className="text-muted-foreground mb-6">
                 Create your first checklist to get started with digital aircraft procedures.
               </p>
               <Button 
