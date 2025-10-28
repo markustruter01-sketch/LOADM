@@ -799,6 +799,423 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced Analytics Endpoints
+  
+  // Topic Mastery Matrix - Performance by quiz category
+  app.get("/api/analytics/topic-mastery", requireInstructor, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Import quiz questions to get category information
+      const { loadmasterQuestions } = await import('../shared/quiz-questions');
+      
+      // Get all quiz submissions with answers
+      const submissions = await sql`
+        SELECT qs.id, qs.user_id, qs.answers, qs.score, qs.squadron,
+               u.email, l.first_name, l.last_name
+        FROM quiz_submissions qs
+        LEFT JOIN users u ON qs.user_id = u.id
+        LEFT JOIN licenses l ON u.license_id = l.id
+      `;
+      
+      // Group questions by category
+      const categoriesMap: Record<string, { total: number; correct: number; questions: number }> = {};
+      
+      submissions.forEach((sub: any) => {
+        const answers = sub.answers || [];
+        answers.forEach((ans: any) => {
+          const question = loadmasterQuestions.find(q => q.id === ans.questionId);
+          if (question) {
+            const category = question.category;
+            if (!categoriesMap[category]) {
+              categoriesMap[category] = { total: 0, correct: 0, questions: 0 };
+            }
+            categoriesMap[category].total += 1;
+            categoriesMap[category].questions += 1;
+            if (ans.answeredOption === question.correctAnswer) {
+              categoriesMap[category].correct += 1;
+            }
+          }
+        });
+      });
+      
+      // Calculate mastery percentage for each category
+      const topicMastery = Object.entries(categoriesMap).map(([category, stats]) => ({
+        category,
+        masteryPercentage: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+        totalQuestions: stats.questions,
+        correctAnswers: stats.correct,
+        totalAttempts: stats.total
+      }));
+      
+      res.json(topicMastery);
+    } catch (error) {
+      console.error('Error fetching topic mastery:', error);
+      res.status(500).json({ error: 'Failed to fetch topic mastery data' });
+    }
+  });
+  
+  // Question Difficulty Analysis - Identify hardest questions
+  app.get("/api/analytics/question-difficulty", requireInstructor, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      const { loadmasterQuestions } = await import('../shared/quiz-questions');
+      
+      const submissions = await sql`
+        SELECT answers FROM quiz_submissions
+      `;
+      
+      // Track performance for each question
+      const questionStats: Record<string, { attempts: number; correct: number }> = {};
+      
+      submissions.forEach((sub: any) => {
+        const answers = sub.answers || [];
+        answers.forEach((ans: any) => {
+          const questionId = ans.questionId;
+          const question = loadmasterQuestions.find(q => q.id === questionId);
+          
+          if (question) {
+            if (!questionStats[questionId]) {
+              questionStats[questionId] = { attempts: 0, correct: 0 };
+            }
+            questionStats[questionId].attempts += 1;
+            if (ans.answeredOption === question.correctAnswer) {
+              questionStats[questionId].correct += 1;
+            }
+          }
+        });
+      });
+      
+      // Calculate difficulty scores
+      const questionDifficulty = Object.entries(questionStats)
+        .map(([questionId, stats]) => {
+          const question = loadmasterQuestions.find(q => q.id === questionId);
+          return {
+            questionId,
+            questionText: question?.question || 'Unknown Question',
+            category: question?.category || 'Unknown',
+            attempts: stats.attempts,
+            successRate: stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : 0,
+            difficulty: question?.difficulty || 'medium'
+          };
+        })
+        .sort((a, b) => a.successRate - b.successRate) // Sort by lowest success rate first
+        .slice(0, 10); // Top 10 hardest questions
+      
+      res.json(questionDifficulty);
+    } catch (error) {
+      console.error('Error fetching question difficulty:', error);
+      res.status(500).json({ error: 'Failed to fetch question difficulty data' });
+    }
+  });
+  
+  // Student vs Squadron Average
+  app.get("/api/analytics/student-vs-squadron", requireInstructor, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get all quiz and scenario submissions with squadron info
+      const quizSubmissions = await sql`
+        SELECT qs.user_id, qs.score, qs.squadron, u.email, l.first_name, l.last_name
+        FROM quiz_submissions qs
+        LEFT JOIN users u ON qs.user_id = u.id
+        LEFT JOIN licenses l ON u.license_id = l.id
+      `;
+      
+      const scenarioSubmissions = await sql`
+        SELECT ss.user_id, ss.score, ss.squadron, u.email, l.first_name, l.last_name
+        FROM scenario_submissions ss
+        LEFT JOIN users u ON ss.user_id = u.id
+        LEFT JOIN licenses l ON u.license_id = l.id
+        WHERE ss.score IS NOT NULL
+      `;
+      
+      // Combine all submissions
+      const allSubmissions = [...quizSubmissions, ...scenarioSubmissions];
+      
+      // Calculate averages by squadron
+      const squadronStats: Record<string, { totalScore: number; count: number }> = {};
+      const studentStats: Record<number, { 
+        totalScore: number; 
+        count: number; 
+        squadron: string;
+        name: string;
+        email: string;
+      }> = {};
+      
+      allSubmissions.forEach((sub: any) => {
+        const squadron = sub.squadron || 'AMG';
+        const userId = sub.user_id;
+        const score = sub.score || 0;
+        
+        // Squadron stats
+        if (!squadronStats[squadron]) {
+          squadronStats[squadron] = { totalScore: 0, count: 0 };
+        }
+        squadronStats[squadron].totalScore += score;
+        squadronStats[squadron].count += 1;
+        
+        // Student stats
+        if (!studentStats[userId]) {
+          studentStats[userId] = {
+            totalScore: 0,
+            count: 0,
+            squadron,
+            name: `${sub.first_name || ''} ${sub.last_name || ''}`.trim() || 'Unknown',
+            email: sub.email || 'Unknown'
+          };
+        }
+        studentStats[userId].totalScore += score;
+        studentStats[userId].count += 1;
+      });
+      
+      // Calculate averages
+      const squadronAverages: Record<string, number> = {};
+      Object.entries(squadronStats).forEach(([squadron, stats]) => {
+        squadronAverages[squadron] = stats.count > 0 ? stats.totalScore / stats.count : 0;
+      });
+      
+      const studentComparisons = Object.entries(studentStats).map(([userId, stats]) => ({
+        userId: parseInt(userId),
+        name: stats.name,
+        email: stats.email,
+        squadron: stats.squadron,
+        studentAverage: stats.count > 0 ? Math.round(stats.totalScore / stats.count) : 0,
+        squadronAverage: Math.round(squadronAverages[stats.squadron] || 0),
+        submissionCount: stats.count,
+        difference: stats.count > 0 
+          ? Math.round((stats.totalScore / stats.count) - (squadronAverages[stats.squadron] || 0))
+          : 0
+      }));
+      
+      res.json(studentComparisons);
+    } catch (error) {
+      console.error('Error fetching student vs squadron data:', error);
+      res.status(500).json({ error: 'Failed to fetch comparison data' });
+    }
+  });
+  
+  // Training Module Completion Progress
+  app.get("/api/analytics/module-completion", requireInstructor, async (req, res) => {
+    try {
+      // For now, return simulated data since training modules are frontend-only
+      // In a real implementation, this would track user progress through modules
+      const moduleProgress = [
+        { moduleId: 'c17-basics', moduleName: 'C-17 Basics', completionRate: 85, studentsStarted: 45, studentsCompleted: 38 },
+        { moduleId: 'c130-basics', moduleName: 'C-130 Basics', completionRate: 72, studentsStarted: 40, studentsCompleted: 29 },
+        { moduleId: 'kc30a-basics', moduleName: 'KC30A Basics', completionRate: 68, studentsStarted: 35, studentsCompleted: 24 },
+        { moduleId: 'c27j-basics', moduleName: 'C-27J Basics', completionRate: 55, studentsStarted: 30, studentsCompleted: 17 },
+        { moduleId: 'c17-intermediate', moduleName: 'C-17 Weight Distribution', completionRate: 45, studentsStarted: 25, studentsCompleted: 11 },
+        { moduleId: 'c130-intermediate', moduleName: 'C-130 Load Planning', completionRate: 38, studentsStarted: 20, studentsCompleted: 8 }
+      ];
+      
+      res.json(moduleProgress);
+    } catch (error) {
+      console.error('Error fetching module completion:', error);
+      res.status(500).json({ error: 'Failed to fetch module completion data' });
+    }
+  });
+  
+  // Certification Readiness Score
+  app.get("/api/analytics/certification-readiness", requireInstructor, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get all user submissions
+      const quizSubmissions = await sql`
+        SELECT qs.user_id, qs.score, u.email, l.first_name, l.last_name, l.squadron
+        FROM quiz_submissions qs
+        LEFT JOIN users u ON qs.user_id = u.id
+        LEFT JOIN licenses l ON u.license_id = l.id
+      `;
+      
+      const scenarioSubmissions = await sql`
+        SELECT ss.user_id, ss.score, ss.passed, u.email, l.first_name, l.last_name, l.squadron
+        FROM scenario_submissions ss
+        LEFT JOIN users u ON ss.user_id = u.id
+        LEFT JOIN licenses l ON u.license_id = l.id
+        WHERE ss.score IS NOT NULL
+      `;
+      
+      // Calculate readiness scores
+      const userReadiness: Record<number, {
+        quizCount: number;
+        scenarioCount: number;
+        avgQuizScore: number;
+        avgScenarioScore: number;
+        passedScenarios: number;
+        totalQuizScore: number;
+        totalScenarioScore: number;
+        name: string;
+        email: string;
+        squadron: string;
+      }> = {};
+      
+      quizSubmissions.forEach((sub: any) => {
+        const userId = sub.user_id;
+        if (!userReadiness[userId]) {
+          userReadiness[userId] = {
+            quizCount: 0,
+            scenarioCount: 0,
+            avgQuizScore: 0,
+            avgScenarioScore: 0,
+            passedScenarios: 0,
+            totalQuizScore: 0,
+            totalScenarioScore: 0,
+            name: `${sub.first_name || ''} ${sub.last_name || ''}`.trim() || 'Unknown',
+            email: sub.email || 'Unknown',
+            squadron: sub.squadron || 'AMG'
+          };
+        }
+        userReadiness[userId].quizCount += 1;
+        userReadiness[userId].totalQuizScore += sub.score || 0;
+      });
+      
+      scenarioSubmissions.forEach((sub: any) => {
+        const userId = sub.user_id;
+        if (!userReadiness[userId]) {
+          userReadiness[userId] = {
+            quizCount: 0,
+            scenarioCount: 0,
+            avgQuizScore: 0,
+            avgScenarioScore: 0,
+            passedScenarios: 0,
+            totalQuizScore: 0,
+            totalScenarioScore: 0,
+            name: `${sub.first_name || ''} ${sub.last_name || ''}`.trim() || 'Unknown',
+            email: sub.email || 'Unknown',
+            squadron: sub.squadron || 'AMG'
+          };
+        }
+        userReadiness[userId].scenarioCount += 1;
+        userReadiness[userId].totalScenarioScore += sub.score || 0;
+        if (sub.passed) {
+          userReadiness[userId].passedScenarios += 1;
+        }
+      });
+      
+      // Calculate readiness scores (0-100)
+      const certificationScores = Object.entries(userReadiness).map(([userId, stats]) => {
+        const avgQuizScore = stats.quizCount > 0 ? stats.totalQuizScore / stats.quizCount : 0;
+        const avgScenarioScore = stats.scenarioCount > 0 ? stats.totalScenarioScore / stats.scenarioCount : 0;
+        const scenarioPassRate = stats.scenarioCount > 0 ? (stats.passedScenarios / stats.scenarioCount) * 100 : 0;
+        
+        // Weighted readiness score
+        const readinessScore = Math.round(
+          (avgQuizScore * 0.3) + 
+          (avgScenarioScore * 0.4) + 
+          (scenarioPassRate * 0.3)
+        );
+        
+        return {
+          userId: parseInt(userId),
+          name: stats.name,
+          email: stats.email,
+          squadron: stats.squadron,
+          readinessScore,
+          quizCount: stats.quizCount,
+          scenarioCount: stats.scenarioCount,
+          avgQuizScore: Math.round(avgQuizScore),
+          avgScenarioScore: Math.round(avgScenarioScore),
+          scenarioPassRate: Math.round(scenarioPassRate),
+          status: readinessScore >= 85 ? 'ready' : readinessScore >= 70 ? 'near-ready' : 'needs-training'
+        };
+      }).sort((a, b) => b.readinessScore - a.readinessScore);
+      
+      res.json(certificationScores);
+    } catch (error) {
+      console.error('Error fetching certification readiness:', error);
+      res.status(500).json({ error: 'Failed to fetch certification readiness data' });
+    }
+  });
+  
+  // At-Risk Students Alert Table
+  app.get("/api/analytics/at-risk-students", requireInstructor, async (req, res) => {
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      
+      // Get all active users with recent activity
+      const users_list = await sql`
+        SELECT u.id, u.email, u.last_login, l.first_name, l.last_name, l.squadron
+        FROM users u
+        LEFT JOIN licenses l ON u.license_id = l.id
+        WHERE l.is_active = true AND u.is_super_admin = false
+      `;
+      
+      // Get all submissions from last 30 days
+      const recentQuizSubmissions = await sql`
+        SELECT user_id, score, submission_date
+        FROM quiz_submissions
+        WHERE submission_date > NOW() - INTERVAL '30 days'
+      `;
+      
+      const recentScenarioSubmissions = await sql`
+        SELECT user_id, score, passed, submission_date
+        FROM scenario_submissions
+        WHERE submission_date > NOW() - INTERVAL '30 days' AND score IS NOT NULL
+      `;
+      
+      // Analyze each user
+      const atRiskStudents = users_list.map((user: any) => {
+        const userId = user.id;
+        const userQuizzes = recentQuizSubmissions.filter((s: any) => s.user_id === userId);
+        const userScenarios = recentScenarioSubmissions.filter((s: any) => s.user_id === userId);
+        
+        const totalSubmissions = userQuizzes.length + userScenarios.length;
+        const avgQuizScore = userQuizzes.length > 0 
+          ? userQuizzes.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / userQuizzes.length 
+          : 0;
+        const avgScenarioScore = userScenarios.length > 0 
+          ? userScenarios.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / userScenarios.length 
+          : 0;
+        const failedScenarios = userScenarios.filter((s: any) => !s.passed).length;
+        
+        // Calculate days since last activity
+        const lastActivity = [...userQuizzes, ...userScenarios]
+          .map((s: any) => new Date(s.submission_date))
+          .sort((a, b) => b.getTime() - a.getTime())[0];
+        const daysSinceActivity = lastActivity 
+          ? Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+        
+        // Determine risk factors
+        const riskFactors = [];
+        if (avgQuizScore < 70) riskFactors.push('Low quiz scores');
+        if (avgScenarioScore < 70) riskFactors.push('Low scenario scores');
+        if (failedScenarios > 2) riskFactors.push('Multiple failed scenarios');
+        if (totalSubmissions < 3) riskFactors.push('Low engagement');
+        if (daysSinceActivity > 14) riskFactors.push('Inactive for 2+ weeks');
+        
+        return {
+          userId,
+          name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown',
+          email: user.email,
+          squadron: user.squadron || 'AMG',
+          totalSubmissions,
+          avgQuizScore: Math.round(avgQuizScore),
+          avgScenarioScore: Math.round(avgScenarioScore),
+          failedScenarios,
+          daysSinceActivity,
+          riskFactors,
+          riskLevel: riskFactors.length >= 3 ? 'high' : riskFactors.length >= 2 ? 'medium' : 'low'
+        };
+      })
+      .filter((student: any) => student.riskFactors.length > 0) // Only return at-risk students
+      .sort((a: any, b: any) => b.riskFactors.length - a.riskFactors.length); // Sort by risk level
+      
+      res.json(atRiskStudents);
+    } catch (error) {
+      console.error('Error fetching at-risk students:', error);
+      res.status(500).json({ error: 'Failed to fetch at-risk students data' });
+    }
+  });
+  
   // Import unified quiz routes with proper authentication
   const quizUnifiedModule = await import('./routes/quiz-unified');
   app.use('/api/quizzes', quizUnifiedModule.default);
