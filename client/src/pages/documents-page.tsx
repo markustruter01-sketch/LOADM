@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import PdfModal from "@/components/PdfModal";
 import { useToast } from "@/hooks/use-toast";
@@ -283,6 +283,14 @@ export default function DocumentsPage() {
     queryKey: ["/api/missions", selectedMission?.id, "documents"],
     enabled: !!selectedMission?.id,
   });
+
+  // Log mission documents for debugging
+  useEffect(() => {
+    if (missionDocs) {
+      console.log(`📄 Mission ${selectedMission?.id} documents:`, missionDocs);
+      console.log(`📄 Document count: ${missionDocs.length}`);
+    }
+  }, [missionDocs, selectedMission?.id]);
 
   const addDocumentToMissionMutation = useMutation({
     mutationFn: async ({ missionId, documentFilename, documentTitle }: { missionId: number; documentFilename: string; documentTitle: string }) => {

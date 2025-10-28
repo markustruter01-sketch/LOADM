@@ -180,6 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const docs = await db.select().from(missionDocuments).where(eq(missionDocuments.missionId, missionId));
+      console.log(`📄 Mission ${missionId} documents:`, JSON.stringify(docs, null, 2));
       res.json(docs);
     } catch (error) {
       console.error("Error fetching mission documents:", error);
