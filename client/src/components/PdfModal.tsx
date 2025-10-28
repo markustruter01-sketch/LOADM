@@ -29,6 +29,14 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
     console.log('🔗 PDF URL:', pdfUrl);
     setLoading(true);
     setError(null);
+    
+    // Object tags don't reliably fire onLoad, so use a timeout
+    const timer = setTimeout(() => {
+      console.log('⏱️ PDF load timeout - assuming success');
+      setLoading(false);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
   }, [filename, pdfUrl]);
 
   const handleLoad = useCallback(() => {
@@ -119,14 +127,7 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          {loading && (
-            <div className="flex flex-col items-center justify-center h-96">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-              <p className="text-sm text-muted-foreground">Loading PDF...</p>
-            </div>
-          )}
-
+        <div className="flex-1 overflow-hidden relative">
           {error && (
             <Card className="m-6">
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -141,13 +142,32 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
             </Card>
           )}
 
-          <iframe
-            src={pdfUrl}
-            className={`w-full h-[70vh] border-0 ${loading ? 'hidden' : ''}`}
-            onLoad={handleLoad}
-            onError={handleError}
-            title={title}
-          />
+          {!error && isOpen && (
+            <object
+              data={pdfUrl}
+              type="application/pdf"
+              className="w-full h-[70vh] border-0"
+              aria-label={title}
+            >
+              <div className="flex flex-col items-center justify-center h-[70vh] p-6">
+                <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
+                <p className="text-muted-foreground text-center mb-4">
+                  Unable to display PDF in browser
+                </p>
+                <Button onClick={handleDownload} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
+            </object>
+          )}
+
+          {loading && !error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">Loading PDF...</p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
