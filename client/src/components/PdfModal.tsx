@@ -18,17 +18,26 @@ interface PdfModalProps {
 }
 
 export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalProps) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const pdfUrl = `/pdfs/${encodeURIComponent(filename)}`;
 
-  // Open PDF in new tab when modal opens
+  // Reset loading state when filename changes
   useEffect(() => {
-    if (isOpen) {
-      console.log('📄 Opening PDF in new tab:', pdfUrl);
-      window.open(pdfUrl, '_blank');
-      // Close modal immediately after opening PDF
-      setTimeout(() => onClose(), 300);
-    }
-  }, [isOpen, pdfUrl, onClose]);
+    console.log('🔄 PDF Modal opened with filename:', filename);
+    console.log('🔗 PDF URL:', pdfUrl);
+    setLoading(true);
+    setError(null);
+    
+    // Object tags don't reliably fire onLoad, so use a timeout
+    const timer = setTimeout(() => {
+      console.log('⏱️ PDF load timeout - assuming success');
+      setLoading(false);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, [filename, pdfUrl]);
 
   const handleLoad = useCallback(() => {
     console.log('✅ PDF loaded successfully:', filename);
