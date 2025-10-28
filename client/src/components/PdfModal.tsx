@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,15 +23,25 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
 
   const pdfUrl = `/pdfs/${encodeURIComponent(filename)}`;
 
+  // Reset loading state when filename changes
+  useEffect(() => {
+    console.log('🔄 PDF Modal opened with filename:', filename);
+    console.log('🔗 PDF URL:', pdfUrl);
+    setLoading(true);
+    setError(null);
+  }, [filename, pdfUrl]);
+
   const handleLoad = useCallback(() => {
+    console.log('✅ PDF loaded successfully:', filename);
     setLoading(false);
     setError(null);
-  }, []);
+  }, [filename]);
 
   const handleError = useCallback(() => {
+    console.error('❌ PDF failed to load:', filename);
     setLoading(false);
     setError('Failed to load PDF document');
-  }, []);
+  }, [filename]);
 
   const handleDownload = useCallback(() => {
     const link = document.createElement('a');

@@ -1046,6 +1046,7 @@ export default function DocumentsPage() {
       {/* PDF Modal */}
       {selectedPdf && (
         <PdfModal
+          key={selectedPdf.filename}
           isOpen={pdfModalOpen}
           onClose={handleClosePdfModal}
           filename={selectedPdf.filename}
@@ -1368,10 +1369,19 @@ export default function DocumentsPage() {
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    data-testid={`button-view-document-${doc.id}`}
                                     onClick={() => {
-                                      if (pdfInfo) {
-                                        handleViewPdf(pdfInfo);
-                                      }
+                                      // Create PDF object directly from database record
+                                      const pdfToView: PdfDocument = pdfInfo || {
+                                        filename: doc.documentFilename || "",
+                                        title: doc.documentTitle || "Untitled Document",
+                                        description: "",
+                                        category: "Mission Document",
+                                        lastModified: doc.addedAt ? new Date(doc.addedAt).toLocaleDateString() : "Unknown",
+                                        size: "Unknown"
+                                      };
+                                      console.log('📄 Opening PDF:', pdfToView);
+                                      handleViewPdf(pdfToView);
                                     }}
                                   >
                                     <Eye className="w-4 h-4 mr-1" />
@@ -1380,6 +1390,7 @@ export default function DocumentsPage() {
                                   <Button
                                     size="sm"
                                     variant="destructive"
+                                    data-testid={`button-delete-document-${doc.id}`}
                                     onClick={() => {
                                       if (selectedMission) {
                                         removeDocumentFromMissionMutation.mutate({
