@@ -585,14 +585,6 @@ export default function AdvancedAnalytics() {
               <LineChartIcon className="h-4 w-4 mr-2" />
               Trends
             </Button>
-            <Button 
-              variant={selectedView === "advanced" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setSelectedView("advanced")}
-            >
-              <Medal className="h-4 w-4 mr-2" />
-              Advanced
-            </Button>
           </div>
         </div>
         
