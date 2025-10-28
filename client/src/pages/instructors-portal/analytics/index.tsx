@@ -99,7 +99,6 @@ export default function AdvancedAnalytics() {
   const [selectedSquadron, setSelectedSquadron] = useState<string>("all");
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
-  const [selectedView, setSelectedView] = useState<string>("overview");
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -575,42 +574,6 @@ export default function AdvancedAnalytics() {
               <p className="text-muted-foreground">Comprehensive insights across all assessment types and squadrons</p>
             </div>
           </div>
-          
-          {/* Analytics View Selector */}
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              variant={selectedView === "overview" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setSelectedView("overview")}
-            >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              Overview
-            </Button>
-            <Button 
-              variant={selectedView === "scoring" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setSelectedView("scoring")}
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Scoring
-            </Button>
-            <Button 
-              variant={selectedView === "squadrons" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setSelectedView("squadrons")}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Squadrons
-            </Button>
-            <Button 
-              variant={selectedView === "trends" ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setSelectedView("trends")}
-            >
-              <LineChartIcon className="h-4 w-4 mr-2" />
-              Trends
-            </Button>
-          </div>
         </div>
         
         {/* Filter Bar */}
@@ -768,9 +731,8 @@ export default function AdvancedAnalytics() {
             </Card>
           </div>
           
-          {/* Main Content Area - Conditional based on selected view */}
-          {selectedView === "overview" && (
-            <div className="space-y-6">
+          {/* Main Content Area */}
+          <div className="space-y-6">
               {/* Performance Overview - 2-column layout */}
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Score Distribution */}
@@ -1147,11 +1109,15 @@ export default function AdvancedAnalytics() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          )}
-          
-          {selectedView === "scoring" && (
-            <div className="space-y-6">
+              
+              {/* Detailed Scoring Section */}
+              <Separator className="my-8" />
+              
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-2">Detailed Score Analysis</h2>
+                <p className="text-muted-foreground">Comprehensive view of performance across assessment types</p>
+              </div>
+              
               {/* Score Distribution Detailed View */}
               <Card>
                 <CardHeader>
@@ -1206,11 +1172,15 @@ export default function AdvancedAnalytics() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
-          
-          {selectedView === "squadrons" && (
-            <div className="space-y-6">
+              
+              {/* Squadron Performance Section */}
+              <Separator className="my-8" />
+              
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-2">Squadron Performance Comparison</h2>
+                <p className="text-muted-foreground">Detailed analysis of performance metrics by squadron</p>
+              </div>
+              
               {/* Squadron Performance Comparison */}
               <Card>
                 <CardHeader>
@@ -1269,11 +1239,15 @@ export default function AdvancedAnalytics() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
-          
-          {selectedView === "trends" && (
-            <div className="space-y-6">
+              
+              {/* Performance Trends Section */}
+              <Separator className="my-8" />
+              
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-2">Performance Trends Over Time</h2>
+                <p className="text-muted-foreground">Analysis of student performance over time</p>
+              </div>
+              
               {/* Performance Trends Over Time */}
               <Card>
                 <CardHeader>
@@ -1320,9 +1294,7 @@ export default function AdvancedAnalytics() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
-
+          </div>
         </>
       )}
     </div>
