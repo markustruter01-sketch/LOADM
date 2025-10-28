@@ -142,6 +142,11 @@ export default function DocumentsPage() {
 
   const queryClient = useQueryClient();
 
+  // Fetch current user data
+  const { data: currentUser } = useQuery<{ email: string; firstName: string; lastName: string }>({
+    queryKey: ["/api/auth/user"],
+  });
+
   // Handle PDF modal opening
   const handleViewPdf = (pdf: PdfDocument) => {
     setSelectedPdf(pdf);
@@ -549,7 +554,9 @@ export default function DocumentsPage() {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold">Mission Documents</h2>
+                  <h2 className="text-2xl font-bold">
+                    {currentUser?.email ? `${currentUser.email}'s Mission Documents` : 'Mission Documents'}
+                  </h2>
                   <p className="text-muted-foreground">Mission-specific documents and operational briefings</p>
                 </div>
               </div>
