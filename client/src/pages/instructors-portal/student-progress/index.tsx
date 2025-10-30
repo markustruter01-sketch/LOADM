@@ -89,7 +89,7 @@ export default function StudentProgress() {
       return true;
     });
 
-    // Sort submissions: Unreviewed first (highest priority), then by submission date (newest first)
+    // Sort submissions: Pending Review first (oldest to newest), then Reviewed (oldest to newest)
     filteredSubmissions = filteredSubmissions.sort((a, b) => {
       // Create numeric priorities for absolute sorting
       const getPriority = (submission: ScenarioSubmission) => {
@@ -101,15 +101,15 @@ export default function StudentProgress() {
       const aPriority = getPriority(a);
       const bPriority = getPriority(b);
       
-      // First sort by priority
+      // First sort by priority (pending first, reviewed second)
       if (aPriority !== bPriority) {
         return aPriority - bPriority;
       }
       
-      // Within same priority group: Sort by submission date (newest first)
+      // Within same priority group: Sort by submission date (oldest first)
       const aDate = new Date(a.submissionDate || 0).getTime();
       const bDate = new Date(b.submissionDate || 0).getTime();
-      return bDate - aDate;
+      return aDate - bDate; // Changed from bDate - aDate to show oldest first
     });
   }
   
@@ -118,7 +118,7 @@ export default function StudentProgress() {
   
   // Calculate statistics
   const totalSubmissions = submissions?.length || 0;
-  const pendingReviews = submissions?.filter(sub => sub.status === "pending").length || 0;
+  const pendingReviews = submissions?.filter(sub => sub.status === "pending" || sub.status === "submitted").length || 0;
   const completedReviews = submissions?.filter(sub => sub.status === "reviewed").length || 0;
   
   return (
