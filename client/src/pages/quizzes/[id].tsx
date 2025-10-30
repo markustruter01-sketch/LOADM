@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
@@ -28,6 +28,7 @@ export default function QuizPage() {
   const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<Record<string, {correct: boolean, correctAnswer: string, yourAnswer: string}>>({});
   const [submissionQuestions, setSubmissionQuestions] = useState<any[]>([]);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const { data: quiz, isLoading } = useQuery({
     queryKey: [`/api/quizzes/${quizId}`],
@@ -174,6 +175,11 @@ export default function QuizPage() {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}`] });
       
+      // Scroll to results section after a brief delay to ensure rendering
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      
     } catch (error) {
       console.error("Error submitting quiz:", error);
       toast({
@@ -222,148 +228,6 @@ export default function QuizPage() {
     );
   }
 
-  if (quizSubmitted) {
-    const isPassed = score !== null && score >= 70;
-    
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Helmet>
-          <title>Quiz Results | LOADMworkflow</title>
-          <meta name="description" content="Your quiz results" />
-        </Helmet>
-        
-        <Button 
-          variant="outline" 
-          className="mb-6" 
-          onClick={() => setLocation('/scenarios')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Scenarios
-        </Button>
-        
-        <Card className="mb-8 border-gray-800">
-          <CardHeader className={isPassed ? "bg-green-500/10" : "bg-red-500/10"}>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold">{quiz.title} - Results</CardTitle>
-              <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                isPassed ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
-              }`}>
-                {isPassed ? (
-                  <><Check className="h-4 w-4 mr-1" /> Passed</>
-                ) : (
-                  <><X className="h-4 w-4 mr-1" /> Failed</>
-                )}
-              </div>
-            </div>
-            <CardDescription>
-              Quiz completed {new Date().toLocaleDateString()} | Squadron: {squadron}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="mb-8 text-center">
-              <div className="text-6xl font-bold mb-2">{score}%</div>
-              <p className="text-sm text-muted-foreground">
-                {isPassed 
-                  ? "Congratulations! You've passed this quiz." 
-                  : "You didn't pass this quiz. The passing score is 70%."
-                }
-              </p>
-            </div>
-            
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold mb-2">Question Feedback</h3>
-              
-              {submissionQuestions.length > 0 ? (
-                // Use the enhanced questions data from submission response
-                submissionQuestions.map((item: any, index: number) => {
-                  return (
-                    <div 
-                      key={item.questionId} 
-                      className={`p-4 rounded-lg border ${
-                        item.isCorrect 
-                          ? "border-green-500/30 bg-green-500/10" 
-                          : "border-red-500/30 bg-red-500/10"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className={`mt-1 ${item.isCorrect ? "text-green-500" : "text-red-500"}`}>
-                          {item.isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium mb-2">Question {index + 1}: {item.questionText}</p>
-                          <div className="mb-2">
-                            <p className="text-sm font-medium">
-                              Your answer: {item.userAnswer}
-                            </p>
-                            {!item.isCorrect && (
-                              <p className="text-sm font-medium text-green-500">
-                                Correct answer: {item.correctAnswer}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                // Fallback to using questions if submission data is not available
-                questions.map((question: any, index: number) => {
-                  const questionFeedback = feedback?.[question.id] || {};
-                  const isCorrect = !!questionFeedback.correct;
-                  
-                  return (
-                    <div 
-                      key={question.id} 
-                      className={`p-4 rounded-lg border ${
-                        isCorrect 
-                          ? "border-green-500/30 bg-green-500/10" 
-                          : "border-red-500/30 bg-red-500/10"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className={`mt-1 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
-                          {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium mb-2">Question {index + 1}: {question.question}</p>
-                          <div className="mb-2">
-                            <p className="text-sm font-medium">
-                              Your answer: {questionFeedback.yourAnswer || (question.options && question.options[Number(answers[question.id])])}
-                            </p>
-                            {!isCorrect && (
-                              <p className="text-sm font-medium text-green-500">
-                                Correct answer: {questionFeedback.correctAnswer || "Not available"}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => setLocation('/scenarios')}>
-              Back to Scenarios
-            </Button>
-            <Button 
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-              onClick={() => {
-                setAnswers({});
-                setQuizSubmitted(false);
-                setScore(null);
-                setFeedback({});
-              }}
-            >
-              Retry Quiz
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -452,11 +316,20 @@ export default function QuizPage() {
                       >
                         <div className="space-y-3">
                           {question.options.map((option: string, optionIndex: number) => (
-                            <div key={option} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 hover-lift cursor-pointer">
-                              <RadioGroupItem value={optionIndex.toString()} id={`${question.id}-${optionIndex}`} className="scale-on-tap" />
+                            <div 
+                              key={option} 
+                              className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 hover-lift cursor-pointer"
+                              onClick={() => handleAnswerChange(question.id, optionIndex.toString())}
+                              data-testid={`answer-option-${question.id}-${optionIndex}`}
+                            >
+                              <RadioGroupItem 
+                                value={optionIndex.toString()} 
+                                id={`${question.id}-${optionIndex}`} 
+                                className="scale-on-tap pointer-events-none" 
+                              />
                               <Label 
                                 htmlFor={`${question.id}-${optionIndex}`}
-                                className="text-base cursor-pointer flex-1 color-transition"
+                                className="text-base cursor-pointer flex-1 color-transition pointer-events-none"
                               >
                                 {option}
                               </Label>
@@ -481,6 +354,7 @@ export default function QuizPage() {
             } ${Object.keys(answers).length === (questions?.length || 0) ? 'glow-effect' : ''}`}
             disabled={isSubmitting || !user || Object.keys(answers).length < (questions?.length || 0)}
             onClick={handleSubmit}
+            data-testid="button-submit-quiz"
           >
             {isSubmitting ? (
               <div className="flex items-center">
@@ -491,6 +365,135 @@ export default function QuizPage() {
           </Button>
         </CardFooter>
       </Card>
+      
+      {quizSubmitted && score !== null && (
+        <div ref={resultsRef} className="scroll-mt-8">
+          <Card className="mb-8 border-gray-800">
+            <CardHeader className={score >= 70 ? "bg-green-500/10" : "bg-red-500/10"}>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-bold">{quiz.title} - Results</CardTitle>
+                <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  score >= 70 ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
+                }`}>
+                  {score >= 70 ? (
+                    <><Check className="h-4 w-4 mr-1" /> Passed</>
+                  ) : (
+                    <><X className="h-4 w-4 mr-1" /> Failed</>
+                  )}
+                </div>
+              </div>
+              <CardDescription>
+                Quiz completed {new Date().toLocaleDateString()} | Squadron: {squadron}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="mb-8 text-center">
+                <div className="text-6xl font-bold mb-2">{score}%</div>
+                <p className="text-sm text-muted-foreground">
+                  {score >= 70
+                    ? "Congratulations! You've passed this quiz." 
+                    : "You didn't pass this quiz. The passing score is 70%."
+                  }
+                </p>
+              </div>
+              
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold mb-2">Question Feedback</h3>
+                
+                {submissionQuestions.length > 0 ? (
+                  submissionQuestions.map((item: any, index: number) => {
+                    return (
+                      <div 
+                        key={item.questionId} 
+                        className={`p-4 rounded-lg border ${
+                          item.isCorrect 
+                            ? "border-green-500/30 bg-green-500/10" 
+                            : "border-red-500/30 bg-red-500/10"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`mt-1 ${item.isCorrect ? "text-green-500" : "text-red-500"}`}>
+                            {item.isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium mb-2">Question {index + 1}: {item.questionText}</p>
+                            <div className="mb-2">
+                              <p className="text-sm font-medium">
+                                Your answer: {item.userAnswer}
+                              </p>
+                              {!item.isCorrect && (
+                                <p className="text-sm font-medium text-green-500">
+                                  Correct answer: {item.correctAnswer}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  questions.map((question: any, index: number) => {
+                    const questionFeedback = feedback?.[question.id] || {};
+                    const isCorrect = !!questionFeedback.correct;
+                    
+                    return (
+                      <div 
+                        key={question.id} 
+                        className={`p-4 rounded-lg border ${
+                          isCorrect 
+                            ? "border-green-500/30 bg-green-500/10" 
+                            : "border-red-500/30 bg-red-500/10"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className={`mt-1 ${isCorrect ? "text-green-500" : "text-red-500"}`}>
+                            {isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium mb-2">Question {index + 1}: {question.question}</p>
+                            <div className="mb-2">
+                              <p className="text-sm font-medium">
+                                Your answer: {questionFeedback.yourAnswer || (question.options && question.options[Number(answers[question.id])])}
+                              </p>
+                              {!isCorrect && (
+                                <p className="text-sm font-medium text-green-500">
+                                  Correct answer: {questionFeedback.correctAnswer || "Not available"}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button variant="outline" onClick={() => setLocation('/scenarios')}>
+                Back to Scenarios
+              </Button>
+              <Button 
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                onClick={() => {
+                  setAnswers({});
+                  setQuizSubmitted(false);
+                  setScore(null);
+                  setFeedback({});
+                  setSubmissionQuestions([]);
+                  setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }, 100);
+                }}
+                data-testid="button-retry-quiz"
+              >
+                Retry Quiz
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
       
       <PermissionDialog
         open={showPermissionDialog}
