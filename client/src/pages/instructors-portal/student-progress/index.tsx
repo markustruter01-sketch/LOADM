@@ -57,10 +57,11 @@ export default function StudentProgress() {
     queryKey: ["/api/scenarios"],
   });
   
-  // Apply filters to submissions
+  // Apply filters and sorting to submissions
   let filteredSubmissions = submissions;
   
   if (submissions) {
+    // First, filter the submissions
     filteredSubmissions = submissions.filter(submission => {
       // Squadron filter
       if (squadronFilter !== "all") {
@@ -89,27 +90,21 @@ export default function StudentProgress() {
       return true;
     });
 
-    // Sort submissions: Pending Review first (oldest to newest), then Reviewed (oldest to newest)
-    filteredSubmissions = filteredSubmissions.sort((a, b) => {
-      // Create numeric priorities for absolute sorting
-      const getPriority = (submission: ScenarioSubmission) => {
-        if (submission.status === "pending" || submission.status === "submitted") return 0; // Highest priority - needs review
-        if (submission.status === "reviewed") return 1; // Lower priority - already reviewed
-        return 2; // Any other status
-      };
+    // Sort submissions with clear prioritization
+    filteredSubmissions = [...filteredSubmissions].sort((a, b) => {
+      // Determine if submission needs review
+      const aIsPending = a.status === "pending" || a.status === "submitted";
+      const bIsPending = b.status === "pending" || b.status === "submitted";
       
-      const aPriority = getPriority(a);
-      const bPriority = getPriority(b);
+      // 1. Pending review submissions come first
+      if (aIsPending && !bIsPending) return -1;
+      if (!aIsPending && bIsPending) return 1;
       
-      // First sort by priority (pending first, reviewed second)
-      if (aPriority !== bPriority) {
-        return aPriority - bPriority;
-      }
+      // 2. Within same group, sort by submission date (oldest first)
+      const aDate = a.submissionDate ? new Date(a.submissionDate).getTime() : 0;
+      const bDate = b.submissionDate ? new Date(b.submissionDate).getTime() : 0;
       
-      // Within same priority group: Sort by submission date (oldest first)
-      const aDate = new Date(a.submissionDate || 0).getTime();
-      const bDate = new Date(b.submissionDate || 0).getTime();
-      return aDate - bDate; // Changed from bDate - aDate to show oldest first
+      return aDate - bDate;
     });
   }
   
