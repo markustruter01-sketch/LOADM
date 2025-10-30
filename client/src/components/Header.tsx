@@ -31,7 +31,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-muted shadow-md">
+    <header className="backdrop-blur-md bg-background/70 border-b border-border shadow-md">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
@@ -44,7 +44,7 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
-                  <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
+                  <UserCircle style={{ height: '2.55rem', width: '2.55rem' }} />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -103,7 +103,7 @@ export default function Header() {
                 className="text-muted-foreground hover:text-foreground p-0"
                 onClick={() => setShowLoginModal(true)}
               >
-                <UserCircle style={{ height: '1.7rem', width: '1.7rem' }} />
+                <UserCircle style={{ height: '2.55rem', width: '2.55rem' }} />
                 <span className="sr-only">Login</span>
               </Button>
             )

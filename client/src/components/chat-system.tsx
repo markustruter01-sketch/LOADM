@@ -145,7 +145,7 @@ export function ChatSystem() {
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 right-6 h-14 w-14 rounded-full p-0 shadow-lg hover:shadow-xl transition-shadow z-50"
+          className="fixed bottom-28 right-6 h-14 w-14 rounded-full p-0 shadow-lg hover:shadow-xl transition-shadow z-50"
           size="lg"
         >
           <MessageCircle className="h-6 w-6" />
@@ -154,7 +154,7 @@ export function ChatSystem() {
 
       {/* Chat interface */}
       {isOpen && (
-        <Card className="fixed bottom-20 right-6 w-96 h-[500px] shadow-xl border-2 flex flex-col z-50">
+        <Card className="fixed bottom-28 right-6 w-96 h-[500px] shadow-xl border-2 flex flex-col z-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-lg">Support Chat</CardTitle>
             <div className="flex items-center gap-2">

@@ -3,10 +3,11 @@
 ## Overview
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
-## Recent Changes (October 28, 2025)
-- **Fixed PDF Viewing in Mission Documents**: Resolved Chrome blocking issue by replacing iframe with HTML object tag and implementing overlay-based loading indicator
-- **Enhanced PDF Modal**: Added React key prop for proper remounting, timeout-based loading state (1.5s), and guarded fallback metadata
-- **Improved User Experience**: PDFs now load consistently from both "PDF Documents" and "Mission Documents" tabs without Chrome security warnings
+## Recent Changes (October 30, 2025)
+- **Enhanced Quiz UX**: Implemented full-area clickable answer options and moved results to bottom of page with auto-scroll on submission
+- **Modernized UI Design**: Updated header with transparent glass effect (backdrop-blur-md) matching navigation buttons, enlarged user profile icon by 50%
+- **Chat Positioning**: Moved chat bubble above navigation bar for better accessibility
+- **Fixed PDF Viewing in Mission Documents** (Oct 28): Resolved Chrome blocking issue by replacing iframe with HTML object tag and implementing overlay-based loading indicator
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
