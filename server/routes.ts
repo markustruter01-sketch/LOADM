@@ -1454,8 +1454,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const submissions = whereConditions.length > 0 
-        ? await db.select().from(scenarioSubmissions).where(and(...whereConditions))
-        : await db.select().from(scenarioSubmissions);
+        ? await db.select().from(scenarioSubmissions).where(and(...whereConditions)).orderBy(scenarioSubmissions.submissionDate)
+        : await db.select().from(scenarioSubmissions).orderBy(scenarioSubmissions.submissionDate);
       res.json(submissions);
     } catch (error) {
       res.status(500).json({ message: "Failed to retrieve scenario submissions" });
