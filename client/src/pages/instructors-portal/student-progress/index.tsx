@@ -91,11 +91,11 @@ export default function StudentProgress() {
     const pending = filtered.filter(s => s.status === 'pending' || s.status === 'submitted');
     const reviewed = filtered.filter(s => s.status === 'reviewed');
     
-    // Step 3: Sort each group by date (oldest first)
+    // Step 3: Sort each group by date (newest first)
     const sortByDate = (a: ScenarioSubmission, b: ScenarioSubmission) => {
       const dateA = a.submissionDate ? new Date(a.submissionDate).getTime() : 0;
       const dateB = b.submissionDate ? new Date(b.submissionDate).getTime() : 0;
-      return dateA - dateB;
+      return dateB - dateA;
     };
     
     pending.sort(sortByDate);
