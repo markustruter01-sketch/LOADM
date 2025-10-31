@@ -19,7 +19,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <img 
           src={nameImage} 
           alt="Digital Dynamics Group" 
-          className="h-36 w-auto" 
+          className="h-7 w-auto" 
         />
       </div>
     </div>
