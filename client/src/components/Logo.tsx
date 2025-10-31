@@ -10,7 +10,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <img 
           src={logoImage} 
           alt="DDG Logo" 
-          className="h-16 w-auto" 
+          className="h-12 w-auto" 
         />
       </div>
       
@@ -19,7 +19,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <img 
           src={nameImage} 
           alt="Digital Dynamics Group" 
-          className="h-11 w-auto" 
+          className="h-8 w-auto" 
         />
       </div>
     </div>
