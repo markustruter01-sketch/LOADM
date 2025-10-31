@@ -1,14 +1,14 @@
 import React from "react";
-import logoImage from "@assets/Digitial Dynamics Logo - PNG1.png";
+import logoImage from "@assets/DDG_Logo_New_1761874170755.png";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
     <div className={`flex items-center ${className}`}>
-      {/* Digital Dynamics Logo */}
+      {/* DDG Logo */}
       <div className="mr-3 flex-shrink-0">
         <img 
           src={logoImage} 
-          alt="Digital Dynamics Logo" 
+          alt="DDG Logo" 
           className="h-16 w-auto" 
         />
       </div>

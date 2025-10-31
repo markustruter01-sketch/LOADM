@@ -3,8 +3,9 @@
 ## Overview
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
-## Recent Changes (October 30, 2025)
-- **Fixed Student Submissions Sorting**: Prioritizes pending review assessments first (oldest to newest), then reviewed assessments (oldest to newest); fixed pending count to include both "pending" and "submitted" statuses
+## Recent Changes (October 30-31, 2025)
+- **Company Logo Update** (Oct 31): Replaced header logo with new DDG logo
+- **Fixed Student Submissions Sorting** (Oct 30): Backend API now sorts by submission date DESC; frontend displays pending review (newest first) then reviewed (newest first)
 - **Enhanced Quiz UX**: Implemented full-area clickable answer options and moved results to bottom of page with auto-scroll on submission
 - **Modernized UI Design**: Updated header with transparent glass effect (backdrop-blur-md) matching navigation buttons, enlarged user profile icon by 50%; chat bubble moved higher and window enlarged by 40%
 - **Chat Positioning**: Moved chat bubble above navigation bar for better accessibility
