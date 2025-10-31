@@ -1,6 +1,6 @@
 import React from "react";
 import logoImage from "@assets/DDG_Logo_New_1761874170755.png";
-import nameImage from "@assets/DDG_NAME_New_1761874501203.png";
+import nameImage from "@assets/DDG_NAME_New_1761874703030.png";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
