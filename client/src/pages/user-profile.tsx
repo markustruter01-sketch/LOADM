@@ -1,1189 +1,799 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Calendar, Shield, Mail, Key, Settings, Award, TrendingUp, Clock, Target, BookOpen, Users, AlertTriangle, CheckCircle, XCircle, Hourglass, Flame, Zap, ArrowLeft } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
+import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useIsolatedAuth } from "../auth-isolated/auth-context";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import React, { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import logoImage from "@assets/DDG_Logo_New_1762131149453.png";
 
 export default function UserProfile() {
-  const { user, logout } = useIsolatedAuth();
+  const { user } = useIsolatedAuth();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  
-  // State for submission detail popup - moved to top to fix hooks order
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-  const [showSubmissionDetail, setShowSubmissionDetail] = useState(false);
 
-  // Fetch user profile data including submissions and progress
+  // State for adding qualifications
+  const [showAddQualification, setShowAddQualification] = useState(false);
+  const [newQualification, setNewQualification] = useState({
+    name: "",
+    startDate: "",
+    expiryDate: "",
+  });
+
+  // State for adding flight records
+  const [showAddFlight, setShowAddFlight] = useState(false);
+  const [newFlight, setNewFlight] = useState({
+    date: "",
+    departure: "",
+    arrival: "",
+    passengersCarried: 0,
+    cargoWeight: 0,
+    captain: "",
+  });
+
+  // State for editing user stats
+  const [isEditingStats, setIsEditingStats] = useState(false);
+  const [editedStats, setEditedStats] = useState({
+    squadron: "",
+    category: "",
+    totalMissionsFlown: 0,
+    totalCargoWeight: 0,
+  });
+
+  // Fetch user profile data
   const { data: profileData, isLoading } = useQuery({
     queryKey: ['/api/profile'],
     enabled: !!user
   });
 
-  // Fetch user's current squadron
+  // Fetch qualifications
+  const { data: qualifications = [], isLoading: qualificationsLoading } = useQuery<any[]>({
+    queryKey: ['/api/user/qualifications'],
+    enabled: !!user
+  });
+
+  // Fetch flight records
+  const { data: flightRecords = [], isLoading: flightRecordsLoading } = useQuery<any[]>({
+    queryKey: ['/api/user/flight-records'],
+    enabled: !!user
+  });
+
+  // Fetch activity history
+  const { data: activityHistory = [], isLoading: activityLoading } = useQuery<any[]>({
+    queryKey: ['/api/user/activity-history'],
+    enabled: !!user
+  });
+
+  // Fetch user squadron
   const { data: userSquadron } = useQuery({
     queryKey: ['/api/user/squadron'],
     enabled: !!user
   });
 
-  // Fetch user activity history (including training submissions)
-  const { data: activityHistory, isLoading: activityLoading } = useQuery({
-    queryKey: ['/api/user/activity-history'],
-    enabled: !!user
+  // Add qualification mutation
+  const addQualificationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest({
+        url: '/api/user/qualifications',
+        method: 'POST',
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/qualifications'] });
+      setShowAddQualification(false);
+      setNewQualification({ name: "", startDate: "", expiryDate: "" });
+      toast({ title: "Success", description: "Qualification added successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add qualification", variant: "destructive" });
+    }
   });
 
-  // Squadron update mutation
+  // Delete qualification mutation
+  const deleteQualificationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest({
+        url: `/api/user/qualifications/${id}`,
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/qualifications'] });
+      toast({ title: "Success", description: "Qualification removed successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete qualification", variant: "destructive" });
+    }
+  });
+
+  // Add flight record mutation
+  const addFlightMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest({
+        url: '/api/user/flight-records',
+        method: 'POST',
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] });
+      setShowAddFlight(false);
+      setNewFlight({ date: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, captain: "" });
+      toast({ title: "Success", description: "Flight record added successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add flight record", variant: "destructive" });
+    }
+  });
+
+  // Delete flight record mutation
+  const deleteFlightMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest({
+        url: `/api/user/flight-records/${id}`,
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] });
+      toast({ title: "Success", description: "Flight record deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete flight record", variant: "destructive" });
+    }
+  });
+
+  // Update squadron mutation
   const updateSquadronMutation = useMutation({
     mutationFn: async (squadron: string) => {
-      console.log('🔄 FRONTEND: Squadron update triggered for:', squadron);
-      const result = await apiRequest({
+      return await apiRequest({
         url: '/api/user/squadron',
         method: 'PUT',
         body: { squadron }
       });
-      console.log('✅ FRONTEND: Squadron update result:', result);
-      return result;
     },
     onSuccess: () => {
-      toast({
-        title: "Squadron Updated",
-        description: "Your squadron assignment has been successfully updated."
-      });
       queryClient.invalidateQueries({ queryKey: ['/api/user/squadron'] });
       queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+      toast({ title: "Success", description: "Squadron updated successfully" });
     },
-    onError: () => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update squadron assignment. Please try again.",
-        variant: "destructive"
-      });
-    }
   });
 
-  // Category update mutation
+  // Update category mutation
   const updateCategoryMutation = useMutation({
     mutationFn: async (category: string) => {
-      console.log('🔄 FRONTEND: Category update triggered for:', category);
-      const result = await apiRequest({
+      return await apiRequest({
         url: '/api/user/category',
         method: 'PUT',
         body: { category }
       });
-      console.log('✅ FRONTEND: Category update result:', result);
-      return result;
     },
     onSuccess: () => {
-      toast({
-        title: "Category Updated",
-        description: "Your seniority category has been successfully updated."
-      });
       queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+      toast({ title: "Success", description: "Category updated successfully" });
     },
-    onError: () => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update category. Please try again.",
-        variant: "destructive"
-      });
-    }
   });
 
-  // Mutation for changing password
-  const changePasswordMutation = useMutation({
-    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
-      console.log('🔐 FRONTEND: Starting password change request');
-      console.log('🔐 FRONTEND: Data:', { currentPasswordLength: data.currentPassword.length, newPasswordLength: data.newPassword.length });
-      
-      try {
-        const response = await fetch('/api/auth/change-password', {
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        console.log('🔐 FRONTEND: Response status:', response.status);
-        console.log('🔐 FRONTEND: Response ok:', response.ok);
-
-        const responseText = await response.text();
-        console.log('🔐 FRONTEND: Response text:', responseText);
-
-        if (!response.ok) {
-          let errorData;
-          try {
-            errorData = JSON.parse(responseText);
-          } catch {
-            errorData = { error: responseText };
-          }
-          throw new Error(errorData.error || `HTTP ${response.status}: ${responseText}`);
-        }
-
-        let result;
-        try {
-          result = JSON.parse(responseText);
-        } catch {
-          result = { message: responseText };
-        }
-
-        console.log('🔐 FRONTEND: Password change successful:', result);
-        return result;
-      } catch (error) {
-        console.error('🔐 FRONTEND: Password change error:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log('🔐 FRONTEND: Password change mutation success:', data);
-      toast({
-        title: "Password Changed",
-        description: "Your password has been updated successfully."
+  // Update user stats mutation
+  const updateStatsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest({
+        url: '/api/user/stats',
+        method: 'PUT',
+        body: data,
       });
-      setShowPasswordDialog(false);
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     },
-    onError: (error: any) => {
-      console.error('🔐 FRONTEND: Password change mutation error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to change password. Please try again.",
-        variant: "destructive"
-      });
-    }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+      setIsEditingStats(false);
+      toast({ title: "Success", description: "Stats updated successfully" });
+    },
   });
 
-  const handlePasswordChange = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match.",
-        variant: "destructive"
-      });
+  const handleAddQualification = () => {
+    if (!newQualification.name || !newQualification.startDate || !newQualification.expiryDate) {
+      toast({ title: "Error", description: "All fields are required", variant: "destructive" });
       return;
     }
-
-    if (passwordData.newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    changePasswordMutation.mutate({
-      currentPassword: passwordData.currentPassword,
-      newPassword: passwordData.newPassword
+    addQualificationMutation.mutate({
+      name: newQualification.name,
+      startDate: new Date(newQualification.startDate),
+      expiryDate: new Date(newQualification.expiryDate),
     });
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'superadmin':
-        return 'bg-purple-600 text-white';
-      case 'instructor':
-        return 'bg-blue-600 text-white';
-      default:
-        return 'bg-green-600 text-white';
+  const handleAddFlight = () => {
+    if (!newFlight.date || !newFlight.departure || !newFlight.arrival || !newFlight.captain) {
+      toast({ title: "Error", description: "All fields are required", variant: "destructive" });
+      return;
     }
+    addFlightMutation.mutate({
+      ...newFlight,
+      date: new Date(newFlight.date),
+    });
   };
 
-  const getRoleDisplayName = (role: string) => {
-    switch (role) {
-      case 'superadmin':
-        return 'Super Administrator';
-      case 'instructor':
-        return 'Instructor';
-      case 'loadmaster':
-        return 'Loadmaster';
-      default:
-        return 'User';
-    }
+  const handleStartEditStats = () => {
+    setEditedStats({
+      squadron: (userSquadron as any)?.squadron || "AMG",
+      category: (profileData as any)?.user?.category || "D",
+      totalMissionsFlown: (profileData as any)?.user?.totalMissionsFlown || 0,
+      totalCargoWeight: (profileData as any)?.user?.totalCargoWeight || 0,
+    });
+    setIsEditingStats(true);
   };
 
-  // Handle loading and authentication states without early returns
+  const handleSaveStats = () => {
+    updateSquadronMutation.mutate(editedStats.squadron);
+    updateCategoryMutation.mutate(editedStats.category);
+    updateStatsMutation.mutate({
+      totalMissionsFlown: editedStats.totalMissionsFlown,
+      totalCargoWeight: editedStats.totalCargoWeight,
+    });
+  };
+
+  const isQualificationExpiringSoon = (expiryDate: string) => {
+    const daysUntilExpiry = Math.floor((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+  };
+
+  const isQualificationExpired = (expiryDate: string) => {
+    return new Date(expiryDate) < new Date();
+  };
+
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Please log in to view your profile.</p>
-          </CardContent>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] flex items-center justify-center">
+        <Card className="bg-[#2a2a2a] border-[#333333] p-8">
+          <p className="text-gray-300">Please log in to view your profile.</p>
         </Card>
       </div>
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Loading profile data...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Extract data from profileData or use defaults
   const userInfo = (profileData as any)?.user || user;
-  const submissions = (profileData as any)?.submissions || [];
-  
-  // Process and categorize activity history data
-  const processedActivityData = activityHistory && Array.isArray(activityHistory) ? activityHistory.map((item: any) => ({
-    ...item,
-    date: item.date ? new Date(item.date).toLocaleDateString() : 'Invalid Date',
-    title: item.title || 'Untitled Activity'
-  })) : [];
-
-  // Categorize submissions by type
-  const submissionsByType = {
-    scenarios: processedActivityData.filter((item: any) => item.type === 'scenario'),
-    quizzes: processedActivityData.filter((item: any) => item.type === 'quiz'),
-    assessments: processedActivityData.filter((item: any) => item.type === 'scenario' && item.status === 'reviewed')
-  };
-
-  // Calculate dynamic stats from actual submission data
-  const allSubmissions = [...processedActivityData, ...submissions];
-  const stats = {
-    totalSubmissions: allSubmissions.length,
-    passedSubmissions: allSubmissions.filter(item => item.passed === true).length,
-    failedSubmissions: allSubmissions.filter(item => item.passed === false).length,
-    pendingGrading: allSubmissions.filter(item => item.passed === null || item.passed === undefined || item.status === 'pending').length,
-    overallPassRate: allSubmissions.length > 0 ? Math.round((allSubmissions.filter(item => item.passed === true).length / allSubmissions.length) * 100) : 0,
-    currentStreak: (profileData as any)?.stats?.currentStreak || 0,
-    longestStreak: (profileData as any)?.stats?.longestStreak || 0,
-    weeksSinceLastActivity: (profileData as any)?.stats?.weeksSinceLastActivity || 0
-  };
-
-  const trainingModules = (profileData as any)?.trainingModules || [];
-  const gamification = (profileData as any)?.gamification || { 
-    weeklyGoal: 1, 
-    streakData: { current: 0, longest: 0, weeksSinceLastActivity: 0, streakAtRisk: false },
-    thisWeekActivity: 0,
-    achievements: {}
-  };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation('/')}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">User Profile</h1>
-            <p className="text-muted-foreground mt-1">Manage your account information and track your progress</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a]">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl animate-pulse delay-700"></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-8 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <Button
+              onClick={() => setLocation('/')}
+              className="bg-[#2a2a2a] border border-[#444444] hover:bg-[#333333] text-gray-300"
+              data-testid="button-back-to-dashboard"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div className="flex items-center space-x-4">
+              <img src={logoImage} alt="DDG" className="h-12 w-auto" />
+              <div>
+                <h1 className="text-3xl font-bold text-white">User Profile</h1>
+                <p className="text-gray-400 mt-1">Manage your training and flight records</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Essential Info */}
+          <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333]">
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <User className="w-5 h-5 text-orange-500" />
+                  <h2 className="text-xl font-bold text-white">Essential Information</h2>
+                </div>
+                {!isEditingStats ? (
+                  <Button
+                    size="sm"
+                    onClick={handleStartEditStats}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    data-testid="button-edit-info"
+                  >
+                    <Edit2 className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      onClick={handleSaveStats}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      data-testid="button-save-info"
+                    >
+                      <Save className="w-4 h-4 mr-1" />
+                      Save
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsEditingStats(false)}
+                      className="bg-transparent border-[#444444] text-gray-300 hover:bg-[#2a2a2a]"
+                      data-testid="button-cancel-edit"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-gray-400 text-sm">Email</Label>
+                  <p className="text-white font-medium">{userInfo.email}</p>
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Squadron</Label>
+                  {isEditingStats ? (
+                    <Select value={editedStats.squadron} onValueChange={(v) => setEditedStats({ ...editedStats, squadron: v })}>
+                      <SelectTrigger className="bg-[#1a1a1a] border-[#444444] text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="33SQN">33 Squadron</SelectItem>
+                        <SelectItem value="35SQN">35 Squadron</SelectItem>
+                        <SelectItem value="36SQN">36 Squadron</SelectItem>
+                        <SelectItem value="37SQN">37 Squadron</SelectItem>
+                        <SelectItem value="AMG">AMG</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-white font-medium">{(userSquadron as any)?.squadron || 'AMG'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Category</Label>
+                  {isEditingStats ? (
+                    <Select value={editedStats.category} onValueChange={(v) => setEditedStats({ ...editedStats, category: v })}>
+                      <SelectTrigger className="bg-[#1a1a1a] border-[#444444] text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">A Category</SelectItem>
+                        <SelectItem value="B">B Category</SelectItem>
+                        <SelectItem value="C">C Category</SelectItem>
+                        <SelectItem value="D">D Category</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-white font-medium">{userInfo.category || 'D'}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Total Missions Flown</Label>
+                  {isEditingStats ? (
+                    <Input
+                      type="number"
+                      value={editedStats.totalMissionsFlown}
+                      onChange={(e) => setEditedStats({ ...editedStats, totalMissionsFlown: parseInt(e.target.value) || 0 })}
+                      className="bg-[#1a1a1a] border-[#444444] text-white"
+                      data-testid="input-total-missions"
+                    />
+                  ) : (
+                    <p className="text-white font-medium">{userInfo.totalMissionsFlown || 0}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Total Cargo Weight (kg)</Label>
+                  {isEditingStats ? (
+                    <Input
+                      type="number"
+                      value={editedStats.totalCargoWeight}
+                      onChange={(e) => setEditedStats({ ...editedStats, totalCargoWeight: parseInt(e.target.value) || 0 })}
+                      className="bg-[#1a1a1a] border-[#444444] text-white"
+                      data-testid="input-total-cargo"
+                    />
+                  ) : (
+                    <p className="text-white font-medium">{userInfo.totalCargoWeight?.toLocaleString() || 0}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Role</Label>
+                  <div className="flex items-center space-x-2">
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      userInfo.role === 'superadmin' ? 'bg-purple-500/20 text-purple-400' :
+                      userInfo.role === 'instructor' ? 'bg-blue-500/20 text-blue-400' :
+                      'bg-green-500/20 text-green-400'
+                    }`}>
+                      {userInfo.role === 'superadmin' ? 'Super Admin' : 
+                       userInfo.role === 'instructor' ? 'Instructor' : 'Loadmaster'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Right Column - Tabs */}
+          <div className="lg:col-span-2">
+            <Tabs defaultValue="qualifications" className="w-full">
+              <TabsList className="bg-[#2a2a2a] border border-[#444444] w-full grid grid-cols-3">
+                <TabsTrigger 
+                  value="qualifications" 
+                  className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-400"
+                  data-testid="tab-qualifications"
+                >
+                  <Award className="w-4 h-4 mr-2" />
+                  Qualifications
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="activity" 
+                  className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-400"
+                  data-testid="tab-activity"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Activity History
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="flights" 
+                  className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-400"
+                  data-testid="tab-flights"
+                >
+                  <Plane className="w-4 h-4 mr-2" />
+                  Flight Records
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Qualifications Tab */}
+              <TabsContent value="qualifications" className="mt-4">
+                <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333]">
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-white">Training Currencies</h2>
+                      <Button
+                        onClick={() => setShowAddQualification(true)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                        data-testid="button-add-qualification"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Qualification
+                      </Button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {qualificationsLoading ? (
+                        <p className="text-gray-400">Loading qualifications...</p>
+                      ) : qualifications.length === 0 ? (
+                        <p className="text-gray-400 text-center py-8">No qualifications added yet</p>
+                      ) : (
+                        qualifications.map((qual: any) => (
+                          <div
+                            key={qual.id}
+                            className={`bg-[#1a1a1a] border ${
+                              isQualificationExpired(qual.expiryDate) ? 'border-red-500/50' :
+                              isQualificationExpiringSoon(qual.expiryDate) ? 'border-yellow-500/50' :
+                              'border-[#444444]'
+                            } rounded-lg p-4`}
+                            data-testid={`qualification-${qual.id}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h3 className="text-white font-medium">{qual.name}</h3>
+                                <p className="text-gray-400 text-sm mt-1">
+                                  Started: {new Date(qual.startDate).toLocaleDateString()} • 
+                                  Expires: {new Date(qual.expiryDate).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {isQualificationExpired(qual.expiryDate) ? (
+                                  <div className="flex items-center space-x-1 text-red-400 text-sm">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span>Expired</span>
+                                  </div>
+                                ) : isQualificationExpiringSoon(qual.expiryDate) ? (
+                                  <div className="flex items-center space-x-1 text-yellow-400 text-sm">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span>Expiring Soon</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center space-x-1 text-green-400 text-sm">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    <span>Current</span>
+                                  </div>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => deleteQualificationMutation.mutate(qual.id)}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  data-testid={`button-delete-qualification-${qual.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+
+              {/* Activity History Tab */}
+              <TabsContent value="activity" className="mt-4">
+                <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333]">
+                  <div className="p-6 space-y-4">
+                    <h2 className="text-xl font-bold text-white">Platform Activity</h2>
+                    
+                    <div className="space-y-3">
+                      {activityLoading ? (
+                        <p className="text-gray-400">Loading activity history...</p>
+                      ) : activityHistory.length === 0 ? (
+                        <p className="text-gray-400 text-center py-8">No activity recorded yet</p>
+                      ) : (
+                        activityHistory.map((activity: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="bg-[#1a1a1a] border border-[#444444] rounded-lg p-4"
+                            data-testid={`activity-${idx}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="text-white font-medium">{activity.title}</h3>
+                                <p className="text-gray-400 text-sm mt-1">
+                                  {activity.type} • {new Date(activity.date).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                activity.passed === true ? 'bg-green-500/20 text-green-400' :
+                                activity.passed === false ? 'bg-red-500/20 text-red-400' :
+                                'bg-yellow-500/20 text-yellow-400'
+                              }`}>
+                                {activity.passed === true ? 'Passed' : 
+                                 activity.passed === false ? 'Failed' : 'Pending'}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+
+              {/* Flight Records Tab */}
+              <TabsContent value="flights" className="mt-4">
+                <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333]">
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-white">Flight Records</h2>
+                      <Button
+                        onClick={() => setShowAddFlight(true)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                        data-testid="button-add-flight"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Flight
+                      </Button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {flightRecordsLoading ? (
+                        <p className="text-gray-400">Loading flight records...</p>
+                      ) : flightRecords.length === 0 ? (
+                        <p className="text-gray-400 text-center py-8">No flight records added yet</p>
+                      ) : (
+                        flightRecords.map((flight: any) => (
+                          <div
+                            key={flight.id}
+                            className="bg-[#1a1a1a] border border-[#444444] rounded-lg p-4"
+                            data-testid={`flight-${flight.id}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-gray-400 text-sm">Route</p>
+                                  <p className="text-white font-medium">{flight.departure} → {flight.arrival}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400 text-sm">Date</p>
+                                  <p className="text-white font-medium">{new Date(flight.date).toLocaleDateString()}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400 text-sm">Captain</p>
+                                  <p className="text-white font-medium">{flight.captain}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-400 text-sm">Cargo / Passengers</p>
+                                  <p className="text-white font-medium">{flight.cargoWeight}kg / {flight.passengersCarried} pax</p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => deleteFlightMutation.mutate(flight.id)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                data-testid={`button-delete-flight-${flight.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
 
-      <Separator />
-
-      {/* Weekly Goal & Streak Status */}
-      {gamification.streakData.streakAtRisk && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="w-6 h-6 text-orange-600" />
-              <div>
-                <p className="font-medium text-orange-800">Streak at Risk!</p>
-                <p className="text-sm text-orange-600">
-                  Complete at least one activity this week to maintain your {stats.currentStreak}-week streak.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Statistics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Squadron Assignment</p>
-                <Select 
-                  value={(userSquadron as any)?.squadron || ""} 
-                  onValueChange={(value) => updateSquadronMutation.mutate(value)}
-                  disabled={updateSquadronMutation.isPending}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select squadron..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="33SQN">33 Squadron</SelectItem>
-                    <SelectItem value="35SQN">35 Squadron</SelectItem>
-                    <SelectItem value="36SQN">36 Squadron</SelectItem>
-                    <SelectItem value="37SQN">37 Squadron</SelectItem>
-                    <SelectItem value="AMG">AMG</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Users className="w-8 h-8 text-blue-600 ml-4" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Category</p>
-                <Select 
-                  value={userInfo.category || "D"} 
-                  onValueChange={(value) => updateCategoryMutation.mutate(value)}
-                  disabled={updateCategoryMutation.isPending}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="D">D Category</SelectItem>
-                    <SelectItem value="C">C Category</SelectItem>
-                    <SelectItem value="B">B Category</SelectItem>
-                    <SelectItem value="A">A Category</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Award className="w-8 h-8 text-purple-600 ml-4" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Pass Rate</p>
-                <p className="text-2xl font-bold">{stats.overallPassRate.toFixed(1)}%</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Submissions</p>
-                <p className="text-2xl font-bold">{stats.totalSubmissions}</p>
-              </div>
-              <Target className="w-8 h-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">This Week</p>
-                <div className="flex items-center space-x-1">
-                  <p className="text-2xl font-bold">{gamification.thisWeekActivity}</p>
-                  <span className="text-sm text-muted-foreground">/{gamification.weeklyGoal}</span>
-                </div>
-              </div>
-              <Zap className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Account Info & Training Progress */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <User className="w-5 h-5" />
-                <span>Account Information</span>
-              </CardTitle>
-              <CardDescription>Your basic account details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Email:</span>
-                  </div>
-                  <span className="text-sm">{userInfo.email}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Role:</span>
-                  </div>
-                  <Badge className={getRoleBadgeColor(userInfo.role || user?.role || 'student')}>
-                    {getRoleDisplayName(userInfo.role || user?.role || 'student')}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Key className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">User ID:</span>
-                  </div>
-                  <span className="text-sm font-mono">{userInfo.id}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Squadron:</span>
-                  </div>
-                  <span className="text-sm">{userInfo.squadron || 'AMG'}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Service:</span>
-                  </div>
-                  <span className="text-sm">{userInfo.serviceBranch || 'Air Force'}</span>
-                </div>
-
-                {userInfo.licenseExpiry && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">License Expires:</span>
-                    </div>
-                    <span className="text-sm">
-                      {new Date(userInfo.licenseExpiry).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Training Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BookOpen className="w-5 h-5" />
-                <span>Training Progress</span>
-              </CardTitle>
-              <CardDescription>Your progress across different aircraft types</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {trainingModules.map((module: any) => (
-                <div key={module.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium">{module.title}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {module.aircraftType}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-muted-foreground">{module.progress}%</span>
-                      {module.completed && (
-                        <Award className="w-4 h-4 text-green-600" />
-                      )}
-                    </div>
-                  </div>
-                  <Progress value={module.progress} className="h-2" />
-                  {module.completionDate && (
-                    <p className="text-xs text-muted-foreground">
-                      Completed: {new Date(module.completionDate).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Detailed Activity History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-5 h-5" />
-                  <span>Activity History</span>
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span>{stats.passedSubmissions} Passed</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <XCircle className="w-4 h-4 text-orange-600" />
-                    <span>{stats.failedSubmissions} Failed</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Hourglass className="w-4 h-4 text-yellow-600" />
-                    <span>{stats.pendingGrading} Pending</span>
-                  </div>
-                </div>
-              </CardTitle>
-              <CardDescription>Your complete submission history across all activities</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="all">All ({submissions.length})</TabsTrigger>
-                  <TabsTrigger value="scenarios">Scenarios ({submissionsByType.scenarios.length})</TabsTrigger>
-                  <TabsTrigger value="quizzes">Quizzes ({submissionsByType.quizzes.length})</TabsTrigger>
-                  <TabsTrigger value="assessments">Assessments ({submissionsByType.assessments.length})</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="all" className="space-y-4 mt-4">
-                  {activityLoading ? (
-                    <div className="text-center py-8">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                      <p className="mt-2 text-muted-foreground">Loading activity history...</p>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Display recent activity from processed data */}
-                      {processedActivityData && processedActivityData.length > 0 ? (
-                        processedActivityData.slice(0, 10).map((activity: any) => (
-                          <div 
-                            key={`activity-${activity.id}`} 
-                            className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => {
-                              setSelectedSubmission(activity);
-                              setShowSubmissionDetail(true);
-                            }}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-3 h-3 rounded-full ${
-                                activity.passed === true ? 'bg-green-500' : 
-                                activity.passed === false ? 'bg-orange-500' : 
-                                activity.type === 'quiz' ? 'bg-blue-500' : 'bg-yellow-500'
-                              }`} />
-                              <div>
-                                <div className="flex items-center space-x-2">
-                                  <p className="text-sm font-medium">{activity.title}</p>
-                                  <Badge variant="outline" className={`text-xs ${
-                                    activity.type === 'quiz' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                    'bg-green-50 text-green-700 border-green-200'
-                                  }`}>
-                                    {activity.type === 'quiz' ? 'Quiz' : 'Scenario'}
-                                  </Badge>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  {activity.date}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {activity.score && (
-                                <span className="text-sm font-medium">{activity.score}%</span>
-                              )}
-                              <Badge className={
-                                activity.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
-                                activity.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
-                                'bg-yellow-600 text-white hover:bg-yellow-700'
-                              }>
-                                {activity.status === 'completed' ? 'Completed' :
-                                 activity.passed === true ? 'Pass' : 
-                                 activity.passed === false ? 'Fail' : 'Pending'}
-                              </Badge>
-                            </div>
-                          </div>
-                        ))
-                      ) : null}
-                      
-                      {/* Display assessment submissions */}
-                      {submissions.slice(0, 3).map((submission: any) => (
-                        <div key={`submission-${submission.id}`} className="flex items-center justify-between p-3 rounded-lg border">
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                              submission.passed === true ? 'bg-green-500' : 
-                              submission.passed === false ? 'bg-red-500' : 'bg-gray-400'
-                            }`} />
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <p className="text-sm font-medium">{submission.title}</p>
-                                <Badge variant="outline" className="text-xs">
-                                  Assessment
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(submission.submissionDate).toLocaleDateString()} at {new Date(submission.submissionDate).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {submission.score > 0 && (
-                              <span className="text-sm font-medium">{submission.score}%</span>
-                            )}
-                            <Badge variant={
-                              submission.passed === true ? 'default' : 
-                              submission.passed === false ? 'destructive' : 'secondary'
-                            }>
-                              {submission.passed === true ? 'Pass' : 
-                               submission.passed === false ? 'Fail' : 'Pending Review'}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {(!processedActivityData || processedActivityData.length === 0) && (!submissions || submissions.length === 0) && (
-                        <p className="text-sm text-muted-foreground text-center py-8">
-                          No submissions yet. Start training to see your progress here!
-                        </p>
-                      )}
-                    </>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="scenarios" className="space-y-4 mt-4">
-                  {submissionsByType.scenarios.slice(0, 10).map((submission: any) => (
-                    <div 
-                      key={submission.id} 
-                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => {
-                        setSelectedSubmission(submission);
-                        setShowSubmissionDetail(true);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-orange-500' : 'bg-gray-400'
-                        }`} />
-                        <div>
-                          <p className="text-sm font-medium">{submission.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {submission.date}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {submission.score && (
-                          <span className="text-sm font-medium">{submission.score}%</span>
-                        )}
-                        <Badge className={
-                          submission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
-                          submission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
-                          'bg-yellow-600 text-white hover:bg-yellow-700'
-                        }>
-                          {submission.passed === true ? 'Pass' : 
-                           submission.passed === false ? 'Fail' : 'Pending Review'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {submissionsByType.scenarios.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No scenario submissions yet. Try the load planning scenarios!
-                    </p>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="quizzes" className="space-y-4 mt-4">
-                  {submissionsByType.quizzes.slice(0, 10).map((submission: any) => (
-                    <div 
-                      key={submission.id} 
-                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => {
-                        setSelectedSubmission(submission);
-                        setShowSubmissionDetail(true);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-orange-500' : 'bg-gray-400'
-                        }`} />
-                        <div>
-                          <p className="text-sm font-medium">{submission.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {submission.date}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {submission.score && (
-                          <span className="text-sm font-medium">{submission.score}%</span>
-                        )}
-                        <Badge className={
-                          submission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
-                          submission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
-                          'bg-yellow-600 text-white hover:bg-yellow-700'
-                        }>
-                          {submission.passed === true ? 'Pass' : 
-                           submission.passed === false ? 'Fail' : 'Pending Review'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {submissionsByType.quizzes.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No quiz submissions yet. Complete your weekly quiz to maintain your streak!
-                    </p>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="assessments" className="space-y-4 mt-4">
-                  {submissionsByType.assessments.slice(0, 10).map((submission: any) => (
-                    <div 
-                      key={submission.id} 
-                      className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => {
-                        setSelectedSubmission(submission);
-                        setShowSubmissionDetail(true);
-                      }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${
-                          submission.passed === true ? 'bg-green-500' : 
-                          submission.passed === false ? 'bg-orange-500' : 'bg-gray-400'
-                        }`} />
-                        <div>
-                          <p className="text-sm font-medium">{submission.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {submission.date}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {submission.score && (
-                          <span className="text-sm font-medium">{submission.score}%</span>
-                        )}
-                        <Badge className={
-                          submission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
-                          submission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
-                          'bg-yellow-600 text-white hover:bg-yellow-700'
-                        }>
-                          {submission.passed === true ? 'Pass' : 
-                           submission.passed === false ? 'Fail' : 'Pending Review'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {submissionsByType.assessments.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No assessment submissions yet. Try the document-based assessments!
-                    </p>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Actions & Role Info */}
-        <div className="space-y-6">
-          {/* Account Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Settings className="w-5 h-5" />
-                <span>Account Actions</span>
-              </CardTitle>
-              <CardDescription>Manage your account settings</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => setShowPasswordDialog(true)}
-              >
-                <Key className="w-4 h-4 mr-2" />
-                Change Password
-              </Button>
-
-              <Button 
-                variant="outline" 
-                className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => {
-                  if (confirm('Are you sure you want to log out?')) {
-                    logout();
-                  }
-                }}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Log Out
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Role-specific Information */}
-          {(userInfo.role || user?.role) === 'superadmin' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-purple-600">Super Administrator Access</CardTitle>
-                <CardDescription>You have full administrative privileges</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <p className="text-sm text-purple-800">
-                    As a Super Administrator, you have access to all system features including:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-purple-700 mt-2 space-y-1">
-                    <li>License Management</li>
-                    <li>User Permission Management</li>
-                    <li>System Administration</li>
-                    <li>Full Application Access</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {(userInfo.role || user.role) === 'instructor' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-blue-600">Instructor Access</CardTitle>
-                <CardDescription>You have instructor-level privileges</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
-                    As an Instructor, you have access to:
-                  </p>
-                  <ul className="list-disc list-inside text-sm text-blue-700 mt-2 space-y-1">
-                    <li>Student Progress Monitoring</li>
-                    <li>Scenario Management</li>
-                    <li>Quiz Creation and Management</li>
-                    <li>Teaching Resources</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Achievements & Gamification */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="w-5 h-5" />
-                <span>Achievements</span>
-              </CardTitle>
-              <CardDescription>Your training milestones and progress rewards</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Weekly Goal Progress */}
-              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Zap className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-800">Weekly Goal</span>
-                  </div>
-                  <span className="text-xs text-blue-600">
-                    {gamification.thisWeekActivity}/{gamification.weeklyGoal}
-                  </span>
-                </div>
-                <Progress 
-                  value={(gamification.thisWeekActivity / gamification.weeklyGoal) * 100} 
-                  className="h-2" 
-                />
-                <p className="text-xs text-blue-600 mt-1">
-                  {gamification.thisWeekActivity >= gamification.weeklyGoal 
-                    ? "Goal completed this week! 🎉" 
-                    : `${gamification.weeklyGoal - gamification.thisWeekActivity} more activity needed this week`}
-                </p>
-              </div>
-
-              {/* Earned Achievements */}
-              {gamification.achievements.firstSubmission && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-green-50 border border-green-200">
-                  <Award className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium text-green-800">First Steps</p>
-                    <p className="text-xs text-green-600">Completed your first submission</p>
-                  </div>
-                </div>
-              )}
-
-              {gamification.achievements.quickLearner && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-yellow-50 border border-yellow-200">
-                  <Award className="w-5 h-5 text-yellow-600" />
-                  <div>
-                    <p className="text-sm font-medium text-yellow-800">Quick Learner</p>
-                    <p className="text-xs text-yellow-600">Completed 10+ submissions</p>
-                  </div>
-                </div>
-              )}
-
-              {gamification.achievements.perfectionist && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-purple-50 border border-purple-200">
-                  <Award className="w-5 h-5 text-purple-600" />
-                  <div>
-                    <p className="text-sm font-medium text-purple-800">Perfectionist</p>
-                    <p className="text-xs text-purple-600">95%+ pass rate with 5+ submissions</p>
-                  </div>
-                </div>
-              )}
-
-              {gamification.achievements.weeklyWarrior && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-orange-50 border border-orange-200">
-                  <Flame className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <p className="text-sm font-medium text-orange-800">Weekly Warrior</p>
-                    <p className="text-xs text-orange-600">4+ week streak maintained</p>
-                  </div>
-                </div>
-              )}
-
-              {gamification.achievements.monthlyMaster && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-red-50 border border-red-200">
-                  <Flame className="w-5 h-5 text-red-600" />
-                  <div>
-                    <p className="text-sm font-medium text-red-800">Monthly Master</p>
-                    <p className="text-xs text-red-600">12+ week streak achieved!</p>
-                  </div>
-                </div>
-              )}
-
-              {gamification.achievements.consistent && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-indigo-50 border border-indigo-200">
-                  <Award className="w-5 h-5 text-indigo-600" />
-                  <div>
-                    <p className="text-sm font-medium text-indigo-800">Consistency Champion</p>
-                    <p className="text-xs text-indigo-600">8+ week longest streak</p>
-                  </div>
-                </div>
-              )}
-
-              {gamification.achievements.diverseLearner && (
-                <div className="flex items-center space-x-3 p-2 rounded-lg bg-teal-50 border border-teal-200">
-                  <Award className="w-5 h-5 text-teal-600" />
-                  <div>
-                    <p className="text-sm font-medium text-teal-800">Multi-Aircraft Expert</p>
-                    <p className="text-xs text-teal-600">Completed 3+ aircraft types</p>
-                  </div>
-                </div>
-              )}
-
-              {!Object.values(gamification.achievements).some(Boolean) && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Complete activities to unlock achievements! Start with a quiz or scenario to earn your first badge.
-                </p>
-              )}
-
-              {/* Streak Information */}
-              {stats.currentStreak > 0 && (
-                <div className="mt-4 p-3 rounded-lg bg-gray-50 border">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Flame className="w-4 h-4 text-orange-500" />
-                      <span className="text-sm font-medium">Current Streak</span>
-                    </div>
-                    <span className="text-sm font-bold">{stats.currentStreak} weeks</span>
-                  </div>
-                  {gamification.streakData.streakAtRisk && (
-                    <p className="text-xs text-orange-600 mt-1">
-                      ⚠️ Complete an activity this week to keep your streak alive!
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Password Change Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent>
+      {/* Add Qualification Dialog */}
+      <Dialog open={showAddQualification} onOpenChange={setShowAddQualification}>
+        <DialogContent className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] text-white">
           <DialogHeader>
-            <DialogTitle>Change Password</DialogTitle>
+            <DialogTitle className="text-white">Add New Qualification</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Current Password</label>
+            <div>
+              <Label className="text-gray-300">Qualification Name</Label>
               <Input
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData(prev => ({...prev, currentPassword: e.target.value}))}
-                placeholder="Enter current password"
+                value={newQualification.name}
+                onChange={(e) => setNewQualification({ ...newQualification, name: e.target.value })}
+                placeholder="e.g., C-17 Loadmaster Qual"
+                className="bg-[#1a1a1a] border-[#444444] text-white"
+                data-testid="input-qualification-name"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">New Password</label>
+            <div>
+              <Label className="text-gray-300">Start Date</Label>
               <Input
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData(prev => ({...prev, newPassword: e.target.value}))}
-                placeholder="Enter new password"
+                type="date"
+                value={newQualification.startDate}
+                onChange={(e) => setNewQualification({ ...newQualification, startDate: e.target.value })}
+                className="bg-[#1a1a1a] border-[#444444] text-white"
+                data-testid="input-qualification-start"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Confirm New Password</label>
+            <div>
+              <Label className="text-gray-300">Expiry Date</Label>
               <Input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData(prev => ({...prev, confirmPassword: e.target.value}))}
-                placeholder="Confirm new password"
+                type="date"
+                value={newQualification.expiryDate}
+                onChange={(e) => setNewQualification({ ...newQualification, expiryDate: e.target.value })}
+                className="bg-[#1a1a1a] border-[#444444] text-white"
+                data-testid="input-qualification-expiry"
               />
             </div>
-            <div className="flex space-x-2 pt-4">
-              <Button
-                onClick={handlePasswordChange}
-                disabled={changePasswordMutation.isPending}
-                className="flex-1"
-              >
-                {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
-              </Button>
+            <div className="flex justify-end space-x-2 pt-4">
               <Button
                 variant="outline"
-                onClick={() => setShowPasswordDialog(false)}
-                className="flex-1"
+                onClick={() => setShowAddQualification(false)}
+                className="bg-transparent border-[#444444] text-gray-300 hover:bg-[#2a2a2a]"
+                data-testid="button-cancel-qualification"
               >
                 Cancel
+              </Button>
+              <Button
+                onClick={handleAddQualification}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                disabled={addQualificationMutation.isPending}
+                data-testid="button-submit-qualification"
+              >
+                {addQualificationMutation.isPending ? 'Adding...' : 'Add Qualification'}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Submission Detail Popup */}
-      <Dialog open={showSubmissionDetail} onOpenChange={setShowSubmissionDetail}>
-        <DialogContent className="max-w-2xl">
+      {/* Add Flight Dialog */}
+      <Dialog open={showAddFlight} onOpenChange={setShowAddFlight}>
+        <DialogContent className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] text-white">
           <DialogHeader>
-            <DialogTitle>Submission Details</DialogTitle>
+            <DialogTitle className="text-white">Add New Flight Record</DialogTitle>
           </DialogHeader>
-          {selectedSubmission && (
-            <div className="space-y-6">
-              {/* Header Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-medium text-lg">{selectedSubmission.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Submitted on {selectedSubmission.date}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center justify-end space-x-2 mb-2">
-                    {selectedSubmission.score && (
-                      <span className="text-2xl font-bold">{selectedSubmission.score}%</span>
-                    )}
-                    <Badge className={
-                      selectedSubmission.passed === true ? 'bg-green-600 text-white hover:bg-green-700' : 
-                      selectedSubmission.passed === false ? 'bg-orange-600 text-white hover:bg-orange-700' : 
-                      'bg-yellow-600 text-white hover:bg-yellow-700'
-                    }>
-                      {selectedSubmission.passed === true ? 'PASS' : 
-                       selectedSubmission.passed === false ? 'FAIL' : 'PENDING'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Type: {selectedSubmission.type === 'quiz' ? 'Quiz' : 'Scenario'}
-                  </p>
-                </div>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-gray-300">Date</Label>
+              <Input
+                type="date"
+                value={newFlight.date}
+                onChange={(e) => setNewFlight({ ...newFlight, date: e.target.value })}
+                className="bg-[#1a1a1a] border-[#444444] text-white"
+                data-testid="input-flight-date"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-300">Departure</Label>
+                <Input
+                  value={newFlight.departure}
+                  onChange={(e) => setNewFlight({ ...newFlight, departure: e.target.value })}
+                  placeholder="e.g., RAAF Base Richmond"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-departure"
+                />
               </div>
-
-              <Separator />
-
-              {/* Performance Summary */}
-              {selectedSubmission.score && (
-                <div className="space-y-4">
-                  <h4 className="font-medium">Performance Summary</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          {Math.round((selectedSubmission.score / 100) * 10)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Questions Correct</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-red-600">
-                          {10 - Math.round((selectedSubmission.score / 100) * 10)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">Questions Incorrect</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <div className={`text-2xl font-bold ${
-                          selectedSubmission.passed ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {selectedSubmission.passed ? '✓' : '✗'}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {selectedSubmission.passed ? 'Passed' : 'Failed'}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              )}
-
-              {/* Instructor Feedback Section */}
-              <div className="space-y-4">
-                <h4 className="font-medium">Instructor Feedback</h4>
-                {selectedSubmission.instructorFeedback ? (
-                  <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-900 font-normal">{selectedSubmission.instructorFeedback}</p>
-                  </div>
-                ) : (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-muted-foreground">
-                      {selectedSubmission.status === 'pending' 
-                        ? 'Waiting for instructor review and feedback.'
-                        : 'No instructor feedback provided for this submission.'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Additional Details */}
-              <div className="space-y-4">
-                <h4 className="font-medium">Additional Information</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Status:</span>
-                    <span className="ml-2">{selectedSubmission.status || 'Completed'}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Type:</span>
-                    <span className="ml-2">
-                      {selectedSubmission.type === 'quiz' ? 'Quiz Assessment' : 'Scenario Training'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <Button onClick={() => setShowSubmissionDetail(false)}>
-                  Close
-                </Button>
+              <div>
+                <Label className="text-gray-300">Arrival</Label>
+                <Input
+                  value={newFlight.arrival}
+                  onChange={(e) => setNewFlight({ ...newFlight, arrival: e.target.value })}
+                  placeholder="e.g., RAAF Base Amberley"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-arrival"
+                />
               </div>
             </div>
-          )}
+            <div>
+              <Label className="text-gray-300">Captain</Label>
+              <Input
+                value={newFlight.captain}
+                onChange={(e) => setNewFlight({ ...newFlight, captain: e.target.value })}
+                placeholder="Captain's name"
+                className="bg-[#1a1a1a] border-[#444444] text-white"
+                data-testid="input-flight-captain"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-300">Passengers</Label>
+                <Input
+                  type="number"
+                  value={newFlight.passengersCarried}
+                  onChange={(e) => setNewFlight({ ...newFlight, passengersCarried: parseInt(e.target.value) || 0 })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-passengers"
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300">Cargo Weight (kg)</Label>
+                <Input
+                  type="number"
+                  value={newFlight.cargoWeight}
+                  onChange={(e) => setNewFlight({ ...newFlight, cargoWeight: parseInt(e.target.value) || 0 })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-cargo"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowAddFlight(false)}
+                className="bg-transparent border-[#444444] text-gray-300 hover:bg-[#2a2a2a]"
+                data-testid="button-cancel-flight"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddFlight}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+                disabled={addFlightMutation.isPending}
+                data-testid="button-submit-flight"
+              >
+                {addFlightMutation.isPending ? 'Adding...' : 'Add Flight'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
