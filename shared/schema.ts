@@ -28,6 +28,8 @@ export const licenses = pgTable("licenses", {
   maxDevices: integer("max_devices").default(2).notNull(),
   createdByAdmin: integer("created_by_admin").notNull(),
   notes: text("notes").default(""),
+  totalMissionsFlown: integer("total_missions_flown").default(0),
+  totalCargoWeight: integer("total_cargo_weight").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -657,3 +659,46 @@ export type ScenarioQuestion = {
   options: string[];
   correctAnswer: string;
 };
+
+// User Qualifications/Currencies schema
+export const userQualifications = pgTable("user_qualifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  expiryDate: timestamp("expiry_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserQualificationSchema = createInsertSchema(userQualifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type UserQualification = typeof userQualifications.$inferSelect;
+export type InsertUserQualification = z.infer<typeof insertUserQualificationSchema>;
+
+// Flight Records schema
+export const flightRecords = pgTable("flight_records", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  date: timestamp("date").notNull(),
+  departure: text("departure").notNull(),
+  arrival: text("arrival").notNull(),
+  passengersCarried: integer("passengers_carried").default(0),
+  cargoWeight: integer("cargo_weight").default(0),
+  captain: text("captain").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertFlightRecordSchema = createInsertSchema(flightRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type FlightRecord = typeof flightRecords.$inferSelect;
+export type InsertFlightRecord = z.infer<typeof insertFlightRecordSchema>;
