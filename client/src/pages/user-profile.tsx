@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
 import logoImage from "@assets/DDG_Logo_New_1762131149453.png";
 
 export default function UserProfile() {
@@ -38,12 +38,15 @@ export default function UserProfile() {
   const [showAddFlight, setShowAddFlight] = useState(false);
   const [newFlight, setNewFlight] = useState({
     date: "",
+    callsign: "",
     departure: "",
     arrival: "",
     passengersCarried: 0,
     cargoWeight: 0,
     cargoWeightUnit: "kg",
     captain: "",
+    nightHours: 0,
+    dayHours: 0,
   });
 
   // State for editing flight records
@@ -158,7 +161,7 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] });
       setShowAddFlight(false);
-      setNewFlight({ date: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, cargoWeightUnit: "kg", captain: "" });
+      setNewFlight({ date: "", callsign: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, cargoWeightUnit: "kg", captain: "", nightHours: 0, dayHours: 0 });
       toast({ title: "Success", description: "Flight record added successfully" });
     },
     onError: () => {
@@ -268,7 +271,7 @@ export default function UserProfile() {
 
   const handleAddFlight = () => {
     if (!newFlight.date || !newFlight.departure || !newFlight.arrival || !newFlight.captain) {
-      toast({ title: "Error", description: "All fields are required", variant: "destructive" });
+      toast({ title: "Error", description: "All required fields must be filled", variant: "destructive" });
       return;
     }
     
@@ -280,11 +283,14 @@ export default function UserProfile() {
     
     addFlightMutation.mutate({
       date: new Date(newFlight.date),
+      callsign: newFlight.callsign || null,
       departure: newFlight.departure,
       arrival: newFlight.arrival,
       passengersCarried: newFlight.passengersCarried,
       cargoWeight: cargoWeightInKg,
       captain: newFlight.captain,
+      nightHours: newFlight.nightHours,
+      dayHours: newFlight.dayHours,
     });
   };
 
@@ -532,14 +538,24 @@ export default function UserProfile() {
                   <div className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-bold text-white">Training Currencies</h2>
-                      <Button
-                        onClick={() => setShowAddQualification(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white"
-                        data-testid="button-add-qualification"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Qualification
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/user/qualifications'] })}
+                          className="bg-[#2a2a2a] hover:bg-[#333333] text-white border border-[#444444]"
+                          size="sm"
+                          data-testid="button-refresh-qualifications"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={() => setShowAddQualification(true)}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                          data-testid="button-add-qualification"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Qualification
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -650,7 +666,17 @@ export default function UserProfile() {
               <TabsContent value="activity" className="mt-4">
                 <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333]">
                   <div className="p-6 space-y-4">
-                    <h2 className="text-xl font-bold text-white">Platform Activity</h2>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-bold text-white">Platform Activity</h2>
+                      <Button
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/user/activity-history'] })}
+                        className="bg-[#2a2a2a] hover:bg-[#333333] text-white border border-[#444444]"
+                        size="sm"
+                        data-testid="button-refresh-activity"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
                     
                     <div className="space-y-3">
                       {activityLoading ? (
@@ -694,14 +720,24 @@ export default function UserProfile() {
                   <div className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h2 className="text-xl font-bold text-white">Flight Records</h2>
-                      <Button
-                        onClick={() => setShowAddFlight(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white"
-                        data-testid="button-add-flight"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Flight
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] })}
+                          className="bg-[#2a2a2a] hover:bg-[#333333] text-white border border-[#444444]"
+                          size="sm"
+                          data-testid="button-refresh-flights"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={() => setShowAddFlight(true)}
+                          className="bg-orange-500 hover:bg-orange-600 text-white"
+                          data-testid="button-add-flight"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Flight
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -743,12 +779,15 @@ export default function UserProfile() {
                                     setEditingFlightId(flight.id);
                                     setEditingFlight({
                                       date: new Date(flight.date).toISOString().split('T')[0],
+                                      callsign: flight.callsign || "",
                                       departure: flight.departure,
                                       arrival: flight.arrival,
                                       captain: flight.captain,
                                       passengersCarried: flight.passengersCarried,
                                       cargoWeight: flight.cargoWeight,
                                       cargoWeightUnit: "kg",
+                                      nightHours: flight.nightHours || 0,
+                                      dayHours: flight.dayHours || 0,
                                     });
                                   }}
                                   className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
@@ -861,15 +900,27 @@ export default function UserProfile() {
             <DialogTitle className="text-white">Add New Flight Record</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label className="text-gray-300">Date</Label>
-              <Input
-                type="date"
-                value={newFlight.date}
-                onChange={(e) => setNewFlight({ ...newFlight, date: e.target.value })}
-                className="bg-[#1a1a1a] border-[#444444] text-white"
-                data-testid="input-flight-date"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-300">Date</Label>
+                <Input
+                  type="date"
+                  value={newFlight.date}
+                  onChange={(e) => setNewFlight({ ...newFlight, date: e.target.value })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-date"
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300">Flight Callsign</Label>
+                <Input
+                  value={newFlight.callsign}
+                  onChange={(e) => setNewFlight({ ...newFlight, callsign: e.target.value })}
+                  placeholder="e.g., ASY123"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-callsign"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -940,6 +991,34 @@ export default function UserProfile() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-300">Night Hours</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={newFlight.nightHours}
+                  onChange={(e) => setNewFlight({ ...newFlight, nightHours: parseFloat(e.target.value) || 0 })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-night-hours"
+                  placeholder="0.0"
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300">Day Hours</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={newFlight.dayHours}
+                  onChange={(e) => setNewFlight({ ...newFlight, dayHours: parseFloat(e.target.value) || 0 })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-day-hours"
+                  placeholder="0.0"
+                />
               </div>
             </div>
             <div className="flex justify-end space-x-2 pt-4">
@@ -1068,15 +1147,27 @@ export default function UserProfile() {
           </DialogHeader>
           {editingFlight && (
             <div className="space-y-4">
-              <div>
-                <Label className="text-gray-300">Date</Label>
-                <Input
-                  type="date"
-                  value={editingFlight.date}
-                  onChange={(e) => setEditingFlight({ ...editingFlight, date: e.target.value })}
-                  className="bg-[#1a1a1a] border-[#444444] text-white"
-                  data-testid="input-edit-flight-date"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-300">Date</Label>
+                  <Input
+                    type="date"
+                    value={editingFlight.date}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, date: e.target.value })}
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-date"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Flight Callsign</Label>
+                  <Input
+                    value={editingFlight.callsign}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, callsign: e.target.value })}
+                    placeholder="e.g., ASY123"
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-callsign"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1149,6 +1240,34 @@ export default function UserProfile() {
                   </div>
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-300">Night Hours</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={editingFlight.nightHours}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, nightHours: parseFloat(e.target.value) || 0 })}
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-night-hours"
+                    placeholder="0.0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Day Hours</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={editingFlight.dayHours}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, dayHours: parseFloat(e.target.value) || 0 })}
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-day-hours"
+                    placeholder="0.0"
+                  />
+                </div>
+              </div>
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   variant="outline"
@@ -1170,11 +1289,14 @@ export default function UserProfile() {
                       }
                       const dataToUpdate = {
                         date: new Date(editingFlight.date),
+                        callsign: editingFlight.callsign,
                         departure: editingFlight.departure,
                         arrival: editingFlight.arrival,
                         captain: editingFlight.captain,
                         passengersCarried: editingFlight.passengersCarried,
                         cargoWeight: cargoWeightInKg,
+                        nightHours: editingFlight.nightHours,
+                        dayHours: editingFlight.dayHours,
                       };
                       updateFlightMutation.mutate({ id: editingFlightId, data: dataToUpdate });
                     }

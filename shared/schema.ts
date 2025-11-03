@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, foreignKey, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -688,11 +688,14 @@ export const flightRecords = pgTable("flight_records", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   date: timestamp("date").notNull(),
+  callsign: text("callsign"),
   departure: text("departure").notNull(),
   arrival: text("arrival").notNull(),
   passengersCarried: integer("passengers_carried").default(0),
   cargoWeight: integer("cargo_weight").default(0),
   captain: text("captain").notNull(),
+  nightHours: real("night_hours").default(0),
+  dayHours: real("day_hours").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

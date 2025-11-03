@@ -21,6 +21,9 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Dual-unit cargo weight support (kg/lbs) in both add and edit flows
   - Unit selector dropdown with automatic conversion (1 lb = 0.453592 kg, rounded to nearest integer)
   - All weights stored in kg in database for consistency
+  - Extended flight records with three new fields: callsign (text), night hours (decimal), and day hours (decimal)
+  - Hours tracked with 1 decimal point precision (step 0.1) for accurate flight time logging
+  - All new fields available in both Add Flight and Edit Flight dialogs
   - Added 25 sample flight records with diverse RAAF bases, military ranks, and varied data
   - Enhanced date handling with proper Date object conversion before API calls
 - **Complete User Profile Redesign** (Nov 3): Rebuilt user profile page with modern dark theme matching login aesthetic
@@ -32,8 +35,9 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - Removed achievements and streak counters per user request
 - **Database Schema Updates** (Nov 3): 
   - Added `user_qualifications` table with nullable expiry_date for "No End Date" support
-  - Added `flight_records` table (date, departure, arrival, captain, passengers_carried, cargo_weight)
+  - Added `flight_records` table (date, callsign, departure, arrival, captain, passengers_carried, cargo_weight, night_hours, day_hours)
   - Added `total_missions_flown` and `total_cargo_weight` fields to licenses table
+  - Extended flight_records with callsign (text, nullable), night_hours (real), and day_hours (real) columns
   - Fixed date validation using z.coerce.date() for proper date string handling
 - **API Enhancements** (Nov 3): 
   - Added REST endpoints for qualifications: GET, POST, PUT, DELETE with authentication
