@@ -36,6 +36,7 @@ export default function UserProfile() {
     arrival: "",
     passengersCarried: 0,
     cargoWeight: 0,
+    cargoWeightUnit: "kg",
     captain: "",
   });
 
@@ -127,7 +128,7 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] });
       setShowAddFlight(false);
-      setNewFlight({ date: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, captain: "" });
+      setNewFlight({ date: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, cargoWeightUnit: "kg", captain: "" });
       toast({ title: "Success", description: "Flight record added successfully" });
     },
     onError: () => {
@@ -216,9 +217,20 @@ export default function UserProfile() {
       toast({ title: "Error", description: "All fields are required", variant: "destructive" });
       return;
     }
+    
+    // Convert lbs to kg if needed (1 lb = 0.453592 kg)
+    // Round to 2 decimal places for precision while keeping reasonable storage size
+    const cargoWeightInKg = newFlight.cargoWeightUnit === "lbs" 
+      ? Math.round(newFlight.cargoWeight * 0.453592 * 100) / 100
+      : newFlight.cargoWeight;
+    
     addFlightMutation.mutate({
-      ...newFlight,
       date: new Date(newFlight.date),
+      departure: newFlight.departure,
+      arrival: newFlight.arrival,
+      passengersCarried: newFlight.passengersCarried,
+      cargoWeight: cargoWeightInKg,
+      captain: newFlight.captain,
     });
   };
 
@@ -765,14 +777,31 @@ export default function UserProfile() {
                 />
               </div>
               <div>
-                <Label className="text-gray-300">Cargo Weight (kg)</Label>
-                <Input
-                  type="number"
-                  value={newFlight.cargoWeight}
-                  onChange={(e) => setNewFlight({ ...newFlight, cargoWeight: parseInt(e.target.value) || 0 })}
-                  className="bg-[#1a1a1a] border-[#444444] text-white"
-                  data-testid="input-flight-cargo"
-                />
+                <Label className="text-gray-300">Cargo Weight</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    value={newFlight.cargoWeight}
+                    onChange={(e) => setNewFlight({ ...newFlight, cargoWeight: parseInt(e.target.value) || 0 })}
+                    className="bg-[#1a1a1a] border-[#444444] text-white flex-1"
+                    data-testid="input-flight-cargo"
+                  />
+                  <Select 
+                    value={newFlight.cargoWeightUnit} 
+                    onValueChange={(value) => setNewFlight({ ...newFlight, cargoWeightUnit: value })}
+                  >
+                    <SelectTrigger 
+                      className="bg-[#1a1a1a] border-[#444444] text-white w-24"
+                      data-testid="select-cargo-unit"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kg">kg</SelectItem>
+                      <SelectItem value="lbs">lbs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             <div className="flex justify-end space-x-2 pt-4">

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, ClipboardList, Plane, FolderOpen, Wrench, GraduationCap } from "lucide-react";
+import { Home, ClipboardList, Plane, FolderOpen, Wrench, GraduationCap, User } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
@@ -19,12 +19,6 @@ export default function BottomNav() {
 
   const navItems: NavItem[] = [
     {
-      href: "/",
-      label: "Home",
-      icon: Home,
-      active: location === "/"
-    },
-    {
       href: "/scenarios",
       label: "Scenarios",
       icon: ClipboardList,
@@ -41,6 +35,18 @@ export default function BottomNav() {
       label: "Documents",
       icon: FolderOpen,
       active: location === "/documents" || location === "/cargo-manifest" || location.startsWith("/documents/")
+    },
+    {
+      href: "/",
+      label: "Home",
+      icon: Home,
+      active: location === "/"
+    },
+    {
+      href: "/user-profile",
+      label: "Profile",
+      icon: User,
+      active: location === "/user-profile"
     },
     {
       href: "/tools",
