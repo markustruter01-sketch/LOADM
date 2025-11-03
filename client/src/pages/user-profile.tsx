@@ -58,8 +58,6 @@ export default function UserProfile() {
   const [editedStats, setEditedStats] = useState({
     squadron: "",
     category: "",
-    totalMissionsFlown: 0,
-    totalCargoWeight: 0,
   });
 
   // Fetch user profile data
@@ -233,7 +231,8 @@ export default function UserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
-      toast({ title: "Success", description: "Category updated successfully" });
+      setIsEditingStats(false);
+      toast({ title: "Success", description: "Stats updated successfully" });
     },
   });
 
@@ -298,8 +297,6 @@ export default function UserProfile() {
     setEditedStats({
       squadron: (userSquadron as any)?.squadron || "AMG",
       category: (profileData as any)?.user?.category || "D",
-      totalMissionsFlown: (profileData as any)?.user?.totalMissionsFlown || 0,
-      totalCargoWeight: (profileData as any)?.user?.totalCargoWeight || 0,
     });
     setIsEditingStats(true);
   };
@@ -307,10 +304,6 @@ export default function UserProfile() {
   const handleSaveStats = () => {
     updateSquadronMutation.mutate(editedStats.squadron);
     updateCategoryMutation.mutate(editedStats.category);
-    updateStatsMutation.mutate({
-      totalMissionsFlown: editedStats.totalMissionsFlown,
-      totalCargoWeight: editedStats.totalCargoWeight,
-    });
   };
 
   // Calculate flight statistics from flight records
@@ -474,32 +467,14 @@ export default function UserProfile() {
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Missions Flown</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      value={editedStats.totalMissionsFlown}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalMissionsFlown: parseInt(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                      data-testid="input-total-missions"
-                    />
-                  ) : (
-                    <p className="text-white font-medium">{userInfo.totalMissionsFlown || 0}</p>
-                  )}
+                  <p className="text-white font-medium">{flightRecords.length}</p>
+                  <p className="text-gray-500 text-xs mt-1">Auto-calculated from flight records</p>
                 </div>
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Cargo Weight (kg)</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      value={editedStats.totalCargoWeight}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalCargoWeight: parseInt(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                      data-testid="input-total-cargo"
-                    />
-                  ) : (
-                    <p className="text-white font-medium">{userInfo.totalCargoWeight?.toLocaleString() || 0}</p>
-                  )}
+                  <p className="text-white font-medium">{flightStats.totalCargo.toLocaleString()}</p>
+                  <p className="text-gray-500 text-xs mt-1">Auto-calculated from flight records</p>
                 </div>
 
                 {/* Divider */}

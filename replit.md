@@ -31,8 +31,11 @@ LOADMworkflow is a comprehensive military logistics training and management plat
     - Night Hours and Day Hours displayed side-by-side
     - Total Cargo Carried (kg) with comma formatting
     - Total Passengers Carried with comma formatting
+    - Total Missions Flown (count of flight records) - auto-calculated and replaces manual input
+    - Total Cargo Weight (sum from flight records) - auto-calculated and replaces manual input
     - Statistics auto-update when flight records are added, edited, or deleted
     - Modern, sleek design with dividers and plane icon header matching DDG branding
+    - All auto-calculated fields display "Auto-calculated from flight records" note
 - **Complete User Profile Redesign** (Nov 3): Rebuilt user profile page with modern dark theme matching login aesthetic
   - Implemented three-tab interface: Qualifications, Activity History, Flight Records
   - Added qualifications/currencies tracking with full add/edit/delete functionality
