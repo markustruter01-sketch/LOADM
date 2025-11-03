@@ -37,6 +37,15 @@ app.use('/pdfs', express.static(path.join(process.cwd(), 'attached_assets'), {
   }
 }));
 
+// Serve PDF.js worker file with correct MIME type
+app.use('/js', express.static(path.join(process.cwd(), 'public/js'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.mjs') || filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
+
 // Mount isolated auth routes FIRST (before Vite middleware)
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);

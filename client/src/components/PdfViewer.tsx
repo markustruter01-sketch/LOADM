@@ -16,8 +16,8 @@ import {
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
-// Configure PDF.js worker using jsdelivr CDN which has proper CORS headers and npm package structure
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure PDF.js worker using local file served by Express
+pdfjs.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.mjs';
 
 interface PdfViewerProps {
   file: string;
