@@ -219,9 +219,9 @@ export default function UserProfile() {
     }
     
     // Convert lbs to kg if needed (1 lb = 0.453592 kg)
-    // Round to 2 decimal places for precision while keeping reasonable storage size
+    // Round to nearest integer for database storage
     const cargoWeightInKg = newFlight.cargoWeightUnit === "lbs" 
-      ? Math.round(newFlight.cargoWeight * 0.453592 * 100) / 100
+      ? Math.round(newFlight.cargoWeight * 0.453592)
       : newFlight.cargoWeight;
     
     addFlightMutation.mutate({
