@@ -2589,6 +2589,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/user/qualifications/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const qualificationId = parseInt(req.params.id);
+      
+      const validatedData = insertUserQualificationSchema.omit({ userId: true }).parse(req.body);
+
+      const [updatedQualification] = await db.update(userQualifications)
+        .set({
+          ...validatedData,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(userQualifications.id, qualificationId),
+          eq(userQualifications.userId, req.user.id)
+        ))
+        .returning();
+
+      res.json(updatedQualification);
+    } catch (error) {
+      console.error("Error updating qualification:", error);
+      res.status(500).json({ message: "Failed to update qualification" });
+    }
+  });
+
   app.delete("/api/user/qualifications/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user) {
@@ -2648,6 +2676,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating flight record:", error);
       res.status(500).json({ message: "Failed to create flight record" });
+    }
+  });
+
+  app.put("/api/user/flight-records/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const recordId = parseInt(req.params.id);
+      
+      const validatedData = insertFlightRecordSchema.omit({ userId: true }).parse(req.body);
+
+      const [updatedRecord] = await db.update(flightRecords)
+        .set({
+          ...validatedData,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(flightRecords.id, recordId),
+          eq(flightRecords.userId, req.user.id)
+        ))
+        .returning();
+
+      res.json(updatedRecord);
+    } catch (error) {
+      console.error("Error updating flight record:", error);
+      res.status(500).json({ message: "Failed to update flight record" });
     }
   });
 

@@ -666,7 +666,7 @@ export const userQualifications = pgTable("user_qualifications", {
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   startDate: timestamp("start_date").notNull(),
-  expiryDate: timestamp("expiry_date").notNull(),
+  expiryDate: timestamp("expiry_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -677,7 +677,7 @@ export const insertUserQualificationSchema = createInsertSchema(userQualificatio
   updatedAt: true,
 }).extend({
   startDate: z.coerce.date(),
-  expiryDate: z.coerce.date(),
+  expiryDate: z.coerce.date().nullable().optional(),
 });
 
 export type UserQualification = typeof userQualifications.$inferSelect;

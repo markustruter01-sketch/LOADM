@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import logoImage from "@assets/DDG_Logo_New_1762131149453.png";
 
@@ -26,7 +27,12 @@ export default function UserProfile() {
     name: "",
     startDate: "",
     expiryDate: "",
+    noEndDate: false,
   });
+
+  // State for editing qualifications
+  const [editingQualificationId, setEditingQualificationId] = useState<number | null>(null);
+  const [editingQualification, setEditingQualification] = useState<any>(null);
 
   // State for adding flight records
   const [showAddFlight, setShowAddFlight] = useState(false);
@@ -39,6 +45,10 @@ export default function UserProfile() {
     cargoWeightUnit: "kg",
     captain: "",
   });
+
+  // State for editing flight records
+  const [editingFlightId, setEditingFlightId] = useState<number | null>(null);
+  const [editingFlight, setEditingFlight] = useState<any>(null);
 
   // State for editing user stats
   const [isEditingStats, setIsEditingStats] = useState(false);
@@ -91,11 +101,31 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/qualifications'] });
       setShowAddQualification(false);
-      setNewQualification({ name: "", startDate: "", expiryDate: "" });
+      setNewQualification({ name: "", startDate: "", expiryDate: "", noEndDate: false });
       toast({ title: "Success", description: "Qualification added successfully" });
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to add qualification", variant: "destructive" });
+    }
+  });
+
+  // Update qualification mutation
+  const updateQualificationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return await apiRequest({
+        url: `/api/user/qualifications/${id}`,
+        method: 'PUT',
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/qualifications'] });
+      setEditingQualificationId(null);
+      setEditingQualification(null);
+      toast({ title: "Success", description: "Qualification updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update qualification", variant: "destructive" });
     }
   });
 
@@ -133,6 +163,26 @@ export default function UserProfile() {
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to add flight record", variant: "destructive" });
+    }
+  });
+
+  // Update flight record mutation
+  const updateFlightMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return await apiRequest({
+        url: `/api/user/flight-records/${id}`,
+        method: 'PUT',
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] });
+      setEditingFlightId(null);
+      setEditingFlight(null);
+      toast({ title: "Success", description: "Flight record updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update flight record", variant: "destructive" });
     }
   });
 
@@ -201,14 +251,18 @@ export default function UserProfile() {
   });
 
   const handleAddQualification = () => {
-    if (!newQualification.name || !newQualification.startDate || !newQualification.expiryDate) {
-      toast({ title: "Error", description: "All fields are required", variant: "destructive" });
+    if (!newQualification.name || !newQualification.startDate) {
+      toast({ title: "Error", description: "Name and start date are required", variant: "destructive" });
+      return;
+    }
+    if (!newQualification.noEndDate && !newQualification.expiryDate) {
+      toast({ title: "Error", description: "Please provide an expiry date or select 'No End Date'", variant: "destructive" });
       return;
     }
     addQualificationMutation.mutate({
       name: newQualification.name,
       startDate: new Date(newQualification.startDate),
-      expiryDate: new Date(newQualification.expiryDate),
+      expiryDate: newQualification.noEndDate ? null : new Date(newQualification.expiryDate),
     });
   };
 
@@ -253,12 +307,14 @@ export default function UserProfile() {
     });
   };
 
-  const isQualificationExpiringSoon = (expiryDate: string) => {
+  const isQualificationExpiringSoon = (expiryDate: string | null) => {
+    if (!expiryDate) return false; // No end date means not expiring
     const daysUntilExpiry = Math.floor((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+    return daysUntilExpiry <= 90 && daysUntilExpiry > 0; // Changed from 30 to 90 days (3 months)
   };
 
-  const isQualificationExpired = (expiryDate: string) => {
+  const isQualificationExpired = (expiryDate: string | null) => {
+    if (!expiryDate) return false; // No end date means not expired
     return new Date(expiryDate) < new Date();
   };
 
@@ -492,7 +548,25 @@ export default function UserProfile() {
                       ) : qualifications.length === 0 ? (
                         <p className="text-gray-400 text-center py-8">No qualifications added yet</p>
                       ) : (
-                        qualifications.map((qual: any) => (
+                        [...qualifications]
+                          .sort((a: any, b: any) => {
+                            // Sort by priority: expiring soon > expired > current > no expiry
+                            const aExpiringSoon = isQualificationExpiringSoon(a.expiryDate);
+                            const bExpiringSoon = isQualificationExpiringSoon(b.expiryDate);
+                            const aExpired = isQualificationExpired(a.expiryDate);
+                            const bExpired = isQualificationExpired(b.expiryDate);
+                            
+                            if (aExpiringSoon && !bExpiringSoon) return -1;
+                            if (!aExpiringSoon && bExpiringSoon) return 1;
+                            if (aExpired && !bExpired) return -1;
+                            if (!aExpired && bExpired) return 1;
+                            
+                            // If same status, sort by expiry date (nulls last)
+                            if (!a.expiryDate) return 1;
+                            if (!b.expiryDate) return -1;
+                            return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+                          })
+                          .map((qual: any) => (
                           <div
                             key={qual.id}
                             className={`bg-[#1a1a1a] border ${
@@ -507,26 +581,52 @@ export default function UserProfile() {
                                 <h3 className="text-white font-medium">{qual.name}</h3>
                                 <p className="text-gray-400 text-sm mt-1">
                                   Started: {new Date(qual.startDate).toLocaleDateString()} • 
-                                  Expires: {new Date(qual.expiryDate).toLocaleDateString()}
+                                  {qual.expiryDate ? `Expires: ${new Date(qual.expiryDate).toLocaleDateString()}` : 'No Expiry'}
                                 </p>
                               </div>
                               <div className="flex items-center space-x-2">
-                                {isQualificationExpired(qual.expiryDate) ? (
-                                  <div className="flex items-center space-x-1 text-red-400 text-sm">
-                                    <AlertCircle className="w-4 h-4" />
-                                    <span>Expired</span>
-                                  </div>
-                                ) : isQualificationExpiringSoon(qual.expiryDate) ? (
-                                  <div className="flex items-center space-x-1 text-yellow-400 text-sm">
-                                    <AlertCircle className="w-4 h-4" />
-                                    <span>Expiring Soon</span>
-                                  </div>
+                                {qual.expiryDate ? (
+                                  <>
+                                    {isQualificationExpired(qual.expiryDate) ? (
+                                      <div className="flex items-center space-x-1 text-red-400 text-sm">
+                                        <AlertCircle className="w-4 h-4" />
+                                        <span>Expired</span>
+                                      </div>
+                                    ) : isQualificationExpiringSoon(qual.expiryDate) ? (
+                                      <div className="flex items-center space-x-1 text-yellow-400 text-sm">
+                                        <AlertCircle className="w-4 h-4" />
+                                        <span>Expiring Soon</span>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center space-x-1 text-green-400 text-sm">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        <span>Current</span>
+                                      </div>
+                                    )}
+                                  </>
                                 ) : (
-                                  <div className="flex items-center space-x-1 text-green-400 text-sm">
+                                  <div className="flex items-center space-x-1 text-blue-400 text-sm">
                                     <CheckCircle2 className="w-4 h-4" />
-                                    <span>Current</span>
+                                    <span>No Expiry</span>
                                   </div>
                                 )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingQualificationId(qual.id);
+                                    setEditingQualification({
+                                      name: qual.name,
+                                      startDate: new Date(qual.startDate).toISOString().split('T')[0],
+                                      expiryDate: qual.expiryDate ? new Date(qual.expiryDate).toISOString().split('T')[0] : "",
+                                      noEndDate: !qual.expiryDate,
+                                    });
+                                  }}
+                                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                  data-testid={`button-edit-qualification-${qual.id}`}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -635,15 +735,37 @@ export default function UserProfile() {
                                   <p className="text-white font-medium">{flight.cargoWeight}kg / {flight.passengersCarried} pax</p>
                                 </div>
                               </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => deleteFlightMutation.mutate(flight.id)}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                data-testid={`button-delete-flight-${flight.id}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingFlightId(flight.id);
+                                    setEditingFlight({
+                                      date: new Date(flight.date).toISOString().split('T')[0],
+                                      departure: flight.departure,
+                                      arrival: flight.arrival,
+                                      captain: flight.captain,
+                                      passengersCarried: flight.passengersCarried,
+                                      cargoWeight: flight.cargoWeight,
+                                      cargoWeightUnit: "kg",
+                                    });
+                                  }}
+                                  className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                                  data-testid={`button-edit-flight-${flight.id}`}
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => deleteFlightMutation.mutate(flight.id)}
+                                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  data-testid={`button-delete-flight-${flight.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         ))
@@ -692,7 +814,23 @@ export default function UserProfile() {
                 onChange={(e) => setNewQualification({ ...newQualification, expiryDate: e.target.value })}
                 className="bg-[#1a1a1a] border-[#444444] text-white"
                 data-testid="input-qualification-expiry"
+                disabled={newQualification.noEndDate}
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="no-end-date"
+                checked={newQualification.noEndDate}
+                onCheckedChange={(checked) => setNewQualification({ ...newQualification, noEndDate: checked as boolean, expiryDate: checked ? "" : newQualification.expiryDate })}
+                className="border-[#444444] data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                data-testid="checkbox-no-end-date"
+              />
+              <label
+                htmlFor="no-end-date"
+                className="text-sm text-gray-300 cursor-pointer select-none"
+              >
+                No End Date
+              </label>
             </div>
             <div className="flex justify-end space-x-2 pt-4">
               <Button
@@ -823,6 +961,233 @@ export default function UserProfile() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Qualification Dialog */}
+      <Dialog open={editingQualificationId !== null} onOpenChange={() => {
+        setEditingQualificationId(null);
+        setEditingQualification(null);
+      }}>
+        <DialogContent className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white">Edit Qualification</DialogTitle>
+          </DialogHeader>
+          {editingQualification && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-gray-300">Qualification Name</Label>
+                <Input
+                  value={editingQualification.name}
+                  onChange={(e) => setEditingQualification({ ...editingQualification, name: e.target.value })}
+                  placeholder="e.g., C-17 Loadmaster Qual"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-edit-qual-name"
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300">Start Date</Label>
+                <Input
+                  type="date"
+                  value={editingQualification.startDate}
+                  onChange={(e) => setEditingQualification({ ...editingQualification, startDate: e.target.value })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-edit-qual-start-date"
+                />
+              </div>
+              {!editingQualification.noEndDate && (
+                <div>
+                  <Label className="text-gray-300">Expiry Date</Label>
+                  <Input
+                    type="date"
+                    value={editingQualification.expiryDate}
+                    onChange={(e) => setEditingQualification({ ...editingQualification, expiryDate: e.target.value })}
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-qual-expiry-date"
+                  />
+                </div>
+              )}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="edit-no-end-date"
+                  checked={editingQualification.noEndDate}
+                  onCheckedChange={(checked) => setEditingQualification({ ...editingQualification, noEndDate: checked as boolean, expiryDate: checked ? "" : editingQualification.expiryDate })}
+                  className="border-[#444444] data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                  data-testid="checkbox-edit-no-end-date"
+                />
+                <label
+                  htmlFor="edit-no-end-date"
+                  className="text-sm text-gray-300 cursor-pointer select-none"
+                >
+                  No End Date
+                </label>
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingQualificationId(null);
+                    setEditingQualification(null);
+                  }}
+                  className="bg-transparent border-[#444444] text-gray-300 hover:bg-[#2a2a2a]"
+                  data-testid="button-cancel-edit-qualification"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (editingQualificationId && editingQualification.startDate) {
+                      const dataToUpdate = {
+                        name: editingQualification.name,
+                        startDate: new Date(editingQualification.startDate),
+                        expiryDate: editingQualification.noEndDate ? null : (editingQualification.expiryDate ? new Date(editingQualification.expiryDate) : null),
+                      };
+                      updateQualificationMutation.mutate({ id: editingQualificationId, data: dataToUpdate });
+                    }
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  disabled={updateQualificationMutation.isPending}
+                  data-testid="button-submit-edit-qualification"
+                >
+                  {updateQualificationMutation.isPending ? 'Updating...' : 'Update Qualification'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Flight Dialog */}
+      <Dialog open={editingFlightId !== null} onOpenChange={() => {
+        setEditingFlightId(null);
+        setEditingFlight(null);
+      }}>
+        <DialogContent className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white">Edit Flight Record</DialogTitle>
+          </DialogHeader>
+          {editingFlight && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-gray-300">Date</Label>
+                <Input
+                  type="date"
+                  value={editingFlight.date}
+                  onChange={(e) => setEditingFlight({ ...editingFlight, date: e.target.value })}
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-edit-flight-date"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-300">Departure</Label>
+                  <Input
+                    value={editingFlight.departure}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, departure: e.target.value })}
+                    placeholder="e.g., RAAF Base Richmond"
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-departure"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Arrival</Label>
+                  <Input
+                    value={editingFlight.arrival}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, arrival: e.target.value })}
+                    placeholder="e.g., RAAF Base Amberley"
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-arrival"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-gray-300">Captain</Label>
+                <Input
+                  value={editingFlight.captain}
+                  onChange={(e) => setEditingFlight({ ...editingFlight, captain: e.target.value })}
+                  placeholder="Captain's name"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-edit-flight-captain"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-300">Passengers</Label>
+                  <Input
+                    type="number"
+                    value={editingFlight.passengersCarried}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, passengersCarried: parseInt(e.target.value) || 0 })}
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-passengers"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Cargo Weight</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      value={editingFlight.cargoWeight}
+                      onChange={(e) => setEditingFlight({ ...editingFlight, cargoWeight: parseInt(e.target.value) || 0 })}
+                      className="bg-[#1a1a1a] border-[#444444] text-white flex-1"
+                      data-testid="input-edit-flight-cargo"
+                    />
+                    <Select 
+                      value={editingFlight.cargoWeightUnit} 
+                      onValueChange={(value) => setEditingFlight({ ...editingFlight, cargoWeightUnit: value })}
+                    >
+                      <SelectTrigger 
+                        className="bg-[#1a1a1a] border-[#444444] text-white w-24"
+                        data-testid="select-edit-cargo-unit"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kg">kg</SelectItem>
+                        <SelectItem value="lbs">lbs</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingFlightId(null);
+                    setEditingFlight(null);
+                  }}
+                  className="bg-transparent border-[#444444] text-gray-300 hover:bg-[#2a2a2a]"
+                  data-testid="button-cancel-edit-flight"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (editingFlightId && editingFlight.date) {
+                      let cargoWeightInKg = editingFlight.cargoWeight;
+                      if (editingFlight.cargoWeightUnit === "lbs") {
+                        cargoWeightInKg = Math.round(editingFlight.cargoWeight * 0.453592);
+                      }
+                      const dataToUpdate = {
+                        date: new Date(editingFlight.date),
+                        departure: editingFlight.departure,
+                        arrival: editingFlight.arrival,
+                        captain: editingFlight.captain,
+                        passengersCarried: editingFlight.passengersCarried,
+                        cargoWeight: cargoWeightInKg,
+                      };
+                      updateFlightMutation.mutate({ id: editingFlightId, data: dataToUpdate });
+                    }
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  disabled={updateFlightMutation.isPending}
+                  data-testid="button-submit-edit-flight"
+                >
+                  {updateFlightMutation.isPending ? 'Updating...' : 'Update Flight'}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
