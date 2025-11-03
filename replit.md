@@ -4,6 +4,16 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 3, 2025)
+- **Navigation Bar Enhancement** (Nov 3): Updated bottom navigation with improved UX
+  - Added Profile button with User icon for quick access to user profile
+  - Reordered navigation buttons with Home button positioned in the middle (4th of 7 buttons)
+  - New order: Scenarios, Airframe, Documents, Home, Profile, Tools, Instructor
+  - Maintains dark theme consistency with orange active states
+- **Flight Records - Cargo Weight Units** (Nov 3): Added support for dual-unit cargo weight tracking
+  - Users can now input cargo weight in either kilograms (kg) or pounds (lbs)
+  - Unit selector dropdown in Add Flight dialog with automatic conversion
+  - Conversion logic: 1 lb = 0.453592 kg, rounded to nearest integer for storage
+  - All weights stored in kg in database for consistency
 - **Complete User Profile Redesign** (Nov 3): Rebuilt user profile page with modern dark theme matching login aesthetic
   - Implemented three-tab interface: Qualifications, Activity History, Flight Records
   - Added qualifications/currencies tracking with add/delete functionality and expiry status indicators (Current/Expiring Soon/Expired)
