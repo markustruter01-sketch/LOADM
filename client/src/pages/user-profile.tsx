@@ -313,6 +313,23 @@ export default function UserProfile() {
     });
   };
 
+  // Calculate flight statistics from flight records
+  const flightStats = flightRecords.reduce((acc, flight) => {
+    return {
+      totalFlightHours: acc.totalFlightHours + (flight.nightHours || 0) + (flight.dayHours || 0),
+      totalCargo: acc.totalCargo + (flight.cargoWeight || 0),
+      totalPassengers: acc.totalPassengers + (flight.passengersCarried || 0),
+      totalNightHours: acc.totalNightHours + (flight.nightHours || 0),
+      totalDayHours: acc.totalDayHours + (flight.dayHours || 0),
+    };
+  }, {
+    totalFlightHours: 0,
+    totalCargo: 0,
+    totalPassengers: 0,
+    totalNightHours: 0,
+    totalDayHours: 0,
+  });
+
   const isQualificationExpiringSoon = (expiryDate: string | null) => {
     if (!expiryDate) return false; // No end date means not expiring
     const daysUntilExpiry = Math.floor((new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -484,6 +501,44 @@ export default function UserProfile() {
                     <p className="text-white font-medium">{userInfo.totalCargoWeight?.toLocaleString() || 0}</p>
                   )}
                 </div>
+
+                {/* Divider */}
+                <div className="border-t border-[#444444] my-4"></div>
+
+                {/* Flight Statistics Header */}
+                <div className="flex items-center space-x-2 mb-3">
+                  <Plane className="w-4 h-4 text-orange-500" />
+                  <h3 className="text-lg font-semibold text-white">Flight Statistics</h3>
+                </div>
+
+                {/* Flight Statistics */}
+                <div>
+                  <Label className="text-gray-400 text-sm">Total Flight Hours</Label>
+                  <p className="text-white font-medium text-lg">{flightStats.totalFlightHours.toFixed(1)}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-400 text-sm">Night Hours</Label>
+                    <p className="text-white font-medium">{flightStats.totalNightHours.toFixed(1)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-400 text-sm">Day Hours</Label>
+                    <p className="text-white font-medium">{flightStats.totalDayHours.toFixed(1)}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Total Cargo Carried (kg)</Label>
+                  <p className="text-white font-medium">{flightStats.totalCargo.toLocaleString()}</p>
+                </div>
+
+                <div>
+                  <Label className="text-gray-400 text-sm">Total Passengers Carried</Label>
+                  <p className="text-white font-medium">{flightStats.totalPassengers.toLocaleString()}</p>
+                </div>
+
+                <div className="border-t border-[#444444] my-4"></div>
 
                 <div>
                   <Label className="text-gray-400 text-sm">Role</Label>

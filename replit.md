@@ -26,6 +26,13 @@ LOADMworkflow is a comprehensive military logistics training and management plat
   - All new fields available in both Add Flight and Edit Flight dialogs
   - Added 25 sample flight records with diverse RAAF bases, military ranks, and varied data
   - Enhanced date handling with proper Date object conversion before API calls
+  - **Flight Statistics Dashboard**: Added real-time calculated statistics in Essential Information panel
+    - Total Flight Hours (sum of night + day hours with 1 decimal place)
+    - Night Hours and Day Hours displayed side-by-side
+    - Total Cargo Carried (kg) with comma formatting
+    - Total Passengers Carried with comma formatting
+    - Statistics auto-update when flight records are added, edited, or deleted
+    - Modern, sleek design with dividers and plane icon header matching DDG branding
 - **Complete User Profile Redesign** (Nov 3): Rebuilt user profile page with modern dark theme matching login aesthetic
   - Implemented three-tab interface: Qualifications, Activity History, Flight Records
   - Added qualifications/currencies tracking with full add/edit/delete functionality
