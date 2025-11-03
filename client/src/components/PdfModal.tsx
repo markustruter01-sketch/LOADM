@@ -1,13 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useCallback } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import PdfViewer from '@/components/PdfViewer';
 import { 
   Download, 
-  Mail,
-  X,
-  AlertCircle,
-  Loader2
+  Mail
 } from 'lucide-react';
 
 interface PdfModalProps {
@@ -18,38 +15,7 @@ interface PdfModalProps {
 }
 
 export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const pdfUrl = `/pdfs/${encodeURIComponent(filename)}`;
-
-  // Reset loading state when filename changes
-  useEffect(() => {
-    console.log('🔄 PDF Modal opened with filename:', filename);
-    console.log('🔗 PDF URL:', pdfUrl);
-    setLoading(true);
-    setError(null);
-    
-    // Object tags don't reliably fire onLoad, so use a timeout
-    const timer = setTimeout(() => {
-      console.log('⏱️ PDF load timeout - assuming success');
-      setLoading(false);
-    }, 1500);
-    
-    return () => clearTimeout(timer);
-  }, [filename, pdfUrl]);
-
-  const handleLoad = useCallback(() => {
-    console.log('✅ PDF loaded successfully:', filename);
-    setLoading(false);
-    setError(null);
-  }, [filename]);
-
-  const handleError = useCallback(() => {
-    console.error('❌ PDF failed to load:', filename);
-    setLoading(false);
-    setError('Failed to load PDF document');
-  }, [filename]);
 
   const handleDownload = useCallback(() => {
     const link = document.createElement('a');
@@ -102,7 +68,7 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-5xl max-h-[95vh] p-0">
         <DialogHeader className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold pr-4">{title}</DialogTitle>
@@ -111,6 +77,7 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
                 onClick={handleDownload}
                 size="sm"
                 className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                data-testid="button-download-pdf"
               >
                 <Download className="h-4 w-4" />
                 Save
@@ -119,6 +86,7 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
                 onClick={handleSend}
                 size="sm"
                 className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                data-testid="button-send-pdf"
               >
                 <Mail className="h-4 w-4" />
                 Send
@@ -126,47 +94,16 @@ export default function PdfModal({ isOpen, onClose, filename, title }: PdfModalP
             </div>
           </div>
         </DialogHeader>
+        <DialogDescription className="sr-only">
+          PDF document viewer for {title}
+        </DialogDescription>
 
-        <div className="flex-1 overflow-hidden relative">
-          {error && (
-            <Card className="m-6">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading PDF</h3>
-                <p className="text-muted-foreground text-center mb-4">{error}</p>
-                <Button onClick={handleDownload} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Instead
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {!error && isOpen && (
-            <object
-              data={pdfUrl}
-              type="application/pdf"
-              className="w-full h-[70vh] border-0"
-              aria-label={title}
-            >
-              <div className="flex flex-col items-center justify-center h-[70vh] p-6">
-                <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
-                <p className="text-muted-foreground text-center mb-4">
-                  Unable to display PDF in browser
-                </p>
-                <Button onClick={handleDownload} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              </div>
-            </object>
-          )}
-
-          {loading && !error && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-              <p className="text-sm text-muted-foreground">Loading PDF...</p>
-            </div>
+        <div className="flex-1 overflow-hidden">
+          {isOpen && (
+            <PdfViewer 
+              file={filename} 
+              height={650}
+            />
           )}
         </div>
       </DialogContent>
