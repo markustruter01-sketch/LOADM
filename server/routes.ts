@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -2545,6 +2545,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Failed to fetch instructor checklists:", error);
       res.status(500).json({ error: "Failed to fetch instructor checklists" });
+    }
+  });
+
+  // User Qualifications API endpoints
+  app.get("/api/user/qualifications", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const qualifications = await db.select()
+        .from(userQualifications)
+        .where(eq(userQualifications.userId, req.user.id))
+        .orderBy(desc(userQualifications.expiryDate));
+
+      res.json(qualifications);
+    } catch (error) {
+      console.error("Error fetching qualifications:", error);
+      res.status(500).json({ message: "Failed to fetch qualifications" });
+    }
+  });
+
+  app.post("/api/user/qualifications", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const validatedData = insertUserQualificationSchema.parse({
+        ...req.body,
+        userId: req.user.id,
+      });
+
+      const [newQualification] = await db.insert(userQualifications)
+        .values(validatedData)
+        .returning();
+
+      res.json(newQualification);
+    } catch (error) {
+      console.error("Error creating qualification:", error);
+      res.status(500).json({ message: "Failed to create qualification" });
+    }
+  });
+
+  app.delete("/api/user/qualifications/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const qualificationId = parseInt(req.params.id);
+      
+      await db.delete(userQualifications)
+        .where(and(
+          eq(userQualifications.id, qualificationId),
+          eq(userQualifications.userId, req.user.id)
+        ));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting qualification:", error);
+      res.status(500).json({ message: "Failed to delete qualification" });
+    }
+  });
+
+  // Flight Records API endpoints
+  app.get("/api/user/flight-records", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const records = await db.select()
+        .from(flightRecords)
+        .where(eq(flightRecords.userId, req.user.id))
+        .orderBy(desc(flightRecords.date));
+
+      res.json(records);
+    } catch (error) {
+      console.error("Error fetching flight records:", error);
+      res.status(500).json({ message: "Failed to fetch flight records" });
+    }
+  });
+
+  app.post("/api/user/flight-records", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const validatedData = insertFlightRecordSchema.parse({
+        ...req.body,
+        userId: req.user.id,
+      });
+
+      const [newRecord] = await db.insert(flightRecords)
+        .values(validatedData)
+        .returning();
+
+      res.json(newRecord);
+    } catch (error) {
+      console.error("Error creating flight record:", error);
+      res.status(500).json({ message: "Failed to create flight record" });
+    }
+  });
+
+  app.delete("/api/user/flight-records/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const recordId = parseInt(req.params.id);
+      
+      await db.delete(flightRecords)
+        .where(and(
+          eq(flightRecords.id, recordId),
+          eq(flightRecords.userId, req.user.id)
+        ));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting flight record:", error);
+      res.status(500).json({ message: "Failed to delete flight record" });
+    }
+  });
+
+  // Update user's total missions and cargo weight
+  app.put("/api/user/stats", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { totalMissionsFlown, totalCargoWeight } = req.body;
+
+      // Get user's license
+      const [userRecord] = await db.select()
+        .from(users)
+        .where(eq(users.id, req.user.id));
+
+      if (!userRecord || !userRecord.licenseId) {
+        return res.status(404).json({ message: "User license not found" });
+      }
+
+      // Update license with new stats
+      await db.update(licenses)
+        .set({
+          totalMissionsFlown: totalMissionsFlown ?? undefined,
+          totalCargoWeight: totalCargoWeight ?? undefined,
+          updatedAt: new Date(),
+        })
+        .where(eq(licenses.id, userRecord.licenseId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating user stats:", error);
+      res.status(500).json({ message: "Failed to update user stats" });
     }
   });
 
