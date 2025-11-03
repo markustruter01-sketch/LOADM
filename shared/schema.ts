@@ -675,6 +675,9 @@ export const insertUserQualificationSchema = createInsertSchema(userQualificatio
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  startDate: z.coerce.date(),
+  expiryDate: z.coerce.date(),
 });
 
 export type UserQualification = typeof userQualifications.$inferSelect;
@@ -698,6 +701,8 @@ export const insertFlightRecordSchema = createInsertSchema(flightRecords).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  date: z.coerce.date(),
 });
 
 export type FlightRecord = typeof flightRecords.$inferSelect;
