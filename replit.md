@@ -4,29 +4,42 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 3, 2025)
-- **Navigation Bar Enhancement** (Nov 3): Updated bottom navigation with improved UX
-  - Added Profile button with User icon for quick access to user profile
-  - Reordered navigation buttons with Home button positioned in the middle (4th of 7 buttons)
-  - New order: Scenarios, Airframe, Documents, Home, Profile, Tools, Instructor
+- **Navigation Bar Enhancements** (Nov 3 - Latest): 
+  - Home button made 15% larger than other navigation buttons (w-[97px] h-[97px] vs w-[84px] h-[84px]) for improved prominence
+  - Home button positioned in middle (4th of 7 buttons)
+  - Button order: Scenarios, Airframe, Documents, Home, Profile, Tools, Instructor
   - Maintains dark theme consistency with orange active states
-- **Flight Records - Cargo Weight Units** (Nov 3): Added support for dual-unit cargo weight tracking
-  - Users can now input cargo weight in either kilograms (kg) or pounds (lbs)
-  - Unit selector dropdown in Add Flight dialog with automatic conversion
-  - Conversion logic: 1 lb = 0.453592 kg, rounded to nearest integer for storage
+- **Qualifications Management Enhancements** (Nov 3 - Latest):
+  - Added "No End Date" toggle option in Add and Edit Qualification dialogs for qualifications without expiry
+  - Updated expiring soon threshold from 30 days to 90 days (3 months)
+  - Implemented automatic sorting: expiring soon → expired → current → no expiry
+  - Added full edit functionality with Edit buttons and edit dialogs
+  - Qualifications display status indicators: Current (green), Expiring Soon (yellow, 90 days), Expired (red), No Expiry (blue)
+  - Enhanced date handling with proper Date object conversion before API calls
+- **Flight Records Management Enhancements** (Nov 3 - Latest):
+  - Added full edit functionality with Edit buttons and edit dialogs
+  - Dual-unit cargo weight support (kg/lbs) in both add and edit flows
+  - Unit selector dropdown with automatic conversion (1 lb = 0.453592 kg, rounded to nearest integer)
   - All weights stored in kg in database for consistency
+  - Added 25 sample flight records with diverse RAAF bases, military ranks, and varied data
+  - Enhanced date handling with proper Date object conversion before API calls
 - **Complete User Profile Redesign** (Nov 3): Rebuilt user profile page with modern dark theme matching login aesthetic
   - Implemented three-tab interface: Qualifications, Activity History, Flight Records
-  - Added qualifications/currencies tracking with add/delete functionality and expiry status indicators (Current/Expiring Soon/Expired)
+  - Added qualifications/currencies tracking with full add/edit/delete functionality
   - Added flight records management with detailed flight information (route, captain, passengers, cargo)
   - Implemented inline editing for user stats (squadron, category, total missions flown, total cargo weight)
   - Dark grey (#1a1a1a, #2a2a2a) backgrounds with orange accents matching DDG branding
   - Removed achievements and streak counters per user request
 - **Database Schema Updates** (Nov 3): 
-  - Added `user_qualifications` table (name, start_date, expiry_date)
+  - Added `user_qualifications` table with nullable expiry_date for "No End Date" support
   - Added `flight_records` table (date, departure, arrival, captain, passengers_carried, cargo_weight)
   - Added `total_missions_flown` and `total_cargo_weight` fields to licenses table
   - Fixed date validation using z.coerce.date() for proper date string handling
-- **API Enhancements** (Nov 3): Added REST endpoints for qualifications and flight records (GET, POST, DELETE) with proper authentication middleware
+- **API Enhancements** (Nov 3): 
+  - Added REST endpoints for qualifications: GET, POST, PUT, DELETE with authentication
+  - Added REST endpoints for flight records: GET, POST, PUT, DELETE with authentication
+  - PUT endpoints enable full edit functionality for both qualifications and flight records
+  - All endpoints properly validate data using Zod schemas
 
 ## Previous Changes (October 30-31, 2025)
 - **Company Logo Update** (Oct 31): Replaced header logo with new DDG logo
