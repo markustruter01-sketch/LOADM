@@ -18,53 +18,69 @@ const tourSteps: TourStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to LOADMworkflow',
-    description: 'Your comprehensive military logistics and training management platform. Let me show you around the key features.',
+    description: 'Your comprehensive KC30A loadmaster training and logistics platform. Let me show you around the key features of your new training system.',
     targetSelector: '',
     position: 'center'
   },
   {
     id: 'navigation',
     title: 'Navigation Menu',
-    description: 'Use the bottom navigation bar to access different sections: Home, Load Planning, Documents, Tools, and Training.',
+    description: 'Use the bottom navigation bar to access all sections: Scenarios, Airframe, Documents, Home (center), Profile, Tools, and Instructor Portal.',
     targetSelector: '.bottom-nav, nav[role="navigation"]',
     position: 'top'
   },
   {
-    id: 'load-planning',
-    title: 'Load Planning',
-    description: 'Create and manage aircraft load plans. Select different aircraft types and calculate center of gravity for safe operations.',
-    targetSelector: '.load-planning',
+    id: 'scenarios',
+    title: 'Training Scenarios',
+    description: 'Complete interactive training scenarios with real-world mission simulations. Submit your work and receive feedback from instructors.',
+    targetSelector: '[data-testid="nav-scenarios"]',
     position: 'top',
-    action: 'Click here to explore load planning'
+    action: 'Access realistic training scenarios'
+  },
+  {
+    id: 'airframe',
+    title: 'Airframe & Load Planning',
+    description: 'Access KC30A specifications, load planning tools, and training modules. Calculate center of gravity and manage aircraft configurations.',
+    targetSelector: '[data-testid="nav-airframe"]',
+    position: 'top',
+    action: 'Explore load planning features'
   },
   {
     id: 'documents',
-    title: 'Documents & Resources',
-    description: 'Access PDF documents, forms, and the phone directory for airbase contacts. View documents in popup modals.',
-    targetSelector: '.documents-section',
+    title: 'Mission Documents',
+    description: 'View and manage mission documents with our integrated PDF viewer. Access technical manuals, forms, and mission-critical documentation.',
+    targetSelector: '[data-testid="nav-documents"]',
     position: 'top',
-    action: 'Click here to view documents'
+    action: 'Browse mission documents'
   },
   {
-    id: 'training',
-    title: 'Training Modules',
-    description: 'Complete structured learning modules and track your progress through various training scenarios.',
-    targetSelector: '.training-modules',
+    id: 'profile',
+    title: 'Your Profile & Records',
+    description: 'Track your qualifications and currencies, view your activity history, and manage your flight records including hours, cargo, and missions.',
+    targetSelector: '[data-testid="nav-profile"]',
     position: 'top',
-    action: 'Click here to start training'
+    action: 'Manage your training profile'
   },
   {
     id: 'tools',
-    title: 'Calculation Tools',
-    description: 'Use specialized calculators for WAM, restraint calculations, fuel planning, and PSI calculations.',
-    targetSelector: '.tools-section',
+    title: 'Loadmaster Calculators',
+    description: 'Access professional calculation tools: Weight & Balance (Restraint, WAM, Vehicle CGFA, Fuel), PSI Calculators (Box, Drum, Skidded, Tire), and Mission Complexity Analyzer.',
+    targetSelector: '[data-testid="nav-tools"]',
     position: 'top',
-    action: 'Click here to access tools'
+    action: 'Use loadmaster calculators'
+  },
+  {
+    id: 'instructor',
+    title: 'Instructor Portal',
+    description: 'For instructors: Review student submissions, manage quizzes and scenarios, track student progress, and access advanced analytics across squadrons.',
+    targetSelector: '[data-testid="nav-instructor"]',
+    position: 'top',
+    action: 'Access instructor features'
   },
   {
     id: 'complete',
-    title: 'Tour Complete!',
-    description: 'You\'re all set! Explore the platform and use the chat system if you need help. You can restart this tour anytime from your profile.',
+    title: 'Ready for Training!',
+    description: 'You\'re all set to begin your loadmaster training journey. Explore the platform, complete scenarios, and track your progress. Need help? Use the chat system anytime.',
     targetSelector: '',
     position: 'center'
   }

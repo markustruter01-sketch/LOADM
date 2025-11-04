@@ -4,7 +4,23 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 4, 2025)
-- **Loadmaster Tools Redesign** (Nov 4 - Latest):
+- **User Profile Header Update** (Nov 4 - Latest):
+  - Updated user profile page header to show personalized greeting "Welcome [user's email]" instead of generic "User Profile" text
+  - Removed DDG logo from profile section header for cleaner, more personal design
+  - Maintains subtitle "Manage your training and flight records"
+- **Onboarding Tour Redesign** (Nov 4):
+  - Completely updated first-time user walkthrough to reflect current app features and layout
+  - Tour now covers all 7 navigation sections: Scenarios, Airframe, Documents, Home, Profile, Tools, and Instructor Portal
+  - Updated step descriptions with accurate feature details:
+    - Training Scenarios: Interactive mission simulations with instructor feedback
+    - Airframe & Load Planning: KC30A specifications and CG calculations
+    - Mission Documents: Integrated PDF viewer for technical manuals
+    - User Profile: Qualifications tracking, flight records, and hours management
+    - Loadmaster Calculators: All Weight & Balance and PSI calculation tools
+    - Instructor Portal: Student submissions, analytics, and progress tracking
+  - Tour uses proper data-testid selectors (`nav-scenarios`, `nav-airframe`, etc.) for reliable targeting
+  - Triggers automatically after first-time password change for new accounts
+- **Loadmaster Tools Redesign** (Nov 4):
   - Redesigned all calculator quick link boxes to match modern login page and navigation bar design
   - Applied dark grey gradients: `from-[#2a2a2a] to-[#1a1a1a]` on all cards
   - Updated borders to `border-[#333333]` with orange hover effects (`hover:border-orange-500/30`)
