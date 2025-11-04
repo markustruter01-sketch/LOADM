@@ -64,7 +64,25 @@ export function RedesignedLogin() {
               <div className="flex flex-col items-center space-y-5">
                 {/* DDG Circular Logo with glow */}
                 <div className="relative">
-                  <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full scale-150"></div>
+                  {/* Multi-layer gradient glow - works perfectly on all devices including iPad */}
+                  <div 
+                    className="absolute -inset-12 rounded-full opacity-90"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, rgba(249, 115, 22, 0.1) 40%, transparent 70%)'
+                    }}
+                  ></div>
+                  <div 
+                    className="absolute -inset-8 rounded-full opacity-80"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(251, 146, 60, 0.25) 0%, rgba(249, 115, 22, 0.08) 50%, transparent 80%)'
+                    }}
+                  ></div>
+                  <div 
+                    className="absolute -inset-4 rounded-full opacity-70"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(234, 88, 12, 0.2) 0%, rgba(249, 115, 22, 0.05) 60%, transparent 90%)'
+                    }}
+                  ></div>
                   <img 
                     src={logoImage} 
                     alt="DDG Logo" 
