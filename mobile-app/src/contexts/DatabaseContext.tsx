@@ -30,8 +30,39 @@ export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           squadron TEXT,
           category TEXT,
           is_active BOOLEAN DEFAULT 1,
+          has_completed_onboarding BOOLEAN DEFAULT 0,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS user_qualifications (
+          id INTEGER PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          start_date DATE NOT NULL,
+          expiry_date DATE,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          synced BOOLEAN DEFAULT 0,
+          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS flight_records (
+          id INTEGER PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          date DATE NOT NULL,
+          callsign TEXT,
+          departure TEXT NOT NULL,
+          arrival TEXT NOT NULL,
+          captain TEXT NOT NULL,
+          passengers_carried INTEGER DEFAULT 0,
+          cargo_weight REAL DEFAULT 0,
+          night_hours REAL DEFAULT 0,
+          day_hours REAL DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          synced BOOLEAN DEFAULT 0,
+          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS quizzes (
