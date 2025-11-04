@@ -19,6 +19,7 @@ LOADMworkflow is a comprehensive military logistics training and management plat
     - Loadmaster Calculators: All Weight & Balance and PSI calculation tools
     - Instructor Portal: Student submissions, analytics, and progress tracking
   - Tour uses proper data-testid selectors (`nav-scenarios`, `nav-airframe`, etc.) for reliable targeting
+  - **Circular Spotlight Effect**: Navigation button highlights are now circular to match the circular button shape (uses radial-gradient for nav buttons, rounded rectangle for other elements)
   - Triggers automatically after first-time password change for new accounts
 - **Loadmaster Tools Redesign** (Nov 4):
   - Redesigned all calculator quick link boxes to match modern login page and navigation bar design

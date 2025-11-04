@@ -167,18 +167,34 @@ export function OnboardingTour({ isVisible, onComplete, onSkip }: OnboardingTour
 
       setTooltipPosition({ top, left });
 
-      // Create rounded rectangle spotlight effect to match homepage boxes
-      const padding = 20;
-      const spotlightLeft = rect.left - padding;
-      const spotlightTop = rect.top - padding;
-      const spotlightWidth = rect.width + padding * 2;
-      const spotlightHeight = rect.height + padding * 2;
-      const borderRadius = 12; // Match the rounded corners of homepage boxes
+      // Determine if this is a navigation button (circular) or other element (rounded rectangle)
+      const isNavButton = currentTourStep.targetSelector.includes('nav-');
       
-      setOverlayStyle({
-        opacity: 0.75,
-        clipPath: `polygon(0% 0%, 0% 100%, ${spotlightLeft}px 100%, ${spotlightLeft}px ${spotlightTop + borderRadius}px, ${spotlightLeft + borderRadius}px ${spotlightTop}px, ${spotlightLeft + spotlightWidth - borderRadius}px ${spotlightTop}px, ${spotlightLeft + spotlightWidth}px ${spotlightTop + borderRadius}px, ${spotlightLeft + spotlightWidth}px ${spotlightTop + spotlightHeight - borderRadius}px, ${spotlightLeft + spotlightWidth - borderRadius}px ${spotlightTop + spotlightHeight}px, ${spotlightLeft + borderRadius}px ${spotlightTop + spotlightHeight}px, ${spotlightLeft}px ${spotlightTop + spotlightHeight - borderRadius}px, ${spotlightLeft}px 100%, 100% 100%, 100% 0%)`
-      });
+      if (isNavButton) {
+        // Create circular spotlight effect for navigation buttons
+        const padding = 15;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const radius = Math.max(rect.width, rect.height) / 2 + padding;
+        
+        setOverlayStyle({
+          opacity: 0.75,
+          background: `radial-gradient(circle at ${centerX}px ${centerY}px, transparent ${radius}px, rgba(0, 0, 0, 1) ${radius}px)`
+        });
+      } else {
+        // Create rounded rectangle spotlight effect for other elements
+        const padding = 20;
+        const spotlightLeft = rect.left - padding;
+        const spotlightTop = rect.top - padding;
+        const spotlightWidth = rect.width + padding * 2;
+        const spotlightHeight = rect.height + padding * 2;
+        const borderRadius = 12;
+        
+        setOverlayStyle({
+          opacity: 0.75,
+          clipPath: `polygon(0% 0%, 0% 100%, ${spotlightLeft}px 100%, ${spotlightLeft}px ${spotlightTop + borderRadius}px, ${spotlightLeft + borderRadius}px ${spotlightTop}px, ${spotlightLeft + spotlightWidth - borderRadius}px ${spotlightTop}px, ${spotlightLeft + spotlightWidth}px ${spotlightTop + borderRadius}px, ${spotlightLeft + spotlightWidth}px ${spotlightTop + spotlightHeight - borderRadius}px, ${spotlightLeft + spotlightWidth - borderRadius}px ${spotlightTop + spotlightHeight}px, ${spotlightLeft + borderRadius}px ${spotlightTop + spotlightHeight}px, ${spotlightLeft}px ${spotlightTop + spotlightHeight - borderRadius}px, ${spotlightLeft}px 100%, 100% 100%, 100% 0%)`
+        });
+      }
     }, 300);
   };
 
