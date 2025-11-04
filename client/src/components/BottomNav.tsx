@@ -81,7 +81,7 @@ export default function BottomNav() {
                 "relative group flex items-center justify-center rounded-full",
                 "transition-all duration-300 shadow-lg hover:shadow-xl",
                 "backdrop-blur-sm border-2",
-                isHomeButton ? "w-[97px] h-[97px]" : "w-[84px] h-[84px]",
+                isHomeButton ? "w-[82px] h-[82px]" : "w-[71px] h-[71px]",
                 item.active 
                   ? "bg-primary border-primary text-primary-foreground scale-[1.15]" 
                   : "bg-card/90 border-border text-muted-foreground hover:text-foreground hover:scale-105 hover:bg-card"
@@ -89,7 +89,7 @@ export default function BottomNav() {
               aria-label={item.label}
               data-testid={`nav-${item.label.toLowerCase()}`}
             >
-              <item.icon className={isHomeButton ? "h-10 w-10" : "h-9 w-9"} />
+              <item.icon className={isHomeButton ? "h-8 w-8" : "h-7 w-7"} />
               
               {/* Tooltip on hover */}
               <span className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-popover text-popover-foreground text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-md border border-border">

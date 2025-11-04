@@ -4,7 +4,13 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 4, 2025)
-- **Onboarding System Deactivated** (Nov 4 - Latest):
+- **Navigation Bar Size Reduction** (Nov 4 - Latest):
+  - Reduced all navigation button sizes by 15% for more compact design
+  - Home button now 82px × 82px (down from 97px × 97px)
+  - Other navigation buttons now 71px × 71px (down from 84px × 84px)
+  - Icon sizes proportionally reduced: Home button icons 32px (h-8 w-8), other buttons 28px (h-7 w-7)
+  - Maintains the same visual hierarchy with Home button still 15% larger than other buttons
+- **Onboarding System Deactivated** (Nov 4):
   - Completely isolated and deactivated the onboarding tour system
   - Users now log in and go directly to the home dashboard without any tour interference
   - All onboarding-related state management and component rendering commented out in App.tsx
