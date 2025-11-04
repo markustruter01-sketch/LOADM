@@ -26,8 +26,8 @@ const tourSteps: TourStep[] = [
     id: 'navigation',
     title: 'Navigation Menu',
     description: 'Use the bottom navigation bar to access all sections: Scenarios, Airframe, Documents, Home (center), Profile, Tools, and Instructor Portal.',
-    targetSelector: '.bottom-nav, nav[role="navigation"]',
-    position: 'top'
+    targetSelector: '',
+    position: 'center'
   },
   {
     id: 'scenarios',
