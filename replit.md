@@ -3,8 +3,21 @@
 ## Overview
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
+## Recent Changes (November 4, 2025)
+- **Loadmaster Tools Redesign** (Nov 4 - Latest):
+  - Redesigned all calculator quick link boxes to match modern login page and navigation bar design
+  - Applied dark grey gradients: `from-[#2a2a2a] to-[#1a1a1a]` on all cards
+  - Updated borders to `border-[#333333]` with orange hover effects (`hover:border-orange-500/30`)
+  - Modernized code/formula sections with darker backgrounds (`bg-[#0a0a0a]`) and proper contrast
+  - Replaced all buttons with modern gradient styling: `from-orange-500 to-orange-600`
+  - Added smooth transitions and enhanced hover effects (`hover:shadow-xl`)
+  - Updated icons to orange-500 color for consistency with DDG branding
+  - Redesigned cards across all tabs: Weight & Balance (Restraint, WAM, Vehicle CGFA, Fuel), PSI Calculators (Box, Drum, Skidded Box, Tire), and Mission Analysis (Complexity Analyzer)
+  - Improved text contrast with white titles, gray-400 descriptions, and gray-300 content
+  - All cards now feature consistent modern styling matching the overall application design
+
 ## Recent Changes (November 3, 2025)
-- **PDF Viewer Fix** (Nov 3 - Latest):
+- **PDF Viewer Fix** (Nov 3):
   - Fixed PDF viewer to use Express-served worker file matching react-pdf version
   - Downgraded pdfjs-dist to v4.8.69 to match react-pdf's expected version
   - Worker file served from `/js/pdf.worker.min.mjs` with correct `application/javascript` MIME type

@@ -719,33 +719,34 @@ export default function ToolsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {/* Restraint Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('restraint-calculator')}
+                  data-testid="card-restraint-calculator"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Restraint Calculator</CardTitle>
-                      <Anchor className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Restraint Calculator</CardTitle>
+                      <Anchor className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Effective restraint force calculations</CardDescription>
+                    <CardDescription className="text-gray-400">Effective restraint force calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Calculate:</div>
-                      <div className="p-3 bg-slate-800 rounded text-xs font-mono">
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Calculate:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg text-xs font-mono text-gray-300">
                         <div>Effective Force = Total Force × cos(θ)</div>
                         <div>Forward/Aft = Force × cos(horizontal angle)</div>
                         <div>Lateral = Force × sin(horizontal angle)</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        • Restraint angle analysis<br />
-                        • Component force calculation<br />
-                        • G-force requirement verification
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <div>• Restraint angle analysis</div>
+                        <div>• Component force calculation</div>
+                        <div>• G-force requirement verification</div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-restraint-calculator">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -753,28 +754,29 @@ export default function ToolsPage() {
 
                 {/* WAM Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('wam-calculator')}
+                  data-testid="card-wam-calculator"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">WAM Calculator</CardTitle>
-                      <Calculator className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">WAM Calculator</CardTitle>
+                      <Calculator className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Weight-Arm-Moment calculations</CardDescription>
+                    <CardDescription className="text-gray-400">Weight-Arm-Moment calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Formulas:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
-                        <p className="mb-2">Arm × Weight = Moment</p>
-                        <p className="mb-2">Moment ÷ Arm = Weight</p>
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Formulas:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg text-gray-300 space-y-2">
+                        <p>Arm × Weight = Moment</p>
+                        <p>Moment ÷ Arm = Weight</p>
                         <p>Moment ÷ Weight = Arm</p>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-wam-calculator">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -782,31 +784,32 @@ export default function ToolsPage() {
 
                 {/* Vehicle CGFA Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('vehicle-cgfa')}
+                  data-testid="card-vehicle-cgfa"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Vehicle CGFA Calculator</CardTitle>
-                      <Truck className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Vehicle CGFA Calculator</CardTitle>
+                      <Truck className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Center of Gravity Forward of Aft Axle</CardDescription>
+                    <CardDescription className="text-gray-400">Center of Gravity Forward of Aft Axle</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Formula:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
-                        <p>RAW × WB ÷ GW = CGFA in Inches</p>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          RAW: Rear Axle Weight<br />
-                          WB: Wheelbase<br />
-                          GW: Gross Weight
-                        </p>
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Formula:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg space-y-2">
+                        <p className="text-gray-300">RAW × WB ÷ GW = CGFA in Inches</p>
+                        <div className="text-xs text-gray-400 pt-2 space-y-1">
+                          <div>RAW: Rear Axle Weight</div>
+                          <div>WB: Wheelbase</div>
+                          <div>GW: Gross Weight</div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-vehicle-cgfa">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -816,34 +819,35 @@ export default function ToolsPage() {
 
                 {/* Fuel Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('fuel-calculator')}
+                  data-testid="card-fuel-calculator"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Fuel Calculator</CardTitle>
-                      <TrendingUp className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Fuel Calculator</CardTitle>
+                      <TrendingUp className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Aviation fuel burn calculations</CardDescription>
+                    <CardDescription className="text-gray-400">Aviation fuel burn calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Calculate:</div>
-                      <div className="p-3 bg-slate-800 rounded text-xs font-mono">
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Calculate:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg text-xs font-mono text-gray-300 space-y-1">
                         <div>• Fuel burn per hour</div>
                         <div>• Trip fuel requirements</div>
                         <div>• Range calculations</div>
                         <div>• Reserve fuel planning</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        • C-17, C-130, C-27J, KC30A profiles<br />
-                        • Metric units (km, kg, L/h)<br />
-                        • Weather condition adjustments
+                      <div className="text-xs text-gray-400 space-y-1">
+                        <div>• C-17, C-130, C-27J, KC30A profiles</div>
+                        <div>• Metric units (km, kg, L/h)</div>
+                        <div>• Weather condition adjustments</div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-fuel-calculator">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -856,29 +860,30 @@ export default function ToolsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 {/* Box PSI Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('box-psi')}
+                  data-testid="card-box-psi"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Box PSI Calculator</CardTitle>
-                      <Box className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Box PSI Calculator</CardTitle>
+                      <Box className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Square & Rectangle Box Floor Loading</CardDescription>
+                    <CardDescription className="text-gray-400">Square & Rectangle Box Floor Loading</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Formula:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
-                        <p>Weight ÷ (Length × Width) = PSI</p>
-                        <p className="mt-2 text-xs text-muted-foreground">
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Formula:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg space-y-2">
+                        <p className="text-gray-300">Weight ÷ (Length × Width) = PSI</p>
+                        <p className="text-xs text-gray-400">
                           Critical for ensuring floor loading stays within aircraft limits
                         </p>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-box-psi">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -886,30 +891,31 @@ export default function ToolsPage() {
 
                 {/* Drum PSI Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('drum-psi')}
+                  data-testid="card-drum-psi"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Drum PSI Calculator</CardTitle>
-                      <Cylinder className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Drum PSI Calculator</CardTitle>
+                      <Cylinder className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>With & Without Rims Calculations</CardDescription>
+                    <CardDescription className="text-gray-400">With & Without Rims Calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Calculates:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
-                        <p className="mb-2">• Drums with rim (ring contact)</p>
-                        <p>• Drums without rim (full base)</p>
-                        <p className="mt-2 text-xs text-muted-foreground">
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Calculates:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg space-y-2">
+                        <p className="text-gray-300">• Drums with rim (ring contact)</p>
+                        <p className="text-gray-300">• Drums without rim (full base)</p>
+                        <p className="text-xs text-gray-400 pt-1">
                           Accounts for different contact area patterns
                         </p>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-drum-psi">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -917,29 +923,30 @@ export default function ToolsPage() {
 
                 {/* Skidded Box PSI Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('skidded-box-psi')}
+                  data-testid="card-skidded-box-psi"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Skidded Box PSI</CardTitle>
-                      <Package className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Skidded Box PSI</CardTitle>
+                      <Package className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Skid-Mounted Cargo Calculations</CardDescription>
+                    <CardDescription className="text-gray-400">Skid-Mounted Cargo Calculations</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Formula:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
-                        <p>GW ÷ (L of skid × W of skid × # of skids) = PSI</p>
-                        <p className="mt-2 text-xs text-muted-foreground">
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Formula:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg space-y-2">
+                        <p className="text-gray-300">GW ÷ (L of skid × W of skid × # of skids) = PSI</p>
+                        <p className="text-xs text-gray-400">
                           For cargo mounted on runners or skids
                         </p>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-skidded-box-psi">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -947,30 +954,31 @@ export default function ToolsPage() {
 
                 {/* Pneumatic Tire PSI Calculator */}
                 <Card 
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl hover:border-orange-500/30 transition-all duration-300 cursor-pointer group"
                   onClick={() => navigateToTool('tire-psi')}
+                  data-testid="card-tire-psi"
                 >
-                  <CardHeader className="bg-primary/10">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Tire PSI Calculator</CardTitle>
-                      <Circle className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Tire PSI Calculator</CardTitle>
+                      <Circle className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>Pneumatic Tire Floor Loading</CardDescription>
+                    <CardDescription className="text-gray-400">Pneumatic Tire Floor Loading</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="space-y-2 text-sm">
-                      <div className="font-medium text-primary">Calculates:</div>
-                      <div className="p-3 bg-slate-800 rounded-md">
-                        <p className="mb-2">• Single tire PSI</p>
-                        <p>• Multiple tire distribution</p>
-                        <p className="mt-2 text-xs text-muted-foreground">
+                    <div className="space-y-3 text-sm">
+                      <div className="font-medium text-orange-500">Calculates:</div>
+                      <div className="p-3 bg-[#0a0a0a] border border-[#444444] rounded-lg space-y-2">
+                        <p className="text-gray-300">• Single tire PSI</p>
+                        <p className="text-gray-300">• Multiple tire distribution</p>
+                        <p className="text-xs text-gray-400 pt-1">
                           For vehicles and wheeled equipment
                         </p>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-muted/50 pt-2">
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
+                  <CardFooter className="bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] border-t border-[#333333] pt-4">
+                    <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="button-open-tire-psi">
                       Open Calculator
                     </Button>
                   </CardFooter>
@@ -982,13 +990,13 @@ export default function ToolsPage() {
             <TabsContent value="mission-analysis" className="mt-6">
               <div className="mb-10">
                 {/* Mission Complexity Analyzer - Full Width */}
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="bg-primary/10">
+                <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] hover:shadow-xl transition-all duration-300" data-testid="card-mission-complexity">
+                  <CardHeader className="border-b border-[#333333] pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">Mission Complexity Analyzer</CardTitle>
-                      <Target className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg text-white">Mission Complexity Analyzer</CardTitle>
+                      <Target className="h-5 w-5 text-orange-500" />
                     </div>
-                    <CardDescription>One-Click Mission Difficulty Assessment</CardDescription>
+                    <CardDescription className="text-gray-400">One-Click Mission Difficulty Assessment</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
                     <MissionComplexityAnalyzer />
