@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
-import logoImage from "@assets/DDG_Logo_New_1762131149453.png";
 
 export default function UserProfile() {
   const { user } = useIsolatedAuth();
@@ -366,12 +365,9 @@ export default function UserProfile() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
-            <div className="flex items-center space-x-4">
-              <img src={logoImage} alt="DDG" className="h-12 w-auto" />
-              <div>
-                <h1 className="text-3xl font-bold text-white">User Profile</h1>
-                <p className="text-gray-400 mt-1">Manage your training and flight records</p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">Welcome {user?.email}</h1>
+              <p className="text-gray-400 mt-1">Manage your training and flight records</p>
             </div>
           </div>
         </div>
