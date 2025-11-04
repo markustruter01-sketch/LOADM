@@ -4,6 +4,13 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 4, 2025)
+- **Onboarding System Deactivated** (Nov 4 - Latest):
+  - Completely isolated and deactivated the onboarding tour system
+  - Users now log in and go directly to the home dashboard without any tour interference
+  - All onboarding-related state management and component rendering commented out in App.tsx
+  - Login flow verified and working correctly - users land on home page immediately after authentication
+  - First-time password change flow remains functional for new users
+  - **Technical Details**: Commented out lines 85-101 (onboarding state/handlers) and lines 179-183 (OnboardingTour component) in client/src/App.tsx
 - **User Profile Header Update** (Nov 4 - Latest):
   - Updated user profile page header to show personalized greeting "Welcome [user's email]" instead of generic "User Profile" text
   - Removed DDG logo from profile section header for cleaner, more personal design

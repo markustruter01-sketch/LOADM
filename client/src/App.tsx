@@ -77,23 +77,25 @@ const queryClient = createOfflineQueryClient();
 
 function AuthenticatedApp() {
   const { user, refreshUser } = useIsolatedAuth();
-  const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Check if user needs onboarding after first login password change
-  useEffect(() => {
-    if (user && !user.isFirstLogin && user.hasCompletedOnboarding === false) {
-      setShowOnboarding(true);
-    }
-  }, [user]);
+  // ONBOARDING SYSTEM DEACTIVATED - Users go directly to home dashboard
+  // const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // // Check if user needs onboarding after first login password change
+  // useEffect(() => {
+  //   if (user && !user.isFirstLogin && user.hasCompletedOnboarding === false) {
+  //     setShowOnboarding(true);
+  //   }
+  // }, [user]);
 
-  const handleOnboardingComplete = async () => {
-    setShowOnboarding(false);
-    await refreshUser();
-  };
+  // const handleOnboardingComplete = async () => {
+  //   setShowOnboarding(false);
+  //   await refreshUser();
+  // };
 
-  const handleOnboardingSkip = () => {
-    setShowOnboarding(false);
-  };
+  // const handleOnboardingSkip = () => {
+  //   setShowOnboarding(false);
+  // };
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -170,11 +172,12 @@ function AuthenticatedApp() {
         <BottomNav />
         <ChatSystem />
         
-        <OnboardingTour 
+        {/* ONBOARDING TOUR DEACTIVATED - Users go directly to home dashboard */}
+        {/* <OnboardingTour 
           isVisible={showOnboarding}
           onComplete={handleOnboardingComplete}
           onSkip={handleOnboardingSkip}
-        />
+        /> */}
       </div>
     </QueryClientProvider>
   );
