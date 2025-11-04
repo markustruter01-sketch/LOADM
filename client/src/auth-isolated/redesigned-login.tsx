@@ -62,33 +62,12 @@ export function RedesignedLogin() {
             {/* Header Section with Logos */}
             <div className="px-8 pt-10 pb-6 border-b border-[#333333] bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a]">
               <div className="flex flex-col items-center space-y-5">
-                {/* DDG Circular Logo with glow */}
-                <div className="relative">
-                  {/* Multi-layer gradient glow - works perfectly on all devices including iPad */}
-                  <div 
-                    className="absolute -inset-12 rounded-full opacity-90"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, rgba(249, 115, 22, 0.1) 40%, transparent 70%)'
-                    }}
-                  ></div>
-                  <div 
-                    className="absolute -inset-8 rounded-full opacity-80"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(251, 146, 60, 0.25) 0%, rgba(249, 115, 22, 0.08) 50%, transparent 80%)'
-                    }}
-                  ></div>
-                  <div 
-                    className="absolute -inset-4 rounded-full opacity-70"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(234, 88, 12, 0.2) 0%, rgba(249, 115, 22, 0.05) 60%, transparent 90%)'
-                    }}
-                  ></div>
-                  <img 
-                    src={logoImage} 
-                    alt="DDG Logo" 
-                    className="h-24 w-auto relative z-10 drop-shadow-2xl" 
-                  />
-                </div>
+                {/* DDG Circular Logo */}
+                <img 
+                  src={logoImage} 
+                  alt="DDG Logo" 
+                  className="h-24 w-auto drop-shadow-2xl" 
+                />
                 
                 {/* Digital Dynamics Group Text Logo */}
                 <img 

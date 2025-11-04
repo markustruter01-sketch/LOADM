@@ -4,13 +4,10 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 4, 2025)
-- **Login Screen Glow Fix for iPad** (Nov 4 - Latest):
-  - Fixed pixelated orange glow effect on iPad (Safari and Chrome browsers)
-  - Replaced CSS blur-3xl filter with layered radial gradients for cross-device compatibility
-  - Three-layer gradient system creates smooth orange glow without mobile rendering artifacts
-  - Improved performance by eliminating expensive blur calculations
-  - Glow effect now renders perfectly on all devices: desktop, tablet, and mobile
-  - **Technical Details**: Updated redesigned-login.tsx lines 70-88 to use inline radial-gradient styles instead of blur-3xl transform
+- **Login Screen Logo Update** (Nov 4 - Latest):
+  - Removed all glow effects from DDG logo on login screen
+  - Clean, minimalist logo presentation with drop-shadow only
+  - Simplified design for consistent appearance across all devices
 - **Navigation Bar Size Reduction** (Nov 4):
   - Reduced all navigation button sizes by 15% for more compact design
   - Home button now 82px × 82px (down from 97px × 97px)
