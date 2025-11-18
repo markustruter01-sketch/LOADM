@@ -30,6 +30,7 @@ export const licenses = pgTable("licenses", {
   notes: text("notes").default(""),
   totalMissionsFlown: integer("total_missions_flown").default(0),
   totalCargoWeight: integer("total_cargo_weight").default(0),
+  profilePhotoUrl: text("profile_photo_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
