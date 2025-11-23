@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, User } from "lucide-react";
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { formatDistanceToNow } from "date-fns";
 import type { ChatMessage } from "../../../shared/schema";
@@ -184,38 +184,54 @@ export function ChatSystem() {
               ) : (
                 <div className="space-y-4">
                   {messages.map((message) => (
-                    <div key={message.id} className="flex flex-col space-y-2">
-                      {/* Message header */}
-                      <div className="flex items-center gap-2">
-                        <Badge variant={message.messageType === "question" ? "secondary" : "default"} className="text-xs">
-                          {message.messageType === "question" ? "Q" : "A"}
-                        </Badge>
-                        <span className="text-sm font-semibold">{message.userName}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {message.userRole}
-                        </Badge>
+                    <div key={message.id} className="flex gap-3">
+                      {/* Profile Photo */}
+                      <div className="flex-shrink-0">
+                        {message.profilePhotoUrl ? (
+                          <img 
+                            src={message.profilePhotoUrl} 
+                            alt={message.userName}
+                            style={{ width: '40px', height: '40px' }}
+                            className="rounded-full object-cover border-2 border-gray-300"
+                          />
+                        ) : (
+                          <div 
+                            style={{ width: '40px', height: '40px' }}
+                            className="rounded-full bg-gradient-to-b from-gray-300 to-gray-400 border-2 border-gray-300 flex items-center justify-center"
+                          >
+                            <User className="w-5 h-5 text-gray-600" />
+                          </div>
+                        )}
                       </div>
                       
-                      {/* Chat bubble */}
-                      <div className={`max-w-[280px] p-3 rounded-2xl ${
-                        message.messageType === "question" 
-                          ? "bg-gray-100 text-gray-800 rounded-tl-sm" 
-                          : "bg-gray-200 text-gray-900 rounded-tl-sm"
-                      }`}>
-                        <div className="text-sm leading-relaxed">
-                          {message.content}
+                      {/* Message content */}
+                      <div className="flex flex-col space-y-1 flex-1">
+                        {/* Message header with badge */}
+                        <div className="flex items-center gap-2">
+                          <Badge variant={message.messageType === "question" ? "secondary" : "default"} className="text-xs">
+                            {message.messageType === "question" ? "Q" : "A"}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(message.createdAt).toLocaleString('en-AU', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </span>
                         </div>
-                      </div>
-                      
-                      {/* Timestamp */}
-                      <div className="text-xs text-muted-foreground ml-1">
-                        {new Date(message.createdAt).toLocaleString('en-AU', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true
-                        })}
+                        
+                        {/* Chat bubble */}
+                        <div className={`max-w-[280px] p-3 rounded-2xl ${
+                          message.messageType === "question" 
+                            ? "bg-gray-100 text-gray-800 rounded-tl-sm" 
+                            : "bg-gray-200 text-gray-900 rounded-tl-sm"
+                        }`}>
+                          <div className="text-sm leading-relaxed">
+                            {message.content}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
