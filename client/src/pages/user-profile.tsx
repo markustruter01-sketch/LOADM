@@ -469,10 +469,14 @@ export default function UserProfile() {
                     <img 
                       src={(profileData as any).user.profilePhotoUrl} 
                       alt="Profile" 
-                      className="w-[164px] h-[164px] rounded-full object-cover border-4 border-[#444444]"
+                      style={{ width: '164px', height: '164px' }}
+                      className="rounded-full object-cover border-4 border-[#444444]"
                     />
                   ) : (
-                    <div className="w-[164px] h-[164px] rounded-full bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-4 border-[#444444] flex items-center justify-center">
+                    <div 
+                      style={{ width: '164px', height: '164px' }}
+                      className="rounded-full bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-4 border-[#444444] flex items-center justify-center"
+                    >
                       <User className="w-20 h-20 text-gray-500" />
                     </div>
                   )}
