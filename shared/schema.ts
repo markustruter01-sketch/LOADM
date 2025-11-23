@@ -373,6 +373,7 @@ export const chatMessages = pgTable("chat_messages", {
   content: text("content").notNull(),
   userName: text("user_name").notNull(),
   userRole: text("user_role").notNull(),
+  profilePhotoUrl: text("profile_photo_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -382,6 +383,7 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   content: true,
   userName: true,
   userRole: true,
+  profilePhotoUrl: true,
 });
 
 export type ChatMessage = typeof chatMessages.$inferSelect;

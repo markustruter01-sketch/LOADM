@@ -845,12 +845,14 @@ wss.on('connection', (ws, req) => {
             }
           }
           
-          // Get user details from licenses table for proper name display
+          // Get user details from licenses table for proper name display and profile photo
           const { licenses } = await import('../shared/schema');
           const licenseRecord = await db.select().from(licenses).where(eq(licenses.email, userInfo.userName)).limit(1);
+          let profilePhotoUrl = null;
           if (licenseRecord.length > 0) {
             displayName = `${licenseRecord[0].firstName} ${licenseRecord[0].lastName}`.trim();
-            console.log('Found license record, display name:', displayName);
+            profilePhotoUrl = licenseRecord[0].profilePhotoUrl;
+            console.log('Found license record, display name:', displayName, 'profile photo:', profilePhotoUrl);
           }
           
           const messageData = {
@@ -859,6 +861,7 @@ wss.on('connection', (ws, req) => {
             content: message.content,
             userName: displayName,
             userRole: userInfo.userRole,
+            profilePhotoUrl: profilePhotoUrl,
           };
           
           console.log('Inserting message with data:', messageData);
