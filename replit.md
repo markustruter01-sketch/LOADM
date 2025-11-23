@@ -3,8 +3,20 @@
 ## Overview
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
+## Recent Changes (November 23, 2025)
+- **Profile Photo Upload Feature** (Nov 23 - Latest):
+  - Added 164px circular profile photo display in user profile sidebar above email
+  - Implemented photo upload functionality with camera and file support
+  - Database: Added `profile_photo_url` column to licenses table
+  - Backend: Created `/api/user/profile-photo` endpoint with multer file upload
+  - File validation: Accepts JPEG/PNG images up to 5MB
+  - Storage: Photos saved to `/uploads/profile-photos/` with user ID and timestamp naming
+  - UI features: Orange camera button overlay, default User icon avatar, automatic image cleanup
+  - Supports both device camera capture and file selection via `capture="environment"`
+  - Profile photo displays with 4px border (#444444), gradient background when empty
+
 ## Recent Changes (November 4, 2025)
-- **Login Screen Logo Update** (Nov 4 - Latest):
+- **Login Screen Logo Update** (Nov 4):
   - Removed all glow effects from DDG logo on login screen
   - Clean, minimalist logo presentation with drop-shadow only
   - Simplified design for consistent appearance across all devices
