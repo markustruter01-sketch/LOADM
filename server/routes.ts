@@ -88,6 +88,44 @@ const uploadVideo = multer({
   }
 });
 
+// Multer configuration for profile photo uploads
+const profilePhotoStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadPath = path.join(process.cwd(), 'uploads', 'profile-photos');
+    try {
+      await fs.mkdir(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    } catch (error) {
+      cb(error as Error, '');
+    }
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+// File filter for profile photo uploads
+const profilePhotoFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Accept only image files
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'));
+  }
+};
+
+// Configure multer for profile photo uploads (max 5MB per file)
+const uploadProfilePhoto = multer({
+  storage: profilePhotoStorage,
+  fileFilter: profilePhotoFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 1 // Only 1 file per upload
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Phone Directory API endpoints
   app.get("/api/phone-directory", async (req, res) => {
@@ -2725,6 +2763,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting flight record:", error);
       res.status(500).json({ message: "Failed to delete flight record" });
+    }
+  });
+
+  // Profile photo upload endpoint
+  app.post("/api/user/profile-photo", requireAuth, uploadProfilePhoto.single('photo'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No photo file provided" });
+      }
+
+      // Get user's license
+      const [userRecord] = await db.select()
+        .from(users)
+        .where(eq(users.id, req.user.id));
+
+      if (!userRecord || !userRecord.licenseId) {
+        return res.status(404).json({ message: "User license not found" });
+      }
+
+      // Generate URL for the uploaded photo
+      const photoUrl = `/uploads/profile-photos/${req.file.filename}`;
+
+      // Delete old profile photo if it exists
+      const [license] = await db.select()
+        .from(licenses)
+        .where(eq(licenses.id, userRecord.licenseId));
+
+      if (license && license.profilePhotoUrl) {
+        const oldPhotoPath = path.join(process.cwd(), license.profilePhotoUrl);
+        try {
+          await fs.unlink(oldPhotoPath);
+        } catch (error) {
+          console.log("Old photo file not found or already deleted");
+        }
+      }
+
+      // Update license with new profile photo URL
+      const [updatedLicense] = await db.update(licenses)
+        .set({
+          profilePhotoUrl: photoUrl,
+          updatedAt: new Date(),
+        })
+        .where(eq(licenses.id, userRecord.licenseId))
+        .returning();
+
+      res.json({ profilePhotoUrl: photoUrl });
+    } catch (error) {
+      console.error("Error uploading profile photo:", error);
+      res.status(500).json({ message: "Failed to upload profile photo" });
     }
   });
 

@@ -46,6 +46,9 @@ app.use('/js', express.static(path.join(process.cwd(), 'public/js'), {
   }
 }));
 
+// Serve uploaded files (profile photos, etc.)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Mount isolated auth routes FIRST (before Vite middleware)
 app.use('/api/isolated-auth', isolatedAuthRoutes);
 app.use('/auth-isolated', isolatedAuthRoutes);
@@ -286,7 +289,8 @@ app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
         l.category,
         l.first_name,
         l.last_name,
-        l.license_type
+        l.license_type,
+        l.profile_photo_url
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
       WHERE u.id = ${req.user.id}
@@ -306,7 +310,8 @@ app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
         squadron: user.squadron,
         category: user.category,
         firstName: user.first_name,
-        lastName: user.last_name
+        lastName: user.last_name,
+        profilePhotoUrl: user.profile_photo_url
       },
       stats: {
         totalSubmissions: 0,

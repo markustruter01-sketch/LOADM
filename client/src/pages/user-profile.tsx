@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload } from "lucide-react";
 
 export default function UserProfile() {
   const { user } = useIsolatedAuth();
@@ -88,6 +88,52 @@ export default function UserProfile() {
     queryKey: ['/api/user/squadron'],
     enabled: !!user
   });
+
+  // Profile photo upload mutation
+  const uploadProfilePhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('photo', file);
+      
+      const response = await fetch('/api/user/profile-photo', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload photo');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+      toast({ title: "Success", description: "Profile photo updated successfully" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to upload profile photo", variant: "destructive" });
+    }
+  });
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Error", description: "Please select an image file", variant: "destructive" });
+        return;
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Error", description: "Image size must be less than 5MB", variant: "destructive" });
+        return;
+      }
+      
+      uploadProfilePhotoMutation.mutate(file);
+    }
+  };
 
   // Add qualification mutation
   const addQualificationMutation = useMutation({
@@ -414,6 +460,43 @@ export default function UserProfile() {
                     </Button>
                   </div>
                 )}
+              </div>
+
+              {/* Profile Photo Section */}
+              <div className="flex flex-col items-center space-y-4 pb-6 border-b border-[#444444]">
+                <div className="relative">
+                  {(profileData as any)?.user?.profilePhotoUrl ? (
+                    <img 
+                      src={(profileData as any).user.profilePhotoUrl} 
+                      alt="Profile" 
+                      className="w-[164px] h-[164px] rounded-full object-cover border-4 border-[#444444]"
+                    />
+                  ) : (
+                    <div className="w-[164px] h-[164px] rounded-full bg-gradient-to-b from-[#3a3a3a] to-[#2a2a2a] border-4 border-[#444444] flex items-center justify-center">
+                      <User className="w-20 h-20 text-gray-500" />
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    id="profile-photo-upload"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="profile-photo-upload"
+                    className="absolute bottom-2 right-2 p-3 bg-orange-500 hover:bg-orange-600 text-white rounded-full cursor-pointer transition-colors shadow-lg"
+                    data-testid="button-upload-photo"
+                  >
+                    {uploadProfilePhotoMutation.isPending ? (
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Camera className="w-5 h-5" />
+                    )}
+                  </label>
+                </div>
+                <p className="text-gray-400 text-xs text-center">Click camera icon to upload or take photo</p>
               </div>
 
               <div className="space-y-4">
