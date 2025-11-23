@@ -4,7 +4,15 @@
 LOADMworkflow is a comprehensive military logistics training and management platform for loadmaster operations. It provides advanced aircraft load planning, training modules, quiz systems, and analytics for military aviation logistics, aiming to enhance training efficiency and operational readiness.
 
 ## Recent Changes (November 23, 2025)
-- **Profile Photo Upload Feature** (Nov 23 - Latest):
+- **Chat System Profile Photos** (Nov 23 - Latest):
+  - Updated chat system to display user profile photos instead of credentials
+  - Database: Added `profile_photo_url` column to chat_messages table
+  - Backend: WebSocket handler now includes profile photo URL when broadcasting messages
+  - Frontend: Messages display 40px circular profile photos on the left
+  - Default avatar: User icon in gradient background for users without photos
+  - Layout: Horizontal flex layout with profile photo, Q/A badge, and timestamp
+  - Removed username and role badge display - now only shows profile photo
+- **Profile Photo Upload Feature** (Nov 23):
   - Added 164px circular profile photo display in user profile sidebar above email
   - Implemented photo upload functionality with camera and file support
   - Database: Added `profile_photo_url` column to licenses table
