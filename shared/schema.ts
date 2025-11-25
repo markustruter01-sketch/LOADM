@@ -31,6 +31,9 @@ export const licenses = pgTable("licenses", {
   totalMissionsFlown: integer("total_missions_flown").default(0),
   totalCargoWeight: integer("total_cargo_weight").default(0),
   profilePhotoUrl: text("profile_photo_url"),
+  isFlightReady: boolean("is_flight_ready").default(true).notNull(),
+  notReadyReason: text("not_ready_reason"),
+  readinessUpdatedAt: timestamp("readiness_updated_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -699,6 +702,7 @@ export const flightRecords = pgTable("flight_records", {
   captain: text("captain").notNull(),
   nightHours: real("night_hours").default(0),
   dayHours: real("day_hours").default(0),
+  aircraftType: text("aircraft_type").default("KC30A"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -713,3 +717,53 @@ export const insertFlightRecordSchema = createInsertSchema(flightRecords).omit({
 
 export type FlightRecord = typeof flightRecords.$inferSelect;
 export type InsertFlightRecord = z.infer<typeof insertFlightRecordSchema>;
+
+// Safety Records schema - for tracking incidents, observations, and compliance
+export const safetyRecords = pgTable("safety_records", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  recordType: text("record_type").notNull(), // "incident", "observation", "commendation", "training_failure"
+  description: text("description").notNull(),
+  severity: text("severity"), // "minor", "moderate", "major" - nullable for non-incidents
+  date: timestamp("date").notNull(),
+  reportedBy: integer("reported_by").references(() => users.id, { onDelete: "set null" }),
+  status: text("status").default("open").notNull(), // "open", "reviewed", "closed"
+  resolutionNotes: text("resolution_notes"),
+  squadron: text("squadron"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSafetyRecordSchema = createInsertSchema(safetyRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  date: z.coerce.date(),
+});
+
+export type SafetyRecord = typeof safetyRecords.$inferSelect;
+export type InsertSafetyRecord = z.infer<typeof insertSafetyRecordSchema>;
+
+// Standard qualification types for consistent tracking
+export const STANDARD_QUALIFICATION_TYPES = [
+  "Basic Loadmaster Certification",
+  "KC30A Type Rating",
+  "Night Operations Currency",
+  "Dangerous Goods (DG) Handling",
+  "Air-to-Air Refueling (AAR)",
+  "Aeromedical Evacuation",
+  "Combat Readiness",
+  "Annual Proficiency Check",
+  "Other"
+] as const;
+
+// Not ready reasons for readiness tracking
+export const NOT_READY_REASONS = [
+  "Medical",
+  "Leave/Personal",
+  "Currency Lapsed",
+  "Training Required",
+  "Administrative",
+  "Other"
+] as const;
