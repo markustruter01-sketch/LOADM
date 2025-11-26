@@ -46,6 +46,7 @@ export default function UserProfile() {
     captain: "",
     nightHours: 0,
     dayHours: 0,
+    aircraftType: "KC30A",
   });
 
   // State for editing flight records
@@ -58,6 +59,10 @@ export default function UserProfile() {
     squadron: "",
     category: "",
   });
+
+  // State for readiness toggle
+  const [showReadinessConfirm, setShowReadinessConfirm] = useState(false);
+  const [selectedNotReadyReason, setSelectedNotReadyReason] = useState<string>("");
 
   // Fetch user profile data
   const { data: profileData, isLoading } = useQuery({
@@ -87,6 +92,32 @@ export default function UserProfile() {
   const { data: userSquadron } = useQuery({
     queryKey: ['/api/user/squadron'],
     enabled: !!user
+  });
+
+  // Fetch readiness status
+  const { data: readinessData } = useQuery<{ isFlightReady: boolean; notReadyReason: string | null; readinessUpdatedAt: string | null }>({
+    queryKey: ['/api/user/readiness'],
+    enabled: !!user
+  });
+
+  // Update readiness status mutation
+  const updateReadinessMutation = useMutation({
+    mutationFn: async (data: { isFlightReady: boolean; notReadyReason?: string }) => {
+      return await apiRequest({
+        url: '/api/user/readiness',
+        method: 'PUT',
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/readiness'] });
+      setShowReadinessConfirm(false);
+      setSelectedNotReadyReason("");
+      toast({ title: "Success", description: "Flight readiness status updated" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update readiness status", variant: "destructive" });
+    }
   });
 
   // Profile photo upload mutation
@@ -204,7 +235,7 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/flight-records'] });
       setShowAddFlight(false);
-      setNewFlight({ date: "", callsign: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, cargoWeightUnit: "kg", captain: "", nightHours: 0, dayHours: 0 });
+      setNewFlight({ date: "", callsign: "", departure: "", arrival: "", passengersCarried: 0, cargoWeight: 0, cargoWeightUnit: "kg", captain: "", nightHours: 0, dayHours: 0, aircraftType: "KC30A" });
       toast({ title: "Success", description: "Flight record added successfully" });
     },
     onError: () => {
@@ -335,6 +366,7 @@ export default function UserProfile() {
       captain: newFlight.captain,
       nightHours: newFlight.nightHours,
       dayHours: newFlight.dayHours,
+      aircraftType: newFlight.aircraftType,
     });
   };
 
@@ -501,6 +533,56 @@ export default function UserProfile() {
                   </label>
                 </div>
                 <p className="text-gray-400 text-xs text-center">Click camera icon to upload or take photo</p>
+              </div>
+
+              {/* Flight Readiness Toggle */}
+              <div className="pb-6 border-b border-[#444444]">
+                <Label className="text-gray-400 text-sm block mb-3">Flight Readiness Status</Label>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {readinessData?.isFlightReady ? (
+                      <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/50 rounded-lg">
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <span className="text-green-400 font-semibold">FLIGHT READY</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-lg">
+                        <AlertCircle className="w-5 h-5 text-red-500" />
+                        <span className="text-red-400 font-semibold">NOT READY</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (readinessData?.isFlightReady) {
+                        setShowReadinessConfirm(true);
+                      } else {
+                        updateReadinessMutation.mutate({ isFlightReady: true });
+                      }
+                    }}
+                    className={readinessData?.isFlightReady 
+                      ? "bg-red-500/10 border-red-500/50 text-red-400 hover:bg-red-500/20" 
+                      : "bg-green-500/10 border-green-500/50 text-green-400 hover:bg-green-500/20"
+                    }
+                    disabled={updateReadinessMutation.isPending}
+                    data-testid="button-toggle-readiness"
+                  >
+                    {updateReadinessMutation.isPending ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : readinessData?.isFlightReady ? (
+                      "Mark Not Ready"
+                    ) : (
+                      "Mark Ready"
+                    )}
+                  </Button>
+                </div>
+                {!readinessData?.isFlightReady && readinessData?.notReadyReason && (
+                  <p className="mt-2 text-sm text-gray-400">
+                    Reason: <span className="text-red-400">{readinessData.notReadyReason}</span>
+                  </p>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -1057,15 +1139,34 @@ export default function UserProfile() {
                 />
               </div>
             </div>
-            <div>
-              <Label className="text-gray-300">Captain</Label>
-              <Input
-                value={newFlight.captain}
-                onChange={(e) => setNewFlight({ ...newFlight, captain: e.target.value })}
-                placeholder="Captain's name"
-                className="bg-[#1a1a1a] border-[#444444] text-white"
-                data-testid="input-flight-captain"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-gray-300">Captain</Label>
+                <Input
+                  value={newFlight.captain}
+                  onChange={(e) => setNewFlight({ ...newFlight, captain: e.target.value })}
+                  placeholder="Captain's name"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-flight-captain"
+                />
+              </div>
+              <div>
+                <Label className="text-gray-300">Aircraft Type</Label>
+                <Select 
+                  value={newFlight.aircraftType} 
+                  onValueChange={(value) => setNewFlight({ ...newFlight, aircraftType: value })}
+                >
+                  <SelectTrigger className="bg-[#1a1a1a] border-[#444444] text-white" data-testid="select-aircraft-type">
+                    <SelectValue placeholder="Select aircraft" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#2a2a2a] border-[#333333]">
+                    <SelectItem value="KC30A" className="text-white hover:bg-[#333333]">KC30A</SelectItem>
+                    <SelectItem value="C-17A" className="text-white hover:bg-[#333333]">C-17A</SelectItem>
+                    <SelectItem value="C-130J" className="text-white hover:bg-[#333333]">C-130J</SelectItem>
+                    <SelectItem value="C-27J" className="text-white hover:bg-[#333333]">C-27J</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -1304,15 +1405,34 @@ export default function UserProfile() {
                   />
                 </div>
               </div>
-              <div>
-                <Label className="text-gray-300">Captain</Label>
-                <Input
-                  value={editingFlight.captain}
-                  onChange={(e) => setEditingFlight({ ...editingFlight, captain: e.target.value })}
-                  placeholder="Captain's name"
-                  className="bg-[#1a1a1a] border-[#444444] text-white"
-                  data-testid="input-edit-flight-captain"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-300">Captain</Label>
+                  <Input
+                    value={editingFlight.captain}
+                    onChange={(e) => setEditingFlight({ ...editingFlight, captain: e.target.value })}
+                    placeholder="Captain's name"
+                    className="bg-[#1a1a1a] border-[#444444] text-white"
+                    data-testid="input-edit-flight-captain"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Aircraft Type</Label>
+                  <Select 
+                    value={editingFlight.aircraftType || "KC30A"} 
+                    onValueChange={(value) => setEditingFlight({ ...editingFlight, aircraftType: value })}
+                  >
+                    <SelectTrigger className="bg-[#1a1a1a] border-[#444444] text-white" data-testid="select-edit-aircraft-type">
+                      <SelectValue placeholder="Select aircraft" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#333333]">
+                      <SelectItem value="KC30A" className="text-white hover:bg-[#333333]">KC30A</SelectItem>
+                      <SelectItem value="C-17A" className="text-white hover:bg-[#333333]">C-17A</SelectItem>
+                      <SelectItem value="C-130J" className="text-white hover:bg-[#333333]">C-130J</SelectItem>
+                      <SelectItem value="C-27J" className="text-white hover:bg-[#333333]">C-27J</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1410,6 +1530,7 @@ export default function UserProfile() {
                         cargoWeight: cargoWeightInKg,
                         nightHours: editingFlight.nightHours,
                         dayHours: editingFlight.dayHours,
+                        aircraftType: editingFlight.aircraftType || "KC30A",
                       };
                       updateFlightMutation.mutate({ id: editingFlightId, data: dataToUpdate });
                     }
@@ -1423,6 +1544,64 @@ export default function UserProfile() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Readiness Confirmation Dialog */}
+      <Dialog open={showReadinessConfirm} onOpenChange={setShowReadinessConfirm}>
+        <DialogContent className="bg-[#2a2a2a] border-[#333333] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-white flex items-center space-x-2">
+              <AlertCircle className="w-6 h-6 text-red-500" />
+              <span>Mark as Not Flight Ready?</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-gray-300">
+              You are about to change your status to "Not Flight Ready". Please select a reason:
+            </p>
+            <Select value={selectedNotReadyReason} onValueChange={setSelectedNotReadyReason}>
+              <SelectTrigger className="bg-[#1a1a1a] border-[#444444] text-white" data-testid="select-not-ready-reason">
+                <SelectValue placeholder="Select a reason" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#2a2a2a] border-[#333333]">
+                <SelectItem value="Medical" className="text-white hover:bg-[#333333]">Medical</SelectItem>
+                <SelectItem value="Leave/Personal" className="text-white hover:bg-[#333333]">Leave/Personal</SelectItem>
+                <SelectItem value="Currency Lapsed" className="text-white hover:bg-[#333333]">Currency Lapsed</SelectItem>
+                <SelectItem value="Training Required" className="text-white hover:bg-[#333333]">Training Required</SelectItem>
+                <SelectItem value="Administrative" className="text-white hover:bg-[#333333]">Administrative</SelectItem>
+                <SelectItem value="Other" className="text-white hover:bg-[#333333]">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowReadinessConfirm(false);
+                  setSelectedNotReadyReason("");
+                }}
+                className="bg-transparent border-[#444444] text-gray-300 hover:bg-[#333333]"
+                data-testid="button-cancel-readiness"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedNotReadyReason) {
+                    updateReadinessMutation.mutate({
+                      isFlightReady: false,
+                      notReadyReason: selectedNotReadyReason
+                    });
+                  }
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white"
+                disabled={!selectedNotReadyReason || updateReadinessMutation.isPending}
+                data-testid="button-confirm-not-ready"
+              >
+                {updateReadinessMutation.isPending ? 'Updating...' : 'Confirm Not Ready'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

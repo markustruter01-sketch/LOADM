@@ -3347,13 +3347,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .where(eq(licenses.isActive, true));
 
       // Group by squadron
+      type UserRecord = typeof allUsers[number];
       const squadronMap = new Map<string, {
         squadron: string;
         total: number;
         ready: number;
         notReady: number;
         reasonBreakdown: Map<string, number>;
-        members: typeof allUsers;
+        members: UserRecord[];
       }>();
 
       allUsers.forEach(user => {
@@ -3364,7 +3365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ready: 0,
           notReady: 0,
           reasonBreakdown: new Map(),
-          members: [],
+          members: [] as UserRecord[],
         };
         
         existing.total++;
