@@ -24,6 +24,7 @@ export default function UserProfile() {
   const [showAddQualification, setShowAddQualification] = useState(false);
   const [newQualification, setNewQualification] = useState({
     name: "",
+    customName: "",
     startDate: "",
     expiryDate: "",
     noEndDate: false,
@@ -178,7 +179,7 @@ export default function UserProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/qualifications'] });
       setShowAddQualification(false);
-      setNewQualification({ name: "", startDate: "", expiryDate: "", noEndDate: false });
+      setNewQualification({ name: "", customName: "", startDate: "", expiryDate: "", noEndDate: false });
       toast({ title: "Success", description: "Qualification added successfully" });
     },
     onError: () => {
@@ -330,15 +331,22 @@ export default function UserProfile() {
 
   const handleAddQualification = () => {
     if (!newQualification.name || !newQualification.startDate) {
-      toast({ title: "Error", description: "Name and start date are required", variant: "destructive" });
+      toast({ title: "Error", description: "Qualification type and start date are required", variant: "destructive" });
+      return;
+    }
+    if (newQualification.name === "Other" && !newQualification.customName) {
+      toast({ title: "Error", description: "Please enter a custom qualification name", variant: "destructive" });
       return;
     }
     if (!newQualification.noEndDate && !newQualification.expiryDate) {
       toast({ title: "Error", description: "Please provide an expiry date or select 'No End Date'", variant: "destructive" });
       return;
     }
+    const qualificationName = newQualification.name === "Other" 
+      ? newQualification.customName 
+      : newQualification.name;
     addQualificationMutation.mutate({
-      name: newQualification.name,
+      name: qualificationName,
       startDate: new Date(newQualification.startDate),
       expiryDate: newQualification.noEndDate ? null : new Date(newQualification.expiryDate),
     });
@@ -1021,15 +1029,41 @@ export default function UserProfile() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-gray-300">Qualification Name</Label>
-              <Input
-                value={newQualification.name}
-                onChange={(e) => setNewQualification({ ...newQualification, name: e.target.value })}
-                placeholder="e.g., C-17 Loadmaster Qual"
-                className="bg-[#1a1a1a] border-[#444444] text-white"
-                data-testid="input-qualification-name"
-              />
+              <Label className="text-gray-300">Qualification Type</Label>
+              <Select 
+                value={newQualification.name} 
+                onValueChange={(value) => setNewQualification({ ...newQualification, name: value })}
+              >
+                <SelectTrigger className="bg-[#1a1a1a] border-[#444444] text-white" data-testid="select-qualification-type">
+                  <SelectValue placeholder="Select qualification type" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#2a2a2a] border-[#333333]">
+                  <SelectItem value="Basic Loadmaster" className="text-white hover:bg-[#333333]">Basic Loadmaster</SelectItem>
+                  <SelectItem value="KC30A Type Rating" className="text-white hover:bg-[#333333]">KC30A Type Rating</SelectItem>
+                  <SelectItem value="C-17A Type Rating" className="text-white hover:bg-[#333333]">C-17A Type Rating</SelectItem>
+                  <SelectItem value="C-130J Type Rating" className="text-white hover:bg-[#333333]">C-130J Type Rating</SelectItem>
+                  <SelectItem value="Night Ops Currency" className="text-white hover:bg-[#333333]">Night Ops Currency</SelectItem>
+                  <SelectItem value="DG Handling" className="text-white hover:bg-[#333333]">DG Handling (Dangerous Goods)</SelectItem>
+                  <SelectItem value="AAR Qualified" className="text-white hover:bg-[#333333]">AAR Qualified (Air-to-Air Refueling)</SelectItem>
+                  <SelectItem value="Aeromedical" className="text-white hover:bg-[#333333]">Aeromedical Evacuation</SelectItem>
+                  <SelectItem value="Combat Readiness" className="text-white hover:bg-[#333333]">Combat Readiness</SelectItem>
+                  <SelectItem value="Annual Proficiency Check" className="text-white hover:bg-[#333333]">Annual Proficiency Check</SelectItem>
+                  <SelectItem value="Other" className="text-white hover:bg-[#333333]">Other (Custom)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            {newQualification.name === "Other" && (
+              <div>
+                <Label className="text-gray-300">Custom Qualification Name</Label>
+                <Input
+                  value={newQualification.customName || ""}
+                  onChange={(e) => setNewQualification({ ...newQualification, customName: e.target.value })}
+                  placeholder="Enter custom qualification name"
+                  className="bg-[#1a1a1a] border-[#444444] text-white"
+                  data-testid="input-custom-qualification-name"
+                />
+              </div>
+            )}
             <div>
               <Label className="text-gray-300">Start Date</Label>
               <Input

@@ -403,6 +403,29 @@ export default function InstructorsPortal() {
               </Link>
             </CardFooter>
           </Card>
+
+          {/* Workforce Analytics Card */}
+          <Card className="bg-card hover:bg-card/90 transition-colors border-orange-500/30" data-testid="card-workforce-analytics">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Workforce Analytics</CardTitle>
+                <BarChart2 className="h-5 w-5 text-orange-500" />
+              </div>
+              <CardDescription>Flight Hours, Currency & Readiness</CardDescription>
+            </CardHeader>
+            <CardContent className="h-28 flex items-center justify-center">
+              <div className="text-center text-muted-foreground text-sm">
+                Track flight hours by aircraft, monitor currency expirations, squadron readiness status, and safety compliance across the workforce.
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Link href="/instructors-portal/workforce-analytics">
+                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white" data-testid="button-workforce-analytics">
+                  View Workforce Analytics
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
         </div>
 
         {/* Additional Resources */}

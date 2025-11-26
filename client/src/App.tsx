@@ -59,6 +59,7 @@ import QuizPage from "@/pages/quizzes/[id]";
 import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
 import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
 import WorkforcePage from "@/pages/instructors-portal/workforce";
+import WorkforceAnalytics from "@/pages/instructors-portal/workforce-analytics";
 import PermissionsDashboard from "@/pages/permissions-dashboard";
 import QuizQuestionsManagement from "@/pages/instructors-portal/quiz-questions";
 import TrainingModulesManagement from "@/pages/instructors-portal/training-modules";
@@ -149,6 +150,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
             <InstructorRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
             <InstructorRoute path="/instructors-portal/workforce" component={WorkforcePage} />
+            <InstructorRoute path="/instructors-portal/workforce-analytics" component={WorkforceAnalytics} />
             <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
             <SuperAdminRoute path="/licensing" component={LicensingManagement} />
             <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
