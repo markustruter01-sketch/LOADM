@@ -253,8 +253,8 @@ export default function WorkforceAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {readinessData?.squadronBreakdown && readinessData.squadronBreakdown.length > 0 ? (
-                  readinessData.squadronBreakdown.map((sq: any) => {
+                {readinessData?.bySquadron && readinessData.bySquadron.length > 0 ? (
+                  readinessData.bySquadron.map((sq: any) => {
                     const percent = sq.total > 0 ? Math.round((sq.ready / sq.total) * 100) : 0;
                     const meetsTarget = percent >= 85;
                     return (

@@ -2766,7 +2766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile photo upload endpoint
+  // Profile photo upload endpoint - stores as base64 in database for persistence
   app.post("/api/user/profile-photo", requireAuth, uploadProfilePhoto.single('photo'), async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user) {
@@ -2786,33 +2786,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User license not found" });
       }
 
-      // Generate URL for the uploaded photo
-      const photoUrl = `/uploads/profile-photos/${req.file.filename}`;
+      // Read the file and convert to base64 data URL for persistent storage
+      const fileBuffer = await fs.readFile(req.file.path);
+      const base64Data = fileBuffer.toString('base64');
+      const mimeType = req.file.mimetype || 'image/png';
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
 
-      // Delete old profile photo if it exists
-      const [license] = await db.select()
-        .from(licenses)
-        .where(eq(licenses.id, userRecord.licenseId));
-
-      if (license && license.profilePhotoUrl) {
-        const oldPhotoPath = path.join(process.cwd(), license.profilePhotoUrl);
-        try {
-          await fs.unlink(oldPhotoPath);
-        } catch (error) {
-          console.log("Old photo file not found or already deleted");
-        }
+      // Delete the temporary file
+      try {
+        await fs.unlink(req.file.path);
+      } catch (error) {
+        console.log("Could not delete temporary file");
       }
 
-      // Update license with new profile photo URL
+      // Update license with base64 profile photo data (persists in database)
       const [updatedLicense] = await db.update(licenses)
         .set({
-          profilePhotoUrl: photoUrl,
+          profilePhotoUrl: dataUrl,
           updatedAt: new Date(),
         })
         .where(eq(licenses.id, userRecord.licenseId))
         .returning();
 
-      res.json({ profilePhotoUrl: photoUrl });
+      res.json({ profilePhotoUrl: dataUrl });
     } catch (error) {
       console.error("Error uploading profile photo:", error);
       res.status(500).json({ message: "Failed to upload profile photo" });
