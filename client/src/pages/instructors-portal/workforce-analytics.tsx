@@ -222,8 +222,8 @@ export default function WorkforceAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {readinessData?.notReadyReasons && readinessData.notReadyReasons.length > 0 ? (
-                    readinessData.notReadyReasons.map((reason: any, idx: number) => (
+                  {readinessData?.reasonBreakdown && readinessData.reasonBreakdown.length > 0 ? (
+                    readinessData.reasonBreakdown.map((reason: any, idx: number) => (
                       <div key={idx} className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
                         <div className="flex items-center gap-2">
                           <div className="text-orange-500">{getReasonIcon(reason.reason)}</div>
@@ -338,12 +338,12 @@ export default function WorkforceAnalytics() {
                   <Users className="h-8 w-8 text-green-500" />
                   <span className="text-xs text-gray-500">Active</span>
                 </div>
-                <div className="text-3xl font-bold text-white">{flightData?.uniqueUsers || 0}</div>
+                <div className="text-3xl font-bold text-white">{flightData?.summary?.uniqueUsers || 0}</div>
                 <div className="text-sm text-gray-400">Personnel with Flights</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Participation rate</span>
-                    <span className="text-white">{totalPersonnel > 0 ? Math.round((flightData?.uniqueUsers || 0) / totalPersonnel * 100) : 0}%</span>
+                    <span className="text-white">{totalPersonnel > 0 ? Math.round((flightData?.summary?.uniqueUsers || 0) / totalPersonnel * 100) : 0}%</span>
                   </div>
                 </div>
               </CardContent>
@@ -356,7 +356,7 @@ export default function WorkforceAnalytics() {
                   <span className="text-xs text-gray-500">Average</span>
                 </div>
                 <div className="text-3xl font-bold text-white">
-                  {flightData?.uniqueUsers > 0 ? (totalHours / flightData.uniqueUsers).toFixed(1) : 0}
+                  {flightData?.summary?.avgHoursPerPerson || 0}
                 </div>
                 <div className="text-sm text-gray-400">Avg Hours per Person</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">

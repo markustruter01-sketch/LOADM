@@ -3176,6 +3176,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      const uniqueUsersCount = userAggregates.size;
+      const totalHours = Array.from(userAggregates.values()).reduce((sum, u) => sum + u.totalNightHours + u.totalDayHours, 0);
+      
       res.json({
         summary: {
           totalNightHours: Array.from(userAggregates.values()).reduce((sum, u) => sum + u.totalNightHours, 0),
@@ -3183,6 +3186,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalFlights: filteredRecords.length,
           totalPassengers: filteredRecords.reduce((sum, r) => sum + (r.passengersCarried || 0), 0),
           totalCargoWeight: filteredRecords.reduce((sum, r) => sum + (r.cargoWeight || 0), 0),
+          uniqueUsers: uniqueUsersCount,
+          avgHoursPerPerson: uniqueUsersCount > 0 ? Math.round((totalHours / uniqueUsersCount) * 10) / 10 : 0,
         },
         byUser: Array.from(userAggregates.values()).map(u => ({
           ...u,
