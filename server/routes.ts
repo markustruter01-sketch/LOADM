@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, NOT_READY_REASONS } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -2850,6 +2850,692 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user stats:", error);
       res.status(500).json({ message: "Failed to update user stats" });
+    }
+  });
+
+  // ==================== READINESS ENDPOINTS ====================
+  
+  // Update user's flight readiness status
+  app.put("/api/user/readiness", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { isFlightReady, notReadyReason } = req.body;
+
+      // Get user's license
+      const [userRecord] = await db.select()
+        .from(users)
+        .where(eq(users.id, req.user.id));
+
+      if (!userRecord || !userRecord.licenseId) {
+        return res.status(404).json({ message: "User license not found" });
+      }
+
+      // Update license with readiness status
+      const [updatedLicense] = await db.update(licenses)
+        .set({
+          isFlightReady: isFlightReady,
+          notReadyReason: isFlightReady ? null : notReadyReason,
+          readinessUpdatedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(licenses.id, userRecord.licenseId))
+        .returning();
+
+      res.json({ 
+        isFlightReady: updatedLicense.isFlightReady,
+        notReadyReason: updatedLicense.notReadyReason,
+        readinessUpdatedAt: updatedLicense.readinessUpdatedAt
+      });
+    } catch (error) {
+      console.error("Error updating readiness status:", error);
+      res.status(500).json({ message: "Failed to update readiness status" });
+    }
+  });
+
+  // Get user's readiness status
+  app.get("/api/user/readiness", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const [userRecord] = await db.select()
+        .from(users)
+        .where(eq(users.id, req.user.id));
+
+      if (!userRecord || !userRecord.licenseId) {
+        return res.status(404).json({ message: "User license not found" });
+      }
+
+      const [license] = await db.select()
+        .from(licenses)
+        .where(eq(licenses.id, userRecord.licenseId));
+
+      res.json({
+        isFlightReady: license.isFlightReady,
+        notReadyReason: license.notReadyReason,
+        readinessUpdatedAt: license.readinessUpdatedAt
+      });
+    } catch (error) {
+      console.error("Error fetching readiness status:", error);
+      res.status(500).json({ message: "Failed to fetch readiness status" });
+    }
+  });
+
+  // ==================== SAFETY RECORDS ENDPOINTS ====================
+  
+  // Get all safety records (instructor only)
+  app.get("/api/safety-records", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron, recordType, status } = req.query;
+      
+      let query = db.select({
+        id: safetyRecords.id,
+        userId: safetyRecords.userId,
+        recordType: safetyRecords.recordType,
+        description: safetyRecords.description,
+        severity: safetyRecords.severity,
+        date: safetyRecords.date,
+        reportedBy: safetyRecords.reportedBy,
+        status: safetyRecords.status,
+        resolutionNotes: safetyRecords.resolutionNotes,
+        squadron: safetyRecords.squadron,
+        createdAt: safetyRecords.createdAt,
+        userName: sql<string>`CONCAT(${licenses.firstName}, ' ', ${licenses.lastName})`,
+        userEmail: licenses.email
+      })
+      .from(safetyRecords)
+      .leftJoin(users, eq(safetyRecords.userId, users.id))
+      .leftJoin(licenses, eq(users.licenseId, licenses.id));
+
+      const records = await query.orderBy(desc(safetyRecords.date));
+
+      // Filter in memory if query params provided
+      let filteredRecords = records;
+      if (squadron && squadron !== 'all') {
+        filteredRecords = filteredRecords.filter(r => r.squadron === squadron);
+      }
+      if (recordType && recordType !== 'all') {
+        filteredRecords = filteredRecords.filter(r => r.recordType === recordType);
+      }
+      if (status && status !== 'all') {
+        filteredRecords = filteredRecords.filter(r => r.status === status);
+      }
+
+      res.json(filteredRecords);
+    } catch (error) {
+      console.error("Error fetching safety records:", error);
+      res.status(500).json({ message: "Failed to fetch safety records" });
+    }
+  });
+
+  // Create safety record (instructor only)
+  app.post("/api/safety-records", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const validatedData = insertSafetyRecordSchema.parse({
+        ...req.body,
+        reportedBy: req.user.id
+      });
+
+      const [newRecord] = await db.insert(safetyRecords)
+        .values(validatedData)
+        .returning();
+
+      res.status(201).json(newRecord);
+    } catch (error) {
+      console.error("Error creating safety record:", error);
+      res.status(500).json({ message: "Failed to create safety record" });
+    }
+  });
+
+  // Update safety record (instructor only)
+  app.put("/api/safety-records/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const recordId = parseInt(req.params.id);
+      const { status, resolutionNotes, severity, description } = req.body;
+
+      const [updatedRecord] = await db.update(safetyRecords)
+        .set({
+          status: status,
+          resolutionNotes: resolutionNotes,
+          severity: severity,
+          description: description,
+          updatedAt: new Date(),
+        })
+        .where(eq(safetyRecords.id, recordId))
+        .returning();
+
+      res.json(updatedRecord);
+    } catch (error) {
+      console.error("Error updating safety record:", error);
+      res.status(500).json({ message: "Failed to update safety record" });
+    }
+  });
+
+  // Delete safety record (instructor only)
+  app.delete("/api/safety-records/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const recordId = parseInt(req.params.id);
+
+      await db.delete(safetyRecords)
+        .where(eq(safetyRecords.id, recordId));
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting safety record:", error);
+      res.status(500).json({ message: "Failed to delete safety record" });
+    }
+  });
+
+  // ==================== ANALYTICS ENDPOINTS ====================
+
+  // Flight Hours Analytics
+  app.get("/api/analytics/flight-hours", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron, startDate, endDate } = req.query;
+      
+      // Get all flight records with user details
+      const records = await db.select({
+        id: flightRecords.id,
+        userId: flightRecords.userId,
+        date: flightRecords.date,
+        nightHours: flightRecords.nightHours,
+        dayHours: flightRecords.dayHours,
+        aircraftType: flightRecords.aircraftType,
+        passengersCarried: flightRecords.passengersCarried,
+        cargoWeight: flightRecords.cargoWeight,
+        squadron: licenses.squadron,
+        userName: sql<string>`CONCAT(${licenses.firstName}, ' ', ${licenses.lastName})`,
+      })
+      .from(flightRecords)
+      .leftJoin(users, eq(flightRecords.userId, users.id))
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .orderBy(desc(flightRecords.date));
+
+      // Filter by squadron if provided
+      let filteredRecords = records;
+      if (squadron && squadron !== 'all') {
+        filteredRecords = filteredRecords.filter(r => r.squadron === squadron);
+      }
+      
+      // Filter by date range if provided
+      if (startDate) {
+        const start = new Date(startDate as string);
+        filteredRecords = filteredRecords.filter(r => r.date && new Date(r.date) >= start);
+      }
+      if (endDate) {
+        const end = new Date(endDate as string);
+        filteredRecords = filteredRecords.filter(r => r.date && new Date(r.date) <= end);
+      }
+
+      // Aggregate by user
+      const userAggregates = new Map<number, {
+        userId: number;
+        userName: string;
+        squadron: string;
+        totalNightHours: number;
+        totalDayHours: number;
+        totalFlights: number;
+        aircraftTypes: Set<string>;
+      }>();
+
+      filteredRecords.forEach(record => {
+        if (!record.userId) return;
+        
+        const existing = userAggregates.get(record.userId) || {
+          userId: record.userId,
+          userName: record.userName || 'Unknown',
+          squadron: record.squadron || 'Unknown',
+          totalNightHours: 0,
+          totalDayHours: 0,
+          totalFlights: 0,
+          aircraftTypes: new Set<string>(),
+        };
+        
+        existing.totalNightHours += record.nightHours || 0;
+        existing.totalDayHours += record.dayHours || 0;
+        existing.totalFlights += 1;
+        if (record.aircraftType) existing.aircraftTypes.add(record.aircraftType);
+        
+        userAggregates.set(record.userId, existing);
+      });
+
+      // Aggregate by squadron
+      const squadronAggregates = new Map<string, {
+        squadron: string;
+        totalNightHours: number;
+        totalDayHours: number;
+        totalFlights: number;
+        memberCount: number;
+      }>();
+
+      userAggregates.forEach(user => {
+        const existing = squadronAggregates.get(user.squadron) || {
+          squadron: user.squadron,
+          totalNightHours: 0,
+          totalDayHours: 0,
+          totalFlights: 0,
+          memberCount: 0,
+        };
+        
+        existing.totalNightHours += user.totalNightHours;
+        existing.totalDayHours += user.totalDayHours;
+        existing.totalFlights += user.totalFlights;
+        existing.memberCount += 1;
+        
+        squadronAggregates.set(user.squadron, existing);
+      });
+
+      // Aggregate by aircraft type
+      const aircraftAggregates = new Map<string, {
+        aircraftType: string;
+        totalHours: number;
+        totalFlights: number;
+      }>();
+
+      filteredRecords.forEach(record => {
+        const type = record.aircraftType || 'Unknown';
+        const existing = aircraftAggregates.get(type) || {
+          aircraftType: type,
+          totalHours: 0,
+          totalFlights: 0,
+        };
+        
+        existing.totalHours += (record.nightHours || 0) + (record.dayHours || 0);
+        existing.totalFlights += 1;
+        
+        aircraftAggregates.set(type, existing);
+      });
+
+      // Monthly trend (last 12 months)
+      const monthlyTrend: { month: string; nightHours: number; dayHours: number; flights: number }[] = [];
+      const now = new Date();
+      for (let i = 11; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+        const monthKey = month.toLocaleString('default', { month: 'short', year: '2-digit' });
+        
+        const monthRecords = filteredRecords.filter(r => {
+          if (!r.date) return false;
+          const date = new Date(r.date);
+          return date >= month && date <= monthEnd;
+        });
+        
+        monthlyTrend.push({
+          month: monthKey,
+          nightHours: monthRecords.reduce((sum, r) => sum + (r.nightHours || 0), 0),
+          dayHours: monthRecords.reduce((sum, r) => sum + (r.dayHours || 0), 0),
+          flights: monthRecords.length,
+        });
+      }
+
+      res.json({
+        summary: {
+          totalNightHours: Array.from(userAggregates.values()).reduce((sum, u) => sum + u.totalNightHours, 0),
+          totalDayHours: Array.from(userAggregates.values()).reduce((sum, u) => sum + u.totalDayHours, 0),
+          totalFlights: filteredRecords.length,
+          totalPassengers: filteredRecords.reduce((sum, r) => sum + (r.passengersCarried || 0), 0),
+          totalCargoWeight: filteredRecords.reduce((sum, r) => sum + (r.cargoWeight || 0), 0),
+        },
+        byUser: Array.from(userAggregates.values()).map(u => ({
+          ...u,
+          aircraftTypes: Array.from(u.aircraftTypes),
+          totalHours: u.totalNightHours + u.totalDayHours,
+        })),
+        bySquadron: Array.from(squadronAggregates.values()).map(s => ({
+          ...s,
+          totalHours: s.totalNightHours + s.totalDayHours,
+          avgHoursPerMember: s.memberCount > 0 ? (s.totalNightHours + s.totalDayHours) / s.memberCount : 0,
+        })),
+        byAircraftType: Array.from(aircraftAggregates.values()),
+        monthlyTrend,
+      });
+    } catch (error) {
+      console.error("Error fetching flight hours analytics:", error);
+      res.status(500).json({ message: "Failed to fetch flight hours analytics" });
+    }
+  });
+
+  // Currency Status Analytics
+  app.get("/api/analytics/currency-status", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron } = req.query;
+
+      // Get all qualifications with user details
+      const qualifications = await db.select({
+        id: userQualifications.id,
+        userId: userQualifications.userId,
+        name: userQualifications.name,
+        startDate: userQualifications.startDate,
+        expiryDate: userQualifications.expiryDate,
+        squadron: licenses.squadron,
+        userName: sql<string>`CONCAT(${licenses.firstName}, ' ', ${licenses.lastName})`,
+        userEmail: licenses.email,
+      })
+      .from(userQualifications)
+      .leftJoin(users, eq(userQualifications.userId, users.id))
+      .leftJoin(licenses, eq(users.licenseId, licenses.id));
+
+      // Filter by squadron if provided
+      let filteredQuals = qualifications;
+      if (squadron && squadron !== 'all') {
+        filteredQuals = filteredQuals.filter(q => q.squadron === squadron);
+      }
+
+      const now = new Date();
+      const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const sixtyDays = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+      const ninetyDays = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+      // Categorize qualifications
+      const expired: typeof filteredQuals = [];
+      const expiring30: typeof filteredQuals = [];
+      const expiring60: typeof filteredQuals = [];
+      const expiring90: typeof filteredQuals = [];
+      const current: typeof filteredQuals = [];
+      const noExpiry: typeof filteredQuals = [];
+
+      filteredQuals.forEach(qual => {
+        if (!qual.expiryDate) {
+          noExpiry.push(qual);
+        } else {
+          const expiry = new Date(qual.expiryDate);
+          if (expiry < now) {
+            expired.push(qual);
+          } else if (expiry <= thirtyDays) {
+            expiring30.push(qual);
+          } else if (expiry <= sixtyDays) {
+            expiring60.push(qual);
+          } else if (expiry <= ninetyDays) {
+            expiring90.push(qual);
+          } else {
+            current.push(qual);
+          }
+        }
+      });
+
+      // Group by qualification type
+      const byType = new Map<string, { name: string; expired: number; expiring: number; current: number }>();
+      filteredQuals.forEach(qual => {
+        const existing = byType.get(qual.name) || { name: qual.name, expired: 0, expiring: 0, current: 0 };
+        if (!qual.expiryDate || new Date(qual.expiryDate) > ninetyDays) {
+          existing.current++;
+        } else if (new Date(qual.expiryDate) < now) {
+          existing.expired++;
+        } else {
+          existing.expiring++;
+        }
+        byType.set(qual.name, existing);
+      });
+
+      // Group by squadron
+      const bySquadron = new Map<string, { squadron: string; expired: number; expiring: number; current: number; total: number }>();
+      filteredQuals.forEach(qual => {
+        const sqn = qual.squadron || 'Unknown';
+        const existing = bySquadron.get(sqn) || { squadron: sqn, expired: 0, expiring: 0, current: 0, total: 0 };
+        existing.total++;
+        if (!qual.expiryDate || new Date(qual.expiryDate) > ninetyDays) {
+          existing.current++;
+        } else if (new Date(qual.expiryDate) < now) {
+          existing.expired++;
+        } else {
+          existing.expiring++;
+        }
+        bySquadron.set(sqn, existing);
+      });
+
+      res.json({
+        summary: {
+          total: filteredQuals.length,
+          expired: expired.length,
+          expiring30Days: expiring30.length,
+          expiring60Days: expiring60.length,
+          expiring90Days: expiring90.length,
+          current: current.length,
+          noExpiry: noExpiry.length,
+        },
+        expired: expired.map(q => ({
+          ...q,
+          daysOverdue: Math.floor((now.getTime() - new Date(q.expiryDate!).getTime()) / (24 * 60 * 60 * 1000)),
+        })),
+        expiring30: expiring30.map(q => ({
+          ...q,
+          daysRemaining: Math.floor((new Date(q.expiryDate!).getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
+        })),
+        expiring60: expiring60.map(q => ({
+          ...q,
+          daysRemaining: Math.floor((new Date(q.expiryDate!).getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
+        })),
+        expiring90: expiring90.map(q => ({
+          ...q,
+          daysRemaining: Math.floor((new Date(q.expiryDate!).getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
+        })),
+        byType: Array.from(byType.values()),
+        bySquadron: Array.from(bySquadron.values()),
+      });
+    } catch (error) {
+      console.error("Error fetching currency status analytics:", error);
+      res.status(500).json({ message: "Failed to fetch currency status analytics" });
+    }
+  });
+
+  // Squadron Readiness Analytics
+  app.get("/api/analytics/squadron-readiness", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get all users with their readiness status
+      const allUsers = await db.select({
+        userId: users.id,
+        email: licenses.email,
+        firstName: licenses.firstName,
+        lastName: licenses.lastName,
+        squadron: licenses.squadron,
+        category: licenses.category,
+        licenseType: licenses.licenseType,
+        isFlightReady: licenses.isFlightReady,
+        notReadyReason: licenses.notReadyReason,
+        readinessUpdatedAt: licenses.readinessUpdatedAt,
+      })
+      .from(users)
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(eq(licenses.isActive, true));
+
+      // Group by squadron
+      const squadronMap = new Map<string, {
+        squadron: string;
+        total: number;
+        ready: number;
+        notReady: number;
+        reasonBreakdown: Map<string, number>;
+        members: typeof allUsers;
+      }>();
+
+      allUsers.forEach(user => {
+        const sqn = user.squadron || 'Unknown';
+        const existing = squadronMap.get(sqn) || {
+          squadron: sqn,
+          total: 0,
+          ready: 0,
+          notReady: 0,
+          reasonBreakdown: new Map(),
+          members: [],
+        };
+        
+        existing.total++;
+        if (user.isFlightReady) {
+          existing.ready++;
+        } else {
+          existing.notReady++;
+          const reason = user.notReadyReason || 'Unspecified';
+          existing.reasonBreakdown.set(reason, (existing.reasonBreakdown.get(reason) || 0) + 1);
+        }
+        existing.members.push(user);
+        
+        squadronMap.set(sqn, existing);
+      });
+
+      // Overall stats
+      const totalUsers = allUsers.length;
+      const totalReady = allUsers.filter(u => u.isFlightReady).length;
+      const totalNotReady = totalUsers - totalReady;
+
+      // Reason breakdown across all squadrons
+      const overallReasons = new Map<string, number>();
+      allUsers.filter(u => !u.isFlightReady).forEach(u => {
+        const reason = u.notReadyReason || 'Unspecified';
+        overallReasons.set(reason, (overallReasons.get(reason) || 0) + 1);
+      });
+
+      res.json({
+        summary: {
+          total: totalUsers,
+          ready: totalReady,
+          notReady: totalNotReady,
+          readyPercent: totalUsers > 0 ? Math.round((totalReady / totalUsers) * 100) : 0,
+        },
+        reasonBreakdown: Array.from(overallReasons.entries()).map(([reason, count]) => ({
+          reason,
+          count,
+          percent: totalNotReady > 0 ? Math.round((count / totalNotReady) * 100) : 0,
+        })),
+        bySquadron: Array.from(squadronMap.values()).map(sqn => ({
+          squadron: sqn.squadron,
+          total: sqn.total,
+          ready: sqn.ready,
+          notReady: sqn.notReady,
+          readyPercent: sqn.total > 0 ? Math.round((sqn.ready / sqn.total) * 100) : 0,
+          reasonBreakdown: Array.from(sqn.reasonBreakdown.entries()).map(([reason, count]) => ({
+            reason,
+            count,
+          })),
+        })),
+        notReadyMembers: allUsers
+          .filter(u => !u.isFlightReady)
+          .map(u => ({
+            userId: u.userId,
+            name: `${u.firstName} ${u.lastName}`,
+            email: u.email,
+            squadron: u.squadron,
+            reason: u.notReadyReason,
+            updatedAt: u.readinessUpdatedAt,
+          })),
+      });
+    } catch (error) {
+      console.error("Error fetching squadron readiness analytics:", error);
+      res.status(500).json({ message: "Failed to fetch squadron readiness analytics" });
+    }
+  });
+
+  // Safety Summary Analytics
+  app.get("/api/analytics/safety-summary", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron, startDate, endDate } = req.query;
+
+      // Get all safety records
+      const records = await db.select({
+        id: safetyRecords.id,
+        recordType: safetyRecords.recordType,
+        severity: safetyRecords.severity,
+        date: safetyRecords.date,
+        status: safetyRecords.status,
+        squadron: safetyRecords.squadron,
+      })
+      .from(safetyRecords)
+      .orderBy(desc(safetyRecords.date));
+
+      // Filter
+      let filteredRecords = records;
+      if (squadron && squadron !== 'all') {
+        filteredRecords = filteredRecords.filter(r => r.squadron === squadron);
+      }
+      if (startDate) {
+        const start = new Date(startDate as string);
+        filteredRecords = filteredRecords.filter(r => new Date(r.date) >= start);
+      }
+      if (endDate) {
+        const end = new Date(endDate as string);
+        filteredRecords = filteredRecords.filter(r => new Date(r.date) <= end);
+      }
+
+      // Count by type
+      const byType = {
+        incident: filteredRecords.filter(r => r.recordType === 'incident').length,
+        observation: filteredRecords.filter(r => r.recordType === 'observation').length,
+        commendation: filteredRecords.filter(r => r.recordType === 'commendation').length,
+        training_failure: filteredRecords.filter(r => r.recordType === 'training_failure').length,
+      };
+
+      // Count by severity (for incidents only)
+      const incidents = filteredRecords.filter(r => r.recordType === 'incident');
+      const bySeverity = {
+        minor: incidents.filter(r => r.severity === 'minor').length,
+        moderate: incidents.filter(r => r.severity === 'moderate').length,
+        major: incidents.filter(r => r.severity === 'major').length,
+      };
+
+      // Count by status
+      const byStatus = {
+        open: filteredRecords.filter(r => r.status === 'open').length,
+        reviewed: filteredRecords.filter(r => r.status === 'reviewed').length,
+        closed: filteredRecords.filter(r => r.status === 'closed').length,
+      };
+
+      // By squadron
+      const squadronMap = new Map<string, { squadron: string; incidents: number; observations: number; commendations: number; trainingFailures: number }>();
+      filteredRecords.forEach(r => {
+        const sqn = r.squadron || 'Unknown';
+        const existing = squadronMap.get(sqn) || { squadron: sqn, incidents: 0, observations: 0, commendations: 0, trainingFailures: 0 };
+        if (r.recordType === 'incident') existing.incidents++;
+        else if (r.recordType === 'observation') existing.observations++;
+        else if (r.recordType === 'commendation') existing.commendations++;
+        else if (r.recordType === 'training_failure') existing.trainingFailures++;
+        squadronMap.set(sqn, existing);
+      });
+
+      // Monthly trend (last 6 months)
+      const monthlyTrend: { month: string; incidents: number; observations: number; commendations: number }[] = [];
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+        const monthKey = month.toLocaleString('default', { month: 'short', year: '2-digit' });
+        
+        const monthRecords = filteredRecords.filter(r => {
+          const date = new Date(r.date);
+          return date >= month && date <= monthEnd;
+        });
+        
+        monthlyTrend.push({
+          month: monthKey,
+          incidents: monthRecords.filter(r => r.recordType === 'incident').length,
+          observations: monthRecords.filter(r => r.recordType === 'observation').length,
+          commendations: monthRecords.filter(r => r.recordType === 'commendation').length,
+        });
+      }
+
+      res.json({
+        summary: {
+          total: filteredRecords.length,
+          ...byType,
+        },
+        byType,
+        bySeverity,
+        byStatus,
+        bySquadron: Array.from(squadronMap.values()),
+        monthlyTrend,
+        openItems: filteredRecords
+          .filter(r => r.status === 'open')
+          .slice(0, 10), // Latest 10 open items
+      });
+    } catch (error) {
+      console.error("Error fetching safety summary analytics:", error);
+      res.status(500).json({ message: "Failed to fetch safety summary analytics" });
     }
   });
 
