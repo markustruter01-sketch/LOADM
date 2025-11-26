@@ -564,6 +564,17 @@ export default function WorkforceAnalytics() {
                   }`}>
                     {safetyData?.safetyScoreLabel || 'N/A'}
                   </Badge>
+                  <div className="mt-4 pt-3 border-t border-[#333] text-left">
+                    <p className="text-xs text-gray-500 mb-2 font-medium">Score Calculation:</p>
+                    <ul className="text-xs text-gray-500 space-y-1">
+                      <li>• Base: 100 points</li>
+                      <li>• Minor incidents: -2 pts each</li>
+                      <li>• Moderate incidents: -5 pts each</li>
+                      <li>• Major incidents: -10 pts each</li>
+                      <li>• Commendations: +0.5 pts (max 20)</li>
+                      <li>• Observations: +0.3 pts (max 10)</li>
+                    </ul>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -622,52 +633,43 @@ export default function WorkforceAnalytics() {
           <Card className="bg-[#2a2a2a] border-[#333333]">
             <CardHeader>
               <CardTitle className="text-white text-lg">Safety Record Analysis</CardTitle>
-              <CardDescription className="text-gray-400">{safetyData?.total || 0} total safety records</CardDescription>
+              <CardDescription className="text-gray-400">{safetyData?.summary?.total || 0} total safety records</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {safetyData?.byType ? (
                   <>
                     {/* Incidents */}
-                    <div className="p-4 bg-[#1a1a1a] rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-red-400 font-medium capitalize">Incidents</span>
-                        <Badge variant="outline" className="border-red-500/50 text-red-400">
-                          {safetyData.total > 0 ? ((incidents / safetyData.total) * 100).toFixed(0) : 0}%
-                        </Badge>
+                    <div className="p-4 bg-[#1a1a1a] rounded-lg text-center">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <AlertTriangle className="h-5 w-5 text-red-500" />
+                        <span className="text-red-400 font-medium">Incidents</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <Progress value={safetyData.total > 0 ? (incidents / safetyData.total) * 100 : 0} className="flex-1 h-2 bg-[#333]" />
-                        <span className="text-white font-medium">{incidents}</span>
+                      <div className="text-3xl font-bold text-red-500">{incidents}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {safetyData.summary?.total > 0 ? ((incidents / safetyData.summary.total) * 100).toFixed(0) : 0}% of records
                       </div>
                     </div>
                     {/* Observations */}
-                    <div className="p-4 bg-[#1a1a1a] rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-blue-400 font-medium capitalize">Observations</span>
-                        <Badge variant="outline" className="border-blue-500/50 text-blue-400">
-                          {safetyData.total > 0 ? ((observations / safetyData.total) * 100).toFixed(0) : 0}%
-                        </Badge>
+                    <div className="p-4 bg-[#1a1a1a] rounded-lg text-center">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Shield className="h-5 w-5 text-blue-500" />
+                        <span className="text-blue-400 font-medium">Observations</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                        <Progress value={safetyData.total > 0 ? (observations / safetyData.total) * 100 : 0} className="flex-1 h-2 bg-[#333]" />
-                        <span className="text-white font-medium">{observations}</span>
+                      <div className="text-3xl font-bold text-blue-500">{observations}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {safetyData.summary?.total > 0 ? ((observations / safetyData.summary.total) * 100).toFixed(0) : 0}% of records
                       </div>
                     </div>
                     {/* Commendations */}
-                    <div className="p-4 bg-[#1a1a1a] rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-green-400 font-medium capitalize">Commendations</span>
-                        <Badge variant="outline" className="border-green-500/50 text-green-400">
-                          {safetyData.total > 0 ? ((commendations / safetyData.total) * 100).toFixed(0) : 0}%
-                        </Badge>
+                    <div className="p-4 bg-[#1a1a1a] rounded-lg text-center">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Award className="h-5 w-5 text-green-500" />
+                        <span className="text-green-400 font-medium">Commendations</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <Progress value={safetyData.total > 0 ? (commendations / safetyData.total) * 100 : 0} className="flex-1 h-2 bg-[#333]" />
-                        <span className="text-white font-medium">{commendations}</span>
+                      <div className="text-3xl font-bold text-green-500">{commendations}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {safetyData.summary?.total > 0 ? ((commendations / safetyData.summary.total) * 100).toFixed(0) : 0}% of records
                       </div>
                     </div>
                   </>
