@@ -56,14 +56,53 @@ export default function WorkforceAnalytics() {
   }, [selectedSquadron]);
 
   const getReasonIcon = (reason: string) => {
-    switch (reason?.toLowerCase()) {
-      case 'medical': return <Stethoscope className="h-4 w-4" />;
-      case 'leave/personal': return <Calendar className="h-4 w-4" />;
-      case 'training required': return <GraduationCap className="h-4 w-4" />;
-      case 'currency lapsed': return <FileWarning className="h-4 w-4" />;
-      case 'administrative': return <AlertCircle className="h-4 w-4" />;
-      default: return <UserX className="h-4 w-4" />;
-    }
+    const normalizedReason = reason?.toLowerCase().trim();
+    if (normalizedReason?.includes('medical')) return <Stethoscope className="h-4 w-4" />;
+    if (normalizedReason?.includes('leave') || normalizedReason?.includes('personal')) return <Calendar className="h-4 w-4" />;
+    if (normalizedReason?.includes('training')) return <GraduationCap className="h-4 w-4" />;
+    if (normalizedReason?.includes('currency') || normalizedReason?.includes('lapsed')) return <FileWarning className="h-4 w-4" />;
+    if (normalizedReason?.includes('administrative') || normalizedReason?.includes('admin')) return <AlertCircle className="h-4 w-4" />;
+    return <UserX className="h-4 w-4" />;
+  };
+
+  const consolidateReasons = (reasons: Array<{reason: string, count: number}>) => {
+    if (!reasons || reasons.length === 0) return [];
+    
+    const consolidated: Record<string, {displayName: string, count: number}> = {};
+    
+    reasons.forEach(({ reason, count }) => {
+      const normalized = reason?.toLowerCase().trim();
+      let category = '';
+      let displayName = '';
+      
+      if (normalized?.includes('currency') || normalized?.includes('lapsed')) {
+        category = 'currency';
+        displayName = 'Currency Lapsed';
+      } else if (normalized?.includes('medical')) {
+        category = 'medical';
+        displayName = 'Medical';
+      } else if (normalized?.includes('training')) {
+        category = 'training';
+        displayName = 'Training Required';
+      } else if (normalized?.includes('administrative') || normalized?.includes('admin')) {
+        category = 'administrative';
+        displayName = 'Administrative';
+      } else if (normalized?.includes('leave') || normalized?.includes('personal')) {
+        category = 'leave';
+        displayName = 'Leave/Personal';
+      } else {
+        category = normalized || 'other';
+        displayName = reason || 'Other';
+      }
+      
+      if (consolidated[category]) {
+        consolidated[category].count += count;
+      } else {
+        consolidated[category] = { displayName, count };
+      }
+    });
+    
+    return Object.values(consolidated).sort((a, b) => b.count - a.count);
   };
 
   if (isLoading) {
@@ -140,19 +179,6 @@ export default function WorkforceAnalytics() {
           </div>
         </div>
 
-        {/* Critical Alert Banner (if any issues) */}
-        {(expiredQuals > 0 || notReadyCount > 3) && (
-          <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <div>
-              <p className="text-red-300 font-medium">Attention Required</p>
-              <p className="text-red-400 text-sm">
-                {expiredQuals > 0 && `${expiredQuals} expired qualifications need renewal. `}
-                {notReadyCount > 3 && `${notReadyCount} personnel currently not flight ready.`}
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* ==================== SECTION 1: WORKFORCE READINESS ==================== */}
         <section className="space-y-4">
@@ -222,24 +248,27 @@ export default function WorkforceAnalytics() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {readinessData?.reasonBreakdown && readinessData.reasonBreakdown.length > 0 ? (
-                    readinessData.reasonBreakdown.map((reason: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <div className="text-orange-500">{getReasonIcon(reason.reason)}</div>
-                          <span className="text-gray-300 text-sm">{reason.reason}</span>
+                  {(() => {
+                    const consolidated = consolidateReasons(readinessData?.reasonBreakdown || []);
+                    return consolidated.length > 0 ? (
+                      consolidated.map((reason, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="text-orange-500">{getReasonIcon(reason.displayName)}</div>
+                            <span className="text-gray-300 text-sm">{reason.displayName}</span>
+                          </div>
+                          <Badge variant="outline" className="border-red-500/50 text-red-400">
+                            {reason.count}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="border-red-500/50 text-red-400">
-                          {reason.count}
-                        </Badge>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-gray-500">
+                        <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                        <p>All personnel flight ready!</p>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-6 text-gray-500">
-                      <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                      <p>All personnel flight ready!</p>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>
