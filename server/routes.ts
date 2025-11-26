@@ -3520,6 +3520,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Calculate safety score (0-100)
+      // Start at 100, subtract for incidents (5 per incident, severity weighted)
+      // Minor incidents lose less points
+      const minorIncidents = incidents.filter(r => r.severity === 'minor').length;
+      const moderateIncidents = incidents.filter(r => r.severity === 'moderate').length;
+      const majorIncidents = incidents.filter(r => r.severity === 'major').length;
+      const incidentDeduction = (minorIncidents * 2) + (moderateIncidents * 5) + (majorIncidents * 10);
+      
+      // Bonus for commendations (up to 20 points)
+      const commendationBonus = Math.min(byType.commendation * 0.5, 20);
+      
+      // Bonus for proactive observations (up to 10 points)
+      const observationBonus = Math.min(byType.observation * 0.3, 10);
+      
+      let safetyScore = Math.max(0, Math.min(100, 100 - incidentDeduction + commendationBonus + observationBonus));
+      safetyScore = Math.round(safetyScore);
+      
+      // Determine label
+      let safetyScoreLabel = 'N/A';
+      if (filteredRecords.length > 0) {
+        if (safetyScore >= 90) safetyScoreLabel = 'Excellent';
+        else if (safetyScore >= 80) safetyScoreLabel = 'Good';
+        else if (safetyScore >= 60) safetyScoreLabel = 'Satisfactory';
+        else if (safetyScore >= 40) safetyScoreLabel = 'Needs Improvement';
+        else safetyScoreLabel = 'Critical';
+      }
+
       res.json({
         summary: {
           total: filteredRecords.length,
@@ -3533,6 +3560,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         openItems: filteredRecords
           .filter(r => r.status === 'open')
           .slice(0, 10), // Latest 10 open items
+        safetyScore,
+        safetyScoreLabel,
       });
     } catch (error) {
       console.error("Error fetching safety summary analytics:", error);

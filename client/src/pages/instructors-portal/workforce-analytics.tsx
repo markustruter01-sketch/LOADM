@@ -28,9 +28,12 @@ export default function WorkforceAnalytics() {
     setIsLoading(true);
     try {
       const squadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "";
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const startDateParam = `startDate=${thirtyDaysAgo.toISOString()}`;
       
       const [flightRes, currencyRes, readinessRes, safetyRes] = await Promise.all([
-        fetch(`/api/analytics/flight-hours?days=30&${squadronParam}`, { credentials: 'include' }),
+        fetch(`/api/analytics/flight-hours?${startDateParam}&${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/currency-status?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/squadron-readiness?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/safety-summary?${squadronParam}`, { credentials: 'include' }),
@@ -74,15 +77,15 @@ export default function WorkforceAnalytics() {
     );
   }
 
-  const totalPersonnel = readinessData?.totalUsers || 0;
-  const readyCount = readinessData?.ready || 0;
-  const notReadyCount = readinessData?.notReady || 0;
-  const readyPercent = readinessData?.readyPercent || 0;
+  const totalPersonnel = readinessData?.summary?.total || 0;
+  const readyCount = readinessData?.summary?.ready || 0;
+  const notReadyCount = readinessData?.summary?.notReady || 0;
+  const readyPercent = readinessData?.summary?.readyPercent || 0;
   
-  const totalHours = flightData?.totalHours || 0;
-  const dayHours = flightData?.dayHours || 0;
-  const nightHours = flightData?.nightHours || 0;
-  const totalFlights = flightData?.totalFlights || 0;
+  const dayHours = flightData?.summary?.totalDayHours || 0;
+  const nightHours = flightData?.summary?.totalNightHours || 0;
+  const totalHours = dayHours + nightHours;
+  const totalFlights = flightData?.summary?.totalFlights || 0;
   
   const currentQuals = currencyData?.summary?.current || 0;
   const expiringSoon = (currencyData?.summary?.expiring30Days || 0) + 
@@ -183,7 +186,7 @@ export default function WorkforceAnalytics() {
                     <UserX className="h-8 w-8 text-red-500 mx-auto mb-2" />
                     <div className="text-3xl font-bold text-red-500">{notReadyCount}</div>
                     <div className="text-sm text-gray-400">Not Ready</div>
-                    <div className="text-xs text-red-400 mt-1">{readinessData?.notReadyPercent || 0}% of workforce</div>
+                    <div className="text-xs text-red-400 mt-1">{100 - readyPercent}% of workforce</div>
                   </div>
                 </div>
                 
@@ -200,7 +203,7 @@ export default function WorkforceAnalytics() {
                     />
                     <div 
                       className="bg-red-500 h-full transition-all duration-500" 
-                      style={{ width: `${readinessData?.notReadyPercent || 0}%` }}
+                      style={{ width: `${100 - readyPercent}%` }}
                     />
                   </div>
                   <div className="flex justify-between text-xs">
