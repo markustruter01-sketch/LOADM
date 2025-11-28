@@ -540,12 +540,12 @@ export default function TrainingModulesManagement() {
     content: string;
     videoUrl: string;
     isActive: boolean;
-    // Enhanced content sections
+    // Enhanced content sections (updated tab names: Quiz and Assessment)
     overviewContent: string;
     readingContent: string;
-    interactiveContent: string;
-    videoContent: string;
     quizContent: string;
+    videoContent: string;
+    assessmentContent: string;
     videoUrls: string[];
     learningObjectives: string[];
     prerequisites: string;
@@ -565,9 +565,9 @@ export default function TrainingModulesManagement() {
     isActive: true,
     overviewContent: "",
     readingContent: "",
-    interactiveContent: "",
-    videoContent: "",
     quizContent: "",
+    videoContent: "",
+    assessmentContent: "",
     videoUrls: [],
     learningObjectives: [],
     prerequisites: "",
@@ -592,8 +592,7 @@ export default function TrainingModulesManagement() {
     : trainingModules.filter((module: any) => module.aircraft === activeTab);
 
   const handleCreateModule = () => {
-    const newModule: TrainingModule = {
-      id: `${formData.aircraft}-${Date.now()}`,
+    const newModule = {
       title: formData.title || "",
       description: formData.description || "",
       aircraft: formData.aircraft || "c17",
@@ -601,28 +600,19 @@ export default function TrainingModulesManagement() {
       duration: formData.duration || "",
       topics: (formData.topicsString || "").split(",").map(t => t.trim()).filter(Boolean),
       objectives: (formData.objectivesString || "").split(",").map(o => o.trim()).filter(Boolean),
-      content: formData.content || "",
-      videoUrl: formData.videoUrl || "",
-      createdBy: "Current User",
-      lastModified: new Date().toISOString().split('T')[0],
       isActive: true
     };
 
-    // Use API mutation instead of local state
+    // Actually call the API mutation to save to database
+    createModuleMutation.mutate(newModule);
     setIsCreateDialogOpen(false);
     resetForm();
-    
-    toast({
-      title: "Module Created",
-      description: `Training module "${newModule.title}" has been created successfully.`,
-    });
   };
 
   const handleEditModule = () => {
     if (!selectedModule) return;
 
-    const updatedModule: TrainingModule = {
-      ...selectedModule,
+    const updatedModule = {
       title: formData.title,
       description: formData.description,
       aircraft: formData.aircraft,
@@ -630,31 +620,20 @@ export default function TrainingModulesManagement() {
       duration: formData.duration,
       topics: formData.topicsString.split(",").map(t => t.trim()).filter(Boolean),
       objectives: formData.objectivesString.split(",").map(o => o.trim()).filter(Boolean),
-      content: formData.content,
-      videoUrl: formData.videoUrl,
-      isActive: formData.isActive,
-      lastModified: new Date().toISOString().split('T')[0]
+      isActive: formData.isActive
     };
 
-    // Use API mutation instead of local state
+    // Actually call the API mutation to save to database
+    editModuleMutation.mutate(updatedModule);
     setIsEditDialogOpen(false);
     setSelectedModule(null);
     resetForm();
-    
-    toast({
-      title: "Module Updated",
-      description: `Training module "${updatedModule.title}" has been updated successfully.`,
-    });
   };
 
-  const handleDeleteModule = (moduleId: string) => {
+  const handleDeleteModule = (moduleId: string | number) => {
     if (confirm("Are you sure you want to delete this training module?")) {
-      setLocalModules(prev => prev.filter(module => module.id !== moduleId));
-      
-      toast({
-        title: "Success",
-        description: "Training module deleted successfully.",
-      });
+      // Call the API mutation to delete from database
+      deleteModuleMutation.mutate(typeof moduleId === 'string' ? parseInt(moduleId) : moduleId);
     }
   };
 
@@ -672,9 +651,9 @@ export default function TrainingModulesManagement() {
       isActive: true,
       overviewContent: "",
       readingContent: "",
-      interactiveContent: "",
-      videoContent: "",
       quizContent: "",
+      videoContent: "",
+      assessmentContent: "",
       videoUrls: [],
       learningObjectives: [],
       prerequisites: "",
@@ -773,9 +752,9 @@ export default function TrainingModulesManagement() {
       isActive: module.isActive,
       overviewContent: module.content || "",
       readingContent: "",
-      interactiveContent: "",
-      videoContent: "",
       quizContent: "",
+      videoContent: "",
+      assessmentContent: "",
       videoUrls: module.videoUrl ? [module.videoUrl] : [],
       learningObjectives: module.objectives,
       prerequisites: "",
@@ -1116,11 +1095,11 @@ export default function TrainingModulesManagement() {
                   <TabsTrigger value="readings" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
                     Readings
                   </TabsTrigger>
-                  <TabsTrigger value="interactive" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-                    Interactive
+                  <TabsTrigger value="quiz" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Quiz
                   </TabsTrigger>
-                  <TabsTrigger value="quizzes" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
-                    Quizzes
+                  <TabsTrigger value="assessment" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                    Assessment
                   </TabsTrigger>
                 </TabsList>
 
@@ -1542,48 +1521,8 @@ export default function TrainingModulesManagement() {
                   </div>
                 </TabsContent>
 
-                {/* Interactive Tab */}
-                <TabsContent value="interactive" className="flex-1 space-y-4 overflow-y-auto">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-interactive-content">Interactive Content</Label>
-                      <Textarea
-                        id="edit-interactive-content"
-                        value={formData.interactiveContent}
-                        onChange={(e) => setFormData(prev => ({ ...prev, interactiveContent: e.target.value }))}
-                        placeholder="Define interactive exercises, simulations, drag-and-drop activities, or hands-on practice scenarios..."
-                        rows={12}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-800/20 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Interactive Types:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Load planning simulations</li>
-                          <li>• Weight & balance calculators</li>
-                          <li>• Drag-and-drop cargo exercises</li>
-                          <li>• 3D aircraft visualization</li>
-                          <li>• Safety procedure walkthroughs</li>
-                        </ul>
-                      </div>
-                      
-                      <div className="bg-gray-800/20 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Implementation Notes:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Ensure mobile compatibility</li>
-                          <li>• Include progress tracking</li>
-                          <li>• Provide immediate feedback</li>
-                          <li>• Allow multiple attempts</li>
-                          <li>• Save progress automatically</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Quizzes Tab */}
-                <TabsContent value="quizzes" className="flex-1 space-y-4 overflow-y-auto">
+                {/* Quiz Tab (formerly Interactive) */}
+                <TabsContent value="quiz" className="flex-1 space-y-4 overflow-y-auto">
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="edit-quiz-content">Quiz Content & Questions</Label>
@@ -1597,25 +1536,69 @@ export default function TrainingModulesManagement() {
                       />
                     </div>
                     
-                    <div className="bg-gray-800/20 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Quiz Format Example:</h4>
-                      <pre className="text-xs text-muted-foreground bg-gray-900/50 p-3 rounded overflow-x-auto">
-{`Question 1: What is the maximum cargo weight for C-17?
-A) 170,900 lbs
-B) 169,000 lbs  
-C) 171,000 lbs
-D) 168,500 lbs
-Correct: A
-Explanation: The C-17 maximum payload is 170,900 lbs...
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-800/20 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Quiz Types:</h4>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Multiple choice questions</li>
+                          <li>• True/False questions</li>
+                          <li>• Fill in the blank</li>
+                          <li>• Matching exercises</li>
+                          <li>• Short answer questions</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-gray-800/20 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Implementation Notes:</h4>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Include answer explanations</li>
+                          <li>• Provide immediate feedback</li>
+                          <li>• Allow multiple attempts</li>
+                          <li>• Track progress automatically</li>
+                          <li>• Randomize question order</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
 
-Question 2: Which pallet position affects CG most?
-A) Position 1
-B) Position 2
-C) Position 3
-D) Position 4
-Correct: A
-Explanation: Forward positions have greater impact...`}
-                      </pre>
+                {/* Assessment Tab (formerly Quiz) */}
+                <TabsContent value="assessment" className="flex-1 space-y-4 overflow-y-auto">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-assessment-content">Assessment Content</Label>
+                      <Textarea
+                        id="edit-assessment-content"
+                        value={formData.assessmentContent}
+                        onChange={(e) => setFormData(prev => ({ ...prev, assessmentContent: e.target.value }))}
+                        placeholder="Define final assessment questions and evaluation criteria..."
+                        rows={15}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-800/20 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Assessment Types:</h4>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Comprehensive final exams</li>
+                          <li>• Practical evaluations</li>
+                          <li>• Load planning exercises</li>
+                          <li>• Scenario-based assessments</li>
+                          <li>• Certification tests</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-gray-800/20 p-4 rounded-lg">
+                        <h4 className="font-medium mb-2">Assessment Guidelines:</h4>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Minimum passing score required</li>
+                          <li>• Timed evaluation periods</li>
+                          <li>• Limited attempts allowed</li>
+                          <li>• Instructor review required</li>
+                          <li>• Certification upon passing</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </TabsContent>

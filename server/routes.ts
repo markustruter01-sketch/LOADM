@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, NOT_READY_REASONS } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, NOT_READY_REASONS } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -2156,52 +2156,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new training module (saves to database)
   app.post("/api/training-modules", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const moduleData = req.body;
+      console.log("📚 Creating new training module:", moduleData.title);
       
-      // Generate a mock ID for now
-      const newModule = {
-        id: Math.floor(Math.random() * 1000) + 100,
-        ...moduleData,
-        createdDate: new Date().toISOString().split('T')[0],
-        lastModified: new Date().toISOString().split('T')[0],
-        createdBy: req.user?.email || "Unknown",
+      // Insert into database
+      const [newModule] = await db.insert(trainingModules).values({
+        title: moduleData.title,
+        description: moduleData.description,
+        aircraft: moduleData.aircraft,
+        difficulty: moduleData.difficulty || "beginner",
+        duration: moduleData.duration,
+        topics: moduleData.topics || [],
+        objectives: moduleData.objectives || [],
+        isActive: moduleData.isActive !== false,
+        createdBy: req.user?.id || null,
+      }).returning();
+      
+      console.log("✅ Training module created with ID:", newModule.id);
+      
+      res.json({
+        ...newModule,
+        createdDate: newModule.createdAt?.toISOString().split('T')[0],
+        lastModified: newModule.updatedAt?.toISOString().split('T')[0],
+        createdByEmail: req.user?.email || "Unknown",
         completionRate: 0
-      };
-      
-      res.json(newModule);
+      });
     } catch (error) {
       console.error("Failed to create training module:", error);
       res.status(500).json({ error: "Failed to create training module" });
     }
   });
 
+  // Update an existing training module
   app.put("/api/training-modules/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
       const moduleData = req.body;
+      console.log("📝 Updating training module:", id, moduleData.title);
       
-      const updatedModule = {
-        id: parseInt(id),
-        ...moduleData,
+      // Update in database
+      const [updatedModule] = await db.update(trainingModules)
+        .set({
+          title: moduleData.title,
+          description: moduleData.description,
+          aircraft: moduleData.aircraft,
+          difficulty: moduleData.difficulty,
+          duration: moduleData.duration,
+          topics: moduleData.topics || [],
+          objectives: moduleData.objectives || [],
+          isActive: moduleData.isActive !== false,
+          updatedAt: new Date(),
+        })
+        .where(eq(trainingModules.id, parseInt(id)))
+        .returning();
+      
+      if (!updatedModule) {
+        return res.status(404).json({ error: "Training module not found" });
+      }
+      
+      console.log("✅ Training module updated:", updatedModule.id);
+      
+      res.json({
+        ...updatedModule,
         lastModified: new Date().toISOString().split('T')[0]
-      };
-      
-      res.json(updatedModule);
+      });
     } catch (error) {
       console.error("Failed to update training module:", error);
       res.status(500).json({ error: "Failed to update training module" });
     }
   });
 
+  // Delete a training module
   app.delete("/api/training-modules/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const { id } = req.params;
+      console.log("🗑️ Deleting training module:", id);
+      
+      // Delete from database (soft delete by setting isActive to false)
+      await db.update(trainingModules)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(trainingModules.id, parseInt(id)));
+      
+      console.log("✅ Training module deleted:", id);
       res.json({ message: "Training module deleted successfully" });
     } catch (error) {
       console.error("Failed to delete training module:", error);
       res.status(500).json({ error: "Failed to delete training module" });
+    }
+  });
+
+  // Get a single training module by ID
+  app.get("/api/training-modules/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Try to get from database first
+      const [dbModule] = await db.select()
+        .from(trainingModules)
+        .where(and(
+          eq(trainingModules.id, parseInt(id)),
+          eq(trainingModules.isActive, true)
+        ));
+      
+      if (dbModule) {
+        // Get associated content
+        const content = await db.select()
+          .from(trainingModuleContent)
+          .where(and(
+            eq(trainingModuleContent.moduleId, dbModule.id),
+            eq(trainingModuleContent.isActive, true)
+          ))
+          .orderBy(trainingModuleContent.orderIndex);
+        
+        return res.json({
+          ...dbModule,
+          content,
+          lastModified: dbModule.updatedAt?.toISOString().split('T')[0],
+          createdDate: dbModule.createdAt?.toISOString().split('T')[0]
+        });
+      }
+      
+      res.status(404).json({ error: "Training module not found" });
+    } catch (error) {
+      console.error("Failed to fetch training module:", error);
+      res.status(500).json({ error: "Failed to fetch training module" });
+    }
+  });
+
+  // Training Module Content API endpoints
+  app.post("/api/training-modules/:moduleId/content", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { moduleId } = req.params;
+      const contentData = req.body;
+      
+      const [newContent] = await db.insert(trainingModuleContent).values({
+        moduleId: parseInt(moduleId),
+        title: contentData.title,
+        type: contentData.type, // video, reading, quiz, assessment
+        duration: contentData.duration,
+        description: contentData.description,
+        content: contentData.content,
+        videoUrl: contentData.videoUrl,
+        orderIndex: contentData.orderIndex || 0,
+        isActive: true,
+      }).returning();
+      
+      res.json(newContent);
+    } catch (error) {
+      console.error("Failed to create module content:", error);
+      res.status(500).json({ error: "Failed to create module content" });
+    }
+  });
+
+  app.put("/api/training-modules/:moduleId/content/:contentId", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { contentId } = req.params;
+      const contentData = req.body;
+      
+      const [updatedContent] = await db.update(trainingModuleContent)
+        .set({
+          title: contentData.title,
+          type: contentData.type,
+          duration: contentData.duration,
+          description: contentData.description,
+          content: contentData.content,
+          videoUrl: contentData.videoUrl,
+          orderIndex: contentData.orderIndex,
+          updatedAt: new Date(),
+        })
+        .where(eq(trainingModuleContent.id, parseInt(contentId)))
+        .returning();
+      
+      res.json(updatedContent);
+    } catch (error) {
+      console.error("Failed to update module content:", error);
+      res.status(500).json({ error: "Failed to update module content" });
+    }
+  });
+
+  app.delete("/api/training-modules/:moduleId/content/:contentId", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { contentId } = req.params;
+      
+      await db.update(trainingModuleContent)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(trainingModuleContent.id, parseInt(contentId)));
+      
+      res.json({ message: "Content deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete module content:", error);
+      res.status(500).json({ error: "Failed to delete module content" });
     }
   });
 

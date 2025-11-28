@@ -767,3 +767,53 @@ export const NOT_READY_REASONS = [
   "Administrative",
   "Other"
 ] as const;
+
+// Training Modules schema - For instructor portal management
+export const trainingModules = pgTable("training_modules", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  aircraft: text("aircraft").notNull(), // c17, c130, kc30a, c27j, all
+  difficulty: text("difficulty").notNull().default("beginner"), // beginner, intermediate, advanced, expert
+  duration: text("duration").notNull(),
+  topics: json("topics").$type<string[]>().default([]),
+  objectives: json("objectives").$type<string[]>().default([]),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTrainingModuleSchema = createInsertSchema(trainingModules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type TrainingModule = typeof trainingModules.$inferSelect;
+export type InsertTrainingModule = z.infer<typeof insertTrainingModuleSchema>;
+
+// Training Module Content schema - Individual lessons within modules
+export const trainingModuleContent = pgTable("training_module_content", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull().references(() => trainingModules.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  type: text("type").notNull(), // video, reading, quiz, assessment
+  duration: text("duration").notNull(),
+  description: text("description").notNull(),
+  content: text("content"), // Text content for readings, quiz questions JSON, etc.
+  videoUrl: text("video_url"), // For video content
+  orderIndex: integer("order_index").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTrainingModuleContentSchema = createInsertSchema(trainingModuleContent).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type TrainingModuleContent = typeof trainingModuleContent.$inferSelect;
+export type InsertTrainingModuleContent = z.infer<typeof insertTrainingModuleContentSchema>;
