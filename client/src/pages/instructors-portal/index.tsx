@@ -14,6 +14,7 @@ import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import instructorBannerImage from "@assets/unnamed (1)_1764294267991.jpg";
 export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
@@ -87,6 +88,25 @@ export default function InstructorsPortal() {
             Welcome to the instructor management portal. You can create, edit, and manage 
             training scenarios to support loadmaster training and assessments.
           </p>
+        </div>
+
+        {/* Featured Section Banner */}
+        <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64" data-testid="instructor-banner">
+          <img
+            src={instructorBannerImage}
+            alt="Military loadmaster in aircraft cargo bay"
+            className="w-full h-full object-cover"
+          />
+          <div className="gradient-overlay flex items-end">
+            <div className="p-8">
+              <h3 className="text-2xl font-bold text-foreground mb-2 text-left">
+                Training & Assessment Management
+              </h3>
+              <p className="text-muted-foreground max-w-xl text-left">
+                Create scenarios, manage quizzes, track student progress, and analyze performance metrics.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Comprehensive Overview Cards */}
