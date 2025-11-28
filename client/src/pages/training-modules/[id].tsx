@@ -67,11 +67,11 @@ const moduleContents: Record<string, any[]> = {
     },
     {
       id: "c17-basics-3",
-      title: "Basic Loading Procedures",
-      type: "interactive",
+      title: "Basic Loading Procedures Quiz",
+      type: "quiz",
       duration: "25 min",
-      description: "Interactive tutorial on fundamental C-17 loading procedures",
-      content: "Interactive content would be displayed here",
+      description: "Quiz on fundamental C-17 loading procedures",
+      content: "Quiz content would be displayed here",
       completed: false
     },
     {
@@ -85,11 +85,11 @@ const moduleContents: Record<string, any[]> = {
     },
     {
       id: "c17-basics-5",
-      title: "C-17 Fundamentals Quiz",
-      type: "quiz",
+      title: "C-17 Fundamentals Assessment",
+      type: "assessment",
       duration: "15 min",
-      description: "Test your knowledge of C-17 fundamentals",
-      content: "Quiz content would be displayed here",
+      description: "Final assessment of C-17 fundamentals knowledge",
+      content: "Assessment content would be displayed here",
       completed: false
     }
   ],
@@ -114,20 +114,20 @@ const moduleContents: Record<string, any[]> = {
     },
     {
       id: "c130-basics-3",
-      title: "Basic Loading Procedures",
-      type: "interactive",
+      title: "Basic Loading Procedures Quiz",
+      type: "quiz",
       duration: "20 min",
-      description: "Interactive training for basic C-130 loading",
-      content: "Interactive basic loading training",
+      description: "Quiz on basic C-130 loading procedures",
+      content: "Quiz content for C-130 loading",
       completed: false
     },
     {
       id: "c130-basics-4",
-      title: "C-130 Fundamentals Quiz",
-      type: "quiz",
+      title: "C-130 Fundamentals Assessment",
+      type: "assessment",
       duration: "12 min",
-      description: "Test your C-130 fundamental knowledge",
-      content: "Quiz for C-130 fundamentals",
+      description: "Final assessment of C-130 fundamental knowledge",
+      content: "Assessment for C-130 fundamentals",
       completed: false
     }
   ],
@@ -152,20 +152,20 @@ const moduleContents: Record<string, any[]> = {
     },
     {
       id: "kc30a-basics-3",
-      title: "Basic Cargo Operations",
-      type: "interactive",
+      title: "Basic Cargo Operations Quiz",
+      type: "quiz",
       duration: "25 min",
-      description: "Interactive training for basic cargo operations",
-      content: "Interactive basic cargo operations",
+      description: "Quiz on basic KC30-A cargo operations",
+      content: "Quiz content for KC30-A operations",
       completed: false
     },
     {
       id: "kc30a-basics-4",
-      title: "KC30-A Basics Quiz",
-      type: "quiz",
+      title: "KC30-A Basics Assessment",
+      type: "assessment",
       duration: "15 min",
-      description: "Test your KC30-A basic knowledge",
-      content: "Quiz for KC30-A basics",
+      description: "Final assessment of KC30-A basic knowledge",
+      content: "Assessment for KC30-A basics",
       completed: false
     }
   ],
@@ -190,20 +190,20 @@ const moduleContents: Record<string, any[]> = {
     },
     {
       id: "c27j-basics-3",
-      title: "Basic Loading Procedures",
-      type: "interactive",
+      title: "Basic Loading Procedures Quiz",
+      type: "quiz",
       duration: "22 min",
-      description: "Interactive training for basic C-27J loading",
-      content: "Interactive basic loading training",
+      description: "Quiz on basic C-27J loading procedures",
+      content: "Quiz content for C-27J loading",
       completed: false
     },
     {
       id: "c27j-basics-4",
-      title: "C-27J Fundamentals Quiz",
-      type: "quiz",
+      title: "C-27J Fundamentals Assessment",
+      type: "assessment",
       duration: "14 min",
-      description: "Test your C-27J fundamental knowledge",
-      content: "Quiz for C-27J fundamentals",
+      description: "Final assessment of C-27J fundamental knowledge",
+      content: "Assessment for C-27J fundamentals",
       completed: false
     }
   ]
@@ -395,11 +395,11 @@ export default function ModuleDetailPage() {
             <TabsTrigger value="readings" className="data-[state=active]:bg-primary data-[state=active]:text-white">
               Reading
             </TabsTrigger>
-            <TabsTrigger value="interactive" className="data-[state=active]:bg-primary data-[state=active]:text-white">
-              Interactive
-            </TabsTrigger>
             <TabsTrigger value="quiz" className="data-[state=active]:bg-primary data-[state=active]:text-white">
               Quiz
+            </TabsTrigger>
+            <TabsTrigger value="assessment" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+              Assessment
             </TabsTrigger>
           </TabsList>
 
@@ -668,33 +668,33 @@ export default function ModuleDetailPage() {
             </Card>
           </TabsContent>
 
-          {/* Interactive Tab Content - ALWAYS PRESENT */}
-          <TabsContent value="interactive">
+          {/* Quiz Tab Content - ALWAYS PRESENT */}
+          <TabsContent value="quiz">
             <Card className="border-gray-800">
               <CardHeader>
-                <CardTitle className="text-white">Interactive Learning</CardTitle>
+                <CardTitle className="text-white">Knowledge Quiz</CardTitle>
                 <CardDescription>
-                  Hands-on exercises and simulations for {module.title}
+                  Test your understanding with quiz questions for {module.title}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Show existing interactive content if available */}
-                  {content.filter(lesson => lesson.type === 'interactive').length > 0 ? (
+                  {/* Show existing quiz content if available */}
+                  {content.filter(lesson => lesson.type === 'quiz').length > 0 ? (
                     content
-                      .filter(lesson => lesson.type === 'interactive')
+                      .filter(lesson => lesson.type === 'quiz')
                       .map(lesson => (
                         <div key={lesson.id} className="space-y-4">
                           <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
                             <h3 className="text-lg font-medium text-white mb-2">{lesson.title}</h3>
                             <p className="text-muted-foreground mb-4">{lesson.description}</p>
                             
-                            {/* Placeholder for interactive content */}
+                            {/* Placeholder for quiz content */}
                             <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
                               <div className="text-center">
-                                <div className="text-4xl mb-4">🎮</div>
-                                <h4 className="text-lg font-medium text-white mb-2">Interactive Training Module</h4>
-                                <p className="text-muted-foreground">Click "Start Training" to begin the interactive simulation</p>
+                                <div className="text-4xl mb-4">📝</div>
+                                <h4 className="text-lg font-medium text-white mb-2">Knowledge Quiz</h4>
+                                <p className="text-muted-foreground">Click "Start Quiz" to test your knowledge</p>
                               </div>
                             </div>
                             
@@ -713,7 +713,7 @@ export default function ModuleDetailPage() {
                                     Completed
                                   </>
                                 ) : (
-                                  "Start Training"
+                                  "Start Quiz"
                                 )}
                               </Button>
                             </div>
@@ -721,29 +721,29 @@ export default function ModuleDetailPage() {
                         </div>
                       ))
                   ) : (
-                    /* Default interactive content for all modules */
+                    /* Default quiz content for all modules */
                     <>
                       <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 text-center">
-                        <div className="text-4xl mb-4">🎮</div>
-                        <h4 className="font-medium text-white mb-2">Interactive Simulation</h4>
+                        <div className="text-4xl mb-4">📝</div>
+                        <h4 className="font-medium text-white mb-2">Knowledge Quiz</h4>
                         <p className="text-gray-300 text-sm mb-4">
-                          Practice {module.title.toLowerCase()} procedures in a simulated environment
+                          Test your understanding of {module.title.toLowerCase()} concepts
                         </p>
                         <Button className="bg-primary hover:bg-primary/90 text-white">
                           <PlayCircle className="h-4 w-4 mr-2" />
-                          Launch Simulation
+                          Start Quiz
                         </Button>
                       </div>
 
                       <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 text-center">
-                        <div className="text-4xl mb-4">📋</div>
-                        <h4 className="font-medium text-white mb-2">Practice Scenarios</h4>
+                        <div className="text-4xl mb-4">🎯</div>
+                        <h4 className="font-medium text-white mb-2">Practice Questions</h4>
                         <p className="text-gray-300 text-sm mb-4">
-                          Work through realistic scenarios and case studies
+                          Review practice questions to reinforce your learning
                         </p>
                         <Button className="bg-primary hover:bg-primary/90 text-white">
                           <PlayCircle className="h-4 w-4 mr-2" />
-                          Start Scenarios
+                          Practice Now
                         </Button>
                       </div>
                     </>
@@ -753,33 +753,33 @@ export default function ModuleDetailPage() {
             </Card>
           </TabsContent>
 
-          {/* Quiz Tab Content - ALWAYS PRESENT */}
-          <TabsContent value="quiz">
+          {/* Assessment Tab Content - ALWAYS PRESENT */}
+          <TabsContent value="assessment">
             <Card className="border-gray-800">
               <CardHeader>
                 <CardTitle className="text-white">Module Assessment</CardTitle>
                 <CardDescription>
-                  Test your knowledge of {module.title}
+                  Final assessment to validate your knowledge of {module.title}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {/* Show existing quiz content if available */}
-                  {content.filter(lesson => lesson.type === 'quiz').length > 0 ? (
+                  {/* Show existing assessment content if available */}
+                  {content.filter(lesson => lesson.type === 'assessment').length > 0 ? (
                     content
-                      .filter(lesson => lesson.type === 'quiz')
+                      .filter(lesson => lesson.type === 'assessment')
                       .map(lesson => (
                         <div key={lesson.id} className="space-y-4">
                           <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
                             <h3 className="text-lg font-medium text-white mb-2">{lesson.title}</h3>
                             <p className="text-muted-foreground mb-4">{lesson.description}</p>
                             
-                            {/* Quiz placeholder */}
+                            {/* Assessment placeholder */}
                             <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
                               <div className="text-center">
-                                <div className="text-4xl mb-4">📝</div>
-                                <h4 className="text-lg font-medium text-white mb-2">Knowledge Assessment</h4>
-                                <p className="text-muted-foreground">Click "Start Quiz" to begin the assessment</p>
+                                <div className="text-4xl mb-4">🎓</div>
+                                <h4 className="text-lg font-medium text-white mb-2">Final Assessment</h4>
+                                <p className="text-muted-foreground">Click "Start Assessment" to begin the final evaluation</p>
                               </div>
                             </div>
                             
@@ -789,14 +789,14 @@ export default function ModuleDetailPage() {
                               </Badge>
                               <div className="flex gap-2">
                                 <Button variant="outline">
-                                  Review Questions
+                                  Review Material
                                 </Button>
                                 <Button 
                                   onClick={() => completeLesson(lesson.id)}
                                   disabled={completedLessons.includes(lesson.id)}
                                   className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
                                 >
-                                  {completedLessons.includes(lesson.id) ? "Completed" : "Start Quiz"}
+                                  {completedLessons.includes(lesson.id) ? "Completed" : "Start Assessment"}
                                 </Button>
                               </div>
                             </div>
@@ -804,13 +804,13 @@ export default function ModuleDetailPage() {
                         </div>
                       ))
                   ) : (
-                    /* Default quiz content for all modules */
+                    /* Default assessment content for all modules */
                     <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h4 className="font-medium text-white mb-2">Knowledge Check Quiz</h4>
+                          <h4 className="font-medium text-white mb-2">Final Module Assessment</h4>
                           <p className="text-gray-300 text-sm">
-                            15 questions covering key concepts from {module.title}
+                            Comprehensive assessment covering all concepts from {module.title}
                           </p>
                         </div>
                         <div className="text-right">
@@ -822,7 +822,7 @@ export default function ModuleDetailPage() {
                       <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
                         <span className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          30 minutes
+                          45 minutes
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="h-4 w-4" />
@@ -834,12 +834,12 @@ export default function ModuleDetailPage() {
                         className="w-full bg-primary hover:bg-primary/90 text-white"
                         onClick={() => {
                           toast({
-                            title: "Quiz Started",
-                            description: `Starting ${module.title} assessment quiz`,
+                            title: "Assessment Started",
+                            description: `Starting ${module.title} final assessment`,
                           });
                         }}
                       >
-                        Start Quiz
+                        Start Assessment
                       </Button>
                     </div>
                   )}
