@@ -95,7 +95,8 @@ export default function InstructorsPortal() {
           <img
             src={instructorBannerImage}
             alt="RAAF loadmaster directing cargo operations"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: 'center 35%' }}
           />
           <div className="gradient-overlay flex items-end">
             <div className="p-8">
