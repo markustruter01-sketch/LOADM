@@ -14,7 +14,7 @@ import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import instructorBannerImage from "@assets/unnamed (1)_1764294267991.jpg";
+import instructorBannerImage from "@assets/20210408raaf8198167_190-1_1764294974387.jpg";
 export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
@@ -94,9 +94,8 @@ export default function InstructorsPortal() {
         <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64" data-testid="instructor-banner">
           <img
             src={instructorBannerImage}
-            alt="Military loadmaster in aircraft cargo bay"
-            className="w-full h-full object-cover"
-            style={{ objectPosition: 'center 25%' }}
+            alt="RAAF loadmaster directing cargo operations"
+            className="w-full h-full object-cover object-center"
           />
           <div className="gradient-overlay flex items-end">
             <div className="p-8">
