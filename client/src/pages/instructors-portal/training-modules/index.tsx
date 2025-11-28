@@ -491,10 +491,11 @@ export default function TrainingModulesManagement() {
     },
   });
 
-  // Edit module mutation
+  // Edit module mutation - accepts id and moduleData to avoid stale closure issues
   const editModuleMutation = useMutation({
-    mutationFn: async (moduleData: any) => {
-      const response = await fetch(`/api/training-modules/${selectedModule?.id}`, {
+    mutationFn: async ({ id, moduleData }: { id: number | string; moduleData: any }) => {
+      console.log("📝 Updating module with ID:", id, "Data:", moduleData.title);
+      const response = await fetch(`/api/training-modules/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(moduleData),
@@ -505,6 +506,7 @@ export default function TrainingModulesManagement() {
     onSuccess: () => {
       refetchModules();
       setIsEditDialogOpen(false);
+      setSelectedModule(null);
       resetForm();
       toast({
         title: "Success",
@@ -610,7 +612,17 @@ export default function TrainingModulesManagement() {
   };
 
   const handleEditModule = () => {
-    if (!selectedModule) return;
+    if (!selectedModule || !selectedModule.id) {
+      toast({
+        title: "Error",
+        description: "No module selected for editing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const moduleId = selectedModule.id;
+    console.log("📝 handleEditModule: Module ID:", moduleId, "Type:", typeof moduleId);
 
     const updatedModule = {
       title: formData.title,
@@ -623,17 +635,19 @@ export default function TrainingModulesManagement() {
       isActive: formData.isActive
     };
 
-    // Actually call the API mutation to save to database
-    editModuleMutation.mutate(updatedModule);
-    setIsEditDialogOpen(false);
-    setSelectedModule(null);
-    resetForm();
+    // Pass both id and moduleData to avoid stale closure issues
+    editModuleMutation.mutate({ id: moduleId, moduleData: updatedModule });
   };
 
   const handleDeleteModule = (moduleId: string | number) => {
+    console.log("🗑️ handleDeleteModule called with ID:", moduleId, "Type:", typeof moduleId);
     if (confirm("Are you sure you want to delete this training module?")) {
+      const idToDelete = typeof moduleId === 'string' ? parseInt(moduleId) : moduleId;
+      console.log("🗑️ Confirmed delete, calling mutation with ID:", idToDelete);
       // Call the API mutation to delete from database
-      deleteModuleMutation.mutate(typeof moduleId === 'string' ? parseInt(moduleId) : moduleId);
+      deleteModuleMutation.mutate(idToDelete);
+    } else {
+      console.log("🗑️ Delete cancelled by user");
     }
   };
 
@@ -998,7 +1012,7 @@ export default function TrainingModulesManagement() {
           {/* Module Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModules.map((module: any) => (
-              <Card key={module.id} className="border-gray-800 bg-card hover:bg-card/90 transition-colors">
+              <Card key={module.id} className="border-gray-800 bg-card hover:bg-card/90 transition-colors" data-testid={`card-module-${module.id}`} data-module-title={module.title}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <Badge variant="outline" className={`${(difficultyColors as any)[module.difficulty]} border`}>
@@ -1048,6 +1062,7 @@ export default function TrainingModulesManagement() {
                     size="sm"
                     onClick={() => navigate(`/training-modules/${module.id}`)}
                     className="flex-1"
+                    data-testid={`button-view-${module.id}`}
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     View
@@ -1057,6 +1072,7 @@ export default function TrainingModulesManagement() {
                     size="sm"
                     onClick={() => openEditDialog(module)}
                     className="flex-1"
+                    data-testid={`button-edit-${module.id}`}
                   >
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
@@ -1066,6 +1082,9 @@ export default function TrainingModulesManagement() {
                     size="sm"
                     onClick={() => handleDeleteModule(module.id)}
                     className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                    data-testid={`button-delete-${module.id}`}
+                    data-module-id={module.id}
+                    data-module-title={module.title}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

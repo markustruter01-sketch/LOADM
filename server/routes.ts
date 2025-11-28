@@ -1716,8 +1716,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Training Modules CRUD endpoints
   app.get("/api/training-modules", requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
-      // Return comprehensive training modules data matching what users see
-      const trainingModules = [
+      // First, try to get modules from the database
+      const dbModules = await db.select()
+        .from(trainingModules)
+        .where(eq(trainingModules.isActive, true))
+        .orderBy(trainingModules.id);
+      
+      // If database has modules, return them (formatted for frontend)
+      if (dbModules && dbModules.length > 0) {
+        console.log("📚 Returning", dbModules.length, "training modules from database");
+        const formattedModules = dbModules.map(m => ({
+          id: m.id,
+          title: m.title,
+          description: m.description,
+          aircraft: m.aircraft,
+          difficulty: m.difficulty,
+          duration: m.duration,
+          topics: m.topics || [],
+          objectives: m.objectives || [],
+          isActive: m.isActive,
+          createdBy: m.createdBy ? "Instructor" : "System",
+          lastModified: m.updatedAt?.toISOString().split('T')[0] || m.createdAt?.toISOString().split('T')[0] || "2025-01-15",
+          content: "",
+          videoUrl: "",
+          createdDate: m.createdAt?.toISOString().split('T')[0] || "2025-01-15",
+          completionRate: 0
+        }));
+        return res.json(formattedModules);
+      }
+      
+      console.log("📚 No database modules found, returning default training modules");
+      // Fallback: Return comprehensive training modules data matching what users see
+      const defaultTrainingModules = [
         // C-17 Modules
         {
           id: 1,
@@ -2149,7 +2179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      res.json(trainingModules);
+      res.json(defaultTrainingModules);
     } catch (error) {
       console.error("Failed to fetch training modules:", error);
       res.status(500).json({ error: "Failed to fetch training modules" });

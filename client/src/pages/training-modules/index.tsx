@@ -31,7 +31,7 @@ import { aircraftConfigs } from "@/utils/aircraft-config";
 type DifficultyLevel = "beginner" | "intermediate" | "advanced" | "expert";
 
 interface Module {
-  id: string;
+  id: string | number;
   title: string;
   description: string;
   aircraft: string;
@@ -304,22 +304,26 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
   const [activeAircraft, setActiveAircraft] = useState<string>("all");
 
   // Use API data for consistency with instructor portal
-  const { data: apiModules } = useQuery({
+  const { data: apiModules, isLoading } = useQuery<Module[]>({
     queryKey: ['/api/training-modules'],
     queryFn: async () => {
-      const response = await fetch('/api/training-modules');
+      const response = await fetch('/api/training-modules', {
+        credentials: 'include',
+      });
       if (!response.ok) throw new Error('Failed to fetch training modules');
-      return response.json();
+      const data = await response.json();
+      console.log('📚 Student view: Fetched', data.length, 'training modules from API');
+      return data;
     },
   });
 
   // Use API data if available, otherwise fallback to local data
-  const modules = apiModules || trainingModules;
+  const modules: Module[] = apiModules && apiModules.length > 0 ? apiModules : trainingModules;
 
   // Filter modules based on selected aircraft
-  const filteredModules = activeAircraft === "all" 
+  const filteredModules: Module[] = activeAircraft === "all" 
     ? modules 
-    : modules.filter(module => module.aircraft === activeAircraft);
+    : modules.filter((module: Module) => module.aircraft === activeAircraft);
 
   return (
     <>

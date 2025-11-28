@@ -776,8 +776,8 @@ export const trainingModules = pgTable("training_modules", {
   aircraft: text("aircraft").notNull(), // c17, c130, kc30a, c27j, all
   difficulty: text("difficulty").notNull().default("beginner"), // beginner, intermediate, advanced, expert
   duration: text("duration").notNull(),
-  topics: json("topics").$type<string[]>().default([]),
-  objectives: json("objectives").$type<string[]>().default([]),
+  topics: text("topics").array().default([]),
+  objectives: text("objectives").array().default([]),
   isActive: boolean("is_active").default(true).notNull(),
   createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
