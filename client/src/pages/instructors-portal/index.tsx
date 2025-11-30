@@ -14,7 +14,7 @@ import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import instructorBannerImage from "@assets/20210408raaf8198167_190-1_1764294974387.jpg";
+import instructorBannerImage from "@assets/unnamed (1)_1764542553672.jpg";
 export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
