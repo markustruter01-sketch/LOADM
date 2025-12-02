@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createOfflineQueryClient } from "@/lib/queryClient";
 import { useState, useEffect } from 'react';
@@ -6,6 +6,17 @@ import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-cont
 import { RedesignedLogin } from './auth-isolated/redesigned-login';
 import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
 import OnboardingTour from '@/components/OnboardingTour';
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  
+  return null;
+}
 
 // Import all your existing pages
 import DocumentFormPage from "@/pages/document-form-page";
@@ -100,6 +111,7 @@ function AuthenticatedApp() {
   
   return (
     <QueryClientProvider client={queryClient}>
+      <ScrollToTop />
       <div className="App">
         <Header />
         <main className="main-content pb-20">
