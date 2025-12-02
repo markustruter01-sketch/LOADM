@@ -21,7 +21,7 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 **Technical Implementations:**
 - **Aircraft Load Planning Engine**: Supports C-130, C-17, C-27J, KC30A with physics-based weight and balance calculations, cargo management, and a visual drag-and-drop interface.
 - **Training & Assessment System**: Dynamic quiz engine, interactive training scenarios, and a document management system with integrated PDF viewer.
-- **Analytics & Reporting**: Real-time performance metrics for students and squadrons, instructor dashboard, and AI-powered insights, including workforce readiness, flight operations, qualifications, and safety compliance.
+- **Analytics & Reporting**: Real-time performance metrics for students and squadrons, instructor dashboard, and AI-powered insights, including workforce readiness, flight operations, qualifications, and safety compliance. Features historical workforce readiness trends (30/60/90-day views with daily snapshots) and qualification renewal forecasting (6-month projections with critical alerts and recommendations).
 - **User Profile Management**: Features for tracking qualifications (with "No End Date" support, 90-day expiry threshold, and status indicators), managing detailed flight records (dual-unit cargo weight, callsign, night/day hours, auto-calculated statistics), and profile photo uploads.
 - **PDF Viewer**: Uses Express-served worker files for stable document rendering.
 - **API Endpoints**: Comprehensive RESTful APIs for managing qualifications, flight records, safety records, and analytics data, with Zod schema validation.
