@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Users, Clock, AlertTriangle, CheckCircle2, Shield, Award,
   Plane, TrendingUp, TrendingDown, Calendar, Activity, RefreshCw,
-  UserX, Stethoscope, GraduationCap, FileWarning, AlertCircle, Loader2
+  UserX, Stethoscope, GraduationCap, FileWarning, AlertCircle, Loader2,
+  LineChart, BarChart3, Bell, Target, Info
 } from "lucide-react";
 
 const SQUADRONS = ['33', '35', '36', '37', 'AMG'];
@@ -23,26 +24,33 @@ export default function WorkforceAnalytics() {
   const [currencyData, setCurrencyData] = useState<any>(null);
   const [readinessData, setReadinessData] = useState<any>(null);
   const [safetyData, setSafetyData] = useState<any>(null);
+  const [historyData, setHistoryData] = useState<any>(null);
+  const [forecastData, setForecastData] = useState<any>(null);
 
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
       const squadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "";
+      const historySquadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "squadron=ALL";
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const startDateParam = `startDate=${thirtyDaysAgo.toISOString()}`;
       
-      const [flightRes, currencyRes, readinessRes, safetyRes] = await Promise.all([
+      const [flightRes, currencyRes, readinessRes, safetyRes, historyRes, forecastRes] = await Promise.all([
         fetch(`/api/analytics/flight-hours?${startDateParam}&${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/currency-status?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/squadron-readiness?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/safety-summary?${squadronParam}`, { credentials: 'include' }),
+        fetch(`/api/analytics/readiness-history?${historySquadronParam}&limit=90`, { credentials: 'include' }),
+        fetch(`/api/analytics/qualification-forecast?${squadronParam}&months=6`, { credentials: 'include' }),
       ]);
 
       if (flightRes.ok) setFlightData(await flightRes.json());
       if (currencyRes.ok) setCurrencyData(await currencyRes.json());
       if (readinessRes.ok) setReadinessData(await readinessRes.json());
       if (safetyRes.ok) setSafetyData(await safetyRes.json());
+      if (historyRes.ok) setHistoryData(await historyRes.json());
+      if (forecastRes.ok) setForecastData(await forecastRes.json());
       setLastRefresh(new Date());
     } catch (err) {
       console.error("Error fetching analytics:", err);
@@ -704,6 +712,299 @@ export default function WorkforceAnalytics() {
               </div>
             </CardContent>
           </Card>
+        </section>
+
+        {/* ==================== SECTION 5: HISTORICAL TRENDS ==================== */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
+            <LineChart className="h-5 w-5 text-orange-500" />
+            <h2 className="text-xl font-semibold text-white">Historical Trends</h2>
+            <span className="text-xs text-gray-500 ml-auto">Tracking workforce readiness over time</span>
+          </div>
+
+          {historyData?.dataPoints && historyData.dataPoints.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Trend Summary Cards */}
+              <Card className="bg-[#2a2a2a] border-[#333333]">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-white text-lg">Trend Summary</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    {historyData.summary?.totalSnapshots || 0} days of data collected
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-orange-500" />
+                      <span className="text-gray-300 text-sm">Current Readiness</span>
+                    </div>
+                    <span className="text-xl font-bold text-white">{historyData.summary?.latestReadiness || 0}%</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-blue-500" />
+                      <span className="text-gray-300 text-sm">Average Readiness</span>
+                    </div>
+                    <span className="text-xl font-bold text-blue-400">{historyData.summary?.averageReadiness || 0}%</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      {(historyData.summary?.readinessTrend || 0) >= 0 ? (
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-500" />
+                      )}
+                      <span className="text-gray-300 text-sm">Trend</span>
+                    </div>
+                    <span className={`text-xl font-bold ${(historyData.summary?.readinessTrend || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {(historyData.summary?.readinessTrend || 0) >= 0 ? '+' : ''}{historyData.summary?.readinessTrend || 0}%
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Readiness Chart Visualization */}
+              <Card className="bg-[#2a2a2a] border-[#333333] lg:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-white text-lg">Readiness Over Time</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Daily readiness percentage • Last {historyData.dataPoints?.length || 0} days
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-48 flex items-end gap-1">
+                    {historyData.dataPoints?.slice(-30).map((point: any, idx: number) => {
+                      const height = Math.max(point.readyPercent, 5);
+                      const date = new Date(point.snapshotDate);
+                      const isToday = date.toDateString() === new Date().toDateString();
+                      return (
+                        <div 
+                          key={idx} 
+                          className="flex-1 flex flex-col items-center group relative"
+                          title={`${date.toLocaleDateString()}: ${point.readyPercent}% ready`}
+                        >
+                          <div 
+                            className={`w-full rounded-t transition-all duration-200 ${
+                              isToday ? 'bg-orange-500' : 
+                              point.readyPercent >= 85 ? 'bg-green-500' : 
+                              point.readyPercent >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                            } group-hover:opacity-80`}
+                            style={{ height: `${height * 1.8}px` }}
+                          />
+                          <div className="absolute -top-8 bg-[#1a1a1a] px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: {point.readyPercent}%
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between mt-2 text-xs text-gray-500">
+                    <span>
+                      {historyData.dataPoints?.length > 0 
+                        ? new Date(historyData.dataPoints[0]?.snapshotDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : 'Start'}
+                    </span>
+                    <div className="flex gap-4">
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded" /> ≥85%</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 bg-yellow-500 rounded" /> 70-84%</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded" /> &lt;70%</span>
+                    </div>
+                    <span>Today</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card className="bg-[#2a2a2a] border-[#333333]">
+              <CardContent className="py-12">
+                <div className="text-center">
+                  <Info className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-white mb-2">Historical Data Collection Started</h3>
+                  <p className="text-gray-400 max-w-md mx-auto">
+                    Workforce readiness data is now being tracked daily. Check back tomorrow to see trends over time.
+                    The system automatically captures a snapshot of workforce readiness each day.
+                  </p>
+                  <div className="mt-4 text-xs text-gray-500">
+                    Data collection began: {historyData?.collectionStartDate 
+                      ? new Date(historyData.collectionStartDate).toLocaleDateString() 
+                      : new Date().toLocaleDateString()}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
+        {/* ==================== SECTION 6: QUALIFICATION FORECAST ==================== */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
+            <BarChart3 className="h-5 w-5 text-orange-500" />
+            <h2 className="text-xl font-semibold text-white">Qualification Renewal Forecast</h2>
+            <span className="text-xs text-gray-500 ml-auto">6-month projection • If no action taken</span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Forecast Summary */}
+            <Card className="bg-[#2a2a2a] border-[#333333]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-lg">Forecast Summary</CardTitle>
+                <CardDescription className="text-gray-400">Next 6 months outlook</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-orange-900/30 to-[#1a1a1a] border border-orange-500/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-gray-400">Total Expiring</div>
+                      <div className="text-3xl font-bold text-orange-500">{forecastData?.summary?.totalExpiringQuals || 0}</div>
+                      <div className="text-xs text-gray-500">qualifications</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-400">Personnel Affected</div>
+                      <div className="text-2xl font-bold text-white">{forecastData?.summary?.totalPersonnelAffected || 0}</div>
+                      <div className="text-xs text-gray-500">unique individuals</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
+                  <span className="text-gray-300 text-sm">Avg per Month</span>
+                  <span className="text-lg font-semibold text-white">{forecastData?.summary?.averagePerMonth || 0}</span>
+                </div>
+
+                {forecastData?.summary?.peakMonth && (
+                  <div className="flex items-center justify-between p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                    <div>
+                      <span className="text-gray-300 text-sm block">Peak Month</span>
+                      <span className="text-xs text-gray-500">{forecastData.summary.peakMonth.monthLabel}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-yellow-500">{forecastData.summary.peakMonth.expiringThisMonth}</span>
+                      <span className="text-xs text-gray-500 block">quals expiring</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Monthly Forecast Chart */}
+            <Card className="bg-[#2a2a2a] border-[#333333] lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-lg">Monthly Expiration Forecast</CardTitle>
+                <CardDescription className="text-gray-400">Qualifications expiring each month</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {forecastData?.forecast?.map((month: any, idx: number) => {
+                    const maxExpiring = Math.max(...(forecastData.forecast?.map((m: any) => m.expiringThisMonth) || [1]));
+                    const barWidth = maxExpiring > 0 ? (month.expiringThisMonth / maxExpiring) * 100 : 0;
+                    return (
+                      <div key={idx} className="flex items-center gap-4">
+                        <div className="w-20 text-sm text-gray-400 text-right">{month.monthLabel}</div>
+                        <div className="flex-1 h-8 bg-[#1a1a1a] rounded-lg overflow-hidden relative">
+                          <div 
+                            className={`h-full transition-all duration-500 ${
+                              month.expiringThisMonth > 5 ? 'bg-red-500' :
+                              month.expiringThisMonth > 2 ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}
+                            style={{ width: `${barWidth}%` }}
+                          />
+                          <div className="absolute inset-0 flex items-center px-3">
+                            <span className="text-white text-sm font-medium">
+                              {month.expiringThisMonth} quals • {month.personnelAffected} personnel
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Critical Alerts & Recommendations */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Critical Alerts */}
+            <Card className="bg-[#2a2a2a] border-[#333333]">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-yellow-500" />
+                  <CardTitle className="text-white text-lg">Critical Alerts</CardTitle>
+                </div>
+                <CardDescription className="text-gray-400">Items requiring attention</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {forecastData?.criticalAlerts && forecastData.criticalAlerts.length > 0 ? (
+                  <div className="space-y-2">
+                    {forecastData.criticalAlerts.map((alert: any, idx: number) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                        <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <div className="text-sm text-yellow-400 font-medium">{alert.month}</div>
+                          <div className="text-xs text-gray-400">{alert.alert}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                    <p>No critical alerts at this time</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Recommendations */}
+            <Card className="bg-[#2a2a2a] border-[#333333]">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-blue-500" />
+                  <CardTitle className="text-white text-lg">Recommendations</CardTitle>
+                </div>
+                <CardDescription className="text-gray-400">Suggested actions for planning</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {forecastData?.recommendations && forecastData.recommendations.length > 0 ? (
+                  <div className="space-y-2">
+                    {forecastData.recommendations.map((rec: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                        <CheckCircle2 className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-gray-300">{rec}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <Info className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p>No specific recommendations at this time</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Qualification Type Summary */}
+          {forecastData?.qualificationTypeSummary && forecastData.qualificationTypeSummary.length > 0 && (
+            <Card className="bg-[#2a2a2a] border-[#333333]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-lg">Expiring by Qualification Type</CardTitle>
+                <CardDescription className="text-gray-400">Distribution of upcoming renewals across qualification types</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                  {forecastData.qualificationTypeSummary.map((qual: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-[#1a1a1a] rounded-lg text-center">
+                      <div className="text-2xl font-bold text-orange-500">{qual.totalExpiring}</div>
+                      <div className="text-xs text-gray-400 mt-1 line-clamp-2">{qual.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         {/* Footer */}
