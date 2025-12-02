@@ -406,12 +406,33 @@ export default function WorkforceAnalytics() {
           <Card className="bg-[#2a2a2a] border-[#333333]">
             <CardHeader>
               <CardTitle className="text-white text-lg">Hours by Aircraft Type</CardTitle>
-              <CardDescription className="text-gray-400">Flight time distribution across airframes</CardDescription>
+              <CardDescription className="text-gray-400">Flight time distribution across airframes (last 30 days)</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {flightData?.byAircraftType && flightData.byAircraftType.length > 0 ? (
-                  flightData.byAircraftType.map((aircraft: any, idx: number) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {(() => {
+                  // Define all aircraft types that should always be shown
+                  const allAircraftTypes = [
+                    { code: 'C130J', name: 'C-130J Hercules' },
+                    { code: 'C17A', name: 'C-17A Globemaster' },
+                    { code: 'KC30A', name: 'KC-30A Airbus' },
+                    { code: 'C27J', name: 'C-27J Spartan' }
+                  ];
+                  
+                  // Create a map of existing data
+                  const dataMap = new Map();
+                  if (flightData?.byAircraftType) {
+                    flightData.byAircraftType.forEach((aircraft: any) => {
+                      dataMap.set(aircraft.aircraftType, aircraft);
+                    });
+                  }
+                  
+                  return allAircraftTypes.map((aircraftDef, idx) => {
+                    const aircraft = dataMap.get(aircraftDef.code) || { 
+                      aircraftType: aircraftDef.code, 
+                      totalHours: 0, 
+                      flightCount: 0 
+                    };
                     const percent = totalHours > 0 ? (aircraft.totalHours / totalHours * 100) : 0;
                     return (
                       <div key={idx} className="p-4 bg-[#1a1a1a] rounded-lg">
@@ -425,14 +446,12 @@ export default function WorkforceAnalytics() {
                           </Badge>
                         </div>
                         <div className="text-2xl font-bold text-white mb-1">{aircraft.totalHours?.toFixed(1) || 0} hrs</div>
-                        <div className="text-xs text-gray-500">{aircraft.flightCount} flights</div>
+                        <div className="text-xs text-gray-500">{aircraft.flightCount || 0} flights</div>
                         <Progress value={percent} className="h-2 mt-3 bg-[#333]" />
                       </div>
                     );
-                  })
-                ) : (
-                  <div className="col-span-3 text-center py-6 text-gray-500">No aircraft data available</div>
-                )}
+                  });
+                })()}
               </div>
             </CardContent>
           </Card>
