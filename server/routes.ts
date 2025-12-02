@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, NOT_READY_REASONS } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -3753,6 +3753,222 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching safety summary analytics:", error);
       res.status(500).json({ message: "Failed to fetch safety summary analytics" });
+    }
+  });
+
+  // Readiness History Analytics - Historical trends over time
+  app.get("/api/analytics/readiness-history", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron = "ALL", startDate, endDate, limit = "90" } = req.query;
+
+      const snapshots = await db.select()
+        .from(readinessSnapshots)
+        .where(eq(readinessSnapshots.squadron, squadron as string))
+        .orderBy(desc(readinessSnapshots.snapshotDate))
+        .limit(parseInt(limit as string));
+
+      let filtered = snapshots;
+      if (startDate) {
+        const start = new Date(startDate as string);
+        filtered = filtered.filter(s => new Date(s.snapshotDate) >= start);
+      }
+      if (endDate) {
+        const end = new Date(endDate as string);
+        filtered = filtered.filter(s => new Date(s.snapshotDate) <= end);
+      }
+
+      // Reverse to chronological order
+      const chronological = filtered.reverse();
+
+      // Calculate trends
+      const dataPoints = chronological.length;
+      let readinessTrend = 0;
+      let qualsTrend = 0;
+
+      if (dataPoints >= 2) {
+        const first = chronological[0];
+        const last = chronological[dataPoints - 1];
+        readinessTrend = last.readyPercent - first.readyPercent;
+        const firstQualRate = first.currentQuals / Math.max(first.currentQuals + first.expiringQuals + first.expiredQuals, 1) * 100;
+        const lastQualRate = last.currentQuals / Math.max(last.currentQuals + last.expiringQuals + last.expiredQuals, 1) * 100;
+        qualsTrend = lastQualRate - firstQualRate;
+      }
+
+      // Find best and worst days
+      let bestDay = chronological[0];
+      let worstDay = chronological[0];
+      chronological.forEach(s => {
+        if (s.readyPercent > bestDay.readyPercent) bestDay = s;
+        if (s.readyPercent < worstDay.readyPercent) worstDay = s;
+      });
+
+      res.json({
+        dataPoints: chronological,
+        summary: {
+          totalSnapshots: dataPoints,
+          dateRange: {
+            start: chronological[0]?.snapshotDate || null,
+            end: chronological[dataPoints - 1]?.snapshotDate || null,
+          },
+          latestReadiness: chronological[dataPoints - 1]?.readyPercent || 0,
+          averageReadiness: dataPoints > 0 
+            ? Math.round(chronological.reduce((sum, s) => sum + s.readyPercent, 0) / dataPoints) 
+            : 0,
+          readinessTrend: Math.round(readinessTrend * 10) / 10,
+          qualsTrend: Math.round(qualsTrend * 10) / 10,
+          bestDay: bestDay ? { date: bestDay.snapshotDate, percent: bestDay.readyPercent } : null,
+          worstDay: worstDay ? { date: worstDay.snapshotDate, percent: worstDay.readyPercent } : null,
+        },
+        collectionStartDate: chronological[0]?.snapshotDate || new Date(),
+      });
+    } catch (error) {
+      console.error("Error fetching readiness history:", error);
+      res.status(500).json({ message: "Failed to fetch readiness history" });
+    }
+  });
+
+  // Qualification Forecast Analytics - Predict future expirations
+  app.get("/api/analytics/qualification-forecast", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron = "all", months = "6" } = req.query;
+      const numMonths = parseInt(months as string);
+
+      // Get all qualifications with expiry dates
+      const qualifications = await db.select({
+        id: userQualifications.id,
+        userId: userQualifications.userId,
+        name: userQualifications.name,
+        expiryDate: userQualifications.expiryDate,
+        squadron: licenses.squadron,
+        userName: sql<string>`CONCAT(${licenses.firstName}, ' ', ${licenses.lastName})`,
+      })
+      .from(userQualifications)
+      .leftJoin(users, eq(userQualifications.userId, users.id))
+      .leftJoin(licenses, eq(users.licenseId, licenses.id));
+
+      // Filter by squadron if specified
+      let filteredQuals = qualifications.filter(q => q.expiryDate !== null);
+      if (squadron && squadron !== 'all') {
+        filteredQuals = filteredQuals.filter(q => q.squadron === squadron);
+      }
+
+      const now = new Date();
+      const forecast: {
+        month: string;
+        monthLabel: string;
+        expiringThisMonth: number;
+        personnelAffected: number;
+        cumulativeExpired: number;
+        qualificationBreakdown: { name: string; expiring: number }[];
+      }[] = [];
+
+      let cumulativeExpired = 0;
+      const criticalAlerts: { month: string; alert: string }[] = [];
+
+      // Calculate for each month
+      for (let i = 0; i < numMonths; i++) {
+        const monthStart = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + i + 1, 0, 23, 59, 59);
+        const monthLabel = monthStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const monthKey = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`;
+
+        // Find quals expiring this month
+        const expiringThisMonth = filteredQuals.filter(q => {
+          const expiry = new Date(q.expiryDate!);
+          return expiry >= monthStart && expiry <= monthEnd;
+        });
+
+        // Count unique personnel
+        const personnelSet = new Set(expiringThisMonth.map(q => q.userId));
+
+        // Group by qualification type
+        const byType = new Map<string, number>();
+        expiringThisMonth.forEach(q => {
+          byType.set(q.name, (byType.get(q.name) || 0) + 1);
+        });
+
+        cumulativeExpired += expiringThisMonth.length;
+
+        const qualificationBreakdown = Array.from(byType.entries())
+          .map(([name, expiring]) => ({ name, expiring }))
+          .sort((a, b) => b.expiring - a.expiring);
+
+        forecast.push({
+          month: monthKey,
+          monthLabel,
+          expiringThisMonth: expiringThisMonth.length,
+          personnelAffected: personnelSet.size,
+          cumulativeExpired,
+          qualificationBreakdown,
+        });
+
+        // Generate critical alerts
+        if (expiringThisMonth.length > 5) {
+          criticalAlerts.push({
+            month: monthLabel,
+            alert: `${expiringThisMonth.length} qualifications expiring - high training demand expected`,
+          });
+        }
+
+        // Check for specific qualification spikes
+        qualificationBreakdown.forEach(qb => {
+          if (qb.expiring >= 3) {
+            criticalAlerts.push({
+              month: monthLabel,
+              alert: `${qb.expiring} ${qb.name} renewals needed`,
+            });
+          }
+        });
+      }
+
+      // Generate recommendations
+      const recommendations: string[] = [];
+      
+      // Find months with heavy loads
+      const heavyMonths = forecast.filter(f => f.expiringThisMonth > 5);
+      if (heavyMonths.length > 0) {
+        recommendations.push(`High renewal volume expected in ${heavyMonths.map(m => m.monthLabel).join(', ')} - plan training capacity accordingly`);
+      }
+
+      // Find qualification types with most expirations
+      const allQualTypes = new Map<string, number>();
+      forecast.forEach(f => {
+        f.qualificationBreakdown.forEach(qb => {
+          allQualTypes.set(qb.name, (allQualTypes.get(qb.name) || 0) + qb.expiring);
+        });
+      });
+      
+      const sortedQualTypes = Array.from(allQualTypes.entries()).sort((a, b) => b[1] - a[1]);
+      if (sortedQualTypes.length > 0) {
+        const [topQual, count] = sortedQualTypes[0];
+        recommendations.push(`${topQual} has ${count} renewals in next ${numMonths} months - consider batch training sessions`);
+      }
+
+      // Calculate total personnel impacted
+      const uniquePersonnel = new Set<number>();
+      filteredQuals.forEach(q => {
+        const expiry = new Date(q.expiryDate!);
+        const futureLimit = new Date(now.getFullYear(), now.getMonth() + numMonths, 0);
+        if (expiry <= futureLimit && expiry >= now) {
+          uniquePersonnel.add(q.userId);
+        }
+      });
+
+      res.json({
+        forecast,
+        summary: {
+          totalExpiringQuals: cumulativeExpired,
+          totalPersonnelAffected: uniquePersonnel.size,
+          averagePerMonth: Math.round(cumulativeExpired / numMonths * 10) / 10,
+          peakMonth: forecast.reduce((max, f) => f.expiringThisMonth > max.expiringThisMonth ? f : max, forecast[0]),
+        },
+        criticalAlerts: criticalAlerts.slice(0, 5), // Limit to top 5 alerts
+        recommendations,
+        qualificationTypeSummary: sortedQualTypes.slice(0, 10).map(([name, count]) => ({ name, totalExpiring: count })),
+      });
+    } catch (error) {
+      console.error("Error fetching qualification forecast:", error);
+      res.status(500).json({ message: "Failed to fetch qualification forecast" });
     }
   });
 

@@ -8,6 +8,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import isolatedAuthRoutes from './auth-isolated/auth-routes';
 import * as authCore from './auth-isolated/auth-core';
 import { licenseExpiryService } from './license-expiry-service';
+import { checkAndCaptureSnapshot } from './services/snapshot-service';
 import path from "path";
 
 const app = express();
@@ -19,6 +20,13 @@ console.log('✅ ISOLATED AUTH: Sessions preserved on restart');
 
 // Start license expiry monitoring
 licenseExpiryService.startPeriodicCheck();
+
+// Capture daily readiness snapshot (self-healing - will only create if not exists for today)
+checkAndCaptureSnapshot().then(() => {
+  console.log('✅ Readiness snapshot check completed');
+}).catch(err => {
+  console.error('❌ Readiness snapshot check failed:', err);
+});
 
 app.use(cookieParser());
 app.use(express.json({ limit: '50mb' }));
