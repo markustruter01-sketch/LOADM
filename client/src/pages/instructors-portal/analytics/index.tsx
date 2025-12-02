@@ -64,9 +64,397 @@ import {
   CalendarClock,
   Filter,
   LayoutDashboard,
-  ArrowLeft
+  ArrowLeft,
+  HelpCircle,
+  X,
+  TrendingUp,
+  Target,
+  AlertTriangle,
+  Award
 } from "lucide-react";
 import { Link } from "wouter";
+
+interface HelpContent {
+  title: string;
+  icon: any;
+  sections: {
+    heading: string;
+    points: string[];
+  }[];
+}
+
+const HELP_CONTENT: Record<string, HelpContent> = {
+  overviewMetrics: {
+    title: "Overview Metrics",
+    icon: LayoutDashboard,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Total Students - Count of all active licensed students across squadrons",
+          "Total Submissions - Combined quiz, scenario, and document submissions",
+          "Average Score - Mean score across all graded assessments",
+          "Pass Rate - Percentage of submissions meeting or exceeding 70% threshold"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "Filters apply to all metrics simultaneously",
+          "Average score calculated from submissions with valid grades",
+          "Pass rate based on instructor-evaluated submissions",
+          "Squadron filter affects all downstream calculations"
+        ]
+      }
+    ]
+  },
+  scoreDistribution: {
+    title: "Score Distribution",
+    icon: BarChart3,
+    sections: [
+      {
+        heading: "What This Chart Shows",
+        points: [
+          "Breakdown of student scores across performance ranges",
+          "Visual representation of class-wide performance patterns",
+          "Helps identify if students cluster in certain score bands"
+        ]
+      },
+      {
+        heading: "Score Ranges",
+        points: [
+          "0-49% (Red) - Failing, needs significant improvement",
+          "50-69% (Orange) - Below passing, remediation recommended",
+          "70-89% (Green) - Passing, meets standards",
+          "90-100% (Blue) - Excellent, exceeds expectations"
+        ]
+      }
+    ]
+  },
+  squadronActivity: {
+    title: "Squadron Activity",
+    icon: Users,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Pie chart showing submission distribution by squadron",
+          "Identifies which squadrons are most active",
+          "Helps balance training workload across units"
+        ]
+      },
+      {
+        heading: "How to Use",
+        points: [
+          "Larger slices indicate more active squadrons",
+          "Compare against squadron size for engagement rates",
+          "Use to identify squadrons needing more attention"
+        ]
+      }
+    ]
+  },
+  squadronPerformance: {
+    title: "Squadron Performance Comparison",
+    icon: BarChart3,
+    sections: [
+      {
+        heading: "What This Chart Shows",
+        points: [
+          "Side-by-side comparison of all squadrons",
+          "Average score and pass rate for each unit",
+          "Total submission count per squadron"
+        ]
+      },
+      {
+        heading: "Metrics Explained",
+        points: [
+          "Average Score (%) - Mean performance level",
+          "Pass Rate (%) - Percentage meeting 70% threshold",
+          "Total Submissions - Activity level indicator",
+          "Left axis: Percentages, Right axis: Counts"
+        ]
+      }
+    ]
+  },
+  performanceTrends: {
+    title: "Performance Trends",
+    icon: TrendingUp,
+    sections: [
+      {
+        heading: "What This Chart Shows",
+        points: [
+          "Historical view of performance over time",
+          "Area chart shows average score trajectory",
+          "Bar chart shows submission volume by period"
+        ]
+      },
+      {
+        heading: "How to Interpret",
+        points: [
+          "Upward trend indicates improving performance",
+          "Downward trend may indicate curriculum gaps",
+          "Compare volume with performance for insights",
+          "Data grouped by month for clarity"
+        ]
+      }
+    ]
+  },
+  assessmentType: {
+    title: "Assessment Type Performance",
+    icon: Layers,
+    sections: [
+      {
+        heading: "What This Chart Shows",
+        points: [
+          "Performance comparison across different assessment types",
+          "Lines show average score and pass rate",
+          "Bars indicate submission volume per type"
+        ]
+      },
+      {
+        heading: "Assessment Types",
+        points: [
+          "Scenarios - Practical load planning exercises",
+          "Quizzes - Knowledge-based assessments",
+          "Documents - Document comprehension tests",
+          "Compare to identify challenging assessment formats"
+        ]
+      }
+    ]
+  },
+  topicMastery: {
+    title: "Topic Mastery Matrix",
+    icon: Layers,
+    sections: [
+      {
+        heading: "What This Chart Shows",
+        points: [
+          "Horizontal bar chart of mastery by topic/category",
+          "Shows which subject areas students struggle with",
+          "Helps prioritize curriculum focus areas"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green (≥70%) - Strong mastery, students performing well",
+          "Yellow (50-69%) - Moderate mastery, needs reinforcement",
+          "Red (<50%) - Weak mastery, requires targeted intervention"
+        ]
+      }
+    ]
+  },
+  questionDifficulty: {
+    title: "Question Difficulty Analysis",
+    icon: AlertTriangle,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Top 10 most challenging questions across all assessments",
+          "Success rate indicates how often students answer correctly",
+          "Attempt count shows question exposure"
+        ]
+      },
+      {
+        heading: "How to Use",
+        points: [
+          "Low success rates may indicate confusing questions",
+          "Consider revising questions with <50% success",
+          "High attempts with low success = knowledge gap",
+          "Review question wording and answer options"
+        ]
+      }
+    ]
+  },
+  studentVsSquadron: {
+    title: "Student vs Squadron Average",
+    icon: Users,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Individual student scores compared to squadron average",
+          "Positive difference = above squadron average",
+          "Negative difference = below squadron average"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green (+) - Student outperforming squadron",
+          "Red (-) - Student below squadron average",
+          "Gray (0) - Student at squadron average"
+        ]
+      }
+    ]
+  },
+  moduleCompletion: {
+    title: "Training Module Completion",
+    icon: CheckCircle,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Progress bars for each training module",
+          "Completion rate as a percentage",
+          "Number of students who started vs completed"
+        ]
+      },
+      {
+        heading: "How to Use",
+        points: [
+          "Identify modules with low completion rates",
+          "Large gap between started/completed = dropout issue",
+          "Use to track overall training program progress"
+        ]
+      }
+    ]
+  },
+  certificationReadiness: {
+    title: "Certification Readiness Score",
+    icon: Medal,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Leaderboard ranking students by overall readiness",
+          "Readiness score combines multiple performance factors",
+          "Status indicates proximity to certification"
+        ]
+      },
+      {
+        heading: "Status Levels",
+        points: [
+          "Ready - All requirements met, eligible for certification",
+          "Near Ready - Most requirements met, minor gaps",
+          "Not Ready - Significant requirements outstanding"
+        ]
+      }
+    ]
+  },
+  atRiskStudents: {
+    title: "At-Risk Students",
+    icon: XCircle,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Students identified as needing intervention",
+          "Risk factors highlighted for each student",
+          "Risk level indicates urgency of action needed"
+        ]
+      },
+      {
+        heading: "Risk Factors",
+        points: [
+          "Low quiz scores - Below threshold on knowledge tests",
+          "Low scenario scores - Struggling with practical exercises",
+          "Inactivity - Extended time since last submission",
+          "High risk = multiple factors combined"
+        ]
+      }
+    ]
+  },
+  detailedScoreAnalysis: {
+    title: "Detailed Score Analysis",
+    icon: BarChart3,
+    sections: [
+      {
+        heading: "What This Shows",
+        points: [
+          "Expanded view of score distribution",
+          "Summary cards show counts per range",
+          "Percentage of total submissions per range"
+        ]
+      },
+      {
+        heading: "How to Use",
+        points: [
+          "Identify overall class performance profile",
+          "High percentage in lower ranges = curriculum review needed",
+          "High percentage in upper ranges = effective training"
+        ]
+      }
+    ]
+  }
+};
+
+function HelpButton({ helpKey, onClick }: { helpKey: string; onClick: (key: string) => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick(helpKey); }}
+      className="p-2 rounded-full bg-muted/50 hover:bg-primary/20 border border-primary/50 hover:border-primary transition-all duration-200 group"
+      title="Click for help"
+      data-testid={`help-button-${helpKey}`}
+    >
+      <HelpCircle className="h-6 w-6 text-primary group-hover:text-primary/80 transition-colors" />
+    </button>
+  );
+}
+
+function HelpModal({ helpKey, onClose }: { helpKey: string | null; onClose: () => void }) {
+  if (!helpKey || !HELP_CONTENT[helpKey]) return null;
+  
+  const content = HELP_CONTENT[helpKey];
+  const IconComponent = content.icon;
+  
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      
+      <div 
+        className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-br from-card/95 to-background/98 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl">
+          <div className="flex items-center justify-between p-6 border-b border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/20 border border-primary/30">
+                <IconComponent className="h-6 w-6 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold">{content.title}</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              data-testid="help-modal-close"
+            >
+              <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+            </button>
+          </div>
+          
+          <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
+            {content.sections.map((section, idx) => (
+              <div key={idx} className="space-y-3">
+                <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">
+                  {section.heading}
+                </h3>
+                <ul className="space-y-2">
+                  {section.points.map((point, pointIdx) => (
+                    <li key={pointIdx} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="text-primary mt-1.5">•</span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          
+          <div className="p-4 border-t border-border/50 bg-muted/30">
+            <p className="text-xs text-center text-muted-foreground">
+              Click outside or press X to close
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // A set of predefined squadrons for filtering
 const SQUADRONS = ["33 Squadron", "35 Squadron", "36 Squadron", "37 Squadron", "AMG"];
@@ -99,6 +487,7 @@ export default function AdvancedAnalytics() {
   const [selectedSquadron, setSelectedSquadron] = useState<string>("all");
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
+  const [activeHelp, setActiveHelp] = useState<string | null>(null);
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -671,8 +1060,9 @@ export default function AdvancedAnalytics() {
           {/* Overview Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card>
-              <CardHeader className="p-4 pb-2">
+              <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
+                <HelpButton helpKey="overviewMetrics" onClick={setActiveHelp} />
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex items-center">
@@ -738,7 +1128,10 @@ export default function AdvancedAnalytics() {
                 {/* Score Distribution */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Score Distribution</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Score Distribution</CardTitle>
+                      <HelpButton helpKey="scoreDistribution" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Student performance across score ranges</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -771,7 +1164,10 @@ export default function AdvancedAnalytics() {
                 {/* Squadron Breakdown */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Squadron Activity</CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Squadron Activity</CardTitle>
+                      <HelpButton helpKey="squadronActivity" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Distribution of submissions by squadron</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -808,7 +1204,10 @@ export default function AdvancedAnalytics() {
               {/* Squadron Performance Comparison */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Squadron Performance Comparison</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Squadron Performance Comparison</CardTitle>
+                    <HelpButton helpKey="squadronPerformance" onClick={setActiveHelp} />
+                  </div>
                   <CardDescription>Detailed analysis of performance metrics by squadron</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -867,7 +1266,10 @@ export default function AdvancedAnalytics() {
               {/* Performance Trends Over Time */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Performance Trends</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Performance Trends</CardTitle>
+                    <HelpButton helpKey="performanceTrends" onClick={setActiveHelp} />
+                  </div>
                   <CardDescription>Analysis of student performance over time</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -914,7 +1316,10 @@ export default function AdvancedAnalytics() {
               {/* Assessment Type Performance */}
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Assessment Type Performance</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Assessment Type Performance</CardTitle>
+                    <HelpButton helpKey="assessmentType" onClick={setActiveHelp} />
+                  </div>
                   <CardDescription>Comparison of student performance across different assessment types</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
@@ -973,10 +1378,13 @@ export default function AdvancedAnalytics() {
                 {/* Topic Mastery Matrix */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Layers className="h-5 w-5" />
-                      Topic Mastery Matrix
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Layers className="h-5 w-5" />
+                        Topic Mastery Matrix
+                      </CardTitle>
+                      <HelpButton helpKey="topicMastery" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Performance breakdown by quiz category</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1005,10 +1413,13 @@ export default function AdvancedAnalytics() {
                 {/* Question Difficulty Analysis */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5" />
-                      Question Difficulty Analysis
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Question Difficulty Analysis
+                      </CardTitle>
+                      <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Top 10 most challenging questions</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1047,10 +1458,13 @@ export default function AdvancedAnalytics() {
                 {/* Student vs Squadron Average */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Student vs Squadron Average
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Student vs Squadron Average
+                      </CardTitle>
+                      <HelpButton helpKey="studentVsSquadron" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Individual performance compared to squadron</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1086,10 +1500,13 @@ export default function AdvancedAnalytics() {
                 {/* Training Module Completion Progress */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5" />
-                      Training Module Completion
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5" />
+                        Training Module Completion
+                      </CardTitle>
+                      <HelpButton helpKey="moduleCompletion" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Progress tracking across all modules</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1122,10 +1539,13 @@ export default function AdvancedAnalytics() {
                 {/* Certification Readiness Score */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Medal className="h-5 w-5" />
-                      Certification Readiness Score
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Medal className="h-5 w-5" />
+                        Certification Readiness Score
+                      </CardTitle>
+                      <HelpButton helpKey="certificationReadiness" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Students ranked by overall readiness</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1161,10 +1581,13 @@ export default function AdvancedAnalytics() {
                 {/* At-Risk Students Alert Table */}
                 <Card className="border-danger/50">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-danger">
-                      <XCircle className="h-5 w-5" />
-                      At-Risk Students
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2 text-danger">
+                        <XCircle className="h-5 w-5" />
+                        At-Risk Students
+                      </CardTitle>
+                      <HelpButton helpKey="atRiskStudents" onClick={setActiveHelp} />
+                    </div>
                     <CardDescription>Students requiring immediate attention</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1227,7 +1650,10 @@ export default function AdvancedAnalytics() {
               {/* Score Distribution Detailed View */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Detailed Score Analysis</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Detailed Score Analysis</CardTitle>
+                    <HelpButton helpKey="detailedScoreAnalysis" onClick={setActiveHelp} />
+                  </div>
                   <CardDescription>Comprehensive view of performance across assessment types</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1281,6 +1707,9 @@ export default function AdvancedAnalytics() {
           </div>
         </>
       )}
+
+      {/* Help Modal */}
+      <HelpModal helpKey={activeHelp} onClose={() => setActiveHelp(null)} />
     </div>
   );
 }

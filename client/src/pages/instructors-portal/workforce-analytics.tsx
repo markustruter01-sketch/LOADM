@@ -288,11 +288,11 @@ function HelpButton({ helpKey, onClick }: { helpKey: string; onClick: (key: stri
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(helpKey); }}
-      className="p-1.5 rounded-full bg-[#1a1a1a]/50 hover:bg-orange-500/20 border border-gray-700 hover:border-orange-500/50 transition-all duration-200 group"
+      className="p-2 rounded-full bg-[#1a1a1a]/50 hover:bg-orange-500/20 border border-orange-500/50 hover:border-orange-500 transition-all duration-200 group"
       title="Click for help"
       data-testid={`help-button-${helpKey}`}
     >
-      <HelpCircle className="h-4 w-4 text-gray-500 group-hover:text-orange-500 transition-colors" />
+      <HelpCircle className="h-6 w-6 text-orange-500 group-hover:text-orange-400 transition-colors" />
     </button>
   );
 }
@@ -929,6 +929,26 @@ export default function WorkforceAnalytics() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Expiring by Qualification Type - Moved from Forecast section */}
+          {forecastData?.qualificationTypeSummary && forecastData.qualificationTypeSummary.length > 0 && (
+            <Card className="bg-[#2a2a2a] border-[#333333]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-lg">Expiring by Qualification Type</CardTitle>
+                <CardDescription className="text-gray-400">Distribution of upcoming renewals across qualification types</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                  {forecastData.qualificationTypeSummary.map((qual: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-[#1a1a1a] rounded-lg text-center">
+                      <div className="text-2xl font-bold text-orange-500">{qual.totalExpiring}</div>
+                      <div className="text-xs text-gray-400 mt-1 line-clamp-2">{qual.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         {/* ==================== SECTION 4: SAFETY & COMPLIANCE ==================== */}
@@ -1401,26 +1421,6 @@ export default function WorkforceAnalytics() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Qualification Type Summary */}
-          {forecastData?.qualificationTypeSummary && forecastData.qualificationTypeSummary.length > 0 && (
-            <Card className="bg-[#2a2a2a] border-[#333333]">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-lg">Expiring by Qualification Type</CardTitle>
-                <CardDescription className="text-gray-400">Distribution of upcoming renewals across qualification types</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {forecastData.qualificationTypeSummary.map((qual: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-[#1a1a1a] rounded-lg text-center">
-                      <div className="text-2xl font-bold text-orange-500">{qual.totalExpiring}</div>
-                      <div className="text-xs text-gray-400 mt-1 line-clamp-2">{qual.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </section>
 
         {/* Footer */}
