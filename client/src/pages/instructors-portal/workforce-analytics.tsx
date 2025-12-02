@@ -751,16 +751,22 @@ export default function WorkforceAnalytics() {
                   
                   <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
                     <div className="flex items-center gap-2">
-                      {(historyData.summary?.readinessTrend || 0) >= 0 ? (
+                      {historyData.summary?.totalSnapshots < 3 ? (
+                        <Clock className="h-4 w-4 text-gray-500" />
+                      ) : (historyData.summary?.readinessTrend || 0) >= 0 ? (
                         <TrendingUp className="h-4 w-4 text-green-500" />
                       ) : (
                         <TrendingDown className="h-4 w-4 text-red-500" />
                       )}
                       <span className="text-gray-300 text-sm">Trend</span>
                     </div>
-                    <span className={`text-xl font-bold ${(historyData.summary?.readinessTrend || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {(historyData.summary?.readinessTrend || 0) >= 0 ? '+' : ''}{historyData.summary?.readinessTrend || 0}%
-                    </span>
+                    {historyData.summary?.totalSnapshots < 3 ? (
+                      <span className="text-sm text-gray-500">Need more data</span>
+                    ) : (
+                      <span className={`text-xl font-bold ${(historyData.summary?.readinessTrend || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {(historyData.summary?.readinessTrend || 0) >= 0 ? '+' : ''}{historyData.summary?.readinessTrend || 0}%
+                      </span>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -770,49 +776,98 @@ export default function WorkforceAnalytics() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-white text-lg">Readiness Over Time</CardTitle>
                   <CardDescription className="text-gray-400">
-                    Daily readiness percentage • Last {historyData.dataPoints?.length || 0} days
+                    Daily readiness percentage • {historyData.dataPoints?.length || 0} day{historyData.dataPoints?.length !== 1 ? 's' : ''} of data
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-48 flex items-end gap-1">
-                    {historyData.dataPoints?.slice(-30).map((point: any, idx: number) => {
-                      const height = Math.max(point.readyPercent, 5);
-                      const date = new Date(point.snapshotDate);
-                      const isToday = date.toDateString() === new Date().toDateString();
-                      return (
-                        <div 
-                          key={idx} 
-                          className="flex-1 flex flex-col items-center group relative"
-                          title={`${date.toLocaleDateString()}: ${point.readyPercent}% ready`}
-                        >
-                          <div 
-                            className={`w-full rounded-t transition-all duration-200 ${
-                              isToday ? 'bg-orange-500' : 
-                              point.readyPercent >= 85 ? 'bg-green-500' : 
-                              point.readyPercent >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                            } group-hover:opacity-80`}
-                            style={{ height: `${height * 1.8}px` }}
-                          />
-                          <div className="absolute -top-8 bg-[#1a1a1a] px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: {point.readyPercent}%
+                  {historyData.dataPoints?.length < 3 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center py-8">
+                        <div className="text-center">
+                          <div className="relative w-32 h-32 mx-auto mb-4">
+                            <svg className="w-32 h-32 transform -rotate-90">
+                              <circle
+                                cx="64"
+                                cy="64"
+                                r="56"
+                                stroke="#333333"
+                                strokeWidth="12"
+                                fill="none"
+                              />
+                              <circle
+                                cx="64"
+                                cy="64"
+                                r="56"
+                                stroke={historyData.dataPoints?.[0]?.readyPercent >= 85 ? '#22c55e' : historyData.dataPoints?.[0]?.readyPercent >= 70 ? '#eab308' : '#ef4444'}
+                                strokeWidth="12"
+                                fill="none"
+                                strokeDasharray={`${(historyData.dataPoints?.[0]?.readyPercent || 0) * 3.52} 352`}
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-3xl font-bold text-white">{historyData.dataPoints?.[0]?.readyPercent || 0}%</span>
+                            </div>
+                          </div>
+                          <div className="text-sm text-gray-400">Today's Readiness</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {new Date(historyData.dataPoints?.[0]?.snapshotDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-gray-500">
-                    <span>
-                      {historyData.dataPoints?.length > 0 
-                        ? new Date(historyData.dataPoints[0]?.snapshotDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                        : 'Start'}
-                    </span>
-                    <div className="flex gap-4">
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded" /> ≥85%</span>
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 bg-yellow-500 rounded" /> 70-84%</span>
-                      <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded" /> &lt;70%</span>
+                      </div>
+                      <div className="bg-[#1a1a1a] rounded-lg p-4 text-center">
+                        <Info className="h-5 w-5 text-orange-500 mx-auto mb-2" />
+                        <p className="text-sm text-gray-400">
+                          Trend data will appear after a few more days of collection.
+                          <br />
+                          <span className="text-xs text-gray-500">The chart will show daily bars once we have 3+ days of history.</span>
+                        </p>
+                      </div>
                     </div>
-                    <span>Today</span>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="h-48 flex items-end gap-1">
+                        {historyData.dataPoints?.slice(-30).map((point: any, idx: number) => {
+                          const height = Math.max(point.readyPercent, 5);
+                          const date = new Date(point.snapshotDate);
+                          const isToday = date.toDateString() === new Date().toDateString();
+                          return (
+                            <div 
+                              key={idx} 
+                              className="flex-1 flex flex-col items-center group relative"
+                              style={{ maxWidth: '40px' }}
+                              title={`${date.toLocaleDateString()}: ${point.readyPercent}% ready`}
+                            >
+                              <div 
+                                className={`w-full rounded-t transition-all duration-200 ${
+                                  isToday ? 'bg-orange-500' : 
+                                  point.readyPercent >= 85 ? 'bg-green-500' : 
+                                  point.readyPercent >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                                } group-hover:opacity-80`}
+                                style={{ height: `${height * 1.8}px` }}
+                              />
+                              <div className="absolute -top-8 bg-[#1a1a1a] px-2 py-1 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: {point.readyPercent}%
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-between mt-2 text-xs text-gray-500">
+                        <span>
+                          {historyData.dataPoints?.length > 0 
+                            ? new Date(historyData.dataPoints[0]?.snapshotDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : 'Start'}
+                        </span>
+                        <div className="flex gap-4">
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded" /> ≥85%</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 bg-yellow-500 rounded" /> 70-84%</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded" /> &lt;70%</span>
+                        </div>
+                        <span>Today</span>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
