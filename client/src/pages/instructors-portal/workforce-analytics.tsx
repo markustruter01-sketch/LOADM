@@ -331,6 +331,7 @@ export default function WorkforceAnalytics() {
                 </div>
                 <div className="text-3xl font-bold text-white">{totalHours.toFixed(1)}</div>
                 <div className="text-sm text-gray-400">Total Flight Hours</div>
+                <div className="text-xs text-gray-500 mt-1">Combined hours logged in last 30 days</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Day Hours</span>
@@ -348,13 +349,14 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Activity className="h-8 w-8 text-orange-500" />
-                  <span className="text-xs text-gray-500">Missions</span>
+                  <span className="text-xs text-gray-500">Last 30 Days</span>
                 </div>
                 <div className="text-3xl font-bold text-white">{totalFlights}</div>
                 <div className="text-sm text-gray-400">Total Flights Logged</div>
+                <div className="text-xs text-gray-500 mt-1">Number of missions flown</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Avg per person</span>
+                    <span className="text-gray-400">Avg flights per person</span>
                     <span className="text-white">{totalPersonnel > 0 ? (totalFlights / totalPersonnel).toFixed(1) : 0}</span>
                   </div>
                 </div>
@@ -365,10 +367,11 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Users className="h-8 w-8 text-green-500" />
-                  <span className="text-xs text-gray-500">Active</span>
+                  <span className="text-xs text-gray-500">Last 30 Days</span>
                 </div>
                 <div className="text-3xl font-bold text-white">{flightData?.summary?.uniqueUsers || 0}</div>
                 <div className="text-sm text-gray-400">Personnel with Flights</div>
+                <div className="text-xs text-gray-500 mt-1">Unique members who flew</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Participation rate</span>
@@ -382,15 +385,16 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Clock className="h-8 w-8 text-purple-500" />
-                  <span className="text-xs text-gray-500">Average</span>
+                  <span className="text-xs text-gray-500">Last 30 Days</span>
                 </div>
                 <div className="text-3xl font-bold text-white">
                   {flightData?.summary?.avgHoursPerPerson || 0}
                 </div>
                 <div className="text-sm text-gray-400">Avg Hours per Person</div>
+                <div className="text-xs text-gray-500 mt-1">Total hours ÷ personnel who flew</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-400">Night ratio</span>
+                    <span className="text-gray-400">Night flying ratio</span>
                     <span className="text-white">{totalHours > 0 ? Math.round(nightHours / totalHours * 100) : 0}%</span>
                   </div>
                 </div>
@@ -439,6 +443,7 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Award className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Qualifications & Currency</h2>
+            <span className="text-xs text-gray-500 ml-auto">Current status as of today</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -446,7 +451,7 @@ export default function WorkforceAnalytics() {
             <Card className="bg-[#2a2a2a] border-[#333333]">
               <CardHeader>
                 <CardTitle className="text-white text-lg">Currency Status Distribution</CardTitle>
-                <CardDescription className="text-gray-400">{totalQuals} total qualifications tracked</CardDescription>
+                <CardDescription className="text-gray-400">{totalQuals} total qualifications tracked across all personnel</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -544,6 +549,7 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Shield className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Safety & Compliance</h2>
+            <span className="text-xs text-gray-500 ml-auto">All-time records</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -557,7 +563,8 @@ export default function WorkforceAnalytics() {
                   }`}>
                     {safetyData?.safetyScore || 0}%
                   </div>
-                  <div className="text-sm text-gray-400">Safety Score</div>
+                  <div className="text-sm text-gray-400">Overall Safety Score</div>
+                  <div className="text-xs text-gray-500 mt-1">Based on all recorded events</div>
                   <Badge className={`mt-2 ${
                     (safetyData?.safetyScore || 0) >= 80 ? 'bg-green-900/50 text-green-400' : 
                     (safetyData?.safetyScore || 0) >= 60 ? 'bg-yellow-900/50 text-yellow-400' : 'bg-red-900/50 text-red-400'
@@ -592,6 +599,7 @@ export default function WorkforceAnalytics() {
                 </div>
                 <div className="text-3xl font-bold text-red-500">{incidents}</div>
                 <div className="text-sm text-gray-400">Safety Incidents</div>
+                <div className="text-xs text-gray-500 mt-1">Total recorded incidents (all time)</div>
                 <div className="text-xs text-gray-500 mt-2">
                   {incidents === 0 ? 'No incidents reported' : 'Requires attention'}
                 </div>
@@ -603,13 +611,11 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Shield className="h-8 w-8 text-blue-500" />
-                  <span className="text-xs text-gray-500">Reports</span>
+                  <span className="text-xs text-gray-500">All Time</span>
                 </div>
                 <div className="text-3xl font-bold text-blue-500">{observations}</div>
                 <div className="text-sm text-gray-400">Safety Observations</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  Proactive safety reporting
-                </div>
+                <div className="text-xs text-gray-500 mt-1">Proactive reports submitted</div>
               </CardContent>
             </Card>
 
@@ -618,13 +624,11 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Award className="h-8 w-8 text-green-500" />
-                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="text-xs text-gray-500">All Time</span>
                 </div>
                 <div className="text-3xl font-bold text-green-500">{commendations}</div>
                 <div className="text-sm text-gray-400">Commendations</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  Excellence recognized
-                </div>
+                <div className="text-xs text-gray-500 mt-1">Excellence awards received</div>
               </CardContent>
             </Card>
           </div>
