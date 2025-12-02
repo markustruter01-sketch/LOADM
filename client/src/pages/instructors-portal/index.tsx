@@ -218,6 +218,55 @@ export default function InstructorsPortal() {
           </div>
         </div>
 
+        {/* Analytics Quick Links - Featured at Top */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Advanced Analytics Card - Large */}
+          <Card className="bg-card hover:bg-card/90 transition-colors border-primary/30">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold">Advanced Analytics</CardTitle>
+                <BarChart2 className="h-6 w-6 text-primary" />
+              </div>
+              <CardDescription className="text-base">Comprehensive Performance Metrics</CardDescription>
+            </CardHeader>
+            <CardContent className="py-6">
+              <div className="text-center text-muted-foreground">
+                Analyze performance across all assessment types, track squadron-specific progress, and view detailed training metrics.
+              </div>
+            </CardContent>
+            <CardFooter className="pt-2">
+              <Link href="/instructors-portal/analytics" className="w-full">
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-base font-semibold">
+                  Workforce Performance Analytics
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+
+          {/* Workforce Analytics Card - Large */}
+          <Card className="bg-card hover:bg-card/90 transition-colors border-orange-500/30" data-testid="card-workforce-analytics">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-bold">Workforce Analytics</CardTitle>
+                <BarChart2 className="h-6 w-6 text-orange-500" />
+              </div>
+              <CardDescription className="text-base">Flight Hours, Currency & Readiness</CardDescription>
+            </CardHeader>
+            <CardContent className="py-6">
+              <div className="text-center text-muted-foreground">
+                Track flight hours by aircraft, monitor currency expirations, squadron readiness status, and safety compliance across the workforce.
+              </div>
+            </CardContent>
+            <CardFooter className="pt-2">
+              <Link href="/instructors-portal/workforce-analytics" className="w-full">
+                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-base font-semibold" data-testid="button-workforce-analytics">
+                  View Workforce Analytics
+                </Button>
+              </Link>
+            </CardFooter>
+          </Card>
+        </div>
+
         {/* Management Tools */}
         <h3 className="text-xl font-semibold mb-4 text-foreground">Management Tools</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
@@ -402,51 +451,6 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
 
-          {/* Advanced Analytics Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Advanced Analytics</CardTitle>
-                <BarChart2 className="h-5 w-5 text-primary" />
-              </div>
-              <CardDescription>Comprehensive Performance Metrics</CardDescription>
-            </CardHeader>
-            <CardContent className="h-28 flex items-center justify-center">
-              <div className="text-center text-muted-foreground text-sm">
-                Analyze performance across all assessment types, track squadron-specific progress, and view detailed training metrics.
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Link href="/instructors-portal/analytics">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white">
-                  Workforce Performance Analytics
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
-
-          {/* Workforce Analytics Card */}
-          <Card className="bg-card hover:bg-card/90 transition-colors border-orange-500/30" data-testid="card-workforce-analytics">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Workforce Analytics</CardTitle>
-                <BarChart2 className="h-5 w-5 text-orange-500" />
-              </div>
-              <CardDescription>Flight Hours, Currency & Readiness</CardDescription>
-            </CardHeader>
-            <CardContent className="h-28 flex items-center justify-center">
-              <div className="text-center text-muted-foreground text-sm">
-                Track flight hours by aircraft, monitor currency expirations, squadron readiness status, and safety compliance across the workforce.
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Link href="/instructors-portal/workforce-analytics">
-                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white" data-testid="button-workforce-analytics">
-                  View Workforce Analytics
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
         </div>
 
         {/* Additional Resources */}
