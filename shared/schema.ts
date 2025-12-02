@@ -817,3 +817,29 @@ export const insertTrainingModuleContentSchema = createInsertSchema(trainingModu
 
 export type TrainingModuleContent = typeof trainingModuleContent.$inferSelect;
 export type InsertTrainingModuleContent = z.infer<typeof insertTrainingModuleContentSchema>;
+
+// Readiness Snapshots schema - For tracking historical workforce readiness trends
+export const readinessSnapshots = pgTable("readiness_snapshots", {
+  id: serial("id").primaryKey(),
+  snapshotDate: timestamp("snapshot_date").notNull(),
+  squadron: text("squadron").notNull(), // "33", "35", "36", "37", "AMG", "ALL"
+  totalPersonnel: integer("total_personnel").notNull(),
+  readyCount: integer("ready_count").notNull(),
+  notReadyCount: integer("not_ready_count").notNull(),
+  readyPercent: real("ready_percent").notNull(),
+  currentQuals: integer("current_quals").notNull(),
+  expiringQuals: integer("expiring_quals").notNull(),
+  expiredQuals: integer("expired_quals").notNull(),
+  personnelAtRisk: integer("personnel_at_risk").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertReadinessSnapshotSchema = createInsertSchema(readinessSnapshots).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  snapshotDate: z.coerce.date(),
+});
+
+export type ReadinessSnapshot = typeof readinessSnapshots.$inferSelect;
+export type InsertReadinessSnapshot = z.infer<typeof insertReadinessSnapshotSchema>;
