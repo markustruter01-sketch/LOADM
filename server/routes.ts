@@ -3469,6 +3469,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bySquadron.set(sqn, existing);
       });
 
+      // Calculate unique personnel counts (a person should only be counted once even if they have multiple expiring quals)
+      const personnelWithExpiredQuals = new Set(expired.map(q => q.userId));
+      const personnelWithExpiringQuals = new Set([...expiring30, ...expiring60, ...expiring90].map(q => q.userId));
+      const allExpiringQuals = [...expiring30, ...expiring60, ...expiring90];
+
       res.json({
         summary: {
           total: filteredQuals.length,
@@ -3478,6 +3483,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           expiring90Days: expiring90.length,
           current: current.length,
           noExpiry: noExpiry.length,
+          // NEW: Unique personnel counts
+          personnelWithExpiredQuals: personnelWithExpiredQuals.size,
+          personnelAtRisk: personnelWithExpiringQuals.size,
+          totalExpiringQuals: allExpiringQuals.length,
         },
         expired: expired.map(q => ({
           ...q,

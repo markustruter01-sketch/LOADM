@@ -127,9 +127,11 @@ export default function WorkforceAnalytics() {
   const totalFlights = flightData?.summary?.totalFlights || 0;
   
   const currentQuals = currencyData?.summary?.current || 0;
-  const expiringSoon = (currencyData?.summary?.expiring30Days || 0) + 
-                       (currencyData?.summary?.expiring60Days || 0) + 
-                       (currencyData?.summary?.expiring90Days || 0);
+  // Use unique personnel count instead of total expiring qualifications
+  const personnelAtRisk = currencyData?.summary?.personnelAtRisk || 0;
+  const totalExpiringQuals = (currencyData?.summary?.expiring30Days || 0) + 
+                             (currencyData?.summary?.expiring60Days || 0) + 
+                             (currencyData?.summary?.expiring90Days || 0);
   const expiredQuals = currencyData?.summary?.expired || 0;
   const totalQuals = currencyData?.summary?.total || 0;
   
@@ -204,9 +206,9 @@ export default function WorkforceAnalytics() {
                   </div>
                   <div className="text-center p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
                     <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                    <div className="text-3xl font-bold text-yellow-500">{expiringSoon}</div>
-                    <div className="text-sm text-gray-400">At Risk</div>
-                    <div className="text-xs text-yellow-400 mt-1">Quals expiring within 90 days</div>
+                    <div className="text-3xl font-bold text-yellow-500">{personnelAtRisk}</div>
+                    <div className="text-sm text-gray-400">Personnel At Risk</div>
+                    <div className="text-xs text-yellow-400 mt-1">With quals expiring in 90 days</div>
                   </div>
                   <div className="text-center p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
                     <UserX className="h-8 w-8 text-red-500 mx-auto mb-2" />
@@ -476,7 +478,7 @@ export default function WorkforceAnalytics() {
                 <div className="space-y-4">
                   {(() => {
                     const currentPercent = totalQuals > 0 ? Math.round((currentQuals / totalQuals) * 100) : 0;
-                    const expiringSoonPercent = totalQuals > 0 ? Math.round((expiringSoon / totalQuals) * 100) : 0;
+                    const expiringPercent = totalQuals > 0 ? Math.round((totalExpiringQuals / totalQuals) * 100) : 0;
                     const expiredPercent = totalQuals > 0 ? Math.round((expiredQuals / totalQuals) * 100) : 0;
                     return (
                       <>
@@ -484,11 +486,11 @@ export default function WorkforceAnalytics() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <CheckCircle2 className="h-5 w-5 text-green-500" />
-                              <span className="text-gray-300">Current</span>
+                              <span className="text-gray-300">Current Qualifications</span>
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold text-green-500">{currentQuals}</div>
-                              <div className="text-xs text-green-400">{currentPercent}%</div>
+                              <div className="text-xs text-green-400">{currentPercent}% of all quals</div>
                             </div>
                           </div>
                           <Progress value={currentPercent} className="h-2 mt-3 bg-[#1a1a1a]" />
@@ -498,25 +500,25 @@ export default function WorkforceAnalytics() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                              <span className="text-gray-300">Expiring Soon (90 days)</span>
+                              <span className="text-gray-300">Qualifications Expiring (90 days)</span>
                             </div>
                             <div className="text-right">
-                              <div className="text-2xl font-bold text-yellow-500">{expiringSoon}</div>
-                              <div className="text-xs text-yellow-400">{expiringSoonPercent}%</div>
+                              <div className="text-2xl font-bold text-yellow-500">{totalExpiringQuals}</div>
+                              <div className="text-xs text-yellow-400">{expiringPercent}% • {personnelAtRisk} personnel affected</div>
                             </div>
                           </div>
-                          <Progress value={expiringSoonPercent} className="h-2 mt-3 bg-[#1a1a1a]" />
+                          <Progress value={expiringPercent} className="h-2 mt-3 bg-[#1a1a1a]" />
                         </div>
                         
                         <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <AlertCircle className="h-5 w-5 text-red-500" />
-                              <span className="text-gray-300">Expired</span>
+                              <span className="text-gray-300">Expired Qualifications</span>
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold text-red-500">{expiredQuals}</div>
-                              <div className="text-xs text-red-400">{expiredPercent}%</div>
+                              <div className="text-xs text-red-400">{expiredPercent}% of all quals</div>
                             </div>
                           </div>
                           <Progress value={expiredPercent} className="h-2 mt-3 bg-[#1a1a1a]" />
