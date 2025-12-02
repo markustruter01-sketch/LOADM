@@ -10,15 +10,368 @@ import {
   ArrowLeft, Users, Clock, AlertTriangle, CheckCircle2, Shield, Award,
   Plane, TrendingUp, TrendingDown, Calendar, Activity, RefreshCw,
   UserX, Stethoscope, GraduationCap, FileWarning, AlertCircle, Loader2,
-  LineChart, BarChart3, Bell, Target, Info
+  LineChart, BarChart3, Bell, Target, Info, HelpCircle, X
 } from "lucide-react";
 
 const SQUADRONS = ['33', '35', '36', '37', 'AMG'];
+
+interface HelpContent {
+  title: string;
+  icon: any;
+  sections: {
+    heading: string;
+    points: string[];
+  }[];
+}
+
+const HELP_CONTENT: Record<string, HelpContent> = {
+  workforceReadiness: {
+    title: "Workforce Readiness",
+    icon: Users,
+    sections: [
+      {
+        heading: "What This Feature Is",
+        points: [
+          "Shows the current operational readiness status of your workforce",
+          "Provides a snapshot of how many personnel are flight-ready vs not ready",
+          "The core health indicator for your squadron's capability"
+        ]
+      },
+      {
+        heading: "What It Tracks",
+        points: [
+          "Total Personnel - All members assigned to the selected squadron(s)",
+          "Flight Ready - Personnel with all qualifications current and no restrictions",
+          "Not Ready - Personnel missing qualifications or with restrictions",
+          "At Risk - Unique individuals with qualifications expiring within 90 days"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "Ready % = (Flight Ready ÷ Total Personnel) × 100",
+          "Pulls real-time data from qualification records and user profiles",
+          "Cross-references expiry dates, medical status, and training completion"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green (≥85%) - Healthy workforce readiness",
+          "Yellow (70-84%) - Attention needed, plan renewals",
+          "Red (<70%) - Critical, immediate action required",
+          "Orange badge - Highlights personnel requiring urgent attention"
+        ]
+      }
+    ]
+  },
+  flightOperations: {
+    title: "Flight Operations",
+    icon: Plane,
+    sections: [
+      {
+        heading: "What This Feature Is",
+        points: [
+          "Displays flight activity metrics for the selected time period",
+          "Breaks down hours by day/night and aircraft type",
+          "Helps track operational tempo and resource utilization"
+        ]
+      },
+      {
+        heading: "What It Tracks",
+        points: [
+          "Total Flight Hours - Combined day and night flying hours",
+          "Day Hours - Flying conducted during daylight hours",
+          "Night Hours - Flying conducted during night hours",
+          "Total Flights - Number of individual flight sorties",
+          "Aircraft Distribution - Hours logged per aircraft type"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "Aggregates data from all flight records in the system",
+          "Filters by selected squadron and date range (default: last 30 days)",
+          "Aircraft hours are summed from individual flight log entries"
+        ]
+      },
+      {
+        heading: "Display Format",
+        points: [
+          "Large numbers show totals for quick reference",
+          "Aircraft cards show hours per platform type",
+          "Bar chart width represents relative hours per aircraft",
+          "Sortie count helps assess mission frequency"
+        ]
+      }
+    ]
+  },
+  qualifications: {
+    title: "Qualifications Overview",
+    icon: Award,
+    sections: [
+      {
+        heading: "What This Feature Is",
+        points: [
+          "Comprehensive view of qualification currency status",
+          "Tracks expiring and expired qualifications",
+          "Identifies personnel requiring immediate renewal action"
+        ]
+      },
+      {
+        heading: "What It Tracks",
+        points: [
+          "Total Qualifications - All tracked qualifications across personnel",
+          "Current - Qualifications that are valid and not expiring soon",
+          "Expiring - Qualifications expiring within next 30/60/90 days",
+          "Expired - Qualifications past their expiry date"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "Compares qualification expiry dates against current date",
+          "30-day window = expiring within next month",
+          "60-day window = expiring within 2 months",
+          "90-day window = expiring within 3 months",
+          "Expired = expiry date is in the past"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green - Current qualifications (no action needed)",
+          "Yellow/Orange - Expiring soon (schedule renewal)",
+          "Red - Expired (personnel cannot perform duties)",
+          "Blue bar - Visual representation of 90-day expiry breakdown"
+        ]
+      }
+    ]
+  },
+  safetyCompliance: {
+    title: "Safety Compliance",
+    icon: Shield,
+    sections: [
+      {
+        heading: "What This Feature Is",
+        points: [
+          "Tracks safety-related events and compliance metrics",
+          "Provides visibility into incident patterns and commendations",
+          "Supports safety culture and continuous improvement"
+        ]
+      },
+      {
+        heading: "What It Tracks",
+        points: [
+          "Overall Safety Score - Percentage based on positive safety indicators",
+          "Incidents - Safety events requiring investigation or corrective action",
+          "Observations - Noted safety concerns or near-misses",
+          "Commendations - Positive safety behaviors recognized"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "Safety Score = Weighted formula considering incident severity and frequency",
+          "Higher commendation ratio improves overall score",
+          "Incidents have negative weighting based on severity",
+          "Observations are neutral - they indicate active safety awareness"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green (100%) - Excellent safety record, no recent incidents",
+          "Yellow (80-99%) - Minor concerns, continue monitoring",
+          "Orange (60-79%) - Increased vigilance needed",
+          "Red (<60%) - Critical safety concerns requiring action"
+        ]
+      }
+    ]
+  },
+  historicalTrends: {
+    title: "Historical Trends",
+    icon: LineChart,
+    sections: [
+      {
+        heading: "What This Feature Is",
+        points: [
+          "Shows workforce readiness changes over time",
+          "Captures daily snapshots to build trend data",
+          "Helps identify patterns and measure improvement initiatives"
+        ]
+      },
+      {
+        heading: "What It Tracks",
+        points: [
+          "Daily readiness percentage snapshots",
+          "Total personnel count changes over time",
+          "Ready vs not-ready counts each day",
+          "Long-term trend direction (improving/declining)"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "System captures a snapshot at midnight each day",
+          "Stores readiness data in a time-series database table",
+          "Trend % = Difference between recent average and older average",
+          "Average Readiness = Mean of all captured daily percentages"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green bars (≥85%) - Healthy readiness that day",
+          "Yellow bars (70-84%) - Moderate readiness",
+          "Red bars (<70%) - Poor readiness that day",
+          "Orange bar - Today's current value",
+          "Green trend arrow - Readiness is improving",
+          "Red trend arrow - Readiness is declining"
+        ]
+      }
+    ]
+  },
+  qualificationForecast: {
+    title: "Qualification Renewal Forecast",
+    icon: BarChart3,
+    sections: [
+      {
+        heading: "What This Feature Is",
+        points: [
+          "6-month projection of upcoming qualification expirations",
+          "Helps plan training and renewal activities in advance",
+          "Identifies peak months requiring additional resources"
+        ]
+      },
+      {
+        heading: "What It Tracks",
+        points: [
+          "Monthly expiration counts for next 6 months",
+          "Personnel affected each month (unique individuals)",
+          "Qualification types expiring",
+          "Peak months with highest renewal load"
+        ]
+      },
+      {
+        heading: "How It Calculates",
+        points: [
+          "Scans all qualification expiry dates in the system",
+          "Groups by month based on expiry date",
+          "Counts unique personnel (one person may have multiple expiring)",
+          "Labels show 'If No Action Taken' scenario"
+        ]
+      },
+      {
+        heading: "Color Indicators",
+        points: [
+          "Green bars - Low expiration count (manageable)",
+          "Yellow bars - Moderate load (plan ahead)",
+          "Red bars - High expiration count (resource intensive)",
+          "Orange highlights - Peak month requiring attention",
+          "Critical Alerts - Months needing immediate planning"
+        ]
+      },
+      {
+        heading: "Recommendations",
+        points: [
+          "System generates actionable suggestions based on forecast",
+          "Prioritizes months with highest impact",
+          "Suggests spreading renewals to avoid bottlenecks"
+        ]
+      }
+    ]
+  }
+};
+
+function HelpButton({ helpKey, onClick }: { helpKey: string; onClick: (key: string) => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick(helpKey); }}
+      className="p-1.5 rounded-full bg-[#1a1a1a]/50 hover:bg-orange-500/20 border border-gray-700 hover:border-orange-500/50 transition-all duration-200 group"
+      title="Click for help"
+      data-testid={`help-button-${helpKey}`}
+    >
+      <HelpCircle className="h-4 w-4 text-gray-500 group-hover:text-orange-500 transition-colors" />
+    </button>
+  );
+}
+
+function HelpModal({ helpKey, onClose }: { helpKey: string | null; onClose: () => void }) {
+  if (!helpKey || !HELP_CONTENT[helpKey]) return null;
+  
+  const content = HELP_CONTENT[helpKey];
+  const IconComponent = content.icon;
+  
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      
+      {/* Modal */}
+      <div 
+        className="relative w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Glassmorphic container */}
+        <div className="bg-gradient-to-br from-[#2a2a2a]/90 to-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/20 border border-orange-500/30">
+                <IconComponent className="h-6 w-6 text-orange-500" />
+              </div>
+              <h2 className="text-xl font-semibold text-white">{content.title}</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              data-testid="help-modal-close"
+            >
+              <X className="h-5 w-5 text-gray-400 hover:text-white" />
+            </button>
+          </div>
+          
+          {/* Content */}
+          <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
+            {content.sections.map((section, idx) => (
+              <div key={idx} className="space-y-3">
+                <h3 className="text-sm font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  {section.heading}
+                </h3>
+                <ul className="space-y-2 pl-4">
+                  {section.points.map((point, pointIdx) => (
+                    <li key={pointIdx} className="text-gray-300 text-sm flex items-start gap-2">
+                      <span className="text-orange-500 mt-1.5">•</span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          
+          {/* Footer */}
+          <div className="p-4 border-t border-white/10 bg-black/20">
+            <p className="text-xs text-gray-500 text-center">
+              Click anywhere outside or press the X to close
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function WorkforceAnalytics() {
   const [selectedSquadron, setSelectedSquadron] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [activeHelp, setActiveHelp] = useState<string | null>(null);
   
   const [flightData, setFlightData] = useState<any>(null);
   const [currencyData, setCurrencyData] = useState<any>(null);
@@ -195,6 +548,9 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Users className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Workforce Readiness</h2>
+            <div className="ml-auto">
+              <HelpButton helpKey="workforceReadiness" onClick={setActiveHelp} />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -328,7 +684,8 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Plane className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Flight Operations</h2>
-            <span className="text-xs text-gray-500 ml-auto">Last 30 days</span>
+            <span className="text-xs text-gray-500 ml-auto mr-2">Last 30 days</span>
+            <HelpButton helpKey="flightOperations" onClick={setActiveHelp} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -472,7 +829,8 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Award className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Qualifications & Currency</h2>
-            <span className="text-xs text-gray-500 ml-auto">Current status as of today</span>
+            <span className="text-xs text-gray-500 ml-auto mr-2">Current status as of today</span>
+            <HelpButton helpKey="qualifications" onClick={setActiveHelp} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -578,7 +936,8 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Shield className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Safety & Compliance</h2>
-            <span className="text-xs text-gray-500 ml-auto">All-time records</span>
+            <span className="text-xs text-gray-500 ml-auto mr-2">All-time records</span>
+            <HelpButton helpKey="safetyCompliance" onClick={setActiveHelp} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -719,7 +1078,8 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <LineChart className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Historical Trends</h2>
-            <span className="text-xs text-gray-500 ml-auto">Tracking workforce readiness over time</span>
+            <span className="text-xs text-gray-500 ml-auto mr-2">Tracking workforce readiness over time</span>
+            <HelpButton helpKey="historicalTrends" onClick={setActiveHelp} />
           </div>
 
           {historyData?.dataPoints && historyData.dataPoints.length > 0 ? (
@@ -897,7 +1257,8 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <BarChart3 className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Qualification Renewal Forecast</h2>
-            <span className="text-xs text-gray-500 ml-auto">6-month projection • If no action taken</span>
+            <span className="text-xs text-gray-500 ml-auto mr-2">6-month projection • If no action taken</span>
+            <HelpButton helpKey="qualificationForecast" onClick={setActiveHelp} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1067,6 +1428,9 @@ export default function WorkforceAnalytics() {
           Workforce Analytics Dashboard • Data refreshed at {lastRefresh.toLocaleString()}
         </div>
       </div>
+
+      {/* Help Modal */}
+      <HelpModal helpKey={activeHelp} onClose={() => setActiveHelp(null)} />
     </div>
   );
 }
