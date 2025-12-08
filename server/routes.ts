@@ -4152,7 +4152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                  : sq === '35SQN' ? '#10B981'  // Teal
                  : sq === '36SQN' ? '#3B82F6'  // Blue
                  : sq === '37SQN' ? '#8B5CF6'  // Purple
-                 : '#22C55E',                   // Green (AMG)
+                 : '#FBBF24',                   // Yellow (AMG)
           dataPoints,
         };
       });
