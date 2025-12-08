@@ -1722,7 +1722,7 @@ export default function AdvancedAnalytics() {
                           </div>
                           
                           {/* Radial Gauge with Needle */}
-                          <div className="relative w-[180px] h-[100px]">
+                          <div className="w-[180px] h-[100px]">
                             <svg viewBox="0 0 180 100" className="w-full h-full">
                               {/* Background Arc */}
                               <path
@@ -1758,10 +1758,11 @@ export default function AdvancedAnalytics() {
                               <text x="15" y="98" fill="rgba(161, 161, 170, 0.8)" fontSize="10" textAnchor="middle">0</text>
                               <text x="165" y="98" fill="rgba(161, 161, 170, 0.8)" fontSize="10" textAnchor="middle">100</text>
                             </svg>
-                            {/* Center Score Display */}
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                              <span className="text-2xl font-bold text-orange-500">{assessment.avgScore}%</span>
-                            </div>
+                          </div>
+                          
+                          {/* Score Display Below Gauge */}
+                          <div className="mt-2 flex flex-col items-center">
+                            <span className="text-2xl font-bold text-orange-500">{assessment.avgScore}%</span>
                           </div>
                           
                           {/* Stats Below Gauge */}
