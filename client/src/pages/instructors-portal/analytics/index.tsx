@@ -647,11 +647,11 @@ export default function AdvancedAnalytics() {
       ...(scenarioSubmissions || []).map(sub => ({
         ...sub,
         type: 'scenario',
-        // Extract squadron from studentId if it contains format "ID - Squadron"
-        squadronFromId: extractSquadronFromId(sub.studentId),
-        // Use calculated score if available
-        calculatedScore: calculateScoreFromMarkedAnswers(sub.markedAnswers),
-        date: new Date(sub.submissionDate),
+        // Use squadron field if available, otherwise extract from studentId
+        squadronFromId: sub.squadron || extractSquadronFromId(sub.studentId),
+        // Use score field if available, otherwise try to calculate from markedAnswers
+        calculatedScore: sub.score !== undefined ? sub.score : calculateScoreFromMarkedAnswers(sub.markedAnswers),
+        date: sub.submissionDate ? new Date(sub.submissionDate) : new Date(),
         // Ensure consistent squadron field
         squadron: undefined 
       })),
@@ -661,7 +661,7 @@ export default function AdvancedAnalytics() {
         // Get squadron directly if available, or extract from ID
         squadronFromId: sub.squadron || "AMG",
         calculatedScore: sub.score,
-        date: new Date(sub.submissionDate),
+        date: sub.submissionDate ? new Date(sub.submissionDate) : new Date(),
         passed: sub.score >= 70, // Default pass threshold for quizzes
         squadron: undefined // Remove to avoid type conflicts
       })),
@@ -671,7 +671,7 @@ export default function AdvancedAnalytics() {
         type: 'document',
         squadronFromId: "AMG", // Default squadron if not specified
         calculatedScore: 0, // Documents typically don't have scores
-        date: new Date(sub.submissionDate),
+        date: sub.submissionDate ? new Date(sub.submissionDate) : new Date(),
         passed: true, // Documents are typically pass/fail based on completion
         squadron: undefined // Remove to avoid type conflicts
       }))
