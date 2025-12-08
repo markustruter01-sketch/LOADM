@@ -4149,10 +4149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // RULE: All ICC chart lines must always display unique colors
           // Each squadron is assigned a distinct, visually distinguishable color
           color: sq === '33SQN' ? '#FF9500'    // Orange
-                 : sq === '35SQN' ? '#10B981'  // Green
+                 : sq === '35SQN' ? '#10B981'  // Teal
                  : sq === '36SQN' ? '#3B82F6'  // Blue
                  : sq === '37SQN' ? '#8B5CF6'  // Purple
-                 : '#F59E0B',                   // Amber/Yellow (AMG)
+                 : '#22C55E',                   // Green (AMG)
           dataPoints,
         };
       });

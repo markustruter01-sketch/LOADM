@@ -516,7 +516,7 @@ const COLORS = {
     "35 Squadron": "#10B981",
     "36 Squadron": "#3B82F6",
     "37 Squadron": "#8B5CF6",
-    "AMG": "#F59E0B"
+    "AMG": "#22C55E"
   },
   scoreRanges: {
     "0-49%": "#EF4444",
