@@ -1561,7 +1561,7 @@ export default function AdvancedAnalytics() {
                     <CardDescription>Distribution of submissions by squadron</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] w-full mb-4">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -1586,6 +1586,29 @@ export default function AdvancedAnalytics() {
                           <Legend />
                         </PieChart>
                       </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Squadron Stats Grid */}
+                    <Separator className="mb-4" />
+                    <div className="grid grid-cols-2 gap-3">
+                      {overviewStats.squadronBreakdown.map((squadron) => {
+                        const total = overviewStats.squadronBreakdown.reduce((sum, s) => sum + s.count, 0);
+                        return (
+                          <div key={squadron.name} className="flex items-start gap-3">
+                            <div 
+                              className="h-3 w-3 rounded-full mt-1 flex-shrink-0"
+                              style={{ backgroundColor: COLORS.squadrons[squadron.name as keyof typeof COLORS.squadrons] || COLORS.primary }}
+                            />
+                            <div>
+                              <p className="text-2xl font-bold">{squadron.count}</p>
+                              <p className="text-xs text-muted-foreground">{squadron.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(squadron.count / total * 100).toFixed(1)}% of submissions
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
