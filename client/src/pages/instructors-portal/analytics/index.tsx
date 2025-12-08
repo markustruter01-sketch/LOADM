@@ -1684,7 +1684,7 @@ export default function AdvancedAnalytics() {
               </Card>
               
               {/* Assessment Type Performance - Radial Gauge Charts */}
-              <Card>
+              <Card className="bg-card border-border">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Assessment Type Performance</CardTitle>
@@ -1693,70 +1693,88 @@ export default function AdvancedAnalytics() {
                   <CardDescription>Comparison of student performance across different assessment types</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex flex-wrap justify-between gap-4 w-full">
                     {performanceData.assessmentTypePerformance.map((assessment, index) => {
-                      const gaugeData = [
-                        { name: 'Score', value: assessment.avgScore, fill: COLORS.primary },
-                        { name: 'Remaining', value: 100 - assessment.avgScore, fill: 'rgba(107, 114, 128, 0.2)' }
-                      ];
                       const typeIcons: Record<string, any> = {
                         'Scenario': FileText,
                         'Quiz': BarChart3,
                         'Document': FileText
                       };
                       const TypeIcon = typeIcons[assessment.type] || FileText;
+                      const needleAngle = 180 - (assessment.avgScore / 100) * 180;
+                      const needleRadians = (needleAngle * Math.PI) / 180;
+                      const needleLength = 55;
+                      const centerX = 90;
+                      const centerY = 90;
+                      const needleX = centerX + needleLength * Math.cos(needleRadians);
+                      const needleY = centerY - needleLength * Math.sin(needleRadians);
                       
                       return (
                         <div 
                           key={assessment.type}
-                          className="flex flex-col items-center p-4 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50"
+                          className="flex-1 min-w-[280px] flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-zinc-800/60 to-zinc-900/80 border border-zinc-700/50"
                           data-testid={`gauge-${assessment.type.toLowerCase()}`}
                         >
                           {/* Assessment Type Header */}
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex items-center gap-2 mb-4">
                             <TypeIcon className="h-5 w-5 text-orange-500" />
-                            <span className="font-semibold text-lg">{assessment.type}</span>
+                            <span className="font-semibold text-lg text-foreground">{assessment.type}</span>
                           </div>
                           
-                          {/* Radial Gauge */}
-                          <div className="relative w-[160px] h-[160px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <RadialBarChart 
-                                cx="50%" 
-                                cy="50%" 
-                                innerRadius="70%" 
-                                outerRadius="100%" 
-                                barSize={12}
-                                data={[gaugeData[0]]}
-                                startAngle={180} 
-                                endAngle={0}
-                              >
-                                <RadialBar
-                                  background={{ fill: 'rgba(107, 114, 128, 0.2)' }}
-                                  dataKey="value"
-                                  cornerRadius={6}
-                                  fill={COLORS.primary}
-                                />
-                              </RadialBarChart>
-                            </ResponsiveContainer>
+                          {/* Radial Gauge with Needle */}
+                          <div className="relative w-[180px] h-[100px]">
+                            <svg viewBox="0 0 180 100" className="w-full h-full">
+                              {/* Background Arc */}
+                              <path
+                                d="M 15 90 A 75 75 0 0 1 165 90"
+                                fill="none"
+                                stroke="rgba(113, 113, 122, 0.3)"
+                                strokeWidth="14"
+                                strokeLinecap="round"
+                              />
+                              {/* Score Arc - Orange */}
+                              <path
+                                d="M 15 90 A 75 75 0 0 1 165 90"
+                                fill="none"
+                                stroke="#FF9500"
+                                strokeWidth="14"
+                                strokeLinecap="round"
+                                strokeDasharray={`${(assessment.avgScore / 100) * 236} 236`}
+                              />
+                              {/* Needle */}
+                              <line
+                                x1={centerX}
+                                y1={centerY}
+                                x2={needleX}
+                                y2={needleY}
+                                stroke="#FFFFFF"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                              />
+                              {/* Needle Center Circle */}
+                              <circle cx={centerX} cy={centerY} r="6" fill="#FF9500" />
+                              <circle cx={centerX} cy={centerY} r="3" fill="#FFFFFF" />
+                              {/* Min/Max Labels */}
+                              <text x="15" y="98" fill="rgba(161, 161, 170, 0.8)" fontSize="10" textAnchor="middle">0</text>
+                              <text x="165" y="98" fill="rgba(161, 161, 170, 0.8)" fontSize="10" textAnchor="middle">100</text>
+                            </svg>
                             {/* Center Score Display */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                              <span className="text-3xl font-bold text-orange-500">{assessment.avgScore}%</span>
-                              <span className="text-xs text-muted-foreground">Avg Score</span>
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                              <span className="text-2xl font-bold text-orange-500">{assessment.avgScore}%</span>
                             </div>
                           </div>
                           
                           {/* Stats Below Gauge */}
-                          <div className="w-full mt-4 space-y-2">
-                            <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-gray-800/50">
-                              <span className="text-sm text-muted-foreground">Pass Rate</span>
-                              <span className={`text-sm font-semibold ${assessment.passRate >= 70 ? 'text-green-500' : assessment.passRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                          <div className="w-full mt-5 grid grid-cols-2 gap-3">
+                            <div className="flex flex-col items-center p-3 rounded-lg bg-zinc-800/60 border border-zinc-700/40">
+                              <span className="text-xs text-muted-foreground mb-1">Pass Rate</span>
+                              <span className={`text-lg font-bold ${assessment.passRate >= 70 ? 'text-green-500' : assessment.passRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
                                 {assessment.passRate}%
                               </span>
                             </div>
-                            <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-gray-800/50">
-                              <span className="text-sm text-muted-foreground">Submissions</span>
-                              <span className="text-sm font-semibold text-white">{assessment.submissions.toLocaleString()}</span>
+                            <div className="flex flex-col items-center p-3 rounded-lg bg-zinc-800/60 border border-zinc-700/40">
+                              <span className="text-xs text-muted-foreground mb-1">Submissions</span>
+                              <span className="text-lg font-bold text-foreground">{assessment.submissions.toLocaleString()}</span>
                             </div>
                           </div>
                         </div>
@@ -1765,7 +1783,7 @@ export default function AdvancedAnalytics() {
                     
                     {/* Fallback if no data */}
                     {performanceData.assessmentTypePerformance.length === 0 && (
-                      <div className="col-span-3 text-center py-8 text-muted-foreground">
+                      <div className="w-full text-center py-8 text-muted-foreground">
                         No assessment data available
                       </div>
                     )}
