@@ -4146,10 +4146,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return {
           squadron: sq,
-          color: sq === '33SQN' ? '#FF9500' : 
-                 sq === '35SQN' ? '#10B981' :
-                 sq === '36SQN' ? '#3B82F6' :
-                 sq === '37SQN' ? '#8B5CF6' : '#F59E0B',
+          // RULE: All ICC chart lines must always display unique colors
+          // Each squadron is assigned a distinct, visually distinguishable color
+          color: sq === '33SQN' ? '#FF9500'    // Orange
+                 : sq === '35SQN' ? '#10B981'  // Green
+                 : sq === '36SQN' ? '#3B82F6'  // Blue
+                 : sq === '37SQN' ? '#8B5CF6'  // Purple
+                 : '#F59E0B',                   // Amber/Yellow (AMG)
           dataPoints,
         };
       });
