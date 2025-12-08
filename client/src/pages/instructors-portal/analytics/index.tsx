@@ -1339,11 +1339,17 @@ export default function AdvancedAnalytics() {
                     </div>
                   )}
 
-                  {/* Summary Stats */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
-                    <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
-                    <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
-                    <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
+                  {/* Summary Stats and Formula */}
+                  <div className="flex items-start justify-between mt-4 pt-4 border-t border-border/50 gap-8">
+                    <div className="flex items-center gap-8 text-xs text-muted-foreground">
+                      <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
+                      <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
+                      <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
+                    </div>
+                    <div className="text-right text-[11px] font-mono" style={{ color: '#93C5FD' }}>
+                      <div className="whitespace-nowrap">Y = 0.6 × (M/Mₘₐₓ) + 0.4 × σ(t)</div>
+                      <div className="whitespace-nowrap text-[10px] mt-1">σ(t) = 1/(1 + e^(-0.8(x-5)))</div>
+                    </div>
                   </div>
                 </>
               ) : (
