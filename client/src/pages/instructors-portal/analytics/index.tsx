@@ -50,7 +50,9 @@ import {
   CartesianGrid,
   Area,
   AreaChart,
-  ComposedChart
+  ComposedChart,
+  RadialBarChart,
+  RadialBar
 } from "recharts";
 import { 
   BarChart3, 
@@ -70,7 +72,8 @@ import {
   TrendingUp,
   Target,
   AlertTriangle,
-  Award
+  Award,
+  FileText
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -206,9 +209,9 @@ const HELP_CONTENT: Record<string, HelpContent> = {
       {
         heading: "What This Chart Shows",
         points: [
-          "Performance comparison across different assessment types",
-          "Lines show average score and pass rate",
-          "Bars indicate submission volume per type"
+          "Radial gauge charts showing performance by assessment type",
+          "Center value displays average score percentage",
+          "Pass rate and submission counts shown below each gauge"
         ]
       },
       {
@@ -217,7 +220,7 @@ const HELP_CONTENT: Record<string, HelpContent> = {
           "Scenarios - Practical load planning exercises",
           "Quizzes - Knowledge-based assessments",
           "Documents - Document comprehension tests",
-          "Compare to identify challenging assessment formats"
+          "Compare gauges to identify challenging assessment formats"
         ]
       }
     ]
@@ -1680,7 +1683,7 @@ export default function AdvancedAnalytics() {
                 </CardContent>
               </Card>
               
-              {/* Assessment Type Performance */}
+              {/* Assessment Type Performance - Radial Gauge Charts */}
               <Card>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
@@ -1689,45 +1692,83 @@ export default function AdvancedAnalytics() {
                   </div>
                   <CardDescription>Comparison of student performance across different assessment types</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={performanceData.assessmentTypePerformance}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="type" />
-                        <YAxis yAxisId="left" orientation="left" domain={[0, 100]} />
-                        <YAxis yAxisId="right" orientation="right" domain={[0, 'dataMax + 10']} />
-                        <Tooltip />
-                        <Legend />
-                        <Bar 
-                          yAxisId="right"
-                          dataKey="submissions" 
-                          name="Total Submissions" 
-                          fill={COLORS.secondary}
-                          barSize={50}
-                        />
-                        <Line 
-                          yAxisId="left"
-                          type="monotone" 
-                          dataKey="avgScore" 
-                          name="Average Score (%)" 
-                          stroke={COLORS.primary}
-                          strokeWidth={2}
-                          dot={{ r: 6 }}
-                          activeDot={{ r: 8 }}
-                        />
-                        <Line 
-                          yAxisId="left"
-                          type="monotone" 
-                          dataKey="passRate" 
-                          name="Pass Rate (%)" 
-                          stroke={COLORS.success}
-                          strokeWidth={2}
-                          dot={{ r: 6 }}
-                          activeDot={{ r: 8 }}
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
+                <CardContent className="pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {performanceData.assessmentTypePerformance.map((assessment, index) => {
+                      const gaugeData = [
+                        { name: 'Score', value: assessment.avgScore, fill: COLORS.primary },
+                        { name: 'Remaining', value: 100 - assessment.avgScore, fill: 'rgba(107, 114, 128, 0.2)' }
+                      ];
+                      const typeIcons: Record<string, any> = {
+                        'Scenario': FileText,
+                        'Quiz': BarChart3,
+                        'Document': FileText
+                      };
+                      const TypeIcon = typeIcons[assessment.type] || FileText;
+                      
+                      return (
+                        <div 
+                          key={assessment.type}
+                          className="flex flex-col items-center p-4 rounded-xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50"
+                          data-testid={`gauge-${assessment.type.toLowerCase()}`}
+                        >
+                          {/* Assessment Type Header */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <TypeIcon className="h-5 w-5 text-orange-500" />
+                            <span className="font-semibold text-lg">{assessment.type}</span>
+                          </div>
+                          
+                          {/* Radial Gauge */}
+                          <div className="relative w-[160px] h-[160px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RadialBarChart 
+                                cx="50%" 
+                                cy="50%" 
+                                innerRadius="70%" 
+                                outerRadius="100%" 
+                                barSize={12}
+                                data={[gaugeData[0]]}
+                                startAngle={180} 
+                                endAngle={0}
+                              >
+                                <RadialBar
+                                  background={{ fill: 'rgba(107, 114, 128, 0.2)' }}
+                                  dataKey="value"
+                                  cornerRadius={6}
+                                  fill={COLORS.primary}
+                                />
+                              </RadialBarChart>
+                            </ResponsiveContainer>
+                            {/* Center Score Display */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-3xl font-bold text-orange-500">{assessment.avgScore}%</span>
+                              <span className="text-xs text-muted-foreground">Avg Score</span>
+                            </div>
+                          </div>
+                          
+                          {/* Stats Below Gauge */}
+                          <div className="w-full mt-4 space-y-2">
+                            <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-gray-800/50">
+                              <span className="text-sm text-muted-foreground">Pass Rate</span>
+                              <span className={`text-sm font-semibold ${assessment.passRate >= 70 ? 'text-green-500' : assessment.passRate >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                                {assessment.passRate}%
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center px-2 py-1.5 rounded-lg bg-gray-800/50">
+                              <span className="text-sm text-muted-foreground">Submissions</span>
+                              <span className="text-sm font-semibold text-white">{assessment.submissions.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Fallback if no data */}
+                    {performanceData.assessmentTypePerformance.length === 0 && (
+                      <div className="col-span-3 text-center py-8 text-muted-foreground">
+                        No assessment data available
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
