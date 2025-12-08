@@ -741,6 +741,10 @@ app.get("/api/workforce/user/:userId/submissions", requireInstructor, async (req
   }
 });
 
+// Set up server and port BEFORE registering routes
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const httpServer = createServer(app);
+
 // Register API routes BEFORE Vite middleware to prevent interception
 registerRoutes(app).then(() => {
   console.log('✅ All routes registered successfully');
@@ -762,18 +766,27 @@ registerRoutes(app).then(() => {
     serveStatic(app);
   }
   
-  // Start server after everything is configured
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
-    console.log(`✅ ISOLATED SERVER: Authentication system ready`);
-  });
-  
 }).catch(err => {
   console.error('❌ Route registration failed:', err);
 });
 
-const PORT = 5000;
-const httpServer = createServer(app);
+// Start server AFTER route registration but independently
+// This ensures the server starts even if route registration has issues
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ ISOLATED SERVER: Running on port ${PORT}`);
+  console.log(`✅ ISOLATED SERVER: Authentication system ready`);
+  console.log(`✅ ISOLATED SERVER: Listening on 0.0.0.0:${PORT}`);
+});
+
+// Handle server errors
+httpServer.on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ PORT ${PORT} is already in use`);
+  } else {
+    console.error('❌ Server error:', err);
+  }
+  process.exit(1);
+});
 
 // WebSocket server for chat
 const wss = new WebSocketServer({ 
