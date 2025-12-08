@@ -1505,7 +1505,7 @@ export default function AdvancedAnalytics() {
                     <CardDescription>Student performance across score ranges</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] w-full mb-4">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={performanceData.scoreDistribution}>
                           <CartesianGrid strokeDasharray="3 3" />
@@ -1527,6 +1527,26 @@ export default function AdvancedAnalytics() {
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Score Stats Grid */}
+                    <Separator className="mb-4" />
+                    <div className="grid grid-cols-2 gap-3">
+                      {performanceData.scoreDistribution.map((range) => (
+                        <div key={range.range} className="flex items-start gap-3">
+                          <div 
+                            className="h-3 w-3 rounded-full mt-1 flex-shrink-0"
+                            style={{ backgroundColor: COLORS.scoreRanges[range.range as keyof typeof COLORS.scoreRanges] }}
+                          />
+                          <div>
+                            <p className="text-2xl font-bold">{range.count}</p>
+                            <p className="text-xs text-muted-foreground">{range.range}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(range.count / performanceData.scoreDistribution.reduce((sum, item) => sum + item.count, 0) * 100).toFixed(1)}% of submissions
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -2066,71 +2086,6 @@ export default function AdvancedAnalytics() {
                 </Card>
               </div>
               
-              {/* Detailed Scoring Section */}
-              <Separator className="my-8" />
-              
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-2">Detailed Score Analysis</h2>
-                <p className="text-muted-foreground">Comprehensive view of performance across assessment types</p>
-              </div>
-              
-              {/* Score Distribution Detailed View */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Detailed Score Analysis</CardTitle>
-                    <HelpButton helpKey="detailedScoreAnalysis" onClick={setActiveHelp} />
-                  </div>
-                  <CardDescription>Comprehensive view of performance across assessment types</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[400px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceData.scoreDistribution}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="range" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar 
-                          dataKey="count" 
-                          name="Number of Students" 
-                        >
-                          {performanceData.scoreDistribution.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={COLORS.scoreRanges[entry.range as keyof typeof COLORS.scoreRanges]} 
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  
-                  <Separator className="my-6" />
-                  
-                  {/* Score Insights */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    {performanceData.scoreDistribution.map((range) => (
-                      <Card key={range.range} className="bg-muted/40 border-none">
-                        <CardContent className="p-4">
-                          <h3 className="text-lg font-medium mb-1 flex items-center">
-                            <span 
-                              className="h-3 w-3 rounded-full mr-2"
-                              style={{ backgroundColor: COLORS.scoreRanges[range.range as keyof typeof COLORS.scoreRanges] }}
-                            />
-                            {range.range}
-                          </h3>
-                          <p className="text-3xl font-bold">{range.count}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {(range.count / performanceData.scoreDistribution.reduce((sum, item) => sum + item.count, 0) * 100).toFixed(1)}% of submissions
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
           </div>
         </>
       )}
