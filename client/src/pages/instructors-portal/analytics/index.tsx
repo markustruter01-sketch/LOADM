@@ -533,6 +533,7 @@ export default function AdvancedAnalytics() {
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
   const [iccMetric, setIccMetric] = useState<string>("assessmentsPassed");
+  const [showIccFormulaModal, setShowIccFormulaModal] = useState<boolean>(false);
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -1339,18 +1340,147 @@ export default function AdvancedAnalytics() {
                     </div>
                   )}
 
-                  {/* Summary Stats and Formula */}
-                  <div className="flex items-start justify-between mt-4 pt-4 border-t border-border/50 gap-8">
+                  {/* Summary Stats and Formula Box */}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 gap-8">
                     <div className="flex items-center gap-8 text-xs text-muted-foreground">
                       <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
                       <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
                       <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
                     </div>
-                    <div className="text-right text-[11px] font-mono" style={{ color: '#93C5FD' }}>
-                      <div className="whitespace-nowrap">Y = 0.6 × (M/Mₘₐₓ) + 0.4 × σ(t)</div>
-                      <div className="whitespace-nowrap text-[10px] mt-1">σ(t) = 1/(1 + e^(-0.8(x-5)))</div>
-                    </div>
+                    <button
+                      onClick={() => setShowIccFormulaModal(true)}
+                      className="px-4 py-2 rounded-lg text-sm font-mono border border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
+                      data-testid="button-icc-formula"
+                    >
+                      View Formula
+                    </button>
                   </div>
+
+                  {/* ICC Formula Modal */}
+                  {showIccFormulaModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowIccFormulaModal(false)}>
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                      <div 
+                        className="relative bg-slate-900/60 border border-slate-700/50 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden"
+                        style={{
+                          backdropFilter: 'blur(10px)',
+                          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                          borderColor: 'rgba(71, 85, 105, 0.5)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-700/50">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h2 className="text-xl font-bold text-white mb-2">ICC Power Law Distribution</h2>
+                              <p className="text-sm text-blue-300">
+                                ✨ <strong>Why This Matters:</strong> This chart reveals hidden patterns in how your workforce develops skills over time, helping you predict performance trajectories and identify optimal training windows for each career stage.
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setShowIccFormulaModal(false)}
+                              className="text-slate-400 hover:text-white transition-colors"
+                            >
+                              <X className="h-6 w-6" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                          {/* What It Does */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                              <Target className="h-5 w-5 text-blue-400" />
+                              What It Does
+                            </h3>
+                            <p className="text-slate-300 text-sm leading-relaxed">
+                              The ICC (Item Characteristic Curve) Power Law Distribution chart models how performance metrics evolve across your workforce as personnel gain experience. It combines actual performance data with a sigmoid (S-curve) function to create smooth, realistic learning trajectories that match real-world skill development patterns.
+                            </p>
+                          </div>
+
+                          {/* What It Shows */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                              <TrendingUp className="h-5 w-5 text-blue-400" />
+                              What It Shows
+                            </h3>
+                            <ul className="space-y-2 text-sm text-slate-300">
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Career Stage Performance:</strong> How different experience levels (0-12 years) perform on key metrics</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Squadron Comparison:</strong> Color-coded lines for each squadron show comparative performance trajectories</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Growth Periods:</strong> Steep curves indicate rapid skill acquisition; plateau regions show expertise stabilization</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Selectible Metrics:</strong> Switch between Assessments Passed, Flight Hours, Qualifications, Scores, and Cargo Weight</span>
+                              </li>
+                            </ul>
+                          </div>
+
+                          {/* Why It's Useful */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                              <Award className="h-5 w-5 text-blue-400" />
+                              Why It's Useful
+                            </h3>
+                            <ul className="space-y-2 text-sm text-slate-300">
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Workforce Planning:</strong> Predict when personnel will reach peak performance and plan succession</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Training Optimization:</strong> Identify the critical learning window (usually years 2-5) for targeted training investment</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Squadron Benchmarking:</strong> Compare squadron trajectories to identify best practices and improvement areas</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Performance Prediction:</strong> Estimate how new personnel will develop compared to historical patterns</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Data-Driven Decisions:</strong> Base promotion, assignment, and retention decisions on statistically validated learning curves</span>
+                              </li>
+                            </ul>
+                          </div>
+
+                          {/* Formula */}
+                          <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                            <h4 className="text-sm font-semibold text-white mb-3">Mathematical Formula</h4>
+                            <div className="space-y-2 font-mono text-xs text-slate-300">
+                              <div className="text-center text-blue-300">Y = 0.6 × (M/M<sub>max</sub>) + 0.4 × σ(t)</div>
+                              <div className="text-center text-blue-300">σ(t) = 1 / (1 + e<sup>-0.8(x-5)</sup>)</div>
+                              <div className="text-slate-400 text-[10px] mt-3 text-center leading-relaxed">
+                                Y = final curve value • M = actual metric value • M<sub>max</sub> = maximum expected value • σ(t) = logistic sigmoid function • k = 0.8 (steepness) • x₀ = 5 (midpoint in years)
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
+                          <button
+                            onClick={() => setShowIccFormulaModal(false)}
+                            className="w-full py-2 px-4 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="h-[400px] flex items-center justify-center text-muted-foreground">
