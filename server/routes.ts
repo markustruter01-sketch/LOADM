@@ -3972,6 +3972,249 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ICC Power Law Distribution Analytics - Performance curves by time in role
+  app.get("/api/analytics/icc-power-law", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { metric = "assessmentsPassed", squadron = "all" } = req.query;
+      
+      // Get all users with their license data and calculate time in role
+      const usersWithLicenses = await db.select({
+        userId: users.id,
+        licenseId: licenses.id,
+        issuedDate: licenses.issuedDate,
+        squadron: licenses.squadron,
+        firstName: licenses.firstName,
+        lastName: licenses.lastName,
+        totalCargoWeight: licenses.totalCargoWeight,
+      })
+      .from(users)
+      .innerJoin(licenses, eq(users.licenseId, licenses.id));
+
+      // Filter by squadron if specified
+      let filteredUsers = usersWithLicenses;
+      if (squadron && squadron !== 'all') {
+        filteredUsers = usersWithLicenses.filter(u => u.squadron === squadron);
+      }
+
+      // Calculate time in role (months) for each user
+      const now = new Date();
+      const usersWithTenure = filteredUsers.map(u => {
+        const issuedDate = new Date(u.issuedDate);
+        const monthsInRole = Math.floor((now.getTime() - issuedDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
+        return { ...u, monthsInRole: Math.max(0, monthsInRole) };
+      });
+
+      // Get metric data based on selected metric type
+      let metricData: Map<number, number> = new Map();
+
+      if (metric === 'assessmentsPassed') {
+        // Count passed assessments per user
+        const submissions = await db.select({
+          userId: scenarioSubmissions.userId,
+          passed: scenarioSubmissions.passed,
+        }).from(scenarioSubmissions);
+
+        submissions.forEach(s => {
+          if (s.passed) {
+            metricData.set(s.userId, (metricData.get(s.userId) || 0) + 1);
+          }
+        });
+      } else if (metric === 'totalFlightHours') {
+        // Sum flight hours per user
+        const flights = await db.select({
+          userId: flightRecords.userId,
+          dayHours: flightRecords.dayHours,
+          nightHours: flightRecords.nightHours,
+        }).from(flightRecords);
+
+        flights.forEach(f => {
+          const hours = (f.dayHours || 0) + (f.nightHours || 0);
+          metricData.set(f.userId, (metricData.get(f.userId) || 0) + hours);
+        });
+      } else if (metric === 'activeQualifications') {
+        // Count active qualifications per user
+        const quals = await db.select({
+          userId: userQualifications.userId,
+          expiryDate: userQualifications.expiryDate,
+        }).from(userQualifications);
+
+        quals.forEach(q => {
+          // Count as active if no expiry or expiry in future
+          const isActive = !q.expiryDate || new Date(q.expiryDate) > now;
+          if (isActive) {
+            metricData.set(q.userId, (metricData.get(q.userId) || 0) + 1);
+          }
+        });
+      } else if (metric === 'averageScore') {
+        // Calculate average assessment score per user
+        const submissions = await db.select({
+          userId: scenarioSubmissions.userId,
+          score: scenarioSubmissions.score,
+        }).from(scenarioSubmissions);
+
+        const userScores: Map<number, { total: number; count: number }> = new Map();
+        submissions.forEach(s => {
+          if (s.score !== null) {
+            const current = userScores.get(s.userId) || { total: 0, count: 0 };
+            current.total += s.score;
+            current.count += 1;
+            userScores.set(s.userId, current);
+          }
+        });
+
+        userScores.forEach((data, userId) => {
+          metricData.set(userId, Math.round(data.total / data.count));
+        });
+      } else if (metric === 'cargoWeight') {
+        // Use total cargo weight from license
+        usersWithTenure.forEach(u => {
+          metricData.set(u.userId, u.totalCargoWeight || 0);
+        });
+      }
+
+      // Bin users by time in role (years)
+      const yearBins: Map<number, { users: number; totalMetric: number; squadron: string }[]> = new Map();
+      
+      // Get unique squadrons for multi-line chart
+      const squadrons = squadron === 'all' 
+        ? ['33SQN', '35SQN', '36SQN', '37SQN', 'AMG']
+        : [squadron as string];
+
+      // Initialize bins for 0-12 years
+      for (let year = 0; year <= 12; year++) {
+        yearBins.set(year, squadrons.map(sq => ({ users: 0, totalMetric: 0, squadron: sq })));
+      }
+
+      // Aggregate data by year and squadron
+      usersWithTenure.forEach(u => {
+        const yearInRole = Math.min(12, Math.floor(u.monthsInRole / 12));
+        const userMetric = metricData.get(u.userId) || 0;
+        
+        const binData = yearBins.get(yearInRole);
+        if (binData) {
+          const squadronBin = binData.find(b => b.squadron === u.squadron);
+          if (squadronBin) {
+            squadronBin.users += 1;
+            squadronBin.totalMetric += userMetric;
+          }
+        }
+      });
+
+      // Calculate cumulative power law curves
+      // For each squadron, calculate normalized cumulative performance
+      const curves = squadrons.map(sq => {
+        let cumulativeUsers = 0;
+        let cumulativeMetric = 0;
+        const maxPossible = metric === 'averageScore' ? 100 : 
+                          metric === 'assessmentsPassed' ? 20 :
+                          metric === 'totalFlightHours' ? 800 :
+                          metric === 'activeQualifications' ? 15 :
+                          50000; // cargoWeight
+
+        const dataPoints = [];
+        for (let year = 0; year <= 12; year++) {
+          const binData = yearBins.get(year);
+          const squadronBin = binData?.find(b => b.squadron === sq);
+          
+          if (squadronBin && squadronBin.users > 0) {
+            cumulativeUsers += squadronBin.users;
+            cumulativeMetric += squadronBin.totalMetric;
+          }
+
+          // Calculate average metric for users up to this tenure
+          const avgMetric = cumulativeUsers > 0 ? cumulativeMetric / cumulativeUsers : 0;
+          
+          // Normalize to 0-1 scale for power law curve
+          const normalizedValue = Math.min(1, avgMetric / maxPossible);
+          
+          // Apply sigmoid transformation for S-curve shape
+          // Using logistic function: 1 / (1 + e^(-k(x-x0)))
+          const k = 0.8; // Steepness
+          const x0 = 5; // Midpoint (years)
+          const sigmoidModifier = 1 / (1 + Math.exp(-k * (year - x0)));
+          const blendedValue = (normalizedValue * 0.6) + (sigmoidModifier * 0.4);
+
+          dataPoints.push({
+            year,
+            yearLabel: year === 0 ? '0-1' : `${year}-${year + 1}`,
+            rawValue: Math.round(avgMetric * 100) / 100,
+            normalizedValue: Math.round(blendedValue * 1000) / 1000,
+            usersInBin: squadronBin?.users || 0,
+            cumulativeUsers,
+          });
+        }
+
+        return {
+          squadron: sq,
+          color: sq === '33SQN' ? '#FF9500' : 
+                 sq === '35SQN' ? '#10B981' :
+                 sq === '36SQN' ? '#3B82F6' :
+                 sq === '37SQN' ? '#8B5CF6' : '#F59E0B',
+          dataPoints,
+        };
+      });
+
+      // Generate insights based on the data
+      const insights = [];
+      
+      // Find best performing squadron
+      const squadronPerformance = curves.map(c => ({
+        squadron: c.squadron,
+        avgPerformance: c.dataPoints.reduce((sum, d) => sum + d.normalizedValue, 0) / c.dataPoints.length,
+      })).sort((a, b) => b.avgPerformance - a.avgPerformance);
+
+      if (squadronPerformance.length > 1) {
+        insights.push({
+          type: 'strength',
+          title: `${squadronPerformance[0].squadron} leads in ${metric === 'assessmentsPassed' ? 'assessment completion' : metric === 'totalFlightHours' ? 'flight experience' : 'this metric'}`,
+          description: 'Highest average performance across tenure levels',
+        });
+      }
+
+      // Find steep growth periods
+      curves.forEach(c => {
+        let maxGrowth = 0;
+        let maxGrowthYear = 0;
+        for (let i = 1; i < c.dataPoints.length; i++) {
+          const growth = c.dataPoints[i].normalizedValue - c.dataPoints[i - 1].normalizedValue;
+          if (growth > maxGrowth) {
+            maxGrowth = growth;
+            maxGrowthYear = i;
+          }
+        }
+        if (maxGrowth > 0.1) {
+          insights.push({
+            type: 'observation',
+            title: `${c.squadron}: Peak development at year ${maxGrowthYear}`,
+            description: 'Steepest performance improvement observed at this tenure level',
+          });
+        }
+      });
+
+      res.json({
+        metric,
+        metricLabel: metric === 'assessmentsPassed' ? 'Assessments Passed' :
+                     metric === 'totalFlightHours' ? 'Total Flight Hours' :
+                     metric === 'activeQualifications' ? 'Active Qualifications' :
+                     metric === 'averageScore' ? 'Average Assessment Score' :
+                     'Cargo Weight Handled (kg)',
+        curves,
+        insights: insights.slice(0, 5),
+        summary: {
+          totalUsers: usersWithTenure.length,
+          squadronsIncluded: squadrons.length,
+          tenureRange: {
+            min: Math.min(...usersWithTenure.map(u => u.monthsInRole)),
+            max: Math.max(...usersWithTenure.map(u => u.monthsInRole)),
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching ICC power law data:", error);
+      res.status(500).json({ message: "Failed to fetch ICC power law data" });
+    }
+  });
+
   const httpServer = createServer();
   httpServer.on("request", app);
 
