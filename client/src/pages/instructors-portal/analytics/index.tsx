@@ -1207,6 +1207,13 @@ export default function AdvancedAnalytics() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowIccFormulaModal(true)}
+                    className="px-3 py-2 rounded-lg text-sm font-mono border border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
+                    data-testid="button-icc-formula"
+                  >
+                    View Formula
+                  </button>
                   <Select value={iccMetric} onValueChange={setIccMetric}>
                     <SelectTrigger className="w-[200px]" data-testid="select-icc-metric">
                       <SelectValue placeholder="Select metric" />
@@ -1340,20 +1347,11 @@ export default function AdvancedAnalytics() {
                     </div>
                   )}
 
-                  {/* Summary Stats and Formula Box */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 gap-8">
-                    <div className="flex items-center gap-8 text-xs text-muted-foreground">
-                      <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
-                      <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
-                      <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
-                    </div>
-                    <button
-                      onClick={() => setShowIccFormulaModal(true)}
-                      className="px-4 py-2 rounded-lg text-sm font-mono border border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
-                      data-testid="button-icc-formula"
-                    >
-                      View Formula
-                    </button>
+                  {/* Summary Stats */}
+                  <div className="flex items-center gap-8 mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
+                    <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
+                    <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
+                    <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
                   </div>
 
                   {/* ICC Formula Modal */}
