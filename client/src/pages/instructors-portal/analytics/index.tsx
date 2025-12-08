@@ -1273,9 +1273,9 @@ export default function AdvancedAnalytics() {
                             dataKey="normalizedValue"
                             name={curve.squadron}
                             stroke={curve.color}
-                            strokeWidth={3}
-                            dot={{ r: 4, fill: curve.color }}
-                            activeDot={{ r: 6 }}
+                            strokeWidth={2}
+                            dot={{ r: 3, fill: curve.color }}
+                            activeDot={{ r: 5 }}
                           />
                         ))}
                       </LineChart>
