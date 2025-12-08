@@ -1355,10 +1355,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const documentId = req.query.documentId ? parseInt(req.query.documentId as string) : undefined;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const isInstructor = req.user?.role === 'instructor' || req.user?.role === 'superadmin';
       
-      // Only instructors can see all submissions or other user's submissions
-      if (req.user?.role !== 'instructor' && req.user?.role !== 'superadmin' && 
-          (userId !== undefined && userId !== req.user?.id)) {
+      // Permission check: non-instructors can only see their own submissions
+      if (!isInstructor && userId !== undefined && userId !== req.user?.id) {
         return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
       }
       
@@ -1366,9 +1366,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (documentId) {
         whereConditions.push(eq(documentSubmissions.documentId, documentId));
       }
+      
+      // For instructors: return ALL submissions by default (unless filtered)
+      // For students: return only their own submissions
       if (userId !== undefined) {
         whereConditions.push(eq(documentSubmissions.userId, userId));
-      } else if (req.user?.id) {
+      } else if (!isInstructor && req.user?.id) {
+        // Only students are restricted to their own submissions when no userId specified
         whereConditions.push(eq(documentSubmissions.userId, req.user.id));
       }
       
@@ -1474,10 +1478,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const scenarioId = req.query.scenarioId ? parseInt(req.query.scenarioId as string) : undefined;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      const isInstructor = req.user?.role === 'instructor' || req.user?.role === 'superadmin';
       
-      // Only instructors can see all submissions or other user's submissions
-      if (req.user?.role !== 'instructor' && req.user?.role !== 'superadmin' && 
-          (userId !== undefined && userId !== req.user?.id)) {
+      // Permission check: non-instructors can only see their own submissions
+      if (!isInstructor && userId !== undefined && userId !== req.user?.id) {
         return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
       }
       
@@ -1485,9 +1489,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (scenarioId) {
         whereConditions.push(eq(scenarioSubmissions.scenarioId, scenarioId));
       }
+      
+      // For instructors: return ALL submissions by default (unless filtered)
+      // For students: return only their own submissions
       if (userId !== undefined) {
         whereConditions.push(eq(scenarioSubmissions.userId, userId));
-      } else if (req.user?.id) {
+      } else if (!isInstructor && req.user?.id) {
+        // Only students are restricted to their own submissions when no userId specified
         whereConditions.push(eq(scenarioSubmissions.userId, req.user.id));
       }
       
