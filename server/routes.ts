@@ -876,7 +876,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
               categoriesMap[category].total += 1;
               categoriesMap[category].questions += 1;
-              if (ans.answeredOption === question.correctAnswer) {
+              // Convert both values to numbers to handle string/number type inconsistencies
+              const answeredOption = typeof ans.answeredOption === 'string' ? parseInt(ans.answeredOption, 10) : ans.answeredOption;
+              if (answeredOption === question.correctAnswer) {
                 categoriesMap[category].correct += 1;
               }
             }
@@ -931,7 +933,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 questionStats[questionId] = { attempts: 0, correct: 0 };
               }
               questionStats[questionId].attempts += 1;
-              if (ans.answeredOption === question.correctAnswer) {
+              // Convert both values to numbers to handle string/number type inconsistencies
+              const answeredOption = typeof ans.answeredOption === 'string' ? parseInt(ans.answeredOption, 10) : ans.answeredOption;
+              if (answeredOption === question.correctAnswer) {
                 questionStats[questionId].correct += 1;
               }
             }
