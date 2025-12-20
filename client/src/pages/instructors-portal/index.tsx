@@ -87,11 +87,19 @@ export default function InstructorsPortal() {
         </div>
 
         {/* DDG Quote */}
-        <div className="text-center mb-8">
-          <p className="text-2xl md:text-3xl lg:text-4xl font-light italic text-foreground">
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <p 
+            className="text-2xl md:text-3xl lg:text-4xl text-foreground tracking-wide"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 300 }}
+          >
             "Decisions in data, assurance in action"
           </p>
-          <p className="text-lg text-primary font-semibold mt-2">— DDG</p>
+          <span 
+            className="text-xl md:text-2xl text-primary font-bold tracking-widest"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+          >
+            — DDG
+          </span>
         </div>
 
         {/* Featured Section Banner */}
