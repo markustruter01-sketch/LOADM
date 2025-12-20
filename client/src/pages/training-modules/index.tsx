@@ -309,12 +309,15 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
     queryFn: async () => {
       const response = await fetch('/api/training-modules', {
         credentials: 'include',
+        headers: { 'Cache-Control': 'no-cache' },
       });
       if (!response.ok) throw new Error('Failed to fetch training modules');
       const data = await response.json();
       console.log('📚 Student view: Fetched', data.length, 'training modules from API');
       return data;
     },
+    staleTime: 0, // Always consider data stale for fresh fetches
+    refetchOnMount: 'always', // Always refetch when navigating to this page
   });
 
   // Use API data if available, otherwise fallback to local data

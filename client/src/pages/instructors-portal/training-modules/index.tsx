@@ -460,10 +460,18 @@ export default function TrainingModulesManagement() {
   const { data: apiModules, refetch: refetchModules } = useQuery({
     queryKey: ['/api/training-modules'],
     queryFn: async () => {
-      const response = await fetch('/api/training-modules');
+      console.log('📚 Instructor: Fetching training modules from API...');
+      const response = await fetch('/api/training-modules', {
+        credentials: 'include',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       if (!response.ok) throw new Error('Failed to fetch training modules');
-      return response.json();
+      const data = await response.json();
+      console.log('📚 Instructor: Received', data.length, 'training modules');
+      return data;
     },
+    staleTime: 0, // Always consider data stale to ensure fresh fetches
+    refetchOnMount: 'always', // Always refetch when component mounts
   });
 
   // Use API data if available, otherwise use local modules
@@ -472,16 +480,24 @@ export default function TrainingModulesManagement() {
   // Create module mutation
   const createModuleMutation = useMutation({
     mutationFn: async (moduleData: any) => {
+      console.log('➕ CREATE MUTATION: Sending create request');
       const response = await fetch('/api/training-modules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(moduleData),
       });
       if (!response.ok) throw new Error('Failed to create module');
-      return response.json();
+      const result = await response.json();
+      console.log('➕ CREATE MUTATION: Created module ID:', result.id);
+      return result;
     },
-    onSuccess: () => {
-      refetchModules();
+    onSuccess: async (data) => {
+      console.log('➕ CREATE MUTATION: onSuccess, resetting cache');
+      // Reset the query cache completely to force fresh data
+      await queryClient.resetQueries({ queryKey: ['/api/training-modules'] });
+      const result = await refetchModules();
+      console.log('➕ CREATE MUTATION: Refetch complete, new count:', result.data?.length);
       setIsCreateDialogOpen(false);
       resetForm();
       toast({
@@ -494,17 +510,24 @@ export default function TrainingModulesManagement() {
   // Edit module mutation - accepts id and moduleData to avoid stale closure issues
   const editModuleMutation = useMutation({
     mutationFn: async ({ id, moduleData }: { id: number | string; moduleData: any }) => {
-      console.log("📝 Updating module with ID:", id, "Data:", moduleData.title);
+      console.log("📝 EDIT MUTATION: Updating module ID:", id);
       const response = await fetch(`/api/training-modules/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(moduleData),
       });
       if (!response.ok) throw new Error('Failed to update module');
-      return response.json();
+      const result = await response.json();
+      console.log('📝 EDIT MUTATION: Update confirmed');
+      return result;
     },
-    onSuccess: () => {
-      refetchModules();
+    onSuccess: async () => {
+      console.log('📝 EDIT MUTATION: onSuccess, resetting cache');
+      // Reset the query cache completely to force fresh data
+      await queryClient.resetQueries({ queryKey: ['/api/training-modules'] });
+      const result = await refetchModules();
+      console.log('📝 EDIT MUTATION: Refetch complete, new count:', result.data?.length);
       setIsEditDialogOpen(false);
       setSelectedModule(null);
       resetForm();
@@ -518,13 +541,23 @@ export default function TrainingModulesManagement() {
   // Delete module mutation
   const deleteModuleMutation = useMutation({
     mutationFn: async (id: number) => {
+      console.log('🗑️ DELETE MUTATION: Sending delete request for ID:', id);
       const response = await fetch(`/api/training-modules/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to delete module');
+      console.log('🗑️ DELETE MUTATION: Server confirmed deletion');
+      return { deletedId: id };
     },
-    onSuccess: () => {
-      refetchModules();
+    onSuccess: async (data) => {
+      console.log('🗑️ DELETE MUTATION: onSuccess triggered, deleted ID:', data.deletedId);
+      // Reset the query cache completely to force fresh data
+      await queryClient.resetQueries({ queryKey: ['/api/training-modules'] });
+      console.log('🗑️ DELETE MUTATION: Cache reset complete');
+      // Force immediate refetch
+      const result = await refetchModules();
+      console.log('🗑️ DELETE MUTATION: Refetch complete, new count:', result.data?.length);
       toast({
         title: "Success",
         description: "Training module deleted successfully.",
