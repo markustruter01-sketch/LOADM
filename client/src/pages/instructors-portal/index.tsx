@@ -82,12 +82,16 @@ export default function InstructorsPortal() {
           </Button>
         </div>
         
-        <div className="mb-8 max-w-3xl">
-          <h2 className="text-3xl font-bold mb-2 text-foreground">Instructors Portal</h2>
-          <p className="text-muted-foreground">
-            Welcome to the instructor management portal. You can create, edit, and manage 
-            training scenarios to support loadmaster training and assessments.
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold text-foreground">Instructors Portal</h2>
+        </div>
+
+        {/* DDG Quote */}
+        <div className="text-center mb-8">
+          <p className="text-2xl md:text-3xl lg:text-4xl font-light italic text-foreground">
+            "Decisions in data, assurance in action"
           </p>
+          <p className="text-lg text-primary font-semibold mt-2">— DDG</p>
         </div>
 
         {/* Featured Section Banner */}
