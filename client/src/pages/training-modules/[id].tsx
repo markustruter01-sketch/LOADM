@@ -267,14 +267,80 @@ export default function ModuleDetailPage() {
     enabled: !!module?.id && typeof module.id === 'number',
   })
 
+  // Fetch available quizzes for quiz/assessment buttons
+  const { data: availableQuizzes } = useQuery({
+    queryKey: ['/api/quizzes'],
+    queryFn: async () => {
+      const response = await fetch('/api/quizzes')
+      if (!response.ok) return []
+      return response.json()
+    },
+  })
+
+  // Generate dynamic content from module topics when no hardcoded content exists
+  const generateDynamicContent = (mod: any) => {
+    if (!mod || !mod.topics || !Array.isArray(mod.topics)) return []
+    
+    const dynamicContent: any[] = []
+    const topics = mod.topics as string[]
+    
+    // Generate reading content from topics
+    topics.forEach((topic: string, index: number) => {
+      dynamicContent.push({
+        id: `${mod.id}-reading-${index}`,
+        title: topic,
+        type: 'reading',
+        duration: `${10 + (index * 2)} min`,
+        description: `Study materials covering ${topic.toLowerCase()}`,
+        content: `This section covers ${topic}. The content includes detailed explanations, diagrams, and examples relevant to ${mod.title}.`,
+        completed: false
+      })
+    })
+    
+    // Add a video lesson
+    dynamicContent.push({
+      id: `${mod.id}-video-intro`,
+      title: `${mod.title} - Video Overview`,
+      type: 'video',
+      duration: '20 min',
+      description: `Video introduction and demonstration for ${mod.title}`,
+      content: 'Video content covering key concepts and practical demonstrations',
+      completed: false
+    })
+    
+    // Add quiz
+    dynamicContent.push({
+      id: `${mod.id}-quiz`,
+      title: `${mod.title} Knowledge Quiz`,
+      type: 'quiz',
+      duration: '25 min',
+      description: `Test your understanding of ${mod.title.toLowerCase()} concepts`,
+      content: 'Quiz questions to assess your knowledge',
+      completed: false
+    })
+    
+    // Add assessment
+    dynamicContent.push({
+      id: `${mod.id}-assessment`,
+      title: `${mod.title} Final Assessment`,
+      type: 'assessment',
+      duration: '45 min',
+      description: `Comprehensive assessment for ${mod.title}`,
+      content: 'Final assessment covering all module topics',
+      completed: false
+    })
+    
+    return dynamicContent
+  }
+
   // Map API module IDs to content keys
-  const getContentKey = (module: any) => {
-    if (!module) return ''
+  const getContentKey = (mod: any) => {
+    if (!mod) return ''
     
     // If it's a numeric ID from API, map to content key
-    if (typeof module.id === 'number') {
-      const aircraft = module.aircraft
-      const difficulty = module.difficulty
+    if (typeof mod.id === 'number') {
+      const aircraft = mod.aircraft
+      const difficulty = mod.difficulty
       
       // Map based on aircraft type and difficulty
       if (aircraft === 'c17') {
@@ -292,12 +358,13 @@ export default function ModuleDetailPage() {
     }
     
     // For string IDs, use directly
-    return module.id || ''
+    return mod.id || ''
   }
 
-  // Get lesson content based on module
+  // Get lesson content - use hardcoded if available, otherwise generate from topics
   const contentKey = getContentKey(module)
-  const content = moduleContents[contentKey] || []
+  const hardcodedContent = moduleContents[contentKey] || []
+  const content = hardcodedContent.length > 0 ? hardcodedContent : generateDynamicContent(module)
 
   const completeLesson = (lessonId: string) => {
     if (!completedLessons.includes(lessonId)) {
@@ -679,7 +746,7 @@ export default function ModuleDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Show existing quiz content if available */}
+                  {/* Show quiz content - always navigate to actual quiz */}
                   {content.filter(lesson => lesson.type === 'quiz').length > 0 ? (
                     content
                       .filter(lesson => lesson.type === 'quiz')
@@ -703,18 +770,18 @@ export default function ModuleDetailPage() {
                                 {lesson.duration}
                               </Badge>
                               <Button 
-                                onClick={() => completeLesson(lesson.id)}
-                                disabled={completedLessons.includes(lesson.id)}
-                                className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                className="bg-primary hover:bg-primary/90 text-white"
+                                onClick={() => {
+                                  // Navigate to an available quiz
+                                  if (availableQuizzes && availableQuizzes.length > 0) {
+                                    navigate(`/quizzes/${availableQuizzes[0].id}`)
+                                  } else {
+                                    navigate('/scenarios')
+                                  }
+                                }}
                               >
-                                {completedLessons.includes(lesson.id) ? (
-                                  <>
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Completed
-                                  </>
-                                ) : (
-                                  "Start Quiz"
-                                )}
+                                <PlayCircle className="h-4 w-4 mr-2" />
+                                Start Quiz
                               </Button>
                             </div>
                           </div>
@@ -729,7 +796,21 @@ export default function ModuleDetailPage() {
                         <p className="text-gray-300 text-sm mb-4">
                           Test your understanding of {module.title.toLowerCase()} concepts
                         </p>
-                        <Button className="bg-primary hover:bg-primary/90 text-white">
+                        <Button 
+                          className="bg-primary hover:bg-primary/90 text-white"
+                          onClick={() => {
+                            // Navigate to an available quiz
+                            if (availableQuizzes && availableQuizzes.length > 0) {
+                              navigate(`/quizzes/${availableQuizzes[0].id}`)
+                            } else {
+                              toast({
+                                title: "No Quizzes Available",
+                                description: "Please check the Scenarios page for available quizzes.",
+                              })
+                              navigate('/scenarios')
+                            }
+                          }}
+                        >
                           <PlayCircle className="h-4 w-4 mr-2" />
                           Start Quiz
                         </Button>
@@ -741,7 +822,10 @@ export default function ModuleDetailPage() {
                         <p className="text-gray-300 text-sm mb-4">
                           Review practice questions to reinforce your learning
                         </p>
-                        <Button className="bg-primary hover:bg-primary/90 text-white">
+                        <Button 
+                          className="bg-primary hover:bg-primary/90 text-white"
+                          onClick={() => navigate('/scenarios')}
+                        >
                           <PlayCircle className="h-4 w-4 mr-2" />
                           Practice Now
                         </Button>
@@ -764,7 +848,7 @@ export default function ModuleDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {/* Show existing assessment content if available */}
+                  {/* Show assessment content - always navigate to actual quiz */}
                   {content.filter(lesson => lesson.type === 'assessment').length > 0 ? (
                     content
                       .filter(lesson => lesson.type === 'assessment')
@@ -788,15 +872,21 @@ export default function ModuleDetailPage() {
                                 {lesson.duration}
                               </Badge>
                               <div className="flex gap-2">
-                                <Button variant="outline">
+                                <Button variant="outline" onClick={() => setCurrentTab('readings')}>
                                   Review Material
                                 </Button>
                                 <Button 
-                                  onClick={() => completeLesson(lesson.id)}
-                                  disabled={completedLessons.includes(lesson.id)}
-                                  className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                                  className="bg-primary hover:bg-primary/90 text-white"
+                                  onClick={() => {
+                                    if (availableQuizzes && availableQuizzes.length > 0) {
+                                      navigate(`/quizzes/${availableQuizzes[0].id}`)
+                                    } else {
+                                      navigate('/scenarios')
+                                    }
+                                  }}
                                 >
-                                  {completedLessons.includes(lesson.id) ? "Completed" : "Start Assessment"}
+                                  <GraduationCap className="h-4 w-4 mr-2" />
+                                  Start Assessment
                                 </Button>
                               </div>
                             </div>
@@ -833,10 +923,12 @@ export default function ModuleDetailPage() {
                       <Button 
                         className="w-full bg-primary hover:bg-primary/90 text-white"
                         onClick={() => {
-                          toast({
-                            title: "Assessment Started",
-                            description: `Starting ${module.title} final assessment`,
-                          });
+                          // Navigate to scenarios page for assessments, or a specific quiz
+                          if (availableQuizzes && availableQuizzes.length > 0) {
+                            navigate(`/quizzes/${availableQuizzes[0].id}`)
+                          } else {
+                            navigate('/scenarios')
+                          }
                         }}
                       >
                         Start Assessment
