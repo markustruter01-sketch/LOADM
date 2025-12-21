@@ -323,10 +323,26 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
   // Use API data if available, otherwise fallback to local data
   const modules: Module[] = apiModules && apiModules.length > 0 ? apiModules : trainingModules;
 
-  // Filter modules based on selected aircraft
-  const filteredModules: Module[] = activeAircraft === "all" 
+  // Difficulty order for sorting (beginner first, advanced last)
+  const difficultyOrder: Record<string, number> = {
+    beginner: 1,
+    intermediate: 2,
+    advanced: 3,
+    expert: 4
+  };
+
+  // Filter and sort modules - beginner at top, advanced at bottom
+  const filteredModules: Module[] = (activeAircraft === "all" 
     ? modules 
-    : modules.filter((module: Module) => module.aircraft === activeAircraft);
+    : modules.filter((module: Module) => module.aircraft === activeAircraft)
+  ).sort((a: Module, b: Module) => {
+    const diffA = difficultyOrder[a.difficulty] || 5;
+    const diffB = difficultyOrder[b.difficulty] || 5;
+    if (diffA !== diffB) return diffA - diffB;
+    // Secondary sort by aircraft, then title
+    if (a.aircraft !== b.aircraft) return a.aircraft.localeCompare(b.aircraft);
+    return a.title.localeCompare(b.title);
+  });
 
   return (
     <>

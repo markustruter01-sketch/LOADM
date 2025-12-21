@@ -619,12 +619,28 @@ export default function TrainingModulesManagement() {
 
   // Video upload related state
 
-  // Filter modules based on selected aircraft and squadron
-  const filteredModules = activeTab === "all" 
+  // Difficulty order for sorting (beginner first, advanced last)
+  const difficultyOrder: Record<string, number> = {
+    beginner: 1,
+    intermediate: 2,
+    advanced: 3,
+    expert: 4
+  };
+
+  // Filter and sort modules - beginner at top, advanced at bottom
+  const filteredModules = (activeTab === "all" 
     ? trainingModules 
     : activeTab === "all-aircraft" 
     ? trainingModules.filter((module: any) => module.aircraft === "all")
-    : trainingModules.filter((module: any) => module.aircraft === activeTab);
+    : trainingModules.filter((module: any) => module.aircraft === activeTab)
+  ).sort((a: any, b: any) => {
+    const diffA = difficultyOrder[a.difficulty] || 5;
+    const diffB = difficultyOrder[b.difficulty] || 5;
+    if (diffA !== diffB) return diffA - diffB;
+    // Secondary sort by aircraft, then title
+    if (a.aircraft !== b.aircraft) return a.aircraft.localeCompare(b.aircraft);
+    return a.title.localeCompare(b.title);
+  });
 
   const handleCreateModule = () => {
     const newModule = {
