@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users } from "lucide-react"
+import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users, Star, Plane, BookOpen, Target, Award, FileText, FileCheck, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useQuery } from '@tanstack/react-query'
 
@@ -410,6 +410,16 @@ export default function ModuleDetailPage() {
     return config ? config.name : id
   }
 
+  const getDifficultyStars = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'beginner': return 1
+      case 'intermediate': return 2
+      case 'advanced': return 3
+      case 'expert': return 4
+      default: return 1
+    }
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#1e1e1e', backgroundImage: 'none', background: '#1e1e1e' }}>
       <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -470,88 +480,309 @@ export default function ModuleDetailPage() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+          {/* Overview Tab - Enhanced Visual Design */}
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <Card className="border-gray-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Module Description</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-300 leading-relaxed">
-                      {module.description}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-gray-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Learning Objectives</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {module.objectives?.map((objective, index) => (
-                        <li key={index} className="flex items-start gap-2 text-gray-300">
-                          <CheckCircle2 className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                          {objective}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
+            <div className="space-y-6">
+              {/* Hero Banner Section */}
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border border-gray-700">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+                
+                <div className="relative p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row md:items-start gap-6">
+                    {/* Module Icon */}
+                    <div className="flex-shrink-0">
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border border-primary/30">
+                        <Plane className="w-10 h-10 text-primary" />
+                      </div>
+                    </div>
+                    
+                    {/* Module Info */}
+                    <div className="flex-1 space-y-4">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <Badge className="bg-primary/20 text-primary border-primary/30">
+                            {getAircraftName(module.id)}
+                          </Badge>
+                          <Badge variant="outline" className="border-gray-600 text-gray-300">
+                            {module.difficulty} Level
+                          </Badge>
+                          <div className="flex items-center gap-0.5">
+                            {[...Array(getDifficultyStars(module.difficulty))].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+                            ))}
+                            {[...Array(4 - getDifficultyStars(module.difficulty))].map((_, i) => (
+                              <Star key={i} className="w-4 h-4 text-gray-600" />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-gray-300 text-lg leading-relaxed">
+                          {module.description}
+                        </p>
+                      </div>
+                      
+                      {/* Quick Stats Row */}
+                      <div className="flex flex-wrap gap-4 pt-2">
+                        <div className="flex items-center gap-2 bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-700">
+                          <Clock className="w-5 h-5 text-primary" />
+                          <div>
+                            <div className="text-sm text-gray-400">Duration</div>
+                            <div className="text-white font-medium">{module.duration || '3 hours'}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-700">
+                          <BookOpen className="w-5 h-5 text-blue-400" />
+                          <div>
+                            <div className="text-sm text-gray-400">Lessons</div>
+                            <div className="text-white font-medium">{content.length} lessons</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-700">
+                          <Target className="w-5 h-5 text-green-400" />
+                          <div>
+                            <div className="text-sm text-gray-400">Pass Rate</div>
+                            <div className="text-white font-medium">80% required</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-800/50 px-4 py-2 rounded-lg border border-gray-700">
+                          <Award className="w-5 h-5 text-yellow-400" />
+                          <div>
+                            <div className="text-sm text-gray-400">Certificate</div>
+                            <div className="text-white font-medium">Upon completion</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+              
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Learning Content */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* What You'll Learn - Visual Cards */}
+                  <Card className="border-gray-800 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                          <Target className="w-5 h-5 text-green-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-white">What You'll Learn</CardTitle>
+                          <CardDescription>Key skills and knowledge you'll gain</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {module.objectives?.map((objective, index) => (
+                          <div 
+                            key={index} 
+                            className="group flex items-start gap-3 p-4 rounded-lg bg-gray-800/30 border border-gray-700/50 hover:border-primary/30 hover:bg-gray-800/50 transition-all"
+                          >
+                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
+                              <CheckCircle2 className="w-4 h-4 text-green-400" />
+                            </div>
+                            <span className="text-gray-300 text-sm leading-relaxed">{objective}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <div className="space-y-6">
-                <Card className="border-gray-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Module Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-sm">Duration: {module.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Users className="h-4 w-4" />
-                      <span className="text-sm">Instructor: {module.instructor}</span>
-                    </div>
-                    <div className="pt-2 border-t border-gray-700">
-                      <p className="text-sm text-gray-400">
-                        Prerequisites: {module.prerequisites}
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        Last Updated: {module.lastUpdated}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                  {/* Topics Preview */}
+                  <Card className="border-gray-800 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                          <BookOpen className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-white">Topics Covered</CardTitle>
+                          <CardDescription>Key areas covered in this module</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex flex-wrap gap-2">
+                        {module.topics?.map((topic, index) => (
+                          <Badge 
+                            key={index}
+                            variant="outline" 
+                            className="px-3 py-1.5 text-sm bg-gray-800/50 border-gray-600 text-gray-200 hover:bg-primary/20 hover:border-primary/30 hover:text-primary transition-colors cursor-default"
+                          >
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                <Card className="border-gray-800">
-                  <CardHeader>
-                    <CardTitle className="text-white">Certificate</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-300 mb-4">
-                      Complete all lessons to earn your certificate
-                    </p>
-                    <Button 
-                      className="w-full bg-primary text-white hover:bg-primary/90"
-                      disabled={moduleProgress < 100}
-                      onClick={() => {
-                        if (moduleProgress >= 100) {
-                          toast({
-                            title: "Certificate Generated!",
-                            description: "Your completion certificate has been generated and saved.",
-                          })
-                        }
-                      }}
-                    >
-                      <GraduationCap className="h-4 w-4 mr-2" />
-                      {moduleProgress >= 100 ? "Generate Certificate" : "Complete Module First"}
-                    </Button>
-                  </CardContent>
-                </Card>
+                  {/* Course Structure */}
+                  <Card className="border-gray-800 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-white">Course Structure</CardTitle>
+                          <CardDescription>How this module is organized</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-4 rounded-lg bg-gray-800/30 border border-gray-700/50">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <PlayCircle className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div className="text-2xl font-bold text-white">{content.filter(l => l.type === 'video').length || 2}</div>
+                          <div className="text-sm text-gray-400">Videos</div>
+                        </div>
+                        <div className="text-center p-4 rounded-lg bg-gray-800/30 border border-gray-700/50">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-green-500/20 flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-green-400" />
+                          </div>
+                          <div className="text-2xl font-bold text-white">{content.filter(l => l.type === 'reading').length || (module.topics?.length || 5)}</div>
+                          <div className="text-sm text-gray-400">Readings</div>
+                        </div>
+                        <div className="text-center p-4 rounded-lg bg-gray-800/30 border border-gray-700/50">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-orange-500/20 flex items-center justify-center">
+                            <FileCheck className="w-6 h-6 text-orange-400" />
+                          </div>
+                          <div className="text-2xl font-bold text-white">{content.filter(l => l.type === 'quiz').length || 1}</div>
+                          <div className="text-sm text-gray-400">Quizzes</div>
+                        </div>
+                        <div className="text-center p-4 rounded-lg bg-gray-800/30 border border-gray-700/50">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                            <GraduationCap className="w-6 h-6 text-yellow-400" />
+                          </div>
+                          <div className="text-2xl font-bold text-white">1</div>
+                          <div className="text-sm text-gray-400">Assessment</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Right Column - Sidebar */}
+                <div className="space-y-6">
+                  {/* Instructor Card */}
+                  <Card className="border-gray-800 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Users className="w-5 h-5 text-primary" />
+                        Your Instructor
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border-2 border-primary/30">
+                          <Users className="w-7 h-7 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-medium">{module.instructor || 'Squadron Instructor'}</h4>
+                          <p className="text-sm text-gray-400">Senior Loadmaster</p>
+                          <div className="flex items-center gap-1 mt-2">
+                            {[1,2,3,4,5].map((star) => (
+                              <Star key={star} className="w-3 h-3 fill-primary text-primary" />
+                            ))}
+                            <span className="text-xs text-gray-400 ml-1">5.0</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-gray-700 grid grid-cols-2 gap-4 text-center">
+                        <div>
+                          <div className="text-xl font-bold text-white">150+</div>
+                          <div className="text-xs text-gray-400">Students trained</div>
+                        </div>
+                        <div>
+                          <div className="text-xl font-bold text-white">12+</div>
+                          <div className="text-xs text-gray-400">Years experience</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Prerequisites */}
+                  <Card className="border-gray-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-white text-base flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-yellow-400" />
+                        Prerequisites
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-300">
+                        {module.prerequisites || 'No prerequisites required'}
+                      </p>
+                      {module.prerequisites && module.prerequisites !== 'None' && (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-green-400">
+                          <CheckCircle2 className="w-3 h-3" />
+                          You meet the requirements
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Last Updated */}
+                  <Card className="border-gray-800">
+                    <CardContent className="py-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">Last Updated</span>
+                        <span className="text-sm text-white">{module.lastUpdated || 'December 2024'}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Certificate Card */}
+                  <Card className="border-gray-800 overflow-hidden">
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 p-6 border-b border-gray-700">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-yellow-500/30 to-orange-500/20 flex items-center justify-center border border-yellow-500/30">
+                          <Award className="w-8 h-8 text-yellow-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">Completion Certificate</h4>
+                          <p className="text-sm text-gray-400">Earn upon finishing</p>
+                        </div>
+                      </div>
+                    </div>
+                    <CardContent className="pt-4">
+                      <div className="space-y-3 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <CheckCircle2 className="w-4 h-4 text-green-400" />
+                          Complete all video lessons
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <CheckCircle2 className="w-4 h-4 text-green-400" />
+                          Finish all reading materials
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <CheckCircle2 className="w-4 h-4 text-green-400" />
+                          Pass the final assessment (80%+)
+                        </div>
+                      </div>
+                      <Button 
+                        className="w-full bg-primary text-white hover:bg-primary/90"
+                        disabled={moduleProgress < 100}
+                        onClick={() => {
+                          if (moduleProgress >= 100) {
+                            toast({
+                              title: "Certificate Generated!",
+                              description: "Your completion certificate has been generated and saved.",
+                            })
+                          }
+                        }}
+                      >
+                        <GraduationCap className="h-4 w-4 mr-2" />
+                        {moduleProgress >= 100 ? "Generate Certificate" : "Complete Module First"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </TabsContent>
