@@ -5,6 +5,7 @@ import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@sha
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
@@ -15,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import instructorBannerImage from "@assets/unnamed (1)_1764542553672.jpg";
+import ddgLogoImage from "@assets/DDG_Logo_1767567721875.png";
 export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
@@ -22,6 +24,7 @@ export default function InstructorsPortal() {
 
   // Remove the automatic redirect - superadmins should be able to access instructor portal
   const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
+  const [isMottoModalOpen, setIsMottoModalOpen] = useState(false);
 
   // Welcome toast for new instructors (optional)
   useEffect(() => {
@@ -86,9 +89,13 @@ export default function InstructorsPortal() {
           <h2 className="text-3xl font-bold text-foreground">Instructors Portal</h2>
         </div>
 
-        {/* DDG Quote with Glassmorphic Frame */}
+        {/* DDG Quote with Glassmorphic Frame - Clickable */}
         <div className="flex items-center justify-center mb-8">
-          <div className="inline-flex items-center gap-4 px-8 py-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/5">
+          <button 
+            onClick={() => setIsMottoModalOpen(true)}
+            className="inline-flex items-center gap-4 px-8 py-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-primary/30 hover:shadow-primary/10 hover:shadow-xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            data-testid="button-motto"
+          >
             <p 
               className="text-2xl md:text-3xl lg:text-4xl text-foreground tracking-wide"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 300 }}
@@ -101,8 +108,37 @@ export default function InstructorsPortal() {
             >
               — DDG
             </span>
-          </div>
+          </button>
         </div>
+
+        {/* Motto Explanation Modal */}
+        <Dialog open={isMottoModalOpen} onOpenChange={setIsMottoModalOpen}>
+          <DialogContent className="max-w-2xl bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl">
+            <DialogHeader className="text-center pb-4">
+              <div className="flex justify-center mb-6">
+                <img 
+                  src={ddgLogoImage} 
+                  alt="Digital Dynamics Group Logo" 
+                  className="h-32 w-auto object-contain"
+                />
+              </div>
+              <DialogTitle 
+                className="text-2xl md:text-3xl text-center text-foreground"
+                style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic' }}
+              >
+                "Decisions in Data, Assurance in Action"
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 text-muted-foreground leading-relaxed px-2">
+              <p>
+                At DDG, we believe that effective leadership begins with clarity. The Instructor Portal was designed to place real-time workforce intelligence directly in your hands—qualification statuses, training progress, flight hour metrics, and readiness trends across your entire team. When you can see the full picture, you can make decisions that are precise, timely, and grounded in fact rather than assumption.
+              </p>
+              <p>
+                This philosophy extends beyond visibility into action. Every chart, alert, and analytics tool here is built to help you identify gaps before they become problems, forecast qualification renewals, and allocate training resources where they'll have the greatest impact. Data informs your decisions; confident action ensures mission readiness.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Featured Section Banner */}
         <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64" data-testid="instructor-banner">
