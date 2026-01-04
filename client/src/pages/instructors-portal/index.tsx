@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import instructorBannerImage from "@assets/unnamed (1)_1764542553672.jpg";
-import ddgLogoImage from "@assets/DDG_Logo_1767567721875.png";
+import ddgLogoImage from "@assets/DDG_Logo_optimized.png";
 export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();
@@ -113,13 +113,14 @@ export default function InstructorsPortal() {
 
         {/* Motto Explanation Modal */}
         <Dialog open={isMottoModalOpen} onOpenChange={setIsMottoModalOpen}>
-          <DialogContent className="max-w-2xl bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <DialogHeader className="text-center pb-4">
+          <DialogContent className="max-w-xl min-h-[500px] bg-black/40 backdrop-blur-2xl border border-white/15 shadow-2xl flex flex-col">
+            <DialogHeader className="text-center pb-6">
               <div className="flex justify-center mb-6">
                 <img 
                   src={ddgLogoImage} 
                   alt="Digital Dynamics Group Logo" 
-                  className="h-32 w-auto object-contain"
+                  className="h-24 w-auto object-contain"
+                  loading="eager"
                 />
               </div>
               <DialogTitle 
@@ -129,12 +130,15 @@ export default function InstructorsPortal() {
                 "Decisions in Data, Assurance in Action"
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 text-muted-foreground leading-relaxed px-2">
+            <div className="space-y-5 text-muted-foreground leading-relaxed px-2 flex-1">
               <p>
-                At DDG, we believe that effective leadership begins with clarity. The Instructor Portal was designed to place real-time workforce intelligence directly in your hands—qualification statuses, training progress, flight hour metrics, and readiness trends across your entire team. When you can see the full picture, you can make decisions that are precise, timely, and grounded in fact rather than assumption.
+                At DDG, we believe that effective leadership begins with clarity. The Instructor Portal was designed to place real-time workforce intelligence directly in your hands—qualification statuses, training progress, flight hour metrics, and readiness trends across your entire team.
               </p>
               <p>
-                This philosophy extends beyond visibility into action. Every chart, alert, and analytics tool here is built to help you identify gaps before they become problems, forecast qualification renewals, and allocate training resources where they'll have the greatest impact. Data informs your decisions; confident action ensures mission readiness.
+                When you can see the full picture, you can make decisions that are precise, timely, and grounded in fact rather than assumption. Every chart, alert, and analytics tool here is built to help you identify gaps before they become problems.
+              </p>
+              <p>
+                This philosophy extends beyond visibility into action. Forecast qualification renewals, allocate training resources where they'll have the greatest impact, and ensure mission readiness with confidence. Data informs your decisions; decisive action delivers results.
               </p>
             </div>
           </DialogContent>
