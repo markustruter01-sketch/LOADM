@@ -86,20 +86,22 @@ export default function InstructorsPortal() {
           <h2 className="text-3xl font-bold text-foreground">Instructors Portal</h2>
         </div>
 
-        {/* DDG Quote */}
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <p 
-            className="text-2xl md:text-3xl lg:text-4xl text-foreground tracking-wide"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 300 }}
-          >
-            "Decisions in data, assurance in action"
-          </p>
-          <span 
-            className="text-xl md:text-2xl text-primary font-bold tracking-widest"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-          >
-            — DDG
-          </span>
+        {/* DDG Quote with Glassmorphic Frame */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="inline-flex items-center gap-4 px-8 py-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/5">
+            <p 
+              className="text-2xl md:text-3xl lg:text-4xl text-foreground tracking-wide"
+              style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 300 }}
+            >
+              "Decisions in data, assurance in action"
+            </p>
+            <span 
+              className="text-xl md:text-2xl text-primary font-bold tracking-widest"
+              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            >
+              — DDG
+            </span>
+          </div>
         </div>
 
         {/* Featured Section Banner */}
