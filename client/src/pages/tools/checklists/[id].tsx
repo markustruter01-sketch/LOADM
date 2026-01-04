@@ -206,6 +206,71 @@ export default function ChecklistDetailPage() {
     return grouped;
   };
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [pages, setPages] = useState<ChecklistItem[][]>([]);
+
+  // Page height logic
+  useEffect(() => {
+    if (checklist?.items) {
+      const sortedItems = [...checklist.items].sort((a, b) => a.itemOrder - b.itemOrder);
+      const newPages: ChecklistItem[][] = [];
+      let currentPageItems: ChecklistItem[] = [];
+      let currentHeight = 0;
+      const MAX_PAGE_HEIGHT = 650; // Roughly the height of a QRH page in pixels
+      const ITEM_HEIGHT = 42; // Height of an item including spacing and leader line
+
+      sortedItems.forEach(item => {
+        if (currentHeight + ITEM_HEIGHT > MAX_PAGE_HEIGHT) {
+          newPages.push(currentPageItems);
+          currentPageItems = [item];
+          currentHeight = ITEM_HEIGHT;
+        } else {
+          currentPageItems.push(item);
+          currentHeight += ITEM_HEIGHT;
+        }
+      });
+      if (currentPageItems.length > 0) newPages.push(currentPageItems);
+      setPages(newPages);
+    }
+  }, [checklist]);
+
+  const handleNextPage = () => {
+    if (currentPage < pages.length - 1 && !isFlipping) {
+      setIsFlipping(true);
+      setTimeout(() => {
+        setCurrentPage(prev => prev + 1);
+        setIsFlipping(false);
+      }, 600);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 0 && !isFlipping) {
+      setIsFlipping(true);
+      setTimeout(() => {
+        setCurrentPage(prev => prev - 1);
+        setIsFlipping(false);
+      }, 600);
+    }
+  };
+
+  const getStatusValue = (itemText: string) => {
+    if (itemText.toLowerCase().includes("off")) return "OFF";
+    if (itemText.toLowerCase().includes("on")) return "ON";
+    if (itemText.toLowerCase().includes("check")) return "CHECK";
+    if (itemText.toLowerCase().includes("idle")) return "IDLE";
+    if (itemText.toLowerCase().includes("ign")) return "IGN";
+    if (itemText.toLowerCase().includes("order")) return "ORDER";
+    if (itemText.toLowerCase().includes("down")) return "DOWN";
+    return "AS REQ";
+  };
+
+  const cleanItemText = (text: string) => {
+    // Remove status words from the main text to avoid duplication
+    return text.replace(/\s+(ON|OFF|CHECK|IDLE|IGN|ORDER|DOWN|AS REQ)$/i, "").trim();
+  };
+
   if (isLoading) {
     console.log('DEBUG CHECKLIST DETAIL: Showing loading state');
     return (
@@ -266,10 +331,33 @@ export default function ChecklistDetailPage() {
         <meta name="description" content={`Complete ${checklist.title} checklist for ${checklist.aircraftType}`} />
       </Helmet>
 
-      <div className="min-h-screen p-6" style={{ backgroundColor: '#1e1e1e' }}>
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="min-h-screen p-6 bg-[#121212]">
+        <style>{`
+          .qrh-page {
+            transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transform-origin: left center;
+            perspective: 1500px;
+          }
+          .qrh-flipping {
+            transform: rotateY(-180deg);
+            opacity: 0;
+          }
+          .qrh-binding {
+            background-image: radial-gradient(circle at 10px 10px, #000 8px, transparent 9px);
+            background-size: 100% 32px;
+          }
+          .leader-line::after {
+            content: "";
+            flex: 1;
+            margin: 0 8px;
+            border-bottom: 2px dotted #ccc;
+            height: 14px;
+          }
+        `}</style>
+
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <Button 
               variant="outline" 
               className="border-gray-600 text-gray-200 hover:bg-gray-800" 
@@ -278,162 +366,148 @@ export default function ChecklistDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Tools
             </Button>
             
-            {isCompleted && (
-              <Badge className="bg-green-600 text-white border-green-500 px-3 py-1">
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Completed
-              </Badge>
-            )}
+            <div className="flex items-center gap-4">
+              <span className="text-gray-400 text-sm">Page {currentPage + 1} of {pages.length}</span>
+              {isCompleted && (
+                <Badge className="bg-green-600 text-white border-green-500 px-3 py-1">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Completed
+                </Badge>
+              )}
+            </div>
           </div>
 
-          {/* Checklist Header */}
-          <Card className="bg-gray-800 border-gray-700" style={{ backgroundColor: '#2d2d2d', borderColor: '#404040' }}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3 mb-3">
-                  <Plane className="h-6 w-6 text-orange-500" />
-                  <Badge variant="outline" className="border-gray-600 text-gray-300 bg-gray-700">
-                    {checklist.aircraftType}
-                  </Badge>
-                  <Badge className={getCategoryColor(checklist.category)}>
-                    {checklist.category.charAt(0).toUpperCase() + checklist.category.slice(1).replace('-', ' ')}
-                  </Badge>
+          <div className="relative flex">
+            {/* Spiral Binding */}
+            <div className="w-12 bg-gray-300 rounded-l-lg shadow-inner qrh-binding flex flex-col items-center py-4 z-20">
+              {/* Visible rings */}
+              {[...Array(20)].map((_, i) => (
+                <div key={i} className="w-8 h-3 bg-black rounded-full mb-5 shadow-md" />
+              ))}
+            </div>
+
+            {/* Main QRH Page Container */}
+            <div className={`flex-1 bg-white text-black min-h-[850px] shadow-2xl rounded-r-lg overflow-hidden relative qrh-page ${isFlipping ? 'qrh-flipping' : ''}`}>
+              {/* QRH Header Bar */}
+              <div className="border-b-4 border-black p-4 bg-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 flex items-center justify-center border-2 border-black rounded-full">
+                    <Plane className="h-6 w-6 text-black" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-xl tracking-tighter">{checklist.aircraftType}</span>
+                    <span className="text-[10px] font-bold uppercase border-t border-black pt-0.5">Emergency Procedures</span>
+                  </div>
+                </div>
+                <div className="flex-1 text-center border-x-2 border-black mx-4 px-4 h-full flex flex-col justify-center">
+                  <h1 className="text-xl font-extrabold uppercase tracking-tight leading-none">
+                    {checklist.title}
+                  </h1>
+                </div>
+                <div className="flex gap-4 text-right">
+                  <div className="flex flex-col text-[10px] font-bold">
+                    <span>REV 06</span>
+                    <span>SEQ 109</span>
+                  </div>
+                  <div className="bg-black text-white px-2 py-1 flex items-center justify-center font-black text-xl">
+                    {1 + currentPage / 100}.{String(currentPage + 7).padStart(2, '0')}
+                  </div>
                 </div>
               </div>
-              
-              <CardTitle className="text-2xl text-white mb-2">
-                {checklist.title}
-              </CardTitle>
-              
-              {checklist.description && (
-                <CardDescription className="text-gray-300 text-base">
-                  {checklist.description}
-                </CardDescription>
+
+              {/* Page Content */}
+              <div className="p-8 pb-20">
+                {/* Title Section Banner */}
+                <div className="bg-black text-white text-center py-1 font-black uppercase tracking-widest mb-6">
+                  {checklist.title}
+                </div>
+
+                <div className="space-y-4">
+                  {pages[currentPage]?.map((item, index) => (
+                    <div 
+                      key={item.id}
+                      className={`flex items-start gap-4 p-2 transition-colors ${
+                        checkedItems.has(item.id) ? 'bg-green-50' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <Checkbox
+                        checked={checkedItems.has(item.id)}
+                        onCheckedChange={() => handleItemCheck(item.id)}
+                        className="mt-1 border-black data-[state=checked]:bg-black data-[state=checked]:border-black"
+                      />
+                      <div className="flex-1 flex items-center leader-line">
+                        <span className={`font-bold uppercase text-sm tracking-tighter ${checkedItems.has(item.id) ? 'line-through text-gray-400' : ''}`}>
+                          <span className="mr-2">—</span>
+                          {cleanItemText(item.itemText)}
+                        </span>
+                        <span className={`font-black text-sm ml-auto whitespace-nowrap ${checkedItems.has(item.id) ? 'text-green-600' : ''}`}>
+                          {getStatusValue(item.itemText)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer / Notes area */}
+                {currentPage === pages.length - 1 && checklist.description && (
+                  <div className="mt-12 p-4 border-2 border-dashed border-gray-400 italic text-xs text-gray-600">
+                    <span className="font-bold uppercase block mb-1">NOTES:</span>
+                    {checklist.description}
+                  </div>
+                )}
+              </div>
+
+              {/* Progress Bar (Bottom) */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t border-gray-200">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold uppercase text-gray-500">Progress: {completionPercentage}%</span>
+                  <span className="text-[10px] font-bold uppercase text-gray-500">{completedItems}/{totalItems} ITEMS</span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-black transition-all duration-500" 
+                    style={{ width: `${completionPercentage}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Flip Button Right */}
+              {currentPage < pages.length - 1 && (
+                <button
+                  onClick={handleNextPage}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-24 bg-black/10 hover:bg-black/20 rounded-l-full flex items-center justify-center transition-all group z-30"
+                  aria-label="Next Page"
+                >
+                  <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[15px] border-l-black border-b-[10px] border-b-transparent group-hover:translate-x-1 transition-transform" />
+                </button>
               )}
 
-              {/* Progress Section */}
-              <div className="mt-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Overall Progress</span>
-                  <span className="text-sm text-gray-300">{completedItems}/{totalItems} items</span>
-                </div>
-                <Progress 
-                  value={completionPercentage} 
-                  className="h-2"
-                  style={{
-                    background: "rgb(55, 65, 81)" // gray-700
-                  } as any}
-                />
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span className="text-orange-400">{completionPercentage}% Complete</span>
-                  {requiredItems.length > 0 && (
-                    <span>Required: <span className="text-orange-400">{completedRequiredItems}/{requiredItems.length}</span></span>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Checklist Items */}
-          <div className="space-y-6">
-            {Object.entries(groupedItems).map(([categoryName, items]) => (
-              <Card key={categoryName} className="bg-gray-800 border-gray-700" style={{ backgroundColor: '#2d2d2d', borderColor: '#404040' }}>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <CheckSquare className="h-5 w-5 text-orange-500" />
-                    {categoryName}
-                    <Badge variant="outline" className="ml-2 text-xs border-gray-600 text-gray-300 bg-gray-700">
-                      {items.filter(item => checkedItems.has(item.id)).length}/{items.length}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {items.map((item) => (
-                      <div 
-                        key={item.id}
-                        className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
-                          checkedItems.has(item.id)
-                            ? 'border-green-700'
-                            : 'border-gray-600 hover:bg-gray-700'
-                        }`}
-                        style={{
-                          backgroundColor: checkedItems.has(item.id) ? '#166534' : '#404040'
-                        }}
-                      >
-                        <Checkbox
-                          checked={checkedItems.has(item.id)}
-                          onCheckedChange={() => handleItemCheck(item.id)}
-                          className="mt-0.5 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                        />
-                        <div className="flex-1">
-                          <div className={`font-medium ${
-                            checkedItems.has(item.id) ? 'text-green-300' : 'text-gray-100'
-                          }`}>
-                            {item.itemText}
-                            {item.isRequired && (
-                              <Badge className="ml-2 text-xs bg-orange-500 text-white border-orange-400">
-                                Required
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+              {/* Flip Button Left */}
+              {currentPage > 0 && (
+                <button
+                  onClick={handlePrevPage}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-24 bg-black/10 hover:bg-black/20 rounded-r-full flex items-center justify-center transition-all group z-30"
+                  aria-label="Previous Page"
+                >
+                  <div className="w-0 h-0 border-t-[10px] border-t-transparent border-r-[15px] border-r-black border-b-[10px] border-b-transparent group-hover:-translate-x-1 transition-transform" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Complete Button */}
-          {!isCompleted && (
-            <Card className="bg-gray-800 border-gray-700" style={{ backgroundColor: '#2d2d2d', borderColor: '#404040' }}>
-              <CardContent className="p-6 text-center">
-                <h3 className="text-lg font-semibold text-white mb-2">Ready to Complete?</h3>
-                <p className="text-gray-400 mb-4">
-                  Make sure all required items are checked before completing the checklist.
-                </p>
-                <Button
-                  onClick={handleCompleteChecklist}
-                  disabled={updateCompletionMutation.isPending || completedRequiredItems !== requiredItems.length}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-2"
-                >
-                  {updateCompletionMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Completing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Complete Checklist
-                    </>
-                  )}
-                </Button>
-                {completedRequiredItems !== requiredItems.length && requiredItems.length > 0 && (
-                  <p className="text-xs text-orange-400 mt-2">
-                    Complete all {requiredItems.length} required items to finish
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Completion Info */}
-          {isCompleted && checklist.userCompletion?.completedAt && (
-            <Card className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700">
-              <CardContent className="p-6 text-center">
-                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
-                  Checklist Completed!
-                </h3>
-                <p className="text-green-600 dark:text-green-300">
-                  Completed on {new Date(checklist.userCompletion.completedAt).toLocaleDateString()} at{' '}
-                  {new Date(checklist.userCompletion.completedAt).toLocaleTimeString()}
-                </p>
-              </CardContent>
-            </Card>
+          {/* Complete Button - External to the page for clarity */}
+          {!isCompleted && currentPage === pages.length - 1 && (
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={handleCompleteChecklist}
+                size="lg"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-6 text-xl rounded-xl shadow-xl transition-all hover:scale-105 active:scale-95"
+                disabled={updateCompletionMutation.isPending || completedRequiredItems !== requiredItems.length}
+              >
+                <CheckCircle className="h-6 w-6 mr-2" />
+                COMPLETE CHECKLIST
+              </Button>
+            </div>
           )}
         </div>
       </div>
