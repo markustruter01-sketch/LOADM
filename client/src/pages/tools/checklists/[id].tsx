@@ -217,8 +217,8 @@ export default function ChecklistDetailPage() {
       const newPages: ChecklistItem[][] = [];
       let currentPageItems: ChecklistItem[] = [];
       let currentHeight = 0;
-      const MAX_PAGE_HEIGHT = 650; // Roughly the height of a QRH page in pixels
-      const ITEM_HEIGHT = 42; // Height of an item including spacing and leader line
+      const MAX_PAGE_HEIGHT = 750; // Increased height for rectangular look
+      const ITEM_HEIGHT = 65; // Increased height to account for descriptors
 
       sortedItems.forEach(item => {
         if (currentHeight + ITEM_HEIGHT > MAX_PAGE_HEIGHT) {
@@ -268,7 +268,18 @@ export default function ChecklistDetailPage() {
 
   const cleanItemText = (text: string) => {
     // Remove status words from the main text to avoid duplication
-    return text.replace(/\s+(ON|OFF|CHECK|IDLE|IGN|ORDER|DOWN|AS REQ)$/i, "").trim();
+    return text.replace(/\s+(ON|OFF|CHECK|IDLE|IGN|ORDER|DOWN|AS REQ|MAN ON|START|INITIATE)$/i, "").trim();
+  };
+
+  const getItemDescription = (text: string) => {
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes("start")) return "Ensure ignition sequence is active and fuel flow is monitored.";
+    if (lowerText.includes("thrust")) return "Set levers to the specified position for current flight phase.";
+    if (lowerText.includes("elec")) return "Check electrical bus status and emergency power availability.";
+    if (lowerText.includes("radio")) return "Establish clear communication with ATC or ground crew.";
+    if (lowerText.includes("load")) return "Verify load distribution and balance parameters.";
+    if (lowerText.includes("sling")) return "Inspect rigging and attachment points for structural integrity.";
+    return "Verify system state and follow standard operating procedures.";
   };
 
   if (isLoading) {
@@ -343,15 +354,15 @@ export default function ChecklistDetailPage() {
             opacity: 0;
           }
           .qrh-binding {
-            background-image: radial-gradient(circle at 10px 10px, #000 8px, transparent 9px);
-            background-size: 100% 32px;
+            background: #e5e7eb;
           }
           .leader-line::after {
             content: "";
             flex: 1;
             margin: 0 8px;
-            border-bottom: 2px dotted #ccc;
+            border-bottom: 2px dotted #000;
             height: 14px;
+            opacity: 0.3;
           }
         `}</style>
 
@@ -378,71 +389,81 @@ export default function ChecklistDetailPage() {
           </div>
 
           <div className="relative flex">
-            {/* Spiral Binding */}
-            <div className="w-12 bg-gray-300 rounded-l-lg shadow-inner qrh-binding flex flex-col items-center py-4 z-20">
-              {/* Visible rings */}
-              {[...Array(20)].map((_, i) => (
-                <div key={i} className="w-8 h-3 bg-black rounded-full mb-5 shadow-md" />
+            {/* Spiral Binding - Refined */}
+            <div className="w-16 bg-[#d1d5db] rounded-l-2xl shadow-inner flex flex-col items-center py-6 z-20 border-r border-gray-400">
+              {/* Binding Holes */}
+              {[...Array(18)].map((_, i) => (
+                <div key={i} className="w-10 h-6 bg-[#1a1a1a] rounded-full mb-6 shadow-inner relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-full" />
+                </div>
               ))}
             </div>
 
-            {/* Main QRH Page Container */}
-            <div className={`flex-1 bg-white text-black min-h-[850px] shadow-2xl rounded-r-lg overflow-hidden relative qrh-page ${isFlipping ? 'qrh-flipping' : ''}`}>
+            {/* Main QRH Page Container - Rectangular and Tall */}
+            <div className={`flex-1 bg-white text-black min-h-[1000px] shadow-2xl rounded-r-xl overflow-hidden relative qrh-page ${isFlipping ? 'qrh-flipping' : ''}`}>
               {/* QRH Header Bar */}
-              <div className="border-b-4 border-black p-4 bg-white flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 flex items-center justify-center border-2 border-black rounded-full">
-                    <Plane className="h-6 w-6 text-black" />
+              <div className="border-b-4 border-black p-6 bg-white flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 flex items-center justify-center border-2 border-black rounded-full">
+                    <Plane className="h-7 w-7 text-black" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-bold text-xl tracking-tighter">{checklist.aircraftType}</span>
-                    <span className="text-[10px] font-bold uppercase border-t border-black pt-0.5">Emergency Procedures</span>
+                    <span className="font-bold text-2xl tracking-tighter leading-none">{checklist.aircraftType}</span>
+                    <span className="text-xs font-bold uppercase border-t-2 border-black mt-1 pt-1">Emergency Procedures</span>
                   </div>
                 </div>
-                <div className="flex-1 text-center border-x-2 border-black mx-4 px-4 h-full flex flex-col justify-center">
-                  <h1 className="text-xl font-extrabold uppercase tracking-tight leading-none">
+                <div className="flex-1 text-center border-x-4 border-black mx-6 px-6 h-full flex flex-col justify-center py-2">
+                  <h1 className="text-2xl font-black uppercase tracking-tighter leading-none">
                     {checklist.title}
                   </h1>
                 </div>
-                <div className="flex gap-4 text-right">
-                  <div className="flex flex-col text-[10px] font-bold">
+                <div className="flex gap-6 text-right items-center">
+                  <div className="flex flex-col text-xs font-black tracking-tight">
                     <span>REV 06</span>
                     <span>SEQ 109</span>
                   </div>
-                  <div className="bg-black text-white px-2 py-1 flex items-center justify-center font-black text-xl">
+                  <div className="bg-black text-white px-3 py-2 flex items-center justify-center font-black text-2xl min-w-[60px]">
                     {1 + currentPage / 100}.{String(currentPage + 7).padStart(2, '0')}
                   </div>
                 </div>
               </div>
 
               {/* Page Content */}
-              <div className="p-8 pb-20">
+              <div className="p-10 pb-24">
                 {/* Title Section Banner */}
-                <div className="bg-black text-white text-center py-1 font-black uppercase tracking-widest mb-6">
+                <div className="bg-black text-white text-center py-2 font-black uppercase tracking-[0.2em] mb-10 text-lg">
                   {checklist.title}
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-8">
                   {pages[currentPage]?.map((item, index) => (
                     <div 
                       key={item.id}
-                      className={`flex items-start gap-4 p-2 transition-colors ${
-                        checkedItems.has(item.id) ? 'bg-green-50' : 'hover:bg-gray-50'
-                      }`}
+                      className="group"
                     >
-                      <Checkbox
-                        checked={checkedItems.has(item.id)}
-                        onCheckedChange={() => handleItemCheck(item.id)}
-                        className="mt-1 border-black data-[state=checked]:bg-black data-[state=checked]:border-black"
-                      />
-                      <div className="flex-1 flex items-center leader-line">
-                        <span className={`font-bold uppercase text-sm tracking-tighter ${checkedItems.has(item.id) ? 'line-through text-gray-400' : ''}`}>
-                          <span className="mr-2">—</span>
-                          {cleanItemText(item.itemText)}
-                        </span>
-                        <span className={`font-black text-sm ml-auto whitespace-nowrap ${checkedItems.has(item.id) ? 'text-green-600' : ''}`}>
-                          {getStatusValue(item.itemText)}
-                        </span>
+                      <div className={`flex items-start gap-4 p-2 transition-colors rounded ${
+                        checkedItems.has(item.id) ? 'bg-green-50' : 'hover:bg-gray-50'
+                      }`}>
+                        <Checkbox
+                          checked={checkedItems.has(item.id)}
+                          onCheckedChange={() => handleItemCheck(item.id)}
+                          className="mt-1 w-6 h-6 border-2 border-black data-[state=checked]:bg-black data-[state=checked]:border-black"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center leader-line">
+                            <span className={`font-black uppercase text-base tracking-tight ${checkedItems.has(item.id) ? 'line-through text-gray-400' : ''}`}>
+                              <span className="mr-3 text-xl">—</span>
+                              {cleanItemText(item.itemText)}
+                            </span>
+                            <span className={`font-black text-lg ml-auto whitespace-nowrap pl-4 ${checkedItems.has(item.id) ? 'text-green-600' : ''}`}>
+                              {getStatusValue(item.itemText)}
+                            </span>
+                          </div>
+                          {/* Item Word Descriptor */}
+                          <p className="mt-1 ml-8 text-[11px] leading-tight font-medium italic text-gray-500 max-w-[80%] uppercase tracking-tight">
+                            {getItemDescription(item.itemText)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -450,22 +471,24 @@ export default function ChecklistDetailPage() {
 
                 {/* Footer / Notes area */}
                 {currentPage === pages.length - 1 && checklist.description && (
-                  <div className="mt-12 p-4 border-2 border-dashed border-gray-400 italic text-xs text-gray-600">
-                    <span className="font-bold uppercase block mb-1">NOTES:</span>
-                    {checklist.description}
+                  <div className="mt-16 p-6 border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg">
+                    <span className="font-black uppercase block mb-2 text-sm tracking-widest text-black">PROCEDURE NOTES:</span>
+                    <p className="italic text-xs text-gray-600 leading-relaxed font-medium">
+                      {checklist.description}
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Progress Bar (Bottom) */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t border-gray-200">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[10px] font-bold uppercase text-gray-500">Progress: {completionPercentage}%</span>
-                  <span className="text-[10px] font-bold uppercase text-gray-500">{completedItems}/{totalItems} ITEMS</span>
+              {/* Progress Bar (Bottom) - QRH Style */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gray-50 border-t-2 border-gray-200">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-gray-400">MISSION PROGRESS: {completionPercentage}%</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-gray-400">{completedItems}/{totalItems} ITEMS COMPLETED</span>
                 </div>
-                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden border border-gray-300">
                   <div 
-                    className="h-full bg-black transition-all duration-500" 
+                    className="h-full bg-black transition-all duration-700 ease-out" 
                     style={{ width: `${completionPercentage}%` }}
                   />
                 </div>
