@@ -113,7 +113,7 @@ export default function InstructorsPortal() {
 
         {/* Motto Explanation Modal */}
         <Dialog open={isMottoModalOpen} onOpenChange={setIsMottoModalOpen}>
-          <DialogContent className="max-w-xl min-h-[500px] bg-black/40 backdrop-blur-2xl border border-white/15 shadow-2xl flex flex-col">
+          <DialogContent className="max-w-xl min-h-[500px] bg-black/20 backdrop-blur-2xl border border-white/15 shadow-2xl flex flex-col">
             <DialogHeader className="text-center pb-6">
               <div className="flex justify-center mb-6">
                 <img 
