@@ -389,11 +389,11 @@ export default function ChecklistDetailPage() {
           </div>
 
           <div className="relative flex">
-            {/* Spiral Binding - Refined */}
-            <div className="w-16 bg-[#d1d5db] rounded-l-2xl shadow-inner flex flex-col items-center py-6 z-20 border-r border-gray-400">
-              {/* Binding Holes */}
-              {[...Array(18)].map((_, i) => (
-                <div key={i} className="w-10 h-6 bg-[#1a1a1a] rounded-full mb-6 shadow-inner relative">
+            {/* Spiral Binding - Full Height */}
+            <div className="w-16 bg-[#d1d5db] rounded-l-2xl shadow-inner flex flex-col items-center py-4 z-20 border-r border-gray-400 justify-between">
+              {/* Binding Holes - Distributed evenly */}
+              {[...Array(28)].map((_, i) => (
+                <div key={i} className="w-10 h-5 bg-[#1a1a1a] rounded-full shadow-inner relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-full" />
                 </div>
               ))}
@@ -435,37 +435,46 @@ export default function ChecklistDetailPage() {
                   {checklist.title}
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-4">
                   {pages[currentPage]?.map((item, index) => (
-                    <div 
+                    <button 
                       key={item.id}
-                      className="group"
+                      onClick={() => handleItemCheck(item.id)}
+                      className={`w-full text-left group cursor-pointer transition-all duration-200 rounded-lg border-2 p-4 ${
+                        checkedItems.has(item.id) 
+                          ? 'bg-green-50 border-green-300 shadow-sm' 
+                          : 'bg-white border-gray-200 hover:border-gray-400 hover:bg-gray-50 hover:shadow-md'
+                      }`}
                     >
-                      <div className={`flex items-start gap-4 p-2 transition-colors rounded ${
-                        checkedItems.has(item.id) ? 'bg-green-50' : 'hover:bg-gray-50'
-                      }`}>
-                        <Checkbox
-                          checked={checkedItems.has(item.id)}
-                          onCheckedChange={() => handleItemCheck(item.id)}
-                          className="mt-1 w-6 h-6 border-2 border-black data-[state=checked]:bg-black data-[state=checked]:border-black"
-                        />
-                        <div className="flex-1">
+                      <div className="flex items-start gap-4">
+                        <div className={`mt-0.5 w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          checkedItems.has(item.id) 
+                            ? 'bg-black border-black' 
+                            : 'border-black bg-white group-hover:bg-gray-100'
+                        }`}>
+                          {checkedItems.has(item.id) && (
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center leader-line">
-                            <span className={`font-black uppercase text-base tracking-tight ${checkedItems.has(item.id) ? 'line-through text-gray-400' : ''}`}>
+                            <span className={`font-black uppercase text-base tracking-tight ${checkedItems.has(item.id) ? 'line-through text-gray-400' : 'text-black'}`}>
                               <span className="mr-3 text-xl">—</span>
                               {cleanItemText(item.itemText)}
                             </span>
-                            <span className={`font-black text-lg ml-auto whitespace-nowrap pl-4 ${checkedItems.has(item.id) ? 'text-green-600' : ''}`}>
+                            <span className={`font-black text-lg ml-auto whitespace-nowrap pl-4 ${checkedItems.has(item.id) ? 'text-green-600' : 'text-black'}`}>
                               {getStatusValue(item.itemText)}
                             </span>
                           </div>
                           {/* Item Word Descriptor */}
-                          <p className="mt-1 ml-8 text-[11px] leading-tight font-medium italic text-gray-500 max-w-[80%] uppercase tracking-tight">
+                          <p className={`mt-2 ml-8 text-[11px] leading-tight font-medium italic max-w-[85%] uppercase tracking-tight ${
+                            checkedItems.has(item.id) ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
                             {getItemDescription(item.itemText)}
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
 
