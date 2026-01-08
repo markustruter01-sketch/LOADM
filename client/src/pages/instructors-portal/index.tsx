@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
-  HelpCircle, Users, ArrowLeft, Edit, CheckSquare
+  HelpCircle, Users, ArrowLeft, Edit, CheckSquare, FileUser
 } from "lucide-react";
+import { UserReportModal } from "@/components/UserReportModal";
 import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -25,6 +26,7 @@ export default function InstructorsPortal() {
   // Remove the automatic redirect - superadmins should be able to access instructor portal
   const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
   const [isMottoModalOpen, setIsMottoModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Welcome toast for new instructors (optional)
   useEffect(() => {
@@ -145,7 +147,7 @@ export default function InstructorsPortal() {
         </Dialog>
 
         {/* Featured Section Banner */}
-        <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64" data-testid="instructor-banner">
+        <div className="relative rounded-xl overflow-hidden shadow-xl mb-6 h-64" data-testid="instructor-banner">
           <img
             src={instructorBannerImage}
             alt="RAAF loadmaster directing cargo operations"
@@ -163,6 +165,25 @@ export default function InstructorsPortal() {
             </div>
           </div>
         </div>
+
+        {/* Generate User Report Button - Centered below banner */}
+        <div className="flex justify-center mb-10">
+          <Button
+            onClick={() => setIsReportModalOpen(true)}
+            size="lg"
+            className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-600/90 text-white px-8 py-6 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02]"
+            data-testid="button-generate-user-report"
+          >
+            <FileUser className="h-5 w-5 mr-3" />
+            Generate User Report
+          </Button>
+        </div>
+
+        {/* User Report Modal */}
+        <UserReportModal 
+          open={isReportModalOpen} 
+          onOpenChange={setIsReportModalOpen} 
+        />
 
         {/* Comprehensive Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">

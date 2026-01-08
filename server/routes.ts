@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS, quizzes, quizSubmissions } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -4319,6 +4319,360 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching ICC power law data:", error);
       res.status(500).json({ message: "Failed to fetch ICC power law data" });
+    }
+  });
+
+  // ==================== USER REPORT ENDPOINT ====================
+  
+  // Get users list filtered by squadron (for report generation)
+  app.get("/api/instructor/users", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron } = req.query;
+      
+      let allUsers = await db.select({
+        userId: users.id,
+        email: licenses.email,
+        firstName: licenses.firstName,
+        lastName: licenses.lastName,
+        squadron: licenses.squadron,
+        category: licenses.category,
+        licenseType: licenses.licenseType,
+        isFlightReady: licenses.isFlightReady,
+        profilePhotoUrl: licenses.profilePhotoUrl,
+      })
+      .from(users)
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(eq(licenses.isActive, true));
+
+      // Filter by squadron if provided
+      if (squadron && squadron !== 'all' && squadron !== 'AMG') {
+        allUsers = allUsers.filter(u => u.squadron === squadron || u.squadron === `${squadron}SQN`);
+      }
+
+      res.json(allUsers.map(u => ({
+        ...u,
+        fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+      })));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Comprehensive User Report - aggregates all user data
+  app.get("/api/instructor/user-report/:userId", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      // Get user profile with license info
+      const [userProfile] = await db.select({
+        userId: users.id,
+        email: licenses.email,
+        firstName: licenses.firstName,
+        lastName: licenses.lastName,
+        squadron: licenses.squadron,
+        category: licenses.category,
+        licenseType: licenses.licenseType,
+        isFlightReady: licenses.isFlightReady,
+        notReadyReason: licenses.notReadyReason,
+        profilePhotoUrl: licenses.profilePhotoUrl,
+        totalMissionsFlown: licenses.totalMissionsFlown,
+        totalCargoWeight: licenses.totalCargoWeight,
+        licenseIssuedDate: licenses.issuedDate,
+        lastLogin: users.lastLogin,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(eq(users.id, userId));
+
+      if (!userProfile) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get qualifications
+      const qualifications = await db.select()
+        .from(userQualifications)
+        .where(eq(userQualifications.userId, userId))
+        .orderBy(desc(userQualifications.expiryDate));
+
+      // Get flight records (last 20 with summary)
+      const flightRecordsData = await db.select()
+        .from(flightRecords)
+        .where(eq(flightRecords.userId, userId))
+        .orderBy(desc(flightRecords.date))
+        .limit(20);
+
+      // Get all flight records for summary stats
+      const allFlightRecords = await db.select()
+        .from(flightRecords)
+        .where(eq(flightRecords.userId, userId));
+
+      // Get scenario submissions (last 10)
+      const scenarioSubmissionsData = await db.select({
+        id: scenarioSubmissions.id,
+        scenarioId: scenarioSubmissions.scenarioId,
+        score: scenarioSubmissions.score,
+        passed: scenarioSubmissions.passed,
+        status: scenarioSubmissions.status,
+        submissionDate: scenarioSubmissions.submissionDate,
+        scenarioTitle: scenarios.title,
+      })
+      .from(scenarioSubmissions)
+      .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
+      .where(eq(scenarioSubmissions.userId, userId))
+      .orderBy(desc(scenarioSubmissions.submissionDate))
+      .limit(10);
+
+      // Get all scenario submissions for stats
+      const allScenarioSubmissions = await db.select()
+        .from(scenarioSubmissions)
+        .where(eq(scenarioSubmissions.userId, userId));
+
+      // Get quiz submissions (last 10)
+      const quizSubmissionsData = await db.select({
+        id: quizSubmissions.id,
+        quizId: quizSubmissions.quizId,
+        score: quizSubmissions.score,
+        submissionDate: quizSubmissions.submissionDate,
+        quizTitle: quizzes.title,
+      })
+      .from(quizSubmissions)
+      .leftJoin(quizzes, eq(quizSubmissions.quizId, quizzes.id))
+      .where(eq(quizSubmissions.userId, userId))
+      .orderBy(desc(quizSubmissions.submissionDate))
+      .limit(10);
+
+      // Get all quiz submissions for stats
+      const allQuizSubmissions = await db.select()
+        .from(quizSubmissions)
+        .where(eq(quizSubmissions.userId, userId));
+
+      // Get checklist completions
+      const checklistCompletionsData = await db.select({
+        id: checklistCompletions.id,
+        checklistId: checklistCompletions.checklistId,
+        completionStatus: checklistCompletions.completionStatus,
+        completedAt: checklistCompletions.completedAt,
+        totalItems: checklistCompletions.totalItems,
+        completedCount: checklistCompletions.completedCount,
+        checklistTitle: checklists.title,
+      })
+      .from(checklistCompletions)
+      .leftJoin(checklists, eq(checklistCompletions.checklistId, checklists.id))
+      .where(eq(checklistCompletions.userId, userId))
+      .orderBy(desc(checklistCompletions.completedAt))
+      .limit(10);
+
+      // Get safety records for this user
+      const safetyRecordsData = await db.select()
+        .from(safetyRecords)
+        .where(eq(safetyRecords.userId, userId))
+        .orderBy(desc(safetyRecords.date))
+        .limit(10);
+
+      // Calculate qualification status
+      const now = new Date();
+      const ninetyDaysFromNow = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+      
+      const qualStats = {
+        total: qualifications.length,
+        current: 0,
+        expiringSoon: 0,
+        expired: 0,
+        noExpiry: 0,
+      };
+
+      const expiringQuals: Array<{name: string; expiryDate: Date | null; daysRemaining: number}> = [];
+      const expiredQuals: Array<{name: string; expiryDate: Date | null; daysOverdue: number}> = [];
+
+      qualifications.forEach(q => {
+        if (!q.expiryDate) {
+          qualStats.noExpiry++;
+          qualStats.current++;
+        } else {
+          const expiry = new Date(q.expiryDate);
+          if (expiry < now) {
+            qualStats.expired++;
+            expiredQuals.push({
+              name: q.name,
+              expiryDate: q.expiryDate,
+              daysOverdue: Math.floor((now.getTime() - expiry.getTime()) / (24 * 60 * 60 * 1000)),
+            });
+          } else if (expiry <= ninetyDaysFromNow) {
+            qualStats.expiringSoon++;
+            expiringQuals.push({
+              name: q.name,
+              expiryDate: q.expiryDate,
+              daysRemaining: Math.floor((expiry.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)),
+            });
+          } else {
+            qualStats.current++;
+          }
+        }
+      });
+
+      // Calculate flight stats
+      const flightStats = {
+        totalFlights: allFlightRecords.length,
+        totalDayHours: allFlightRecords.reduce((sum, r) => sum + (r.dayHours || 0), 0),
+        totalNightHours: allFlightRecords.reduce((sum, r) => sum + (r.nightHours || 0), 0),
+        totalHours: allFlightRecords.reduce((sum, r) => sum + (r.dayHours || 0) + (r.nightHours || 0), 0),
+        totalCargoWeight: allFlightRecords.reduce((sum, r) => sum + (r.cargoWeight || 0), 0),
+        totalPassengers: allFlightRecords.reduce((sum, r) => sum + (r.passengersCarried || 0), 0),
+        aircraftTypes: Array.from(new Set(allFlightRecords.map(r => r.aircraftType).filter(Boolean))),
+        last30Days: {
+          flights: allFlightRecords.filter(r => {
+            const d = new Date(r.date);
+            return d >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          }).length,
+          hours: allFlightRecords.filter(r => {
+            const d = new Date(r.date);
+            return d >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          }).reduce((sum, r) => sum + (r.dayHours || 0) + (r.nightHours || 0), 0),
+        },
+      };
+
+      // Calculate assessment stats
+      const scenarioStats = {
+        total: allScenarioSubmissions.length,
+        passed: allScenarioSubmissions.filter(s => s.passed).length,
+        failed: allScenarioSubmissions.filter(s => s.passed === false).length,
+        pending: allScenarioSubmissions.filter(s => s.status === 'submitted').length,
+        averageScore: allScenarioSubmissions.length > 0 
+          ? Math.round(allScenarioSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) / allScenarioSubmissions.length)
+          : 0,
+        passRate: allScenarioSubmissions.length > 0 
+          ? Math.round((allScenarioSubmissions.filter(s => s.passed).length / allScenarioSubmissions.length) * 100)
+          : 0,
+      };
+
+      const quizStats = {
+        total: allQuizSubmissions.length,
+        averageScore: allQuizSubmissions.length > 0
+          ? Math.round(allQuizSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) / allQuizSubmissions.length)
+          : 0,
+        highestScore: allQuizSubmissions.length > 0
+          ? Math.max(...allQuizSubmissions.map(s => s.score || 0))
+          : 0,
+        lowestScore: allQuizSubmissions.length > 0
+          ? Math.min(...allQuizSubmissions.map(s => s.score || 0))
+          : 0,
+      };
+
+      // Calculate trend (compare last 30 days to previous 30 days)
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+      const recentScenarios = allScenarioSubmissions.filter(s => new Date(s.submissionDate) >= thirtyDaysAgo);
+      const previousScenarios = allScenarioSubmissions.filter(s => {
+        const d = new Date(s.submissionDate);
+        return d >= sixtyDaysAgo && d < thirtyDaysAgo;
+      });
+
+      const recentAvg = recentScenarios.length > 0 
+        ? recentScenarios.reduce((sum, s) => sum + (s.score || 0), 0) / recentScenarios.length 
+        : 0;
+      const previousAvg = previousScenarios.length > 0 
+        ? previousScenarios.reduce((sum, s) => sum + (s.score || 0), 0) / previousScenarios.length 
+        : 0;
+
+      let trend: 'improving' | 'declining' | 'stable' = 'stable';
+      if (recentScenarios.length > 0 && previousScenarios.length > 0) {
+        if (recentAvg > previousAvg + 5) trend = 'improving';
+        else if (recentAvg < previousAvg - 5) trend = 'declining';
+      }
+
+      // Calculate risk score (0-100, higher = more at risk)
+      let riskScore = 0;
+      
+      // Expired qualifications: +30 points each (max 40)
+      riskScore += Math.min(40, qualStats.expired * 30);
+      
+      // Expiring qualifications: +15 points each (max 30)
+      riskScore += Math.min(30, qualStats.expiringSoon * 15);
+      
+      // Not flight ready: +20 points
+      if (!userProfile.isFlightReady) riskScore += 20;
+      
+      // Low assessment average (<70%): +10 points
+      if (scenarioStats.averageScore > 0 && scenarioStats.averageScore < 70) riskScore += 10;
+      
+      // No recent activity (no submissions in 30 days): +10 points
+      const hasRecentActivity = recentScenarios.length > 0 || 
+        allQuizSubmissions.some(s => new Date(s.submissionDate) >= thirtyDaysAgo);
+      if (!hasRecentActivity && allScenarioSubmissions.length > 0) riskScore += 10;
+
+      // Determine risk level
+      let riskLevel: 'low' | 'medium' | 'high' | 'critical' = 'low';
+      if (riskScore >= 60) riskLevel = 'critical';
+      else if (riskScore >= 40) riskLevel = 'high';
+      else if (riskScore >= 20) riskLevel = 'medium';
+
+      // Calculate tenure
+      const tenureMonths = userProfile.licenseIssuedDate 
+        ? Math.floor((now.getTime() - new Date(userProfile.licenseIssuedDate).getTime()) / (30 * 24 * 60 * 60 * 1000))
+        : 0;
+
+      res.json({
+        profile: {
+          userId: userProfile.userId,
+          email: userProfile.email,
+          firstName: userProfile.firstName,
+          lastName: userProfile.lastName,
+          fullName: `${userProfile.firstName || ''} ${userProfile.lastName || ''}`.trim() || userProfile.email,
+          squadron: userProfile.squadron,
+          category: userProfile.category,
+          licenseType: userProfile.licenseType,
+          isFlightReady: userProfile.isFlightReady,
+          notReadyReason: userProfile.notReadyReason,
+          profilePhotoUrl: userProfile.profilePhotoUrl,
+          lastLogin: userProfile.lastLogin,
+          tenureMonths,
+          tenureYears: Math.floor(tenureMonths / 12),
+        },
+        riskAssessment: {
+          score: riskScore,
+          level: riskLevel,
+          trend,
+        },
+        qualifications: {
+          stats: qualStats,
+          expiringQuals,
+          expiredQuals,
+          all: qualifications,
+        },
+        flightRecords: {
+          stats: flightStats,
+          recent: flightRecordsData,
+        },
+        scenarios: {
+          stats: scenarioStats,
+          recent: scenarioSubmissionsData,
+        },
+        quizzes: {
+          stats: quizStats,
+          recent: quizSubmissionsData,
+        },
+        checklists: {
+          completed: checklistCompletionsData.filter(c => c.completionStatus === 'completed').length,
+          inProgress: checklistCompletionsData.filter(c => c.completionStatus === 'in_progress').length,
+          recent: checklistCompletionsData,
+        },
+        safety: {
+          incidents: safetyRecordsData.filter(r => r.recordType === 'incident').length,
+          observations: safetyRecordsData.filter(r => r.recordType === 'observation').length,
+          commendations: safetyRecordsData.filter(r => r.recordType === 'commendation').length,
+          recent: safetyRecordsData,
+        },
+        generatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error generating user report:", error);
+      res.status(500).json({ message: "Failed to generate user report" });
     }
   });
 
