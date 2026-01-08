@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { UserCircle } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import SimpleLoginModal from "./SimpleLoginModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,12 +12,32 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Header() {
   const [location, setLocation] = useLocation();
   const { user, logout } = useIsolatedAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const navigateTo = (targetPath: string) => {
     setLocation(targetPath);
@@ -40,6 +60,36 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center space-x-4">
+          {/* Network Status Indicator */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 cursor-default" data-testid="network-status-indicator">
+                  <div 
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      isOnline 
+                        ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' 
+                        : 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]'
+                    } animate-pulse`}
+                  />
+                  <span className="text-xs text-muted-foreground hidden sm:inline">
+                    {isOnline ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isOnline ? (
+                  <p className="text-xs">Connected to server</p>
+                ) : (
+                  <div className="text-xs">
+                    <p className="font-medium">Offline - Local Mode</p>
+                    <p className="text-muted-foreground">Working locally. Do not refresh.</p>
+                  </div>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
