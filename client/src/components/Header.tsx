@@ -5,6 +5,7 @@ import { UserCircle } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import SimpleLoginModal from "./SimpleLoginModal";
 import { useState, useEffect } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +61,9 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center space-x-4">
+          {/* Dark Mode Toggle */}
+          <ThemeToggle />
+          
           {/* Network Status Indicator */}
           <TooltipProvider>
             <Tooltip>

@@ -400,6 +400,7 @@ export const checklists = pgTable("checklists", {
   aircraftType: text("aircraft_type").notNull(), // C-17, C-130, C-27J, KC30A, General
   category: text("category").notNull().default("startup"), // startup, shutdown, pre-flight, post-flight, emergency
   isActive: boolean("is_active").default(true).notNull(),
+  enforceLinearProgression: boolean("enforce_linear_progression").default(false).notNull(), // QRH mode: must complete items in order
   createdById: integer("created_by_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -411,6 +412,7 @@ export const insertChecklistSchema = createInsertSchema(checklists).pick({
   aircraftType: true,
   category: true,
   isActive: true,
+  enforceLinearProgression: true,
   createdById: true,
 });
 
@@ -464,6 +466,30 @@ export const insertChecklistCompletionSchema = createInsertSchema(checklistCompl
 
 export type ChecklistCompletion = typeof checklistCompletions.$inferSelect;
 export type InsertChecklistCompletion = z.infer<typeof insertChecklistCompletionSchema>;
+
+// Checklist step audit trail - Records each individual step completion with timestamp
+export const checklistStepAudit = pgTable("checklist_step_audit", {
+  id: serial("id").primaryKey(),
+  checklistId: integer("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
+  checklistItemId: integer("checklist_item_id").notNull().references(() => checklistItems.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  completionId: integer("completion_id").notNull().references(() => checklistCompletions.id, { onDelete: "cascade" }),
+  action: text("action").notNull(), // 'checked' or 'unchecked'
+  stepOrder: integer("step_order").notNull(),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+});
+
+export const insertChecklistStepAuditSchema = createInsertSchema(checklistStepAudit).pick({
+  checklistId: true,
+  checklistItemId: true,
+  userId: true,
+  completionId: true,
+  action: true,
+  stepOrder: true,
+});
+
+export type ChecklistStepAudit = typeof checklistStepAudit.$inferSelect;
+export type InsertChecklistStepAudit = z.infer<typeof insertChecklistStepAuditSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -591,12 +617,33 @@ export const checklistsRelations = relations(checklists, ({ one, many }) => ({
   }),
   items: many(checklistItems),
   completions: many(checklistCompletions),
+  stepAudits: many(checklistStepAudit),
 }));
 
-export const checklistItemsRelations = relations(checklistItems, ({ one }) => ({
+export const checklistItemsRelations = relations(checklistItems, ({ one, many }) => ({
   checklist: one(checklists, {
     fields: [checklistItems.checklistId],
     references: [checklists.id],
+  }),
+  stepAudits: many(checklistStepAudit),
+}));
+
+export const checklistStepAuditRelations = relations(checklistStepAudit, ({ one }) => ({
+  checklist: one(checklists, {
+    fields: [checklistStepAudit.checklistId],
+    references: [checklists.id],
+  }),
+  checklistItem: one(checklistItems, {
+    fields: [checklistStepAudit.checklistItemId],
+    references: [checklistItems.id],
+  }),
+  user: one(users, {
+    fields: [checklistStepAudit.userId],
+    references: [users.id],
+  }),
+  completion: one(checklistCompletions, {
+    fields: [checklistStepAudit.completionId],
+    references: [checklistCompletions.id],
   }),
 }));
 

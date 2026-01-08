@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { ArrowLeft, CheckSquare, Clock, AlertCircle, CheckCircle, Plane } from "lucide-react";
+import { ArrowLeft, CheckSquare, Clock, AlertCircle, CheckCircle, Plane, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,7 @@ interface Checklist {
   aircraftType: string;
   category: string;
   isActive: boolean;
+  enforceLinearProgression: boolean;
   createdAt: string;
   items: ChecklistItem[];
   creator: {
@@ -115,6 +116,45 @@ export default function ChecklistDetailPage() {
     if (!canSubmit) {
       setShowPermissionDialog(true);
       return;
+    }
+
+    if (!checklist) return;
+
+    // Get sorted items by order
+    const sortedItems = [...checklist.items].sort((a, b) => a.itemOrder - b.itemOrder);
+    const itemIndex = sortedItems.findIndex(item => item.id === itemId);
+    const item = sortedItems[itemIndex];
+
+    // Enforce linear progression if enabled (QRH mode)
+    if (checklist.enforceLinearProgression) {
+      const isCurrentlyChecked = checkedItems.has(itemId);
+      
+      if (!isCurrentlyChecked) {
+        // Check if all previous items are completed
+        for (let i = 0; i < itemIndex; i++) {
+          if (!checkedItems.has(sortedItems[i].id)) {
+            toast({
+              title: "Sequential Completion Required",
+              description: `Complete "${sortedItems[i].itemText}" first. QRH procedures must be completed in order.`,
+              variant: "destructive"
+            });
+            return;
+          }
+        }
+      } else {
+        // Unchecking: Only allow unchecking the last checked item
+        const lastCheckedIndex = sortedItems.reduce((last, item, idx) => 
+          checkedItems.has(item.id) ? idx : last, -1);
+        
+        if (itemIndex !== lastCheckedIndex) {
+          toast({
+            title: "Cannot Uncheck",
+            description: "You can only uncheck the most recently completed item.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
     }
 
     const newCheckedItems = new Set(checkedItems);
@@ -431,51 +471,89 @@ export default function ChecklistDetailPage() {
               {/* Page Content */}
               <div className="p-10 pb-24">
                 {/* Title Section Banner */}
-                <div className="bg-black text-white text-center py-2 font-black uppercase tracking-[0.2em] mb-10 text-lg">
+                <div className="bg-black text-white text-center py-2 font-black uppercase tracking-[0.2em] mb-4 text-lg">
                   {checklist.title}
                 </div>
+                
+                {/* QRH Mode Indicator */}
+                {checklist.enforceLinearProgression && (
+                  <div className="flex items-center justify-center gap-2 mb-6 p-2 bg-amber-50 border border-amber-300 rounded-lg">
+                    <ShieldCheck className="h-4 w-4 text-amber-600" />
+                    <span className="text-xs font-bold uppercase tracking-wide text-amber-700">
+                      QRH Mode: Sequential Completion Required
+                    </span>
+                  </div>
+                )}
 
                 <div className="space-y-4">
-                  {pages[currentPage]?.map((item, index) => (
-                    <button 
-                      key={item.id}
-                      onClick={() => handleItemCheck(item.id)}
-                      className={`w-full text-left group cursor-pointer transition-all duration-200 rounded-lg border-2 p-4 ${
-                        checkedItems.has(item.id) 
-                          ? 'bg-green-50 border-green-300 shadow-sm' 
-                          : 'bg-white border-gray-200 hover:border-gray-400 hover:bg-gray-50 hover:shadow-md'
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`mt-0.5 w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  {pages[currentPage]?.map((item, index) => {
+                    const sortedItems = [...checklist.items].sort((a, b) => a.itemOrder - b.itemOrder);
+                    const itemIndex = sortedItems.findIndex(i => i.id === item.id);
+                    const isLocked = checklist.enforceLinearProgression && 
+                      !checkedItems.has(item.id) && 
+                      itemIndex > 0 && 
+                      !checkedItems.has(sortedItems[itemIndex - 1]?.id);
+                    
+                    return (
+                      <button 
+                        key={item.id}
+                        onClick={() => handleItemCheck(item.id)}
+                        className={`w-full text-left group cursor-pointer transition-all duration-200 rounded-lg border-2 p-4 ${
                           checkedItems.has(item.id) 
-                            ? 'bg-black border-black' 
-                            : 'border-black bg-white group-hover:bg-gray-100'
-                        }`}>
-                          {checkedItems.has(item.id) && (
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center leader-line">
-                            <span className={`font-black uppercase text-base tracking-tight ${checkedItems.has(item.id) ? 'line-through text-gray-400' : 'text-black'}`}>
-                              <span className="mr-3 text-xl">—</span>
-                              {cleanItemText(item.itemText)}
-                            </span>
-                            <span className={`font-black text-lg ml-auto whitespace-nowrap pl-4 ${checkedItems.has(item.id) ? 'text-green-600' : 'text-black'}`}>
-                              {getStatusValue(item.itemText)}
-                            </span>
-                          </div>
-                          {/* Item Word Descriptor */}
-                          <p className={`mt-2 ml-8 text-[11px] leading-tight font-medium italic max-w-[85%] uppercase tracking-tight ${
-                            checkedItems.has(item.id) ? 'text-gray-400' : 'text-gray-500'
+                            ? 'bg-green-50 border-green-300 shadow-sm' 
+                            : isLocked
+                              ? 'bg-gray-100 border-gray-300 opacity-60 cursor-not-allowed'
+                              : 'bg-white border-gray-200 hover:border-gray-400 hover:bg-gray-50 hover:shadow-md'
+                        }`}
+                        data-testid={`checklist-item-${item.id}`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className={`mt-0.5 w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            checkedItems.has(item.id) 
+                              ? 'bg-black border-black' 
+                              : isLocked 
+                                ? 'border-gray-400 bg-gray-200'
+                                : 'border-black bg-white group-hover:bg-gray-100'
                           }`}>
-                            {getItemDescription(item.itemText)}
-                          </p>
+                            {checkedItems.has(item.id) ? (
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            ) : isLocked ? (
+                              <Lock className="w-3 h-3 text-gray-500" />
+                            ) : null}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center leader-line">
+                              <span className={`font-black uppercase text-base tracking-tight ${
+                                checkedItems.has(item.id) 
+                                  ? 'line-through text-gray-400' 
+                                  : isLocked 
+                                    ? 'text-gray-400'
+                                    : 'text-black'
+                              }`}>
+                                <span className="mr-3 text-xl">—</span>
+                                {cleanItemText(item.itemText)}
+                              </span>
+                              <span className={`font-black text-lg ml-auto whitespace-nowrap pl-4 ${
+                                checkedItems.has(item.id) 
+                                  ? 'text-green-600' 
+                                  : isLocked 
+                                    ? 'text-gray-400'
+                                    : 'text-black'
+                              }`}>
+                                {getStatusValue(item.itemText)}
+                              </span>
+                            </div>
+                            {/* Item Word Descriptor */}
+                            <p className={`mt-2 ml-8 text-[11px] leading-tight font-medium italic max-w-[85%] uppercase tracking-tight ${
+                              checkedItems.has(item.id) || isLocked ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              {getItemDescription(item.itemText)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Footer / Notes area */}

@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS, quizzes, quizSubmissions } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, checklistStepAudit, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS, quizzes, quizSubmissions } from "@shared/schema";
 import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -2671,7 +2671,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const items = await db.select()
         .from(checklistItems)
-        .where(eq(checklistItems.checklistId, checklistId));
+        .where(eq(checklistItems.checklistId, checklistId))
+        .orderBy(checklistItems.itemOrder);
+
+      // Create item order lookup
+      const itemOrderMap = new Map(items.map(item => [item.id, item.itemOrder]));
 
       const totalItems = items.length;
       const completedCount = completedItems.length;
@@ -2693,20 +2697,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .limit(1);
 
+      let completionId: number;
+      let previousItems: number[] = [];
+
       if (existingCompletion.length > 0) {
+        completionId = existingCompletion[0].id;
+        previousItems = (existingCompletion[0].completedItems as number[]) || [];
+        
         // Update existing
-        const [updated] = await db.update(checklistCompletions)
+        await db.update(checklistCompletions)
           .set({
             completedItems,
             completedCount,
             completionStatus,
             completedAt: completionStatus === "completed" ? new Date() : null
           })
-          .where(eq(checklistCompletions.id, existingCompletion[0].id))
-          .returning();
+          .where(eq(checklistCompletions.id, existingCompletion[0].id));
 
         console.log('🔧 COMPLETION UPDATE API: Updated existing completion');
-        res.json(updated);
       } else {
         // Create new
         const [newCompletion] = await db.insert(checklistCompletions)
@@ -2721,9 +2729,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .returning();
 
+        completionId = newCompletion.id;
         console.log('🔧 COMPLETION UPDATE API: Created new completion');
-        res.json(newCompletion);
       }
+
+      // Create audit trail entries for newly checked/unchecked items
+      const newlyChecked = completedItems.filter((id: number) => !previousItems.includes(id));
+      const newlyUnchecked = previousItems.filter((id: number) => !completedItems.includes(id));
+
+      const auditEntries: Array<{
+        checklistId: number;
+        checklistItemId: number;
+        userId: number;
+        completionId: number;
+        action: string;
+        stepOrder: number;
+      }> = [];
+
+      for (const itemId of newlyChecked) {
+        const stepOrder = itemOrderMap.get(itemId) || 0;
+        auditEntries.push({
+          checklistId,
+          checklistItemId: itemId,
+          userId: req.user!.id,
+          completionId,
+          action: 'checked',
+          stepOrder
+        });
+      }
+
+      for (const itemId of newlyUnchecked) {
+        const stepOrder = itemOrderMap.get(itemId) || 0;
+        auditEntries.push({
+          checklistId,
+          checklistItemId: itemId,
+          userId: req.user!.id,
+          completionId,
+          action: 'unchecked',
+          stepOrder
+        });
+      }
+
+      if (auditEntries.length > 0) {
+        await db.insert(checklistStepAudit).values(auditEntries);
+        console.log('🔧 COMPLETION UPDATE API: Added', auditEntries.length, 'audit entries');
+      }
+
+      // Return the updated completion
+      const [result] = await db.select()
+        .from(checklistCompletions)
+        .where(eq(checklistCompletions.id, completionId));
+
+      res.json(result);
     } catch (error) {
       console.error('🔧 COMPLETION UPDATE API ERROR:', error);
       res.status(500).json({ error: "Failed to update checklist completion" });
@@ -3928,6 +3985,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching readiness history:", error);
       res.status(500).json({ message: "Failed to fetch readiness history" });
+    }
+  });
+
+  // Capture a daily readiness snapshot
+  app.post("/api/analytics/capture-snapshot", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get all squadrons plus AMG and ALL
+      const squadrons = ['33', '35', '36', '37', 'AMG', 'ALL'];
+      const snapshots = [];
+
+      for (const squadron of squadrons) {
+        // Check if we already have a snapshot for today for this squadron
+        const existingSnapshot = await db.select()
+          .from(readinessSnapshots)
+          .where(and(
+            eq(readinessSnapshots.squadron, squadron),
+            sql`DATE(${readinessSnapshots.snapshotDate}) = DATE(${today})`
+          ))
+          .limit(1);
+
+        if (existingSnapshot.length > 0) {
+          snapshots.push({ squadron, status: 'exists' });
+          continue;
+        }
+
+        // Calculate current readiness for this squadron
+        const usersQuery = await db.select({
+          id: users.id,
+          userRole: users.userRole,
+          licenseId: users.licenseId,
+          squadron: licenses.squadron,
+          isFlightReady: licenses.isFlightReady,
+        })
+        .from(users)
+        .leftJoin(licenses, eq(users.licenseId, licenses.id))
+        .where(eq(users.userRole, 'loadmaster'));
+
+        let filteredUsers = usersQuery;
+        if (squadron !== 'ALL' && squadron !== 'AMG') {
+          filteredUsers = usersQuery.filter(u => u.squadron === squadron);
+        }
+
+        const totalPersonnel = filteredUsers.length;
+        const readyCount = filteredUsers.filter(u => u.isFlightReady === true).length;
+        const notReadyCount = totalPersonnel - readyCount;
+        const readyPercent = totalPersonnel > 0 ? Math.round((readyCount / totalPersonnel) * 100) : 0;
+
+        // Get qualification stats
+        const qualStats = await db.select({
+          id: userQualifications.id,
+          expiryDate: userQualifications.expiryDate,
+          userId: userQualifications.userId,
+        })
+        .from(userQualifications)
+        .leftJoin(users, eq(userQualifications.userId, users.id))
+        .leftJoin(licenses, eq(users.licenseId, licenses.id));
+
+        let filteredQuals = qualStats;
+        if (squadron !== 'ALL' && squadron !== 'AMG') {
+          const squadronUserIds = filteredUsers.map(u => u.id);
+          filteredQuals = qualStats.filter(q => squadronUserIds.includes(q.userId));
+        }
+
+        const now = new Date();
+        const ninetyDaysFromNow = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+        let currentQuals = 0;
+        let expiringQuals = 0;
+        let expiredQuals = 0;
+        const atRiskUserIds = new Set<number>();
+
+        filteredQuals.forEach(q => {
+          if (!q.expiryDate) {
+            currentQuals++;
+          } else {
+            const expiry = new Date(q.expiryDate);
+            if (expiry < now) {
+              expiredQuals++;
+              atRiskUserIds.add(q.userId);
+            } else if (expiry <= ninetyDaysFromNow) {
+              expiringQuals++;
+              atRiskUserIds.add(q.userId);
+            } else {
+              currentQuals++;
+            }
+          }
+        });
+
+        // Insert snapshot
+        const [newSnapshot] = await db.insert(readinessSnapshots)
+          .values({
+            snapshotDate: today,
+            squadron,
+            totalPersonnel,
+            readyCount,
+            notReadyCount,
+            readyPercent,
+            currentQuals,
+            expiringQuals,
+            expiredQuals,
+            personnelAtRisk: atRiskUserIds.size,
+          })
+          .returning();
+
+        snapshots.push({ squadron, status: 'created', data: newSnapshot });
+      }
+
+      res.json({ message: 'Snapshot capture complete', snapshots });
+    } catch (error) {
+      console.error("Error capturing readiness snapshot:", error);
+      res.status(500).json({ message: "Failed to capture readiness snapshot" });
     }
   });
 

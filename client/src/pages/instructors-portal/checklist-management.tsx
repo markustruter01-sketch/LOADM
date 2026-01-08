@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { Plus, Edit, Trash2, CheckSquare, Plane, Clock, Users } from "lucide-react";
+import { Plus, Edit, Trash2, CheckSquare, Plane, Clock, Users, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,6 +23,7 @@ const checklistSchema = z.object({
   description: z.string().optional(),
   aircraftType: z.string().min(1, "Aircraft type is required"),
   category: z.string().min(1, "Category is required"),
+  enforceLinearProgression: z.boolean().default(false),
   items: z.array(z.object({
     itemText: z.string().min(1, "Item text is required"),
     isRequired: z.boolean().default(true),
@@ -54,6 +56,7 @@ interface Checklist {
   aircraftType: string;
   category: string;
   isActive: boolean;
+  enforceLinearProgression: boolean;
   createdAt: string;
   items: ChecklistItem[];
   creator: { email: string };
@@ -77,6 +80,7 @@ export default function ChecklistManagement() {
       description: "",
       aircraftType: "",
       category: "",
+      enforceLinearProgression: false,
       items: [{ itemText: "", isRequired: true, category: "" }]
     }
   });
@@ -88,6 +92,7 @@ export default function ChecklistManagement() {
       description: "",
       aircraftType: "",
       category: "",
+      enforceLinearProgression: false,
       items: []
     }
   });
@@ -104,7 +109,8 @@ export default function ChecklistManagement() {
 
   const createMutation = useMutation({
     mutationFn: (data: ChecklistFormData) => 
-      apiRequest('/api/checklists', {
+      apiRequest({
+        url: '/api/checklists',
         method: 'POST',
         body: JSON.stringify(data)
       }) as Promise<any>,
@@ -128,7 +134,8 @@ export default function ChecklistManagement() {
 
   const updateMutation = useMutation({
     mutationFn: (data: { id: number; checklist: ChecklistFormData }) =>
-      apiRequest(`/api/checklists/${data.id}`, {
+      apiRequest({
+        url: `/api/checklists/${data.id}`,
         method: 'PUT',
         body: JSON.stringify(data.checklist)
       }) as Promise<any>,
@@ -152,7 +159,8 @@ export default function ChecklistManagement() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/checklists/${id}`, {
+      apiRequest({
+        url: `/api/checklists/${id}`,
         method: 'DELETE'
       }) as Promise<any>,
     onSuccess: () => {
@@ -187,6 +195,7 @@ export default function ChecklistManagement() {
       description: checklist.description || "",
       aircraftType: checklist.aircraftType,
       category: checklist.category,
+      enforceLinearProgression: checklist.enforceLinearProgression || false,
       items: checklist.items.sort((a, b) => a.itemOrder - b.itemOrder).map(item => ({
         itemText: item.itemText,
         isRequired: item.isRequired,
@@ -309,6 +318,30 @@ export default function ChecklistManagement() {
                 <Textarea {...field} placeholder="Optional description of the checklist" />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="enforceLinearProgression"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-amber-50 border-amber-200">
+              <div className="space-y-0.5">
+                <FormLabel className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-amber-600" />
+                  QRH Mode (Sequential Completion)
+                </FormLabel>
+                <FormDescription className="text-xs text-amber-700">
+                  When enabled, users must complete checklist items in order. Items are locked until the previous item is completed.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
             </FormItem>
           )}
         />

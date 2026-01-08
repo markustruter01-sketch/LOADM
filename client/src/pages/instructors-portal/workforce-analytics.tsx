@@ -372,6 +372,7 @@ export default function WorkforceAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
+  const [historyRange, setHistoryRange] = useState<30 | 60 | 90>(30);
   
   const [flightData, setFlightData] = useState<any>(null);
   const [currencyData, setCurrencyData] = useState<any>(null);
@@ -383,18 +384,24 @@ export default function WorkforceAnalytics() {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
+      // Trigger snapshot capture first (silently, doesn't block the rest)
+      fetch('/api/analytics/capture-snapshot', { 
+        method: 'POST', 
+        credentials: 'include' 
+      }).catch(() => {}); // Silent failure is OK
+
       const squadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "";
       const historySquadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "squadron=ALL";
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const startDateParam = `startDate=${thirtyDaysAgo.toISOString()}`;
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - historyRange);
+      const startDateParam = `startDate=${daysAgo.toISOString()}`;
       
       const [flightRes, currencyRes, readinessRes, safetyRes, historyRes, forecastRes] = await Promise.all([
         fetch(`/api/analytics/flight-hours?${startDateParam}&${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/currency-status?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/squadron-readiness?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/safety-summary?${squadronParam}`, { credentials: 'include' }),
-        fetch(`/api/analytics/readiness-history?${historySquadronParam}&limit=90`, { credentials: 'include' }),
+        fetch(`/api/analytics/readiness-history?${historySquadronParam}&limit=${historyRange}`, { credentials: 'include' }),
         fetch(`/api/analytics/qualification-forecast?${squadronParam}&months=6`, { credentials: 'include' }),
       ]);
 
@@ -414,7 +421,7 @@ export default function WorkforceAnalytics() {
 
   useEffect(() => {
     fetchAllData();
-  }, [selectedSquadron]);
+  }, [selectedSquadron, historyRange]);
 
   const getReasonIcon = (reason: string) => {
     const normalizedReason = reason?.toLowerCase().trim();
@@ -1098,7 +1105,22 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <LineChart className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Historical Trends</h2>
-            <span className="text-xs text-gray-500 ml-auto mr-2">Tracking workforce readiness over time</span>
+            <div className="flex items-center gap-1 ml-auto mr-4">
+              {[30, 60, 90].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => setHistoryRange(days as 30 | 60 | 90)}
+                  data-testid={`button-history-${days}d`}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                    historyRange === days
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-[#333333] text-gray-400 hover:bg-[#444444] hover:text-gray-300'
+                  }`}
+                >
+                  {days}D
+                </button>
+              ))}
+            </div>
             <HelpButton helpKey="historicalTrends" onClick={setActiveHelp} />
           </div>
 
