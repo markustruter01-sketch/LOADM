@@ -354,18 +354,23 @@ export function UserReportModal({ open, onOpenChange }: UserReportModalProps) {
                   <p>Failed to load report</p>
                 </div>
               ) : report ? (
-                <div ref={reportRef} className="p-6 space-y-6">
+                <div ref={reportRef} className="p-6 pb-8 space-y-6">
                   {/* Profile Header */}
                   <div className="flex items-start gap-6">
-                    <Avatar className="h-20 w-20">
+                    <Avatar className="h-20 w-20 shrink-0">
                       <AvatarImage src={report.profile.profilePhotoUrl || undefined} />
                       <AvatarFallback className="bg-primary/10 text-primary text-2xl">
                         {report.profile.firstName?.[0]}{report.profile.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h2 className="text-2xl font-bold">{report.profile.fullName}</h2>
+                        {report.profile.category && (
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                            {report.profile.category} Category
+                          </Badge>
+                        )}
                         <Badge className={getRiskBadgeColor(report.riskAssessment.level)}>
                           Risk: {report.riskAssessment.level.toUpperCase()}
                         </Badge>
@@ -375,7 +380,7 @@ export function UserReportModal({ open, onOpenChange }: UserReportModalProps) {
                           <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Not Ready</Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
                         <span className="flex items-center gap-1"><Mail className="h-4 w-4" />{report.profile.email}</span>
                         <span className="flex items-center gap-1"><Award className="h-4 w-4" />{report.profile.squadron || 'N/A'} SQN</span>
                         <span className="flex items-center gap-1"><Calendar className="h-4 w-4" />{report.profile.tenureYears}y {report.profile.tenureMonths % 12}m tenure</span>
