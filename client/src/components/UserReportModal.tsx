@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,7 +15,7 @@ import {
   Search, AlertTriangle, CheckCircle2, XCircle, Clock, Plane, 
   Award, BookOpen, FileText, Shield, TrendingUp, TrendingDown, 
   Minus, Printer, User, Calendar, Mail, ChevronRight, Loader2,
-  AlertCircle, ClipboardList
+  AlertCircle, ClipboardList, Info, HelpCircle
 } from "lucide-react";
 
 interface UserListItem {
@@ -389,13 +390,92 @@ export function UserReportModal({ open, onOpenChange }: UserReportModalProps) {
                         <p className="text-sm text-red-400 mt-1">Not ready: {report.profile.notReadyReason}</p>
                       )}
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">Risk Score</div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-3xl font-bold">{report.riskAssessment.score}</span>
-                        {getTrendIcon(report.riskAssessment.trend)}
-                      </div>
-                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button 
+                          className="text-right p-3 -m-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group"
+                          data-testid="button-risk-score"
+                        >
+                          <div className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
+                            Risk Score
+                            <HelpCircle className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                          </div>
+                          <div className="flex items-center gap-2 justify-end">
+                            <span className="text-3xl font-bold">{report.riskAssessment.score}</span>
+                            {getTrendIcon(report.riskAssessment.trend)}
+                          </div>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="end">
+                        <div className="p-4 border-b border-border">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Info className="h-4 w-4 text-primary" />
+                            Risk Score Breakdown
+                          </h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Score: <span className="font-bold text-foreground">{report.riskAssessment.score}</span> / 100 
+                            ({report.riskAssessment.level.toUpperCase()})
+                          </p>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          <div className="text-sm font-medium mb-2">Score Factors for {report.profile.firstName || 'this user'}:</div>
+                          <div className="space-y-2 text-sm">
+                            {report.qualifications.stats.expired > 0 && (
+                              <div className="flex items-center justify-between text-red-400">
+                                <span>Expired qualifications ({report.qualifications.stats.expired})</span>
+                                <span className="font-medium">+{Math.min(report.qualifications.stats.expired * 30, 40)} pts</span>
+                              </div>
+                            )}
+                            {report.qualifications.stats.expiringSoon > 0 && (
+                              <div className="flex items-center justify-between text-yellow-400">
+                                <span>Expiring soon ({report.qualifications.stats.expiringSoon})</span>
+                                <span className="font-medium">+{Math.min(report.qualifications.stats.expiringSoon * 15, 30)} pts</span>
+                              </div>
+                            )}
+                            {!report.profile.isFlightReady && (
+                              <div className="flex items-center justify-between text-orange-400">
+                                <span>Not flight ready</span>
+                                <span className="font-medium">+20 pts</span>
+                              </div>
+                            )}
+                            {report.scenarios.stats.passRate < 70 && report.scenarios.stats.total > 0 && (
+                              <div className="flex items-center justify-between text-yellow-400">
+                                <span>Low assessment pass rate ({report.scenarios.stats.passRate}%)</span>
+                                <span className="font-medium">+10 pts</span>
+                              </div>
+                            )}
+                            {report.flightRecords.stats.last30Days.flights === 0 && (
+                              <div className="flex items-center justify-between text-muted-foreground">
+                                <span>No recent flight activity</span>
+                                <span className="font-medium">+10 pts</span>
+                              </div>
+                            )}
+                            {report.riskAssessment.score === 0 && (
+                              <div className="flex items-center justify-between text-green-400">
+                                <span>No risk factors identified</span>
+                                <span className="font-medium">0 pts</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-muted/30 border-t border-border">
+                          <div className="text-xs font-medium mb-2 text-muted-foreground">How Risk Scores Work:</div>
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            <li>• Expired quals: +30 pts each (max 40)</li>
+                            <li>• Expiring quals (&lt;90 days): +15 pts each (max 30)</li>
+                            <li>• Not flight ready: +20 pts</li>
+                            <li>• Pass rate &lt;70%: +10 pts</li>
+                            <li>• No recent activity: +10 pts</li>
+                          </ul>
+                          <div className="mt-3 pt-2 border-t border-border/50 text-xs">
+                            <span className="text-green-400">0-25: Low</span> • 
+                            <span className="text-yellow-400 ml-1">26-50: Medium</span> • 
+                            <span className="text-orange-400 ml-1">51-75: High</span> • 
+                            <span className="text-red-400 ml-1">76+: Critical</span>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   {/* Critical Alerts */}
