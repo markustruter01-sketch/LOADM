@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload, Link, ExternalLink, Database } from "lucide-react";
+import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload } from "lucide-react";
 
 export default function UserProfile() {
   const { user } = useIsolatedAuth();
@@ -701,45 +701,6 @@ export default function UserProfile() {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* PMKeyS Integration Card */}
-          <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] mt-4">
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Database className="w-5 h-5 text-orange-500" />
-                  <h3 className="text-lg font-semibold text-white">PMKeyS Integration</h3>
-                </div>
-                <div className="px-2 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded text-xs text-yellow-400">
-                  Coming Soon
-                </div>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                Connect to Defence's Personnel Management Key Solution (PMKeyS) to sync your service record, qualifications, and personnel data.
-              </p>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-lg">
-                  <Link className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-gray-300 text-sm font-medium">Status: Not Connected</p>
-                    <p className="text-gray-500 text-xs">Link your PMKeyS ID to enable automatic data synchronization</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full bg-[#333333] border-[#444444] text-gray-400 hover:text-white hover:bg-[#444444]"
-                  disabled
-                  data-testid="button-link-pmkeys"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Link PMKeyS Account
-                </Button>
-                <p className="text-center text-xs text-gray-500">
-                  This feature will be available in a future update
-                </p>
               </div>
             </div>
           </Card>
