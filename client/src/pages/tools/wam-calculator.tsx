@@ -132,10 +132,25 @@ export default function WAMCalculatorPage() {
             </CardHeader>
             <CardContent className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="find-moment">Find Moment</TabsTrigger>
-                  <TabsTrigger value="find-weight">Find Weight</TabsTrigger>
-                  <TabsTrigger value="find-arm">Find Arm</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 bg-[#1a1a1a] border border-[#444444] p-1 h-auto">
+                  <TabsTrigger 
+                    value="find-moment"
+                    className="py-3 text-sm font-medium border border-transparent data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 data-[state=inactive]:bg-[#2a2a2a] data-[state=inactive]:text-gray-300 data-[state=inactive]:border-[#444444] data-[state=inactive]:hover:bg-[#333333] data-[state=inactive]:hover:text-white transition-all"
+                  >
+                    Find Moment
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="find-weight"
+                    className="py-3 text-sm font-medium border border-transparent data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 data-[state=inactive]:bg-[#2a2a2a] data-[state=inactive]:text-gray-300 data-[state=inactive]:border-[#444444] data-[state=inactive]:hover:bg-[#333333] data-[state=inactive]:hover:text-white transition-all"
+                  >
+                    Find Weight
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="find-arm"
+                    className="py-3 text-sm font-medium border border-transparent data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-500 data-[state=inactive]:bg-[#2a2a2a] data-[state=inactive]:text-gray-300 data-[state=inactive]:border-[#444444] data-[state=inactive]:hover:bg-[#333333] data-[state=inactive]:hover:text-white transition-all"
+                  >
+                    Find Arm
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Find Moment Tab */}
