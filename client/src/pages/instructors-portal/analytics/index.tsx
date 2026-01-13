@@ -1021,7 +1021,7 @@ export default function AdvancedAnalytics() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Helmet>
-        <title>Advanced Analytics - LOADMworkflow</title>
+        <title>Workforce Performance Analytics - LOADMworkflow</title>
         <meta name="description" content="Advanced performance analytics for loadmaster training" />
       </Helmet>
       
@@ -1034,7 +1034,7 @@ export default function AdvancedAnalytics() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Advanced Performance Analytics</h1>
+              <h1 className="text-2xl font-bold">Workforce Performance Analytics</h1>
               <p className="text-muted-foreground">Comprehensive insights across all assessment types and squadrons</p>
             </div>
           </div>

@@ -299,7 +299,7 @@ export default function InstructorsPortal() {
           <Card className="bg-card hover:bg-card/90 transition-colors border-primary/30">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold">Advanced Analytics</CardTitle>
+                <CardTitle className="text-xl font-bold">Workforce Performance Analytics</CardTitle>
                 <BarChart2 className="h-6 w-6 text-primary" />
               </div>
               <CardDescription className="text-base">Comprehensive Performance Metrics</CardDescription>
@@ -322,7 +322,7 @@ export default function InstructorsPortal() {
           <Card className="bg-card hover:bg-card/90 transition-colors border-orange-500/30" data-testid="card-workforce-analytics">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold">Workforce Analytics</CardTitle>
+                <CardTitle className="text-xl font-bold">Workforce Health Analytics</CardTitle>
                 <BarChart2 className="h-6 w-6 text-orange-500" />
               </div>
               <CardDescription className="text-base">Flight Hours, Currency & Readiness</CardDescription>
@@ -335,7 +335,7 @@ export default function InstructorsPortal() {
             <CardFooter className="pt-2">
               <Link href="/instructors-portal/workforce-analytics" className="w-full">
                 <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-base font-semibold" data-testid="button-workforce-analytics">
-                  View Workforce Analytics
+                  View Workforce Health Analytics
                 </Button>
               </Link>
             </CardFooter>

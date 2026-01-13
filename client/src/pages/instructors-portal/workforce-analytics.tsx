@@ -510,7 +510,7 @@ export default function WorkforceAnalytics() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a] text-white">
       <Helmet>
-        <title>Workforce Analytics | LOADMworkflow</title>
+        <title>Workforce Health Analytics | LOADMworkflow</title>
       </Helmet>
 
       <div className="container mx-auto px-4 py-6 space-y-8">
@@ -524,7 +524,7 @@ export default function WorkforceAnalytics() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-white" data-testid="page-title">Workforce Analytics</h1>
+              <h1 className="text-3xl font-bold text-white" data-testid="page-title">Workforce Health Analytics</h1>
               <p className="text-gray-400">Comprehensive loadmaster readiness and performance overview</p>
             </div>
           </div>
@@ -1447,7 +1447,7 @@ export default function WorkforceAnalytics() {
 
         {/* Footer */}
         <div className="text-center py-6 text-xs text-gray-600">
-          Workforce Analytics Dashboard • Data refreshed at {lastRefresh.toLocaleString()}
+          Workforce Health Analytics Dashboard • Data refreshed at {lastRefresh.toLocaleString()}
         </div>
       </div>
 
