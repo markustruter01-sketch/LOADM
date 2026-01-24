@@ -6,6 +6,7 @@ import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle } from "lucide-react";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import loadmasterImage from "@assets/Loadmaster_Standing_v2_1769285433641.png";
 
 export default function ScenariosPage() {
   const [_, navigate] = useLocation();
@@ -84,10 +85,20 @@ export default function ScenariosPage() {
               </button>
             </div>
             
-            {/* Training mode notice */}
+            {/* Training mode notice with loadmaster character */}
             {activeTab === 'training' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700">
-                <span className="font-medium">Note:</span> Scenarios completed under the Training section will not be submitted for review.
+              <div className="relative">
+                {/* Loadmaster character standing on the note box */}
+                <div className="absolute -top-24 right-4 z-10">
+                  <img 
+                    src={loadmasterImage} 
+                    alt="Loadmaster character" 
+                    className="h-32 w-auto object-contain drop-shadow-lg"
+                  />
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700 pr-36">
+                  <span className="font-medium">Note:</span> Scenarios completed under the Training section will not be submitted for review.
+                </div>
               </div>
             )}
           </div>
