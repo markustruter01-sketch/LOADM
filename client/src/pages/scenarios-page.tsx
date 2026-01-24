@@ -97,14 +97,14 @@ export default function ScenariosPage() {
             {activeTab === 'assessment' && (
               <div className="relative">
                 {/* Loadmaster character standing on the note box */}
-                <div className="absolute -top-40 right-4 z-10">
+                <div className="absolute -top-44 right-4 z-10">
                   <img 
                     src={loadmasterImage} 
                     alt="Loadmaster character" 
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
-                    style={{ filter: "drop-shadow(0 0 5px rgba(255, 255, 0, 0.3)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))" }}
+                    style={{ filter: "drop-shadow(0 0 4px rgba(255, 255, 0, 0.2)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))" }}
                     className="h-60 w-auto object-contain"
                   />
                 </div>
