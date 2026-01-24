@@ -97,32 +97,20 @@ export default function ScenariosPage() {
             {activeTab === 'assessment' && (
               <div className="relative">
                 {/* Loadmaster character standing on the note box */}
-                <div className="absolute -top-44 right-4 z-10">
-                  <div className="relative">
-                    <img 
-                      src={loadmasterImage} 
-                      alt="Loadmaster character" 
-                      loading="eager"
-                      decoding="async"
-                      fetchPriority="high"
-                      style={{ 
-                        clipPath: "polygon(50% 35%, 100% 35%, 100% 100%, 0% 100%, 0% 35%)",
-                        filter: "drop-shadow(0 0 4px rgba(255, 255, 0, 0.2)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))"
-                      }}
-                      className="h-60 w-auto object-contain"
-                    />
-                    <img 
-                      src={loadmasterImage} 
-                      alt="" 
-                      aria-hidden="true"
-                      className="h-60 w-auto object-contain absolute top-0 left-0"
-                      style={{ 
-                        clipPath: "polygon(0% 0%, 100% 0%, 100% 35%, 0% 35%)"
-                      }}
-                    />
-                  </div>
+                <div className="absolute -top-56 right-4 z-10">
+                  <img 
+                    src={loadmasterImage} 
+                    alt="Loadmaster character" 
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                    style={{ 
+                      filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))"
+                    }}
+                    className="h-72 w-auto object-contain"
+                  />
                 </div>
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-orange-500 pr-56">
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-orange-500 pr-72">
                   <span className="font-medium">Note:</span> These assessments are recorded and will be submitted to instructors for review and grading.
                 </div>
               </div>
