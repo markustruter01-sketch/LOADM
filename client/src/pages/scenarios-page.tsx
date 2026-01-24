@@ -103,7 +103,7 @@ export default function ScenariosPage() {
                     alt="Loadmaster character" 
                     loading="eager"
                     decoding="async"
-                    fetchpriority="high"
+                    fetchPriority="high"
                     className="h-60 w-auto object-contain drop-shadow-lg"
                   />
                 </div>
