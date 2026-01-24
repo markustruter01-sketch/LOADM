@@ -97,7 +97,7 @@ export default function ScenariosPage() {
             {activeTab === 'assessment' && (
               <div className="relative">
                 {/* Loadmaster character standing on the note box */}
-                <div className="absolute -top-[12.8rem] right-4 z-10">
+                <div className="absolute -top-[12.8rem] right-4 z-0">
                   <img 
                     src={loadmasterImage} 
                     alt="Loadmaster character" 
