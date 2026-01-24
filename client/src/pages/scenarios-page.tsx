@@ -6,7 +6,7 @@ import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle } from "lucide-react";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import loadmasterImage from "@assets/Loadmaster_Standing_v2_1769286175557.png";
+import loadmasterImage from "@assets/Loadmaster_Standing_v2_1769287011718.png";
 
 export default function ScenariosPage() {
   const [_, navigate] = useLocation();
