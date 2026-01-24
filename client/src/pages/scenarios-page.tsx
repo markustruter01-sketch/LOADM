@@ -6,7 +6,7 @@ import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle } from "lucide-react";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import loadmasterImage from "@assets/Loadmaster_Standing_v2_1769287011718.png";
+import loadmasterImage from "@assets/Loadmaster_Standing_v2_1769288256320.png";
 
 export default function ScenariosPage() {
   const [_, navigate] = useLocation();
@@ -34,6 +34,7 @@ export default function ScenariosPage() {
           name="description" 
           content="Access and complete loadmaster training scenarios." 
         />
+        <link rel="preload" as="image" href={loadmasterImage} />
       </Helmet>
 
       <div className="container mx-auto px-4 py-8 mb-16">
@@ -100,6 +101,9 @@ export default function ScenariosPage() {
                   <img 
                     src={loadmasterImage} 
                     alt="Loadmaster character" 
+                    loading="eager"
+                    decoding="async"
+                    fetchpriority="high"
                     className="h-60 w-auto object-contain drop-shadow-lg"
                   />
                 </div>
