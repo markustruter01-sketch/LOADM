@@ -59,9 +59,9 @@ export default function ScenariosPage() {
             </p>
           </section>
 
-          {/* Tab navigation */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="bg-muted p-1 rounded-lg inline-flex">
+            {/* Tab navigation */}
+          <div className="flex flex-col gap-6 mb-6">
+            <div className="bg-muted p-1 rounded-lg inline-flex self-start">
               <button 
                 className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'training' ? 'bg-white text-black shadow-sm' : 'text-muted-foreground'}`}
                 onClick={() => setActiveTab("training")}
@@ -85,19 +85,26 @@ export default function ScenariosPage() {
               </button>
             </div>
             
-            {/* Training mode notice with loadmaster character */}
+            {/* Training mode notice */}
             {activeTab === 'training' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700">
+                <span className="font-medium">Note:</span> Scenarios completed under the Training section will not be submitted for review.
+              </div>
+            )}
+
+            {/* Assessment mode notice with loadmaster character */}
+            {activeTab === 'assessment' && (
               <div className="relative">
                 {/* Loadmaster character standing on the note box */}
-                <div className="absolute -top-32 right-4 z-10">
+                <div className="absolute -top-48 right-4 z-10">
                   <img 
                     src={loadmasterImage} 
                     alt="Loadmaster character" 
-                    className="h-40 w-auto object-contain drop-shadow-lg"
+                    className="h-60 w-auto object-contain drop-shadow-lg"
                   />
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-700 pr-36">
-                  <span className="font-medium">Note:</span> Scenarios completed under the Training section will not be submitted for review.
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-orange-500 pr-56">
+                  <span className="font-medium">Note:</span> These assessments are recorded and will be submitted to instructors for review and grading.
                 </div>
               </div>
             )}
