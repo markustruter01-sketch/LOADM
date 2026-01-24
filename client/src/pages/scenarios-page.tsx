@@ -93,11 +93,11 @@ export default function ScenariosPage() {
               </div>
             )}
 
-            {/* Assessment mode notice with loadmaster character behind */}
+            {/* Assessment mode notice with loadmaster character */}
             {activeTab === 'assessment' && (
               <div className="relative">
-                {/* Loadmaster character placed behind (z-0) */}
-                <div className="absolute -top-[12.8rem] right-4 z-0 pointer-events-none">
+                {/* Loadmaster character standing on the note box */}
+                <div className="absolute -top-[12.8rem] right-4 z-10">
                   <img 
                     src={loadmasterImage} 
                     alt="Loadmaster character" 
@@ -110,9 +110,8 @@ export default function ScenariosPage() {
                     className="h-72 w-auto object-contain"
                   />
                 </div>
-                {/* Orange note with transparency (z-10) */}
-                <div className="bg-orange-500/20 backdrop-blur-sm border border-orange-500/40 rounded-lg px-3 py-2 text-sm text-orange-500 pr-72 relative z-10">
-                  <span className="font-medium text-orange-400">Note:</span> These assessments are recorded and will be submitted to instructors for review and grading.
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-orange-500 pr-72">
+                  <span className="font-medium">Note:</span> These assessments are recorded and will be submitted to instructors for review and grading.
                 </div>
               </div>
             )}
@@ -139,7 +138,7 @@ export default function ScenariosPage() {
                 )}
                 
                 {activeTab === "assessment" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-20">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {scenarios?.map((scenario) => (
                       <ScenarioCard key={`assessment-${scenario.id}`} scenario={scenario} />
                     ))}
