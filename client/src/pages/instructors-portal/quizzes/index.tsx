@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
-import { Plus, BookOpen, Trash2, Edit, RefreshCw } from "lucide-react";
+import { Plus, BookOpen, Trash2, Edit, RefreshCw, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger 
 } from "@/components/ui/alert-dialog";
-import InstructorLayout from "../../../components/InstructorLayout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -104,13 +103,23 @@ export default function InstructorQuizzes() {
   };
 
   return (
-    <InstructorLayout title="Pop Quizzes">
+    <>
       <Helmet>
         <title>Pop Quizzes - Instructor Portal | LOADMworkflow</title>
         <meta name="description" content="Create and manage pop quizzes for loadmaster training" />
       </Helmet>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Back button */}
+        <div className="mb-6">
+          <Link href="/instructors-portal">
+            <Button variant="ghost" className="text-primary hover:text-primary/80 p-2">
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-foreground">Pop Quizzes</h1>
           <div className="flex gap-2">
@@ -250,6 +259,6 @@ export default function InstructorQuizzes() {
           </Card>
         )}
       </div>
-    </InstructorLayout>
+    </>
   );
 }
