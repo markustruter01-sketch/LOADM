@@ -12,8 +12,7 @@ export default function InstructorLayout({ children, title }: InstructorLayoutPr
 
   const menuItems = [
     { name: 'Dashboard', path: '/instructors-portal' },
-    { name: 'Student Submissions', path: '/instructors-portal/submissions' },
-    { name: 'Quiz Submissions', path: '/instructors-portal/quiz-submissions' },
+    { name: 'Student Submissions', path: '/instructors-portal/student-progress' },
     { name: 'Analytics', path: '/instructors-portal/analytics' },
     { name: 'Pop Quizzes', path: '/instructors-portal/quizzes' }
   ];

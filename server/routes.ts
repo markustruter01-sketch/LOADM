@@ -1680,6 +1680,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PATCH route for instructor review of scenario submissions
+  app.patch("/api/scenario-submissions/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const submissionId = parseInt(req.params.id);
+      if (isNaN(submissionId)) {
+        return res.status(400).json({ message: "Invalid submission ID" });
+      }
+
+      const { instructorFeedback, markedAnswers, status, score, passed } = req.body;
+      
+      console.log('📝 Updating scenario submission:', submissionId);
+      console.log('📝 Update data:', { instructorFeedback, markedAnswers, status, score, passed });
+
+      // Convert markedAnswers to JSON string if it's an object
+      const markedAnswersJson = typeof markedAnswers === 'object' ? 
+        JSON.stringify(markedAnswers) : markedAnswers;
+
+      const [updatedSubmission] = await db.update(scenarioSubmissions)
+        .set({
+          instructorFeedback,
+          markedAnswers: markedAnswersJson,
+          status,
+          score,
+          passed
+        })
+        .where(eq(scenarioSubmissions.id, submissionId))
+        .returning();
+
+      if (!updatedSubmission) {
+        console.log('❌ Submission not found for update:', submissionId);
+        return res.status(404).json({ message: "Submission not found" });
+      }
+
+      console.log('✅ Submission updated successfully:', updatedSubmission.id);
+      res.json(updatedSubmission);
+    } catch (error) {
+      console.error('❌ Failed to update submission:', error);
+      res.status(500).json({ message: "Failed to update submission" });
+    }
+  });
+
 
 
   // Training Module Video Upload endpoints

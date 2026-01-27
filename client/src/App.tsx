@@ -61,14 +61,11 @@ import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
 import SuperAdminDashboard from "@/pages/superadmin-dashboard";
 import LicensingManagement from "@/pages/licensing-management";
 import LicenseRegistration from "@/pages/license-registration";
-import ScenarioSubmissions from "@/pages/instructors-portal/submissions";
 
 import TeachingMaterials from "@/pages/instructors-portal/resources";
 import BestPractices from "@/pages/instructors-portal/best-practices";
 import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
 import QuizPage from "@/pages/quizzes/[id]";
-import QuizSubmissions from "@/pages/instructors-portal/quiz-submissions";
-import QuizSubmissionDetail from "@/pages/instructors-portal/quiz-submissions/[id]";
 import WorkforcePage from "@/pages/instructors-portal/workforce";
 import WorkforceAnalytics from "@/pages/instructors-portal/workforce-analytics";
 import PermissionsDashboard from "@/pages/permissions-dashboard";
@@ -169,14 +166,11 @@ function AuthenticatedApp() {
             <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
             <Route path="/license-registration" component={LicenseRegistration} />
             <AuthenticatedRoute path="/user-profile" component={UserProfile} />
-            <InstructorRoute path="/instructors-portal/submissions" component={ScenarioSubmissions} />
 
             <InstructorRoute path="/instructors-portal/resources" component={TeachingMaterials} />
             <InstructorRoute path="/instructors-portal/best-practices" component={BestPractices} />
             <InstructorRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />
             <AuthenticatedRoute path="/quizzes/:id" component={QuizPage} />
-            <InstructorRoute path="/instructors-portal/quiz-submissions" component={QuizSubmissions} />
-            <InstructorRoute path="/instructors-portal/quiz-submissions/:id" component={QuizSubmissionDetail} />
             <InstructorRoute path="/instructors-portal/quiz-questions" component={QuizQuestionsManagement} />
             <InstructorRoute path="/instructors-portal/training-modules" component={TrainingModulesManagement} />
             <InstructorRoute path="/instructors-portal/checklist-management" component={ChecklistManagement} />
