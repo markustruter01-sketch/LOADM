@@ -1681,17 +1681,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PATCH route for instructor review of scenario submissions
-  app.patch("/api/scenario-submissions/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.patch("/api/scenario-submissions/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const submissionId = parseInt(req.params.id);
       if (isNaN(submissionId)) {
         return res.status(400).json({ message: "Invalid submission ID" });
       }
 
+      // Validate required fields for review
       const { instructorFeedback, markedAnswers, status, score, passed } = req.body;
       
+      if (status !== 'reviewed' && status !== 'pending' && status !== 'submitted') {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+      
+      if (typeof score !== 'number' || score < 0 || score > 100) {
+        return res.status(400).json({ message: "Score must be a number between 0 and 100" });
+      }
+      
+      if (typeof passed !== 'boolean') {
+        return res.status(400).json({ message: "Passed must be a boolean value" });
+      }
+      
       console.log('📝 Updating scenario submission:', submissionId);
-      console.log('📝 Update data:', { instructorFeedback, markedAnswers, status, score, passed });
+      console.log('📝 Review by instructor:', req.user?.email);
 
       // Convert markedAnswers to JSON string if it's an object
       const markedAnswersJson = typeof markedAnswers === 'object' ? 
@@ -1699,7 +1712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const [updatedSubmission] = await db.update(scenarioSubmissions)
         .set({
-          instructorFeedback,
+          instructorFeedback: instructorFeedback || '',
           markedAnswers: markedAnswersJson,
           status,
           score,
@@ -1713,7 +1726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Submission not found" });
       }
 
-      console.log('✅ Submission updated successfully:', updatedSubmission.id);
+      console.log('✅ Submission updated successfully:', updatedSubmission.id, 'Status:', status);
       res.json(updatedSubmission);
     } catch (error) {
       console.error('❌ Failed to update submission:', error);

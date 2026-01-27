@@ -415,7 +415,7 @@ export default function InstructorsPortal() {
               </div>
             </CardContent>
             <CardFooter>
-              <Link href="/instructors-portal/submissions">
+              <Link href="/instructors-portal/student-progress">
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                   Review Submissions
                 </Button>
