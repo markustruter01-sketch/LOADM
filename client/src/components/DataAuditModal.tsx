@@ -191,6 +191,15 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
           </div>
         </DialogHeader>
 
+        {/* Explanation Brief */}
+        <div className="mb-4 p-3 bg-card/50 rounded-lg border border-border/50">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            This window shows how your data flows through the system — from the moment it's captured, 
+            through encryption and grouping, to powering your analytics dashboards. Every record is 
+            timestamped and hashed for integrity verification.
+          </p>
+        </div>
+
         {/* Month Selector */}
         <div className="flex items-center justify-center gap-3 mb-6 p-2 bg-card/50 rounded-lg border border-border/50">
           <Button 
@@ -348,7 +357,7 @@ export function DataAuditButton({ onClick }: DataAuditButtonProps) {
       size="icon"
       onClick={onClick}
       className="
-        h-10 w-10 rounded-lg 
+        h-16 w-16 rounded-xl 
         bg-card border-border text-primary 
         shadow-[inset_0px_1px_4px_rgba(0,0,0,0.4)] 
         hover:bg-primary/10 hover:border-primary/50 hover:text-primary 
@@ -357,7 +366,7 @@ export function DataAuditButton({ onClick }: DataAuditButtonProps) {
       "
       title="View Data Integrity Trail"
     >
-      <Activity size={20} className="group-hover:animate-pulse" />
+      <Activity size={24} className="group-hover:animate-pulse" />
     </Button>
   );
 }
