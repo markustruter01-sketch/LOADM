@@ -12,6 +12,7 @@ import {
   HelpCircle, Users, ArrowLeft, Edit, CheckSquare, FileUser
 } from "lucide-react";
 import { UserReportModal } from "@/components/UserReportModal";
+import { DataAuditModal, DataAuditButton } from "@/components/DataAuditModal";
 import { useIsolatedAuth } from "../../auth-isolated/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -27,6 +28,7 @@ export default function InstructorsPortal() {
   const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
   const [isMottoModalOpen, setIsMottoModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
   // Welcome toast for new instructors (optional)
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function InstructorsPortal() {
         </div>
 
         {/* DDG Quote with Glassmorphic Frame - Clickable */}
-        <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center justify-center gap-4 mb-8">
           <button 
             onClick={() => setIsMottoModalOpen(true)}
             className="inline-flex items-center gap-4 px-8 py-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-primary/30 hover:shadow-primary/10 hover:shadow-xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -111,7 +113,16 @@ export default function InstructorsPortal() {
               — DDG
             </span>
           </button>
+          
+          {/* Data Audit Trail Button */}
+          <DataAuditButton onClick={() => setIsAuditModalOpen(true)} />
         </div>
+        
+        {/* Data Audit Modal */}
+        <DataAuditModal 
+          isOpen={isAuditModalOpen} 
+          onClose={() => setIsAuditModalOpen(false)} 
+        />
 
         {/* Motto Explanation Modal */}
         <Dialog open={isMottoModalOpen} onOpenChange={setIsMottoModalOpen}>
