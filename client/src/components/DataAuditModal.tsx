@@ -6,11 +6,23 @@ import {
   GitMerge, 
   PieChart, 
   Activity, 
-  X,
   Link as LinkIcon 
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+
+interface ExtendedScenarioSubmission {
+  id: number;
+  scenarioId: number;
+  userId: number;
+  submissionDate: Date | string;
+  score?: number | null;
+  passed?: boolean | null;
+  squadron?: string | null;
+  studentName?: string | null;
+  username?: string;
+  scenarioTitle?: string;
+}
 
 interface TimelineItemProps {
   icon: React.ReactNode;
@@ -34,7 +46,7 @@ const TimelineItem = ({ icon, label, subtext, status, hasHashTooltip, hashValue,
       
       {hasHashTooltip && hashValue && (
         <div className="pointer-events-none absolute left-14 top-2 w-max opacity-0 transition-opacity duration-200 group-hover:opacity-100 pl-4 z-50">
-          <div className="rounded bg-black/90 px-2 py-1 text-[10px] text-primary border border-primary/30 shadow-xl font-mono">
+          <div className="rounded bg-popover px-2 py-1 text-[10px] text-primary border border-primary/30 shadow-xl font-mono">
              Hash: {hashValue} (Immutable)
           </div>
         </div>
@@ -82,9 +94,10 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
   const [recordCount, setRecordCount] = useState(0);
   const [hashValue, setHashValue] = useState('0x7f3a...2b4c');
 
-  const { data: submissions } = useQuery<any[]>({
+  const { data: submissions } = useQuery<ExtendedScenarioSubmission[]>({
     queryKey: ['/api/scenario-submissions'],
     enabled: isOpen,
+    refetchInterval: isOpen ? 5000 : false,
   });
 
   useEffect(() => {
@@ -94,7 +107,7 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
       
       const dataToHash = JSON.stringify({
         id: latest.id,
-        date: latest.completedAt || latest.createdAt,
+        date: latest.submissionDate,
         score: latest.score
       });
       
@@ -103,11 +116,11 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
         setLatestRecord({
           id: String(latest.id),
           type: 'assessment',
-          userName: latest.username || 'Unknown User',
+          userName: latest.studentName || latest.username || 'Unknown User',
           description: `Submitted ${latest.scenarioTitle || 'assessment'}`,
-          timestamp: new Date(latest.completedAt || latest.createdAt || new Date()),
+          timestamp: new Date(latest.submissionDate || new Date()),
           hash: hash,
-          squadron: latest.squadron
+          squadron: latest.squadron || undefined
         });
       });
     }
@@ -171,14 +184,14 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
             </div>
 
             <TimelineItem 
-              icon={<GitMerge size={18} className="text-blue-400" />}
+              icon={<GitMerge size={18} className="text-primary/70" />}
               label="Sorted & Grouped"
               subtext={`Combined with ${recordCount > 1 ? recordCount - 1 : 0} other records from ${latestRecord?.squadron || 'your squadron'}.`}
               status="Processed"
             />
 
             <TimelineItem 
-              icon={<PieChart size={18} className="text-purple-400" />}
+              icon={<PieChart size={18} className="text-primary/50" />}
               label="Live in Dashboard"
               subtext="Ready for decision making."
               status="Active"
@@ -203,11 +216,13 @@ interface DataAuditButtonProps {
 
 export function DataAuditButton({ onClick }: DataAuditButtonProps) {
   return (
-    <button 
+    <Button 
+      variant="outline"
+      size="icon"
       onClick={onClick}
       className="
-        group flex h-10 w-10 items-center justify-center rounded-lg 
-        bg-card border border-border text-primary 
+        h-10 w-10 rounded-lg 
+        bg-card border-border text-primary 
         shadow-[inset_0px_1px_4px_rgba(0,0,0,0.4)] 
         hover:bg-primary/10 hover:border-primary/50 hover:text-primary 
         active:scale-95
@@ -216,6 +231,6 @@ export function DataAuditButton({ onClick }: DataAuditButtonProps) {
       title="View Data Integrity Trail"
     >
       <Activity size={20} className="group-hover:animate-pulse" />
-    </button>
+    </Button>
   );
 }
