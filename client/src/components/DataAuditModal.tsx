@@ -14,7 +14,7 @@ import {
   FileText,
   TrendingUp
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 interface ExtendedScenarioSubmission {
@@ -184,9 +184,9 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
               <DialogTitle className="text-xl font-bold text-foreground tracking-wide">
                 Data Integrity Record
               </DialogTitle>
-              <p className="text-xs text-primary uppercase tracking-widest mt-1">
+              <DialogDescription className="text-xs text-primary uppercase tracking-widest mt-1">
                 Audit Trail ID: {auditId}
-              </p>
+              </DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -228,6 +228,7 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
           <div className="text-center py-8 text-muted-foreground">
             <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No records found for {formatMonthYear(selectedMonth)}</p>
+            <p className="text-xs mt-2 opacity-70">Try navigating to a previous month to view historical data</p>
           </div>
         ) : (
           <>

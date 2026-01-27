@@ -33,3 +33,27 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 - **Frontend Libraries**: Radix UI, React Hook Form (with Zod), Chart.js, PDF.js, Lucide React
 - **Backend Libraries**: Express-session
 - **Deployment**: Node.js 20, PostgreSQL 16 on Replit
+
+## Deployment Notes (January 2026)
+- **Authentication**: Isolated session-based auth with bcrypt password hashing. Superadmin credentials configurable via environment variables (SUPERADMIN_EMAIL, SUPERADMIN_PASSWORD) for production security.
+- **Database**: 30 tables across 6 domains with proper foreign key relationships. All migrations run via `npm run db:push`.
+- **Data Integrity**: Data Audit Modal provides blockchain-style visualization using SHA-256 hashing for immutable audit trails.
+- **Quiz Routes**: Unified under `/api/quizzes` and `/api/quiz` endpoints via `quiz-unified.ts`.
+- **Accessibility**: DialogDescription components added to modals for screen reader support.
+- **Readiness Snapshots**: Automatic daily snapshots capture workforce readiness metrics.
+- **License Expiry**: Periodic checks every 4 hours for expired licenses.
+- **Session Management**: In-memory session store with session preservation on restart.
+
+## Production Deployment Checklist
+1. Set SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD environment variables (required for production auth)
+2. Ensure DATABASE_URL points to production PostgreSQL database
+3. Run `npm run db:push` to sync schema
+4. Configure SENDGRID_VERIFIED_SENDER for email notifications
+5. Review license expiry settings and readiness snapshot schedules
+
+## Recent Changes (January 27, 2026)
+- Removed loadmaster character image from scenarios page
+- Added DialogDescription to Data Audit Modal and Instructor Portal modals for accessibility
+- Verified instructor portal CRUD operations (scenarios, quizzes) working end-to-end
+- Confirmed Data Audit Modal displays real-time submission data with month navigation
+- Database contains 4,900+ scenario submissions across 5 squadrons

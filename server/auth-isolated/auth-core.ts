@@ -12,11 +12,12 @@ const ISOLATED_SESSIONS = new Map<string, {
   loginTime: Date;
 }>();
 
-// Hardcoded superadmin for guaranteed access
+// Superadmin configuration - uses environment variables in production
+// Falls back to development defaults only when SUPERADMIN_EMAIL is not set
 const SUPERADMIN = {
-  id: 9, // Use actual database user ID for markustruter01@gmail.com
-  email: 'markustruter01@gmail.com',
-  password: 'Skating69!',
+  id: 9, // Use actual database user ID for superadmin
+  email: process.env.SUPERADMIN_EMAIL || 'markustruter01@gmail.com',
+  password: process.env.SUPERADMIN_PASSWORD || (process.env.NODE_ENV === 'production' ? '' : 'Skating69!'),
   firstName: 'Marcus',
   lastName: 'Truter',
   role: 'superadmin'

@@ -5,7 +5,7 @@ import { Document, Scenario, DocumentSubmission, ScenarioSubmission } from "@sha
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   FileText, ClipboardList, Layers, FileCheck, BookOpen, 
   GraduationCap, PenTool, Lightbulb, BarChart2, Award, UserCircle,
@@ -142,6 +142,7 @@ export default function InstructorsPortal() {
               >
                 "Decisions in Data, Assurance in Action"
               </DialogTitle>
+              <DialogDescription className="sr-only">DDG Philosophy and Mission Statement</DialogDescription>
             </DialogHeader>
             <div className="space-y-5 text-muted-foreground leading-relaxed px-2 flex-1">
               <p>
