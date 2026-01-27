@@ -893,22 +893,36 @@ export default function UserProfile() {
                             className="bg-[#1a1a1a] border border-[#444444] rounded-lg p-4"
                             data-testid={`activity-${idx}`}
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between mb-2">
                               <div>
                                 <h3 className="text-white font-medium">{activity.title}</h3>
                                 <p className="text-gray-400 text-sm mt-1">
-                                  {activity.type} • {new Date(activity.date).toLocaleDateString()}
+                                  {activity.type === 'scenario' ? 'Assessment' : 'Quiz'} • {new Date(activity.date).toLocaleDateString()}
+                                  {activity.score !== null && activity.score !== undefined && (
+                                    <span className="ml-2">• Score: {activity.score}%</span>
+                                  )}
                                 </p>
                               </div>
                               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                activity.passed === true ? 'bg-green-500/20 text-green-400' :
-                                activity.passed === false ? 'bg-red-500/20 text-red-400' :
-                                'bg-yellow-500/20 text-yellow-400'
+                                activity.status === 'reviewed' ? (
+                                  activity.passed === true ? 'bg-green-500/20 text-green-400' :
+                                  activity.passed === false ? 'bg-red-500/20 text-red-400' :
+                                  'bg-gray-500/20 text-gray-400'
+                                ) : 'bg-yellow-500/20 text-yellow-400'
                               }`}>
-                                {activity.passed === true ? 'Passed' : 
-                                 activity.passed === false ? 'Failed' : 'Pending'}
+                                {activity.status === 'reviewed' ? (
+                                  activity.passed === true ? 'Passed' : 
+                                  activity.passed === false ? 'Failed' : 'Reviewed'
+                                ) : activity.status === 'submitted' ? 'Awaiting Review' : 'Pending'}
                               </div>
                             </div>
+                            {/* Show instructor feedback if reviewed */}
+                            {activity.status === 'reviewed' && activity.instructorFeedback && (
+                              <div className="mt-3 pt-3 border-t border-[#333333]">
+                                <p className="text-orange-400 text-xs font-medium mb-1">Instructor Feedback:</p>
+                                <p className="text-gray-300 text-sm">{activity.instructorFeedback}</p>
+                              </div>
+                            )}
                           </div>
                         ))
                       )}

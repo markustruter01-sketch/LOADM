@@ -358,7 +358,7 @@ app.get("/api/user/activity-history", unifiedAuthMiddleware, async (req: any, re
     const { neon } = await import('@neondatabase/serverless');
     const sql = neon(process.env.DATABASE_URL!);
     
-    // Get user activity history from multiple sources
+    // Get user activity history from multiple sources - now includes instructor feedback
     const activities = await sql`
       SELECT 
         s.id,
@@ -367,6 +367,7 @@ app.get("/api/user/activity-history", unifiedAuthMiddleware, async (req: any, re
         s.passed,
         s.status,
         sc.title,
+        s.instructor_feedback as "instructorFeedback",
         'scenario' as type
       FROM scenario_submissions s
       JOIN scenarios sc ON s.scenario_id = sc.id
@@ -381,6 +382,7 @@ app.get("/api/user/activity-history", unifiedAuthMiddleware, async (req: any, re
         CASE WHEN qs.score >= 70 THEN true ELSE false END as passed,
         'completed' as status,
         qz.title,
+        NULL as "instructorFeedback",
         'quiz' as type
       FROM quiz_submissions qs
       JOIN quizzes qz ON qs.quiz_id = qz.id
