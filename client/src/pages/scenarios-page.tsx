@@ -6,7 +6,6 @@ import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle } from "lucide-react";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import loadmasterImage from "@assets/Loadmaster_Standing_v2_1769288256320.png";
 
 export default function ScenariosPage() {
   const [_, navigate] = useLocation();
@@ -34,7 +33,6 @@ export default function ScenariosPage() {
           name="description" 
           content="Access and complete loadmaster training scenarios." 
         />
-        <link rel="preload" as="image" href={loadmasterImage} />
       </Helmet>
 
       <div className="container mx-auto px-4 py-8 mb-16">
@@ -93,26 +91,10 @@ export default function ScenariosPage() {
               </div>
             )}
 
-            {/* Assessment mode notice with loadmaster character */}
+            {/* Assessment mode notice */}
             {activeTab === 'assessment' && (
-              <div className="relative">
-                {/* Loadmaster character standing on the note box */}
-                <div className="absolute -top-[12.8rem] right-4 z-0">
-                  <img 
-                    src={loadmasterImage} 
-                    alt="Loadmaster character" 
-                    loading="eager"
-                    decoding="async"
-                    fetchPriority="high"
-                    style={{ 
-                      filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))"
-                    }}
-                    className="h-72 w-auto object-contain"
-                  />
-                </div>
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-orange-500 pr-72">
-                  <span className="font-medium">Note:</span> These assessments are recorded and will be submitted to instructors for review and grading.
-                </div>
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 text-sm text-orange-500">
+                <span className="font-medium">Note:</span> These assessments are recorded and will be submitted to instructors for review and grading.
               </div>
             )}
           </div>
