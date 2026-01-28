@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, checklistStepAudit, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS, quizzes, quizSubmissions } from "@shared/schema";
-import { eq, and, gt, desc, lt, sql } from "drizzle-orm";
+import { eq, and, gt, desc, lt, sql, inArray } from "drizzle-orm";
 import { db } from "./db";
 
 import { sendLicenseWelcomeEmail } from "./services/email-service";
@@ -4567,7 +4567,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(users)
       .leftJoin(licenses, eq(users.licenseId, licenses.id))
-      .where(eq(licenses.isActive, true));
+      .where(and(
+        eq(licenses.isActive, true),
+        inArray(licenses.licenseType, ['loadmaster', 'instructor'])
+      ));
 
       // Filter by squadron if provided
       if (squadron && squadron !== 'all' && squadron !== 'AMG') {
