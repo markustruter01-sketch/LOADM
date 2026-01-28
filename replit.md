@@ -62,12 +62,20 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
   - Real-time role updates via PATCH /api/licensing/licenses/:id/role endpoint
   - Stats cards showing counts by role type
   - Search and filter functionality by role
-- **Realistic Test Data Created**: 150 user profiles with performance data
+- **Realistic Test Data Created**: 155 user profiles with comprehensive historical data
   - 40 loadmasters + 30 instructors + 80 additional loadmasters
   - All assigned to 33SQN, 35SQN, 36SQN, or 37SQN
   - Ranks from CPL to WO
-  - 777 quiz submissions, 1744 flight records, 796 qualifications
   - Score distribution: 85% high performers (85-95%), 15% struggling (55-75%)
+- **Historical Data Backdating**: All timestamps distributed across 1-12 years of service
+  - Quiz submissions: 3,663 records spanning 2013-2026
+  - Flight records: 5,265 records spanning 2013-2026
+  - Minimum 4 cyclic assessments per year per user post-graduation (2,886 added)
+  - Each user assigned random years-in-service (1-12 years) with graduation date
+- **Profile Photos Added**: 156 users with military/casual photos
+  - 80% military-style professional headshots
+  - 20% casual photos
+  - Using Unsplash-sourced royalty-free images
 
 ## Previous Changes (January 28, 2026)
 - **Complete test data cleanup**: Deleted all test users and associated data
