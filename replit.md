@@ -52,6 +52,24 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 5. Review license expiry settings and readiness snapshot schedules
 
 ## Recent Changes (January 28, 2026)
+- **Leadership Role Implementation**: Added new "Leadership" role with read-only observation access
+  - Leadership users have same view access as instructors but cannot make changes (read-only mode)
+  - Leadership users are hidden from instructor views, reports, and analytics (only visible to SuperAdmin)
+  - New permissions helper functions: `filterForInstructorView()` and `canSeeUser()` in permissions.ts
+  - New `useReadOnlyMode` hook for Leadership toast notifications
+- **Enhanced Permissions Dashboard** (at /permissions-dashboard):
+  - 4 functional role toggles: Loadmaster (green), Instructor (blue), Leadership (amber), Super Admin (purple)
+  - Real-time role updates via PATCH /api/licensing/licenses/:id/role endpoint
+  - Stats cards showing counts by role type
+  - Search and filter functionality by role
+- **Realistic Test Data Created**: 150 user profiles with performance data
+  - 40 loadmasters + 30 instructors + 80 additional loadmasters
+  - All assigned to 33SQN, 35SQN, 36SQN, or 37SQN
+  - Ranks from CPL to WO
+  - 777 quiz submissions, 1744 flight records, 796 qualifications
+  - Score distribution: 85% high performers (85-95%), 15% struggling (55-75%)
+
+## Previous Changes (January 28, 2026)
 - **Complete test data cleanup**: Deleted all test users and associated data
   - Removed 1,644 test users (testuser*, loadmaster.*.@raaf.mil.au, test_*@test.mil.au)
   - Removed 866 test licenses
