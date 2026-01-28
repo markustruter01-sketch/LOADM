@@ -51,9 +51,16 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 4. Configure SENDGRID_VERIFIED_SENDER for email notifications
 5. Review license expiry settings and readiness snapshot schedules
 
+## Recent Changes (January 28, 2026)
+- **Complete test data cleanup**: Deleted all test users and associated data
+  - Removed 1,644 test users (testuser*, loadmaster.*.@raaf.mil.au, test_*@test.mil.au)
+  - Removed 866 test licenses
+  - Removed ~33,000 test records across scenario_submissions, quiz_submissions, flight_records, user_qualifications, and safety_records
+- Platform now contains only legitimate user data from 11 real accounts with licenses
+- Analytics and performance features will show real data only (some sections may appear empty until real usage generates data)
+
 ## Recent Changes (January 27, 2026)
 - Removed loadmaster character image from scenarios page
 - Added DialogDescription to Data Audit Modal and Instructor Portal modals for accessibility
 - Verified instructor portal CRUD operations (scenarios, quizzes) working end-to-end
 - Confirmed Data Audit Modal displays real-time submission data with month navigation
-- Database contains 4,900+ scenario submissions across 5 squadrons
