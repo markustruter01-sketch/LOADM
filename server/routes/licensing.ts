@@ -1,14 +1,19 @@
 import type { Express } from "express";
 import { db } from "../db";
 import { licenses, users } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 
 export function registerLicensingRoutes(app: Express) {
   // Get all licenses with user information
+  // Query param: excludeLeadership=true will filter out leadership accounts (for instructor views)
   app.get("/api/licensing/licenses", async (req, res) => {
     try {
-      const allLicenses = await db.select({
+      const excludeLeadership = req.query.excludeLeadership === 'true';
+      const callerRole = req.query.callerRole as string;
+      
+      // Build query
+      let query = db.select({
         id: licenses.id,
         licenseKey: licenses.licenseKey,
         email: licenses.email,
@@ -26,6 +31,13 @@ export function registerLicensingRoutes(app: Express) {
       .from(licenses)
       .leftJoin(users, eq(licenses.id, users.licenseId))
       .orderBy(licenses.createdAt);
+      
+      let allLicenses = await query;
+      
+      // Filter out leadership users unless caller is superadmin
+      if (excludeLeadership || (callerRole && callerRole !== 'superadmin')) {
+        allLicenses = allLicenses.filter(l => l.licenseType !== 'leadership');
+      }
 
       res.json(allLicenses);
     } catch (error) {

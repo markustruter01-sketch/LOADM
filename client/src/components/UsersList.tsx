@@ -10,6 +10,8 @@ import { Search, UserPlus, Shield, User, Crown, Eye, EyeOff, Briefcase } from "l
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { filterForInstructorView, LicenseType } from "@/lib/permissions";
 
 interface User {
   id: number;
@@ -34,6 +36,11 @@ export default function UsersList() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{[key: number]: boolean}>({});
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
+  
+  // Get current user's license type to determine what they can see
+  const currentUserLicenseType = (currentUser as any)?.licenseType || (currentUser as any)?.userRole || 'loadmaster';
+  const isSuperAdmin = currentUserLicenseType === 'superadmin' || (currentUser as any)?.isSuperAdmin;
 
   // Fetch users from licensing system
   const { data: licensesData = [], isLoading, refetch } = useQuery<any[]>({
@@ -98,6 +105,9 @@ export default function UsersList() {
       isFirstLogin: license.isFirstLogin,
       password: license.isFirstLogin ? 'Password1!' : '********'
     })) : [];
+  
+  // Filter out Leadership users for non-superadmin viewers
+  const visibleUsers = isSuperAdmin ? allUsers : filterForInstructorView(allUsers, currentUserLicenseType as LicenseType);
 
 
 
@@ -108,8 +118,8 @@ export default function UsersList() {
     }));
   };
 
-  // Filter users based on search and role
-  const filteredUsers = allUsers.filter((user: User) => {
+  // Filter users based on search and role (use visibleUsers which excludes Leadership for non-superadmins)
+  const filteredUsers = visibleUsers.filter((user: User) => {
     const matchesSearch = 
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -122,14 +132,14 @@ export default function UsersList() {
     return matchesSearch && matchesRole;
   });
 
-  // Calculate stats
+  // Calculate stats (based on visible users for the current viewer)
   const stats = {
-    totalUsers: allUsers.length,
-    superAdmins: allUsers.filter(u => u.isSuperAdmin).length,
-    instructors: allUsers.filter(u => u.isInstructor).length,
-    loadmasters: allUsers.filter(u => u.isLoadmaster).length,
-    leadership: allUsers.filter(u => u.isLeadership).length,
-    activeUsers: allUsers.length
+    totalUsers: visibleUsers.length,
+    superAdmins: visibleUsers.filter(u => u.isSuperAdmin).length,
+    instructors: visibleUsers.filter(u => u.isInstructor).length,
+    loadmasters: visibleUsers.filter(u => u.isLoadmaster).length,
+    leadership: visibleUsers.filter(u => u.isLeadership).length,
+    activeUsers: visibleUsers.length
   };
 
   const getRoleIcon = (user: User) => {

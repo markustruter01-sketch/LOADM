@@ -186,3 +186,39 @@ export function usePermissions(user: User | null) {
     requiresPermission: (action: keyof PermissionCheck) => requiresPermission(user, action)
   };
 }
+
+/**
+ * Filter users/records to exclude leadership users from instructor views
+ * Leadership users should only be visible to superadmin
+ */
+export function filterForInstructorView<T extends { licenseType?: string; userRole?: string; isLeadership?: boolean }>(
+  records: T[],
+  currentUserLicenseType: LicenseType | undefined
+): T[] {
+  // SuperAdmin can see all users including leadership
+  if (currentUserLicenseType === 'superadmin') {
+    return records;
+  }
+  
+  // For instructors and other roles, filter out leadership users
+  return records.filter(record => {
+    const recordType = record.licenseType || record.userRole;
+    return recordType !== 'leadership' && !record.isLeadership;
+  });
+}
+
+/**
+ * Check if the current user can see a specific user in their views
+ */
+export function canSeeUser(
+  viewerLicenseType: LicenseType | undefined,
+  targetLicenseType: LicenseType | undefined
+): boolean {
+  // SuperAdmin can see everyone
+  if (viewerLicenseType === 'superadmin') {
+    return true;
+  }
+  
+  // Non-superadmin cannot see leadership users
+  return targetLicenseType !== 'leadership';
+}
