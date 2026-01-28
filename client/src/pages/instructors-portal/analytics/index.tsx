@@ -1276,7 +1276,7 @@ export default function AdvancedAnalytics() {
                         <Legend 
                           wrapperStyle={{ paddingTop: '20px' }}
                         />
-                        {iccData.curves.map((curve) => (
+                        {iccData.curves.map((curve, index) => (
                           <Line
                             key={curve.squadron}
                             data={curve.dataPoints}
@@ -1284,9 +1284,11 @@ export default function AdvancedAnalytics() {
                             dataKey="normalizedValue"
                             name={curve.squadron}
                             stroke={curve.color}
-                            strokeWidth={2}
-                            dot={{ r: 3, fill: curve.color }}
-                            activeDot={{ r: 5 }}
+                            strokeWidth={3}
+                            strokeDasharray={index === 0 ? "0" : index === 1 ? "5 5" : index === 2 ? "3 3" : index === 3 ? "10 5" : "5 2"}
+                            dot={{ r: 4, fill: curve.color, strokeWidth: 1, stroke: '#fff' }}
+                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            animationDuration={1500}
                           />
                         ))}
                       </LineChart>
