@@ -141,4 +141,47 @@ export function registerLicensingRoutes(app: Express) {
       res.status(500).json({ message: "Failed to set password" });
     }
   });
+
+  // Update license role/type
+  app.patch("/api/licensing/licenses/:id/role", async (req, res) => {
+    try {
+      const licenseId = parseInt(req.params.id);
+      const { licenseType } = req.body;
+
+      if (!licenseType) {
+        return res.status(400).json({ message: "License type is required" });
+      }
+
+      // Validate license type
+      const validTypes = ['loadmaster', 'instructor', 'superadmin', 'readonly', 'leadership'];
+      if (!validTypes.includes(licenseType)) {
+        return res.status(400).json({ message: "Invalid license type" });
+      }
+
+      // Update the license
+      await db.update(licenses)
+        .set({ 
+          licenseType,
+          updatedAt: new Date()
+        })
+        .where(eq(licenses.id, licenseId));
+
+      // Also update the associated user's role flags
+      const license = await db.select().from(licenses).where(eq(licenses.id, licenseId)).limit(1);
+      if (license.length > 0) {
+        await db.update(users)
+          .set({
+            userRole: licenseType,
+            isAdmin: licenseType === 'instructor' || licenseType === 'superadmin' || licenseType === 'leadership',
+            isSuperAdmin: licenseType === 'superadmin'
+          })
+          .where(eq(users.email, license[0].email));
+      }
+
+      res.json({ success: true, licenseType });
+    } catch (error) {
+      console.error('Error updating license role:', error);
+      res.status(500).json({ message: "Failed to update license role" });
+    }
+  });
 }

@@ -1,5 +1,5 @@
 // Permission system for different license types
-export type LicenseType = 'loadmaster' | 'instructor' | 'superadmin' | 'readonly';
+export type LicenseType = 'loadmaster' | 'instructor' | 'superadmin' | 'readonly' | 'leadership';
 
 export interface User {
   id: number;
@@ -20,22 +20,26 @@ export interface PermissionCheck {
   canViewAdminPanel: boolean;
   canManageUsers: boolean;
   canManageLicenses: boolean;
+  isReadOnlyMode: boolean;
+  isHiddenFromReports: boolean;
 }
 
 /**
  * PERMISSION MATRIX
  * 
- * License Type    | View | Edit | Create | Delete | Submit | Admin Panel | Manage Users | Manage Licenses
- * ---------------|------|------|--------|--------|--------|-------------|--------------|----------------
- * readonly       |  ✓   |  ✗   |   ✗    |   ✗    |   ✗    |     ✗       |      ✗       |       ✗
- * loadmaster     |  ✓   |  ✗   |   ✗    |   ✗    |   ✓    |     ✗       |      ✗       |       ✗
- * instructor     |  ✓   |  ✓   |   ✓    |   ✓    |   ✓    |     ✓       |      ✗       |       ✗
- * superadmin     |  ✓   |  ✓   |   ✓    |   ✓    |   ✓    |     ✓       |      ✓       |       ✓
+ * License Type    | View | Edit | Create | Delete | Submit | Admin Panel | Manage Users | Manage Licenses | Read-Only | Hidden
+ * ---------------|------|------|--------|--------|--------|-------------|--------------|-----------------|-----------|--------
+ * readonly       |  ✓   |  ✗   |   ✗    |   ✗    |   ✗    |     ✗       |      ✗       |       ✗         |     ✓     |   ✗
+ * loadmaster     |  ✓   |  ✗   |   ✗    |   ✗    |   ✓    |     ✗       |      ✗       |       ✗         |     ✗     |   ✗
+ * instructor     |  ✓   |  ✓   |   ✓    |   ✓    |   ✓    |     ✓       |      ✗       |       ✗         |     ✗     |   ✗
+ * leadership     |  ✓   |  ✗   |   ✗    |   ✗    |   ✗    |     ✓       |      ✗       |       ✗         |     ✓     |   ✓
+ * superadmin     |  ✓   |  ✓   |   ✓    |   ✓    |   ✓    |     ✓       |      ✓       |       ✓         |     ✗     |   ✗
  * 
  * Access Details:
  * - readonly: Can view all content, documents, quizzes, scenarios but cannot interact or submit
  * - loadmaster: Can submit quizzes and scenarios but cannot create/edit content
  * - instructor: Can create/edit training content, manage scenarios, view admin dashboard
+ * - leadership: Same VIEW access as instructor but READ-ONLY mode - hidden from instructor views, reports, and analytics
  * - superadmin: Full system access including user and license management
  */
 
@@ -49,6 +53,8 @@ export function getUserPermissions(user: User | null): PermissionCheck {
       canViewAdminPanel: false,
       canManageUsers: false,
       canManageLicenses: false,
+      isReadOnlyMode: true,
+      isHiddenFromReports: false,
     };
   }
 
@@ -65,6 +71,8 @@ export function getUserPermissions(user: User | null): PermissionCheck {
         canViewAdminPanel: false,
         canManageUsers: false,
         canManageLicenses: false,
+        isReadOnlyMode: true,
+        isHiddenFromReports: false,
       };
     
     case 'loadmaster':
@@ -76,6 +84,8 @@ export function getUserPermissions(user: User | null): PermissionCheck {
         canViewAdminPanel: false,
         canManageUsers: false,
         canManageLicenses: false,
+        isReadOnlyMode: false,
+        isHiddenFromReports: false,
       };
     
     case 'instructor':
@@ -87,6 +97,21 @@ export function getUserPermissions(user: User | null): PermissionCheck {
         canViewAdminPanel: true,
         canManageUsers: false,
         canManageLicenses: false,
+        isReadOnlyMode: false,
+        isHiddenFromReports: false,
+      };
+    
+    case 'leadership':
+      return {
+        canEdit: false,
+        canCreate: false,
+        canDelete: false,
+        canSubmit: false,
+        canViewAdminPanel: true,
+        canManageUsers: false,
+        canManageLicenses: false,
+        isReadOnlyMode: true,
+        isHiddenFromReports: true,
       };
     
     case 'superadmin':
@@ -98,6 +123,8 @@ export function getUserPermissions(user: User | null): PermissionCheck {
         canViewAdminPanel: true,
         canManageUsers: true,
         canManageLicenses: true,
+        isReadOnlyMode: false,
+        isHiddenFromReports: false,
       };
     
     default:
@@ -109,8 +136,16 @@ export function getUserPermissions(user: User | null): PermissionCheck {
         canViewAdminPanel: false,
         canManageUsers: false,
         canManageLicenses: false,
+        isReadOnlyMode: true,
+        isHiddenFromReports: false,
       };
   }
+}
+
+export function isLeadershipRole(user: User | null): boolean {
+  if (!user) return false;
+  const licenseType = user.licenseType || user.role;
+  return licenseType === 'leadership';
 }
 
 export function canPerformAction(user: User | null, action: keyof PermissionCheck): boolean {
@@ -122,7 +157,7 @@ export function requiresPermission(user: User | null, action: keyof PermissionCh
   const allowed = canPerformAction(user, action);
   
   if (!allowed) {
-    const actionMessages = {
+    const actionMessages: Record<keyof PermissionCheck, string> = {
       canEdit: 'edit content',
       canCreate: 'create content',
       canDelete: 'delete content',
@@ -130,6 +165,8 @@ export function requiresPermission(user: User | null, action: keyof PermissionCh
       canViewAdminPanel: 'access admin panel',
       canManageUsers: 'manage users',
       canManageLicenses: 'manage licenses',
+      isReadOnlyMode: 'interact (read-only mode)',
+      isHiddenFromReports: 'appear in reports',
     };
     
     return {

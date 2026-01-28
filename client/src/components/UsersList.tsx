@@ -6,18 +6,24 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, Shield, User, Crown, Eye, EyeOff } from "lucide-react";
-import { useQuery } from '@tanstack/react-query';
+import { Search, UserPlus, Shield, User, Crown, Eye, EyeOff, Briefcase } from "lucide-react";
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id: number;
   email: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isLoadmaster: boolean;
+  isInstructor: boolean;
+  isLeadership: boolean;
   createdAt: string;
   licenseId?: number | null;
   licenseKey?: string | null;
   userRole?: string;
+  licenseType?: string;
   hasPassword?: boolean;
   isFirstLogin?: boolean;
   password?: string;
@@ -27,6 +33,7 @@ export default function UsersList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{[key: number]: boolean}>({});
+  const { toast } = useToast();
 
   // Fetch users from licensing system
   const { data: licensesData = [], isLoading, refetch } = useQuery<any[]>({
@@ -34,15 +41,42 @@ export default function UsersList() {
     staleTime: 0
   });
 
-  // Debug logging and transform license data to user format
+  // Mutation to update license type
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ licenseId, licenseType }: { licenseId: number; licenseType: string }) => {
+      return apiRequest(`/api/licensing/licenses/${licenseId}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify({ licenseType }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/licensing/licenses'] });
+      toast({
+        title: "Role updated",
+        description: "User role has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update role",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
+  const handleRoleToggle = (licenseId: number, currentType: string, newType: string) => {
+    // If currently this type, set to loadmaster (default). Otherwise set to new type.
+    const targetType = currentType === newType ? 'loadmaster' : newType;
+    updateRoleMutation.mutate({ licenseId, licenseType: targetType });
+  };
   
   const seenEmails = new Set<string>();
   const allUsers: User[] = Array.isArray(licensesData) ? licensesData
     .filter((license: any) => {
-      if (!license?.email) return false; // Skip invalid entries
+      if (!license?.email) return false;
       if (seenEmails.has(license.email)) {
-        return false; // Skip duplicate emails
+        return false;
       }
       seenEmails.add(license.email);
       return true;
@@ -52,10 +86,14 @@ export default function UsersList() {
       email: license.email,
       isAdmin: license.licenseType === 'instructor' || license.licenseType === 'superadmin',
       isSuperAdmin: license.licenseType === 'superadmin',
+      isLoadmaster: license.licenseType === 'loadmaster',
+      isInstructor: license.licenseType === 'instructor',
+      isLeadership: license.licenseType === 'leadership',
       createdAt: license.createdAt,
       licenseId: license.id,
       licenseKey: license.licenseKey,
       userRole: license.licenseType,
+      licenseType: license.licenseType,
       hasPassword: !!license.hasPassword,
       isFirstLogin: license.isFirstLogin,
       password: license.isFirstLogin ? 'Password1!' : '********'
@@ -77,8 +115,9 @@ export default function UsersList() {
     
     const matchesRole = roleFilter === 'all' || 
       (roleFilter === 'superadmin' && user.isSuperAdmin) ||
-      (roleFilter === 'instructor' && user.isAdmin && !user.isSuperAdmin) ||
-      (roleFilter === 'loadmaster' && !user.isAdmin && !user.isSuperAdmin);
+      (roleFilter === 'instructor' && user.isInstructor) ||
+      (roleFilter === 'loadmaster' && user.isLoadmaster) ||
+      (roleFilter === 'leadership' && user.isLeadership);
     
     return matchesSearch && matchesRole;
   });
@@ -87,27 +126,30 @@ export default function UsersList() {
   const stats = {
     totalUsers: allUsers.length,
     superAdmins: allUsers.filter(u => u.isSuperAdmin).length,
-    instructors: allUsers.filter(u => u.isAdmin && !u.isSuperAdmin).length,
-    loadmasters: allUsers.filter(u => !u.isAdmin && !u.isSuperAdmin).length,
-    activeUsers: allUsers.length // All users are considered active
+    instructors: allUsers.filter(u => u.isInstructor).length,
+    loadmasters: allUsers.filter(u => u.isLoadmaster).length,
+    leadership: allUsers.filter(u => u.isLeadership).length,
+    activeUsers: allUsers.length
   };
 
   const getRoleIcon = (user: User) => {
     if (user.isSuperAdmin) return <Crown className="w-4 h-4 text-purple-400" />;
-    if (user.isAdmin) return <Shield className="w-4 h-4 text-blue-400" />;
+    if (user.isLeadership) return <Briefcase className="w-4 h-4 text-amber-400" />;
+    if (user.isInstructor) return <Shield className="w-4 h-4 text-blue-400" />;
     return <User className="w-4 h-4 text-green-400" />;
   };
 
   const getRoleBadge = (user: User) => {
     if (user.isSuperAdmin) return <Badge className="bg-purple-600 text-white">Super Admin</Badge>;
-    if (user.isAdmin) return <Badge className="bg-blue-600 text-white">Instructor</Badge>;
+    if (user.isLeadership) return <Badge className="bg-amber-600 text-white">Leadership</Badge>;
+    if (user.isInstructor) return <Badge className="bg-blue-600 text-white">Instructor</Badge>;
     return <Badge className="bg-green-600 text-white">Loadmaster</Badge>;
   };
 
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <Card className="bg-slate-800 border-slate-700">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-white">Total Users</CardTitle>
@@ -125,6 +167,16 @@ export default function UsersList() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-400">{stats.superAdmins}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">Leadership</CardTitle>
+            <Briefcase className="h-4 w-4 text-amber-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-400">{stats.leadership}</div>
           </CardContent>
         </Card>
 
@@ -183,6 +235,7 @@ export default function UsersList() {
               <SelectContent className="bg-slate-700 border-slate-600">
                 <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="superadmin">Super Admin</SelectItem>
+                <SelectItem value="leadership">Leadership</SelectItem>
                 <SelectItem value="instructor">Instructor</SelectItem>
                 <SelectItem value="loadmaster">Loadmaster</SelectItem>
               </SelectContent>
@@ -223,22 +276,44 @@ export default function UsersList() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3 flex-wrap gap-y-2">
                     <div className="flex items-center space-x-2">
-                      <Label htmlFor={`admin-${user.id}`} className="text-sm text-gray-300">Admin</Label>
+                      <Label htmlFor={`loadmaster-${user.id}`} className="text-xs text-gray-300">Loadmaster</Label>
                       <Switch
-                        id={`admin-${user.id}`}
-                        checked={user.isAdmin}
-                        disabled
+                        id={`loadmaster-${user.id}`}
+                        checked={user.isLoadmaster}
+                        disabled={updateRoleMutation.isPending}
+                        onCheckedChange={() => user.licenseId && handleRoleToggle(user.licenseId, user.licenseType || '', 'loadmaster')}
+                        className="data-[state=checked]:bg-green-600"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor={`instructor-${user.id}`} className="text-xs text-gray-300">Instructor</Label>
+                      <Switch
+                        id={`instructor-${user.id}`}
+                        checked={user.isInstructor}
+                        disabled={updateRoleMutation.isPending}
+                        onCheckedChange={() => user.licenseId && handleRoleToggle(user.licenseId, user.licenseType || '', 'instructor')}
                         className="data-[state=checked]:bg-blue-600"
                       />
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Label htmlFor={`super-${user.id}`} className="text-sm text-gray-300">Super Admin</Label>
+                      <Label htmlFor={`leadership-${user.id}`} className="text-xs text-gray-300">Leadership</Label>
+                      <Switch
+                        id={`leadership-${user.id}`}
+                        checked={user.isLeadership}
+                        disabled={updateRoleMutation.isPending}
+                        onCheckedChange={() => user.licenseId && handleRoleToggle(user.licenseId, user.licenseType || '', 'leadership')}
+                        className="data-[state=checked]:bg-amber-600"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor={`super-${user.id}`} className="text-xs text-gray-300">Super Admin</Label>
                       <Switch
                         id={`super-${user.id}`}
                         checked={user.isSuperAdmin}
-                        disabled
+                        disabled={updateRoleMutation.isPending}
+                        onCheckedChange={() => user.licenseId && handleRoleToggle(user.licenseId, user.licenseType || '', 'superadmin')}
                         className="data-[state=checked]:bg-purple-600"
                       />
                     </div>
