@@ -12,7 +12,7 @@ import {
   BookOpen,
   Plane 
 } from "lucide-react";
-import cargoBayImage from "../assets/cargo-bay.png";
+import cargoBayImage from "../assets/cargo-bay-optimized.jpg";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 
 export default function HomePage() {
@@ -76,11 +76,16 @@ export default function HomePage() {
             </p>
 
             {/* Featured Section Banner */}
-            <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64">
+            <div className="relative rounded-xl overflow-hidden shadow-xl mb-10 h-64 bg-muted/50">
               <img
                 src={cargoBayImage}
                 alt="Military cargo loadmaster in aircraft bay"
                 className="w-full h-full object-cover"
+                loading="eager"
+                decoding="async"
+                width={1920}
+                height={1080}
+                fetchPriority="high"
               />
               <div className="gradient-overlay flex items-end">
                 <div className="p-8">

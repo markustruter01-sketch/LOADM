@@ -159,12 +159,17 @@ export default function InstructorsPortal() {
         </Dialog>
 
         {/* Featured Section Banner */}
-        <div className="relative rounded-xl overflow-hidden shadow-xl mb-6 h-64" data-testid="instructor-banner">
+        <div className="relative rounded-xl overflow-hidden shadow-xl mb-6 h-64 bg-muted/50" data-testid="instructor-banner">
           <img
             src={instructorBannerImage}
             alt="RAAF loadmaster directing cargo operations"
             className="w-full h-full object-cover"
             style={{ objectPosition: 'center 20%' }}
+            loading="eager"
+            decoding="async"
+            width={1920}
+            height={1080}
+            fetchPriority="high"
           />
           <div className="gradient-overlay flex items-end">
             <div className="p-8">
