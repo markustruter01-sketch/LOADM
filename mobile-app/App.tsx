@@ -15,6 +15,8 @@ import QuizScreen from './src/screens/QuizScreen';
 import ScenariosScreen from './src/screens/ScenariosScreen';
 import DocumentsScreen from './src/screens/DocumentsScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import UserProfileScreen from './src/screens/UserProfileScreen';
+import ToolsScreen from './src/screens/ToolsScreen';
 
 const Stack = createStackNavigator();
 const queryClient = new QueryClient({
@@ -64,12 +66,12 @@ export default function App() {
                 <Stack.Screen 
                   name="Quiz" 
                   component={QuizScreen} 
-                  options={{ title: 'Quiz' }}
+                  options={{ title: 'Quizzes' }}
                 />
                 <Stack.Screen 
                   name="Scenarios" 
                   component={ScenariosScreen} 
-                  options={{ title: 'Scenarios' }}
+                  options={{ title: 'Training Scenarios' }}
                 />
                 <Stack.Screen 
                   name="Documents" 
@@ -80,6 +82,16 @@ export default function App() {
                   name="Chat" 
                   component={ChatScreen} 
                   options={{ title: 'Chat' }}
+                />
+                <Stack.Screen 
+                  name="Profile" 
+                  component={UserProfileScreen} 
+                  options={{ title: 'My Profile' }}
+                />
+                <Stack.Screen 
+                  name="Tools" 
+                  component={ToolsScreen} 
+                  options={{ title: 'Tools & Calculators' }}
                 />
               </Stack.Navigator>
             </NavigationContainer>

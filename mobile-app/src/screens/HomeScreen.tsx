@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,8 +17,18 @@ interface Props {
 }
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isReadOnlyMode, isLeadershipRole } = useAuth();
   const { isOnline, isSyncing, lastSyncTime, syncData } = useSync();
+
+  useEffect(() => {
+    if (isLeadershipRole) {
+      Alert.alert(
+        'Leadership Mode',
+        'You are logged in with read-only access. You can view all data but cannot make changes.',
+        [{ text: 'OK' }]
+      );
+    }
+  }, [isLeadershipRole]);
 
   const handleRefresh = async () => {
     if (!isOnline) {
@@ -50,19 +60,44 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return `Last sync: ${lastSyncTime.toLocaleTimeString()}`;
   };
 
+  const getRoleDisplayName = () => {
+    if (isLeadershipRole) return 'Leadership (Read-Only)';
+    const role = user?.licenseType || user?.role || '';
+    return role.charAt(0).toUpperCase() + role.slice(1);
+  };
+
   return (
     <ScrollView style={styles.container}>
-      {/* Header with Sync Button */}
-      <View style={styles.header}>
-        <View style={styles.userInfo}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.userName}>
-            {user?.firstName || user?.email}
-          </Text>
-          <Text style={styles.userRole}>
-            {user?.role} • {user?.squadron}
+      {/* Read-Only Mode Banner */}
+      {isReadOnlyMode && (
+        <View style={styles.readOnlyBanner}>
+          <Text style={styles.readOnlyText}>
+            👁️ Leadership Mode - View Only Access
           </Text>
         </View>
+      )}
+
+      {/* Header with Sync Button */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.userInfo}
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <View style={styles.avatarSmall}>
+            <Text style={styles.avatarText}>
+              {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+            </Text>
+          </View>
+          <View style={styles.userDetails}>
+            <Text style={styles.welcomeText}>Welcome back,</Text>
+            <Text style={styles.userName}>
+              {user?.firstName || user?.email}
+            </Text>
+            <Text style={styles.userRole}>
+              {getRoleDisplayName()} • {user?.squadron}
+            </Text>
+          </View>
+        </TouchableOpacity>
         
         <TouchableOpacity
           style={[styles.syncButton, !isOnline && styles.syncButtonDisabled]}
@@ -86,6 +121,38 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           {isOnline ? 'Online' : 'Offline Mode'}
         </Text>
         <Text style={styles.lastSyncText}>{formatLastSync()}</Text>
+      </View>
+
+      {/* Quick Access Bar */}
+      <View style={styles.quickAccessBar}>
+        <TouchableOpacity
+          style={styles.quickAccessItem}
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <Text style={styles.quickAccessIcon}>👤</Text>
+          <Text style={styles.quickAccessText}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.quickAccessItem}
+          onPress={() => navigation.navigate('Tools')}
+        >
+          <Text style={styles.quickAccessIcon}>🔧</Text>
+          <Text style={styles.quickAccessText}>Tools</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.quickAccessItem}
+          onPress={() => navigation.navigate('Documents')}
+        >
+          <Text style={styles.quickAccessIcon}>📚</Text>
+          <Text style={styles.quickAccessText}>Docs</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.quickAccessItem}
+          onPress={() => navigation.navigate('Chat')}
+        >
+          <Text style={styles.quickAccessIcon}>💬</Text>
+          <Text style={styles.quickAccessText}>Chat</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Main Menu */}
@@ -125,23 +192,23 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('Documents')}
+          onPress={() => navigation.navigate('Profile')}
         >
-          <Text style={styles.menuIcon}>📚</Text>
-          <Text style={styles.menuTitle}>Documents</Text>
+          <Text style={styles.menuIcon}>👤</Text>
+          <Text style={styles.menuTitle}>My Profile</Text>
           <Text style={styles.menuDescription}>
-            View technical manuals and guides
+            View qualifications, flight records & activity
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.menuItem}
-          onPress={() => navigation.navigate('Chat')}
+          onPress={() => navigation.navigate('Tools')}
         >
-          <Text style={styles.menuIcon}>💬</Text>
-          <Text style={styles.menuTitle}>Chat</Text>
+          <Text style={styles.menuIcon}>🔧</Text>
+          <Text style={styles.menuTitle}>Tools & Calculators</Text>
           <Text style={styles.menuDescription}>
-            Communicate with instructors and peers
+            Fuel, WAM, restraint & PSI calculators
           </Text>
         </TouchableOpacity>
       </View>
@@ -160,6 +227,20 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     padding: theme.spacing.md,
   },
+  readOnlyBanner: {
+    backgroundColor: theme.colors.warning + '20',
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.warning,
+  },
+  readOnlyText: {
+    color: theme.colors.warning,
+    textAlign: 'center',
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium as any,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -172,21 +253,40 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatarSmall: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold as any,
+    color: theme.colors.primaryForeground,
+  },
+  userDetails: {
+    marginLeft: theme.spacing.md,
     flex: 1,
   },
   welcomeText: {
     color: theme.colors.mutedForeground,
-    fontSize: theme.fontSize.md,
+    fontSize: theme.fontSize.sm,
   },
   userName: {
     color: theme.colors.foreground,
-    fontSize: theme.fontSize.title,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold as any,
     marginTop: theme.spacing.xs,
   },
   userRole: {
     color: theme.colors.mutedForeground,
-    fontSize: theme.fontSize.sm,
+    fontSize: theme.fontSize.xs,
     marginTop: theme.spacing.xs,
   },
   syncButton: {
@@ -202,7 +302,7 @@ const styles = StyleSheet.create({
   },
   syncButtonText: {
     color: theme.colors.primaryForeground,
-    fontWeight: theme.fontWeight.bold,
+    fontWeight: theme.fontWeight.bold as any,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -228,12 +328,35 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: theme.colors.foreground,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.medium as any,
     flex: 1,
   },
   lastSyncText: {
     color: theme.colors.mutedForeground,
     fontSize: theme.fontSize.xs,
+  },
+  quickAccessBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.lg,
+  },
+  quickAccessItem: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.md,
+    marginHorizontal: theme.spacing.xs,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  quickAccessIcon: {
+    fontSize: 24,
+    marginBottom: theme.spacing.xs,
+  },
+  quickAccessText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.foreground,
   },
   menuContainer: {
     gap: theme.spacing.md,
@@ -252,7 +375,7 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.bold,
+    fontWeight: theme.fontWeight.bold as any,
     color: theme.colors.foreground,
     marginBottom: theme.spacing.xs,
   },
@@ -262,6 +385,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
     padding: theme.spacing.md,
     backgroundColor: theme.colors.destructive,
     borderRadius: theme.borderRadius.md,
@@ -269,7 +393,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: theme.colors.destructiveForeground,
-    fontWeight: theme.fontWeight.bold,
+    fontWeight: theme.fontWeight.bold as any,
     fontSize: theme.fontSize.md,
   },
 });
