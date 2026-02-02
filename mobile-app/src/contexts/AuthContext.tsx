@@ -64,9 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Store session token securely
         await SecureStore.setItemAsync('sessionToken', data.sessionToken);
         
-        // Store user data locally
+        // Store user data locally - role column stores the license type for permissions
+        // This is the mobile app's offline storage - we store licenseType separately from role
         if (db) {
           const userInfo = data.user;
+          // Store licenseType in role column for permission checking
+          // The web app's licenseType is the primary permission indicator
+          const licenseType = userInfo.licenseType || 'loadmaster';
           await db.runAsync(
             `INSERT OR REPLACE INTO users 
              (id, email, first_name, last_name, role, squadron, category, rank, has_completed_onboarding, is_active, updated_at) 
@@ -76,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               userInfo.email,
               userInfo.firstName || '',
               userInfo.lastName || '',
-              userInfo.licenseType || userInfo.role,
+              licenseType, // Store licenseType for offline permission checks
               userInfo.squadron || '',
               userInfo.category || '',
               userInfo.rank || '',
@@ -87,10 +91,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           );
         }
         
-        setUser({
-          ...data.user,
-          licenseType: data.user.licenseType || data.user.role,
-        });
+        // Set user with both role and licenseType from server response
+        const userWithLicense: User = {
+          id: data.user.id,
+          email: data.user.email,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          role: data.user.role || 'user', // Original role from server
+          licenseType: data.user.licenseType || 'loadmaster', // License type for permissions
+          squadron: data.user.squadron,
+          category: data.user.category,
+          rank: data.user.rank,
+          hasCompletedOnboarding: data.user.hasCompletedOnboarding,
+          profilePhotoUrl: data.user.profilePhotoUrl,
+        };
+        setUser(userWithLicense);
         return true;
       } else {
         // If online authentication fails, try offline authentication
@@ -101,18 +116,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           );
           
           if (result) {
-            const role = result.role as string;
+            // Role column stores licenseType for offline permission checks
+            const storedLicenseType = (result as any).role as string;
             setUser({
-              id: result.id as number,
-              email: result.email as string,
-              firstName: result.first_name as string,
-              lastName: result.last_name as string,
-              role: role,
-              licenseType: role as LicenseType,
-              squadron: result.squadron as string,
-              category: result.category as string,
-              rank: result.rank as string,
-              hasCompletedOnboarding: Boolean(result.has_completed_onboarding),
+              id: (result as any).id as number,
+              email: (result as any).email as string,
+              firstName: (result as any).first_name as string,
+              lastName: (result as any).last_name as string,
+              role: 'user', // Default role for offline
+              licenseType: storedLicenseType as LicenseType, // License type from storage
+              squadron: (result as any).squadron as string,
+              category: (result as any).category as string,
+              rank: (result as any).rank as string,
+              hasCompletedOnboarding: Boolean((result as any).has_completed_onboarding),
             });
             return true;
           }
@@ -131,18 +147,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           );
           
           if (result) {
-            const role = result.role as string;
+            // Role column stores licenseType for offline permission checks
+            const storedLicenseType = (result as any).role as string;
             setUser({
-              id: result.id as number,
-              email: result.email as string,
-              firstName: result.first_name as string,
-              lastName: result.last_name as string,
-              role: role,
-              licenseType: role as LicenseType,
-              squadron: result.squadron as string,
-              category: result.category as string,
-              rank: result.rank as string,
-              hasCompletedOnboarding: Boolean(result.has_completed_onboarding),
+              id: (result as any).id as number,
+              email: (result as any).email as string,
+              firstName: (result as any).first_name as string,
+              lastName: (result as any).last_name as string,
+              role: 'user', // Default role for offline
+              licenseType: storedLicenseType as LicenseType, // License type from storage
+              squadron: (result as any).squadron as string,
+              category: (result as any).category as string,
+              rank: (result as any).rank as string,
+              hasCompletedOnboarding: Boolean((result as any).has_completed_onboarding),
             });
             return true;
           }
@@ -191,10 +208,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         const userData = await response.json();
-        setUser({
-          ...userData,
-          licenseType: userData.licenseType || userData.role,
-        });
+        const refreshedUser: User = {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role || 'user',
+          licenseType: userData.licenseType || 'loadmaster',
+          squadron: userData.squadron,
+          category: userData.category,
+          rank: userData.rank,
+          hasCompletedOnboarding: userData.hasCompletedOnboarding,
+          profilePhotoUrl: userData.profilePhotoUrl,
+        };
+        setUser(refreshedUser);
       } else {
         // If server request fails, load from local database
         if (db && user) {
@@ -204,18 +231,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           );
           
           if (result) {
-            const role = result.role as string;
+            // Role column stores licenseType for offline permission checks
+            const storedLicenseType = (result as any).role as string;
             setUser({
-              id: result.id as number,
-              email: result.email as string,
-              firstName: result.first_name as string,
-              lastName: result.last_name as string,
-              role: role,
-              licenseType: role as LicenseType,
-              squadron: result.squadron as string,
-              category: result.category as string,
-              rank: result.rank as string,
-              hasCompletedOnboarding: Boolean(result.has_completed_onboarding),
+              id: (result as any).id as number,
+              email: (result as any).email as string,
+              firstName: (result as any).first_name as string,
+              lastName: (result as any).last_name as string,
+              role: 'user', // Default role for offline
+              licenseType: storedLicenseType as LicenseType,
+              squadron: (result as any).squadron as string,
+              category: (result as any).category as string,
+              rank: (result as any).rank as string,
+              hasCompletedOnboarding: Boolean((result as any).has_completed_onboarding),
             });
           }
         }
