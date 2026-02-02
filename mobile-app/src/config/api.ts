@@ -31,30 +31,69 @@ const DEVELOPMENT_API_URL = 'http://localhost:5000';
 export const API_BASE_URL = isDevelopment ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
 
 /**
- * API Endpoints
+ * API Endpoints - Updated January 2026
  */
 export const API_ENDPOINTS = {
-  // Authentication
-  AUTH_LOGIN: `${API_BASE_URL}/api/auth/login`,
-  AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout`,
-  AUTH_USER: `${API_BASE_URL}/api/auth/user`,
+  // Authentication (Isolated Auth System)
+  AUTH_LOGIN: `${API_BASE_URL}/auth-isolated/login`,
+  AUTH_LOGOUT: `${API_BASE_URL}/auth-isolated/logout`,
+  AUTH_USER: `${API_BASE_URL}/auth-isolated/user`,
+  AUTH_REGISTER: `${API_BASE_URL}/auth-isolated/register`,
+  COMPLETE_ONBOARDING: `${API_BASE_URL}/auth-isolated/complete-onboarding`,
   
-  // Quiz
+  // Quizzes (Unified endpoints)
+  QUIZZES: `${API_BASE_URL}/api/quizzes`,
+  QUIZ_BY_ID: (id: number) => `${API_BASE_URL}/api/quiz/${id}`,
   QUIZ_QUESTIONS: `${API_BASE_URL}/api/quiz-questions`,
-  QUIZ_SUBMISSIONS: `${API_BASE_URL}/api/quiz-submissions`,
+  QUIZ_SUBMISSIONS: `${API_BASE_URL}/api/quiz/submissions`,
   
   // Scenarios
-  SCENARIO_SUBMISSIONS: `${API_BASE_URL}/api/scenario-submissions`,
   SCENARIOS: `${API_BASE_URL}/api/scenarios`,
+  SCENARIO_BY_ID: (id: number) => `${API_BASE_URL}/api/scenarios/${id}`,
+  SCENARIO_SUBMISSIONS: `${API_BASE_URL}/api/scenario-submissions`,
   
   // Documents
   DOCUMENTS: `${API_BASE_URL}/api/documents`,
+  DOCUMENT_BY_ID: (id: number) => `${API_BASE_URL}/api/documents/${id}`,
+  
+  // User Profile
+  USER_PROFILE: `${API_BASE_URL}/api/user-profile`,
+  
+  // User Qualifications
+  USER_QUALIFICATIONS: `${API_BASE_URL}/api/user-qualifications`,
+  USER_QUALIFICATION_BY_ID: (id: number) => `${API_BASE_URL}/api/user-qualifications/${id}`,
+  
+  // Flight Records
+  FLIGHT_RECORDS: `${API_BASE_URL}/api/flight-records`,
+  FLIGHT_RECORD_BY_ID: (id: number) => `${API_BASE_URL}/api/flight-records/${id}`,
+  FLIGHT_STATISTICS: `${API_BASE_URL}/api/flight-statistics`,
+  
+  // Safety Records
+  SAFETY_RECORDS: `${API_BASE_URL}/api/safety-records`,
   
   // Chat
   CHAT: `${API_BASE_URL}/api/chat`,
+  CHAT_MESSAGES: `${API_BASE_URL}/api/chat/messages`,
   
   // Load Planning
   LOAD_PLANS: `${API_BASE_URL}/api/load-plans`,
+  LOAD_PLAN_BY_ID: (id: number) => `${API_BASE_URL}/api/load-plans/${id}`,
+  
+  // Checklists
+  CHECKLISTS: `${API_BASE_URL}/api/checklists`,
+  CHECKLIST_BY_ID: (id: number) => `${API_BASE_URL}/api/checklists/${id}`,
+  
+  // Training Modules
+  TRAINING_MODULES: `${API_BASE_URL}/api/training-modules`,
+  TRAINING_MODULE_BY_ID: (id: number) => `${API_BASE_URL}/api/training-modules/${id}`,
+  
+  // Users (for instructor view)
+  USERS: `${API_BASE_URL}/api/users`,
+  USER_BY_ID: (id: number) => `${API_BASE_URL}/api/users/${id}`,
+  
+  // Analytics (read-only for leadership)
+  ANALYTICS_OVERVIEW: `${API_BASE_URL}/api/analytics/overview`,
+  ANALYTICS_WORKFORCE: `${API_BASE_URL}/api/analytics/workforce`,
 };
 
 /**
@@ -80,4 +119,20 @@ export function getEnvironment(): 'development' | 'production' {
  */
 export function isDevMode(): boolean {
   return isDevelopment;
+}
+
+/**
+ * Get authorization headers with session token
+ */
+export async function getAuthHeaders(): Promise<HeadersInit> {
+  try {
+    const SecureStore = await import('expo-secure-store');
+    const sessionToken = await SecureStore.getItemAsync('sessionToken');
+    return {
+      'Content-Type': 'application/json',
+      ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}),
+    };
+  } catch {
+    return { 'Content-Type': 'application/json' };
+  }
 }

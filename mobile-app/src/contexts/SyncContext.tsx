@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as Network from 'expo-network';
 import { useDatabase } from './DatabaseContext';
 import { useAuth } from './AuthContext';
-import { API_ENDPOINTS, buildApiUrl } from '../config/api';
+import { API_ENDPOINTS, buildApiUrl, getAuthHeaders } from '../config/api';
 
 interface SyncContextValue {
   isOnline: boolean;
@@ -58,29 +58,29 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         [user.id]
       );
 
+      const headers = await getAuthHeaders();
+
       for (const submission of pendingSubmissions) {
         try {
           const response = await fetch(API_ENDPOINTS.QUIZ_SUBMISSIONS, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
-              quizId: submission.quiz_id,
-              answers: JSON.parse(submission.answers as string),
-              score: submission.score,
-              passed: submission.passed,
+              quizId: (submission as any).quiz_id,
+              answers: JSON.parse((submission as any).answers as string),
+              score: (submission as any).score,
+              passed: (submission as any).passed,
             }),
           });
 
           if (response.ok) {
             await db.runAsync(
               'UPDATE quiz_submissions SET synced = 1 WHERE id = ?',
-              [submission.id]
+              [(submission as any).id]
             );
           }
         } catch (error) {
-          console.log('Failed to sync quiz submission:', submission.id);
+          console.log('Failed to sync quiz submission:', (submission as any).id);
         }
       }
     } catch (error) {
@@ -97,32 +97,162 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         [user.id]
       );
 
+      const headers = await getAuthHeaders();
+
       for (const submission of pendingSubmissions) {
         try {
           const response = await fetch(API_ENDPOINTS.SCENARIO_SUBMISSIONS, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
-              scenarioId: submission.scenario_id,
-              formData: JSON.parse(submission.form_data as string),
-              answers: JSON.parse(submission.answers as string),
+              scenarioId: (submission as any).scenario_id,
+              formData: JSON.parse((submission as any).form_data as string),
+              answers: JSON.parse((submission as any).answers as string),
             }),
           });
 
           if (response.ok) {
             await db.runAsync(
               'UPDATE scenario_submissions SET synced = 1 WHERE id = ?',
-              [submission.id]
+              [(submission as any).id]
             );
           }
         } catch (error) {
-          console.log('Failed to sync scenario submission:', submission.id);
+          console.log('Failed to sync scenario submission:', (submission as any).id);
         }
       }
     } catch (error) {
       console.error('Scenario submissions sync failed:', error);
+    }
+  };
+
+  const syncUserQualifications = async () => {
+    if (!db || !user) return;
+
+    try {
+      const pendingQualifications = await db.getAllAsync(
+        'SELECT * FROM user_qualifications WHERE synced = 0 AND user_id = ?',
+        [user.id]
+      );
+
+      const headers = await getAuthHeaders();
+
+      for (const qual of pendingQualifications) {
+        try {
+          const response = await fetch(API_ENDPOINTS.USER_QUALIFICATIONS, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              name: (qual as any).name,
+              startDate: (qual as any).start_date,
+              expiryDate: (qual as any).expiry_date,
+            }),
+          });
+
+          if (response.ok) {
+            await db.runAsync(
+              'UPDATE user_qualifications SET synced = 1 WHERE id = ?',
+              [(qual as any).id]
+            );
+          }
+        } catch (error) {
+          console.log('Failed to sync qualification:', (qual as any).id);
+        }
+      }
+
+      // Download latest qualifications from server
+      try {
+        const response = await fetch(API_ENDPOINTS.USER_QUALIFICATIONS, { headers });
+        if (response.ok) {
+          const qualifications = await response.json();
+          for (const qual of qualifications) {
+            await db.runAsync(
+              `INSERT OR REPLACE INTO user_qualifications 
+               (id, user_id, name, start_date, expiry_date, synced) 
+               VALUES (?, ?, ?, ?, ?, 1)`,
+              [qual.id, user.id, qual.name, qual.startDate, qual.expiryDate]
+            );
+          }
+        }
+      } catch (error) {
+        console.log('Failed to download qualifications');
+      }
+    } catch (error) {
+      console.error('Qualifications sync failed:', error);
+    }
+  };
+
+  const syncFlightRecords = async () => {
+    if (!db || !user) return;
+
+    try {
+      const pendingRecords = await db.getAllAsync(
+        'SELECT * FROM flight_records WHERE synced = 0 AND user_id = ?',
+        [user.id]
+      );
+
+      const headers = await getAuthHeaders();
+
+      for (const record of pendingRecords) {
+        try {
+          const response = await fetch(API_ENDPOINTS.FLIGHT_RECORDS, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              date: (record as any).date,
+              callsign: (record as any).callsign,
+              departure: (record as any).departure,
+              arrival: (record as any).arrival,
+              captain: (record as any).captain,
+              passengersCarried: (record as any).passengers_carried,
+              cargoWeight: (record as any).cargo_weight,
+              nightHours: (record as any).night_hours,
+              dayHours: (record as any).day_hours,
+            }),
+          });
+
+          if (response.ok) {
+            await db.runAsync(
+              'UPDATE flight_records SET synced = 1 WHERE id = ?',
+              [(record as any).id]
+            );
+          }
+        } catch (error) {
+          console.log('Failed to sync flight record:', (record as any).id);
+        }
+      }
+
+      // Download latest flight records from server
+      try {
+        const response = await fetch(API_ENDPOINTS.FLIGHT_RECORDS, { headers });
+        if (response.ok) {
+          const records = await response.json();
+          for (const record of records) {
+            await db.runAsync(
+              `INSERT OR REPLACE INTO flight_records 
+               (id, user_id, date, callsign, departure, arrival, captain, passengers_carried, cargo_weight, night_hours, day_hours, synced) 
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+              [
+                record.id, 
+                user.id, 
+                record.date, 
+                record.callsign, 
+                record.departure, 
+                record.arrival, 
+                record.captain, 
+                record.passengersCarried, 
+                record.cargoWeight, 
+                record.nightHours, 
+                record.dayHours
+              ]
+            );
+          }
+        }
+      } catch (error) {
+        console.log('Failed to download flight records');
+      }
+    } catch (error) {
+      console.error('Flight records sync failed:', error);
     }
   };
 
@@ -135,32 +265,32 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
         [user.id]
       );
 
+      const headers = await getAuthHeaders();
+
       for (const message of pendingMessages) {
         try {
           const response = await fetch(API_ENDPOINTS.CHAT, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
-              message: message.message,
-              timestamp: message.timestamp,
+              message: (message as any).message,
+              timestamp: (message as any).timestamp,
             }),
           });
 
           if (response.ok) {
             await db.runAsync(
               'UPDATE chat_messages SET synced = 1 WHERE id = ?',
-              [message.id]
+              [(message as any).id]
             );
           }
         } catch (error) {
-          console.log('Failed to sync chat message:', message.id);
+          console.log('Failed to sync chat message:', (message as any).id);
         }
       }
 
       // Also fetch new messages from server
-      const response = await fetch(API_ENDPOINTS.CHAT);
+      const response = await fetch(API_ENDPOINTS.CHAT, { headers });
       if (response.ok) {
         const messages = await response.json();
         for (const msg of messages) {
@@ -181,8 +311,10 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!db) return;
 
     try {
+      const headers = await getAuthHeaders();
+
       // Download latest quizzes
-      const quizzesResponse = await fetch(buildApiUrl('/api/quizzes'));
+      const quizzesResponse = await fetch(API_ENDPOINTS.QUIZZES, { headers });
       if (quizzesResponse.ok) {
         const quizzes = await quizzesResponse.json();
         for (const quiz of quizzes) {
@@ -207,7 +339,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Download latest scenarios
-      const scenariosResponse = await fetch(API_ENDPOINTS.SCENARIOS);
+      const scenariosResponse = await fetch(API_ENDPOINTS.SCENARIOS, { headers });
       if (scenariosResponse.ok) {
         const scenarios = await scenariosResponse.json();
         for (const scenario of scenarios) {
@@ -232,7 +364,7 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Download documents list
-      const documentsResponse = await fetch(API_ENDPOINTS.DOCUMENTS);
+      const documentsResponse = await fetch(API_ENDPOINTS.DOCUMENTS, { headers });
       if (documentsResponse.ok) {
         const documents = await documentsResponse.json();
         for (const doc of documents) {
@@ -266,6 +398,8 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Upload pending data
       await syncQuizSubmissions();
       await syncScenarioSubmissions();
+      await syncUserQualifications();
+      await syncFlightRecords();
       await syncChatMessages();
       
       // Download latest data
