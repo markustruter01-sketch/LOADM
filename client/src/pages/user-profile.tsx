@@ -1153,6 +1153,60 @@ export default function UserProfile() {
                       })}
                     </div>
 
+                    {/* Additional Reading Modules */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <BookOpen className="w-4 h-4 text-orange-400" />
+                        <h3 className="text-sm font-semibold text-white">Additional Reading Modules</h3>
+                        <span className="text-xs text-gray-500">— General training applicable to all aircraft</span>
+                      </div>
+                      <div className="space-y-2">
+                        {[
+                          { label: "Loadmaster Basics", sub: "Introduction to Military Load Planning", complete: true },
+                          { label: "Cargo Security Handling", sub: "Cargo Security Procedures", complete: true },
+                        ].map((mod) => {
+                          const r2 = 14;
+                          const circ2 = 2 * Math.PI * r2;
+                          return (
+                            <div
+                              key={mod.label}
+                              className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
+                                mod.complete
+                                  ? "border-orange-500/40 bg-orange-500/8"
+                                  : "border-[#333333] bg-[#1c1c1c] opacity-70"
+                              }`}
+                              style={mod.complete ? { background: "rgba(249,115,22,0.06)" } : undefined}
+                            >
+                              {/* Mini ring */}
+                              <div className="relative shrink-0 w-9 h-9 flex items-center justify-center">
+                                <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                  <circle cx="18" cy="18" r={r2} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                                  {mod.complete && (
+                                    <circle cx="18" cy="18" r={r2} fill="none" stroke="#f97316" strokeWidth="3"
+                                      strokeLinecap="round" strokeDasharray={circ2} strokeDashoffset={0} />
+                                  )}
+                                </svg>
+                                <CheckCircle2 className={`w-4 h-4 z-10 ${mod.complete ? "text-orange-400" : "text-gray-600"}`} />
+                              </div>
+
+                              {/* Text */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-white leading-tight">{mod.label}</p>
+                                <p className="text-xs text-gray-400 truncate">{mod.sub}</p>
+                              </div>
+
+                              {/* Badge */}
+                              {mod.complete && (
+                                <span className="shrink-0 text-xs font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
+                                  Complete
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     {/* Legend */}
                     <div className="flex gap-4 pt-2 border-t border-[#333333] text-xs text-gray-500">
                       <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400 inline-block" /> Completed</span>
