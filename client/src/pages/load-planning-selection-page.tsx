@@ -130,7 +130,10 @@ export default function LoadPlanningSelectionPage() {
           ))}
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center max-w-2xl mx-auto">
+          <p className="text-amber-500/80 text-sm font-medium mb-6 bg-amber-500/5 py-3 px-4 rounded-lg border border-amber-500/20">
+            CAUTION: This Load Planning tool is for general planning purposes only. Refer to SQN procedures for operational weight and balance calculations
+          </p>
           <Button 
             variant="outline" 
             onClick={() => navigate("/")}
