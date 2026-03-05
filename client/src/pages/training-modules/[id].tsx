@@ -377,48 +377,199 @@ const moduleQuizData: Record<string, { questions: { id: string; question: string
   },
   "c27j-basics": {
     questions: [
-      {
-        id: "c27j-q1",
-        question: "What is the maximum payload of the C-27J Spartan?",
-        options: ["4,000 kg", "6,000 kg", "11,500 kg", "15,000 kg"],
-        correct: 2
-      },
-      {
-        id: "c27j-q2",
-        question: "What characteristic makes the C-27J particularly suited for short unprepared airstrip operations?",
-        options: ["Jet engines for rapid acceleration", "High-lift wing design combined with turboprop propulsion", "Extended undercarriage for rough terrain", "Retractable cargo ramp for aerodynamic efficiency"],
-        correct: 1
-      },
-      {
-        id: "c27j-q3",
-        question: "The C-27J is primarily employed for which type of mission?",
-        options: ["Strategic long-range airlift", "Ocean patrol and maritime surveillance", "Tactical intra-theatre transport and battlefield logistics", "Heavy lift and outsized cargo"],
-        correct: 2
-      },
-      {
-        id: "c27j-q4",
-        question: "Which tie-down method is standard for securing palletised cargo in the C-27J?",
-        options: ["Friction mats only", "CGU-1/B straps to floor tie-down rings", "Bungee cords rated at 500 kg", "Net restraints along the fuselage wall"],
-        correct: 1
-      },
-      {
-        id: "c27j-q5",
-        question: "Before any airdrop operation from the C-27J, the loadmaster must confirm:",
-        options: ["Only fuel state is correct", "Drop zone weather, rigging configuration, and equipment inspection complete", "Passenger count and seating plan", "Maintenance release only"],
-        correct: 1
-      },
-      {
-        id: "c27j-q6",
-        question: "What is the approximate usable cargo compartment length of the C-27J Spartan?",
-        options: ["5.5 m", "8.0 m", "10.5 m", "12.2 m"],
-        correct: 1
-      },
-      {
-        id: "c27j-q7",
-        question: "When loading hazardous materials aboard the C-27J, the loadmaster is responsible for:",
-        options: ["Confirming the items are declared and segregated per DG regulations", "Only informing the pilot verbally", "Signing the manifest and ignoring segregation rules", "Delegating all responsibility to the ground crew"],
-        correct: 0
-      }
+      { id: "c27j-q1", question: "What is the maximum payload of the C-27J Spartan?", options: ["4,000 kg", "6,000 kg", "11,500 kg", "15,000 kg"], correct: 2 },
+      { id: "c27j-q2", question: "What characteristic makes the C-27J suited for short unprepared airstrip operations?", options: ["Jet engines for rapid acceleration", "High-lift wing design combined with turboprop propulsion", "Extended undercarriage for rough terrain", "Retractable cargo ramp"], correct: 1 },
+      { id: "c27j-q3", question: "The C-27J is primarily employed for which mission type?", options: ["Strategic long-range airlift", "Ocean patrol", "Tactical intra-theatre transport and battlefield logistics", "Heavy outsized cargo"], correct: 2 },
+      { id: "c27j-q4", question: "Standard tie-down method for palletised cargo in the C-27J:", options: ["Friction mats only", "CGU-1/B straps to floor tie-down rings", "Bungee cords rated 500 kg", "Fuselage wall nets"], correct: 1 },
+      { id: "c27j-q5", question: "Before a C-27J airdrop the loadmaster must confirm:", options: ["Fuel state only", "DZ weather, rigging configuration, and equipment inspection complete", "Passenger count only", "Maintenance release only"], correct: 1 },
+      { id: "c27j-q6", question: "Approximate usable cargo compartment length of the C-27J Spartan:", options: ["5.5 m", "8.0 m", "10.5 m", "12.2 m"], correct: 1 },
+      { id: "c27j-q7", question: "When loading hazardous materials into the C-27J, the loadmaster is responsible for:", options: ["Confirming items are declared and segregated per DG regulations", "Verbal notification to pilot only", "Signing manifest and ignoring segregation rules", "Delegating responsibility to ground crew"], correct: 0 }
+    ]
+  },
+
+  // ── Cross-aircraft (all) ──────────────────────────────────────────────────
+  "all-beginner": {
+    questions: [
+      { id: "ab-q1", question: "The loadmaster's primary legal responsibility aboard a military transport is:", options: ["Fuel system monitoring", "Safe loading, securing, and manifesting of all cargo and passengers", "Navigation assistance", "Passenger catering"], correct: 1 },
+      { id: "ab-q2", question: "Operating Weight (OW) is defined as:", options: ["Basic empty weight only", "Basic empty weight plus crew, crew equipment, and removable operational items", "Max takeoff weight minus fuel", "Payload plus fuel"], correct: 1 },
+      { id: "ab-q3", question: "A 463L military pallet measures:", options: ["88 × 54 inches", "108 × 88 inches", "120 × 96 inches", "72 × 60 inches"], correct: 1 },
+      { id: "ab-q4", question: "CG too far aft causes:", options: ["Difficult nose-up rotation", "Pitch instability and potential loss of control", "Increased fuel consumption", "Reduced engine power"], correct: 1 },
+      { id: "ab-q5", question: "Which UN Class covers flammable liquids?", options: ["Class 2", "Class 3", "Class 5", "Class 8"], correct: 1 },
+      { id: "ab-q6", question: "Minimum forward restraint G-force for military cargo:", options: ["1G", "2G", "3G", "4G"], correct: 2 },
+      { id: "ab-q7", question: "Zero Fuel Weight (ZFW) limits exist to protect:", options: ["Fuel tank capacity", "Wing-root structural integrity under bending loads", "Engine performance limits", "Landing gear stress"], correct: 1 }
+    ]
+  },
+  "all-intermediate": {
+    questions: [
+      { id: "ai-q1", question: "UN Class 5.1 (oxidising substances) must be segregated from Class 3 because:", options: ["They share UN numbers", "Oxidisers accelerate burning of flammable liquids if a breach occurs", "Their vapour pressures are incompatible", "Both require refrigeration"], correct: 1 },
+      { id: "ai-q2", question: "A Shipper's Declaration for DG must be completed by:", options: ["The loadmaster", "The consignor (shipper)", "The aircraft commander", "The safety officer"], correct: 1 },
+      { id: "ai-q3", question: "Classified cargo left unattended on an aircraft requires:", options: ["A note on the manifest", "Removal to a secure facility or placement under armed guard", "A sealed outer bag", "No additional action if the ramp is closed"], correct: 1 },
+      { id: "ai-q4", question: "The Transport Index (TI) for radioactive cargo determines:", options: ["Package weight only", "Required separation distance based on dose rate at 1 metre", "Temperature storage limits", "Packaging group"], correct: 1 },
+      { id: "ai-q5", question: "Multi-leg CG checks are required:", options: ["Only at the first departure", "At every departure — offloading cargo changes weight and CG", "Only if fuel is uplift between legs", "Only if gross weight exceeds 90% of MTOW"], correct: 1 },
+      { id: "ai-q6", question: "The 'most restrictive regulation applies' rule means:", options: ["Military rules always override ICAO", "Whichever regulation (international, national, or defence) is most restrictive governs the action", "Regulations are applied alphabetically", "The most recently published rule always applies"], correct: 1 },
+      { id: "ai-q7", question: "W&B currency lapses when:", options: ["The loadmaster transfers units", "The minimum number of qualifying load planning events has not been completed within the currency period", "The loadmaster's aircraft type converts", "Annual renewal date passes regardless of activity"], correct: 1 }
+    ]
+  },
+  "all-advanced": {
+    questions: [
+      { id: "aa-q1", question: "Emergency jettison is authorised by:", options: ["The loadmaster independently", "The aircraft commander — loadmaster executes on order", "ATC only", "Ground safety officer"], correct: 1 },
+      { id: "aa-q2", question: "Post-incident Air Safety Occurrence Reports must be lodged within:", options: ["72 hours", "24 hours", "7 days", "48 hours"], correct: 1 },
+      { id: "aa-q3", question: "Removing a heavy aft pallet at an intermediate stop shifts CG:", options: ["Aft", "Forward — removing aft weight removes rearward moment", "No change", "Laterally"], correct: 1 },
+      { id: "aa-q4", question: "For coalition airlift, compliance is required with:", options: ["RAAF regulations only", "Both host-nation requirements and RAAF safety standards — most restrictive applies", "Host-nation rules only in their airspace", "No additional requirements"], correct: 1 },
+      { id: "aa-q5", question: "Automated load-planning tools (JMAPS/AALPS) require the loadmaster to:", options: ["Accept output without review", "Verify all outputs — tools rely on accurate inputs and may not account for physical constraints", "Use them for C-17 only", "Replace manual W&B qualification"], correct: 1 },
+      { id: "aa-q6", question: "Decompression at altitude requires oxygen donning within:", options: ["30 seconds", "5 seconds", "60 seconds", "15 seconds"], correct: 1 },
+      { id: "aa-q7", question: "Class B (flammable liquid) cargo fires must NOT be extinguished with:", options: ["Halon 1211", "CO₂", "Water", "Dry powder"], correct: 2 }
+    ]
+  },
+  "all-expert": {
+    questions: [
+      { id: "ae-q1", question: "Pre-refuelling and post-refuelling CG checks are required on refuelling missions because:", options: ["Fuel burn only affects fuel CG arm", "Receiving fuel adds wing mass and shifts CG through the entire refuelling window", "Only arrival CG matters", "Refuelling does not affect loadmaster duties"], correct: 1 },
+      { id: "ae-q2", question: "Multi-aircraft load optimisation begins with:", options: ["Assigning cargo randomly to reduce planning time", "Categorising all cargo by weight, dimensions, priority, and destination before building a load matrix", "Filling each aircraft to max payload first", "Prioritising heaviest cargo always"], correct: 1 },
+      { id: "ae-q3", question: "A W&B quality assurance cross-check requires the checker to:", options: ["Sign after a brief review", "Independently verify OW currency, cargo weights, arm values, and arithmetic", "Confirm fuel weight only", "Check cargo type only"], correct: 1 },
+      { id: "ae-q4", question: "In-flight load shift — multiple restraint failures — the first priority is:", options: ["Attempt to re-secure before notifying crew", "Advise aircraft commander with location, weight, and restraint status of the shift", "Evacuate passengers immediately", "Reduce speed via interphone request"], correct: 1 },
+      { id: "ae-q5", question: "Sensitive Site Exploitation (SSE) material brought aboard requires:", options: ["Standard manifest entry only", "Chain of custody documentation and clearance verification", "Verbal authority from the aircraft commander", "Ignoring clearance requirements at high tempo"], correct: 1 },
+      { id: "ae-q6", question: "HALO differs from HAHO in that:", options: ["HALO uses parachutes, HAHO does not", "HALO is a high-altitude free-fall with low opening; HAHO is a high-altitude high-opening glide insertion", "They are identical operationally", "HAHO is over water only"], correct: 1 },
+      { id: "ae-q7", question: "For a classified DG spill from a classified source, the loadmaster:", options: ["Repackages using a standard spill kit", "Does not handle or repackage — advises the aircraft commander and contacts specialist response", "Jettisons immediately without aircraft commander authority", "Seals the cargo area and continues the mission"], correct: 1 }
+    ]
+  },
+
+  // ── C-17 intermediate / advanced / expert ────────────────────────────────
+  "c17-intermediate": {
+    questions: [
+      { id: "c17i-q1", question: "At C-17 maximum payload, the allowable CG range may be as narrow as:", options: ["20–25% MAC", "8–10% MAC", "15–18% MAC", "5–6% MAC"], correct: 1 },
+      { id: "c17i-q2", question: "The C-17 floor roller system must be disengaged before:", options: ["Engine-running offload begins", "Vehicle loading — floor locks must be engaged first", "All airdrop missions", "Night operations"], correct: 1 },
+      { id: "c17i-q3", question: "For an oversize cargo item spanning multiple pallet positions, the W&B arm used is:", options: ["Forward-most position arm", "Actual item CG position measured from the nose", "Average of all positions spanned", "Heaviest single-position arm"], correct: 1 },
+      { id: "c17i-q4", question: "Rolling stock fuel in external tanks is classified as:", options: ["Part of vehicle tare weight", "Class 3 dangerous goods requiring documentation and segregation", "Passenger baggage", "An oversize load only"], correct: 1 },
+      { id: "c17i-q5", question: "C-17 maximum takeoff weight (MTOW) constrains the formula:", options: ["MTOW minus fuel equals max payload", "MTOW minus OW minus payload equals maximum available fuel", "MTOW plus payload equals max fuel", "Fuel is unconstrained by MTOW"], correct: 1 },
+      { id: "c17i-q6", question: "Emergency load shift: the loadmaster's first action is:", options: ["Attempt re-securing before notifying crew", "Report to aircraft commander via interphone with weight, position, and restraint status", "Reduce speed using throttle controls", "Secure all loose items in the bay"], correct: 1 },
+      { id: "c17i-q7", question: "The C-17 27-pallet single-rail vs 18-pallet configuration differs in:", options: ["Floor load limits double", "Arm values differ per position — load plan must reflect actual config", "Fuel capacity changes", "Number of tie-down chains required halves"], correct: 1 }
+    ]
+  },
+  "c17-advanced": {
+    questions: [
+      { id: "c17a-q1", question: "C-17 ditching preparation: the loadmaster's primary duty is:", options: ["Computing new W&B for water landing", "Life raft deployment sequence and exit priority briefing to passengers", "Closing all cargo doors from inside", "Activating ELT from the cargo compartment"], correct: 1 },
+      { id: "c17a-q2", question: "Class D metal fire (magnesium) in the C-17 cargo bay is extinguished with:", options: ["Halon 1211", "CO₂", "Water mist", "Dry sand or approved dry powder"], correct: 3 },
+      { id: "c17a-q3", question: "Emergency jettison authority rests with:", options: ["The loadmaster — executes independently", "The aircraft commander — loadmaster executes on order", "ATC — must authorise the drop zone", "The ground safety officer"], correct: 1 },
+      { id: "c17a-q4", question: "The C-17 has how many emergency exit options for passengers?", options: ["Two — ramp and crew door", "Three — crew door, ramp, one paratroop door", "Six — crew door, two paratroop doors, ramp, two overwing hatches", "Four — crew door, ramp, two overwing hatches"], correct: 2 },
+      { id: "c17a-q5", question: "Rapid decompression requires oxygen donning within:", options: ["30 seconds", "15 seconds", "5 seconds", "60 seconds"], correct: 2 },
+      { id: "c17a-q6", question: "Post-incident Air Safety Occurrence Reports for C-17 are lodged within:", options: ["7 days", "72 hours", "24 hours", "48 hours"], correct: 2 },
+      { id: "c17a-q7", question: "During passenger evacuation the loadmaster:", options: ["Exits first to direct from outside", "Exits last after directing all passengers to exits", "Remains at the forward station throughout", "Exits via crew door only regardless of passenger status"], correct: 1 }
+    ]
+  },
+  "c17-expert": {
+    questions: [
+      { id: "c17e-q1", question: "For a covert C-17 mission, cargo weights on the manifest must be:", options: ["Estimated if identity cannot be confirmed", "Accurate from direct weighing — estimated weights are unacceptable regardless of security constraints", "Omitted for operational security", "Based on standard pallet tables"], correct: 1 },
+      { id: "c17e-q2", question: "HALO insertion support from the C-17 requires which additional pre-mission action?", options: ["Standard W&B only", "Oxygen compatibility check and high-altitude door operation verification", "Removal of floor rollers", "Activation of cargo heaters at altitude"], correct: 1 },
+      { id: "c17e-q3", question: "When a JSOA (joint special operations authority) directs the C-17 loadmaster to shortcut safety procedures:", options: ["Comply — operational urgency overrides safety", "Resist and escalate to aircraft commander — safety requirements are non-negotiable", "Comply but document post-flight", "Request written authority then comply"], correct: 1 },
+      { id: "c17e-q4", question: "SSE material brought aboard the C-17 requires:", options: ["Standard manifest only", "Chain-of-custody documentation and clearance verification matching the classification", "Verbal authority only", "Clearance requirements can be waived at high operational tempo"], correct: 1 },
+      { id: "c17e-q5", question: "Pre-refuelling and post-refuelling CG checks for C-17 AR missions are required because:", options: ["Fuel burn is the only CG variable", "Receiving fuel adds mass to the wing tanks and shifts CG through the entire refuelling window", "Only departure CG matters for AR missions", "AR missions are exempt from CG checks"], correct: 1 },
+      { id: "c17e-q6", question: "For a GALZ (ground assault landing zone) C-17 turnaround, cargo offload sequence must be:", options: ["Any order — speed is the priority", "Pre-planned by the loadmaster before arrival, executed in delivery-priority order", "Determined by ground crew on arrival", "Directed by the aircraft commander from the flight deck in real time"], correct: 1 },
+      { id: "c17e-q7", question: "A C-17 classified DG spill from a classified source: the loadmaster:", options: ["Repackages with a standard spill kit", "Does not handle or repackage — advises aircraft commander and contacts specialist response", "Jettisons without aircraft commander authority", "Seals the bay and continues"], correct: 1 }
+    ]
+  },
+
+  // ── C-130 intermediate / advanced / expert ───────────────────────────────
+  "c130-intermediate": {
+    questions: [
+      { id: "c130i-q1", question: "Engine-Running Offload (ERO) on the C-130 is executed:", options: ["After engine shutdown", "By the loadmaster alone with engines running and ramp lowered", "With co-pilot assistance throughout", "Only with full ground support team present"], correct: 1 },
+      { id: "c130i-q2", question: "NVG field of view is approximately:", options: ["180°", "90°", "40°", "120°"], correct: 2 },
+      { id: "c130i-q3", question: "For LAPES, incorrect extraction parachute size:", options: ["Improves cargo attitude on delivery", "Affects extraction force and platform attitude, risking loss of aircraft control", "Only affects timing, not safety", "Is corrected by the drogue chute"], correct: 1 },
+      { id: "c130i-q4", question: "Combat offload (COLDO) uses aircraft momentum when:", options: ["Ground equipment is fully available", "Pallets are too heavy for manual handling", "No mechanical handling equipment exists at the airfield", "ATC requires expedited offload"], correct: 2 },
+      { id: "c130i-q5", question: "CDS (Container Delivery System) A-22 bags: maximum weight per container:", options: ["500 kg", "1,000 kg", "2,200 lbs (~1,000 kg)", "5,000 lbs"], correct: 2 },
+      { id: "c130i-q6", question: "At an austere airfield before C-130 loading begins, the loadmaster must:", options: ["Confirm weather only", "Survey the surface for obstacles, soft spots, and debris", "Obtain ATC clearance", "Brief ground crew on standard pallet weights"], correct: 1 },
+      { id: "c130i-q7", question: "NVG-compatible cargo compartment lighting uses:", options: ["Full white light throughout", "Blue-green filtered lighting that preserves NVG image without losing restraint visibility", "Complete darkness", "Red lighting only"], correct: 1 }
+    ]
+  },
+  "c130-advanced": {
+    questions: [
+      { id: "c130a-q1", question: "Covert C-130 load plan weights must be:", options: ["Estimated if cargo identity is unknown", "Accurate from direct weighing — estimated weights are unacceptable for covert loads", "Omitted for security", "Based on standard pallet tables"], correct: 1 },
+      { id: "c130a-q2", question: "Joint SOF authority directing C-130 loadmaster to shortcut safety procedures:", options: ["Comply — operational urgency overrides safety", "Resist and escalate to aircraft commander — safety is non-negotiable", "Comply and document post-flight", "Request written authority then comply"], correct: 1 },
+      { id: "c130a-q3", question: "For C-130 maritime rubber-craft airdrop, the loadmaster must:", options: ["Confirm craft is deflated only", "Confirm rigging integrity, water activation systems, and coordinate deployment sequence", "Ensure craft is fully inflated", "Delegate all rigging to the SOF unit"], correct: 1 },
+      { id: "c130a-q4", question: "NVG depth perception is reduced because:", options: ["NVGs amplify light, flattening contrast", "Image intensifier tubes produce a monocular 40° image, eliminating binocular depth cues", "NVGs have lower resolution", "Night air scatters light"], correct: 1 },
+      { id: "c130a-q5", question: "HALO vs HAHO operations from the C-130 differ in that:", options: ["HALO uses parachutes, HAHO does not", "HALO is high-altitude free-fall with low opening; HAHO is high-opening with long canopy glide", "They are operationally identical", "HAHO is over water only"], correct: 1 },
+      { id: "c130a-q6", question: "NVG qualification for C-130 loadmasters is separate from pilot NVG because:", options: ["Loadmasters use different NVG equipment", "Loadmaster NVG tasks include cargo handling (ramp guidance, restraint checks) not evaluated in pilot courses", "They operate on different radio frequencies", "Loadmaster NVGs must be military specification only"], correct: 1 },
+      { id: "c130a-q7", question: "Abort criteria for a C-130 low-level tactical airdrop are established:", options: ["By the aircraft commander during the drop", "By the loadmaster during rigging", "During pre-mission briefing before the sortie commences", "By ATC at the drop zone"], correct: 2 }
+    ]
+  },
+  "c130-expert": {
+    questions: [
+      { id: "c130e-q1", question: "Unconventional warfare support cargo described only as 'equipment' on the manifest requires the loadmaster to:", options: ["Accept the description — OPSEC precludes details", "Obtain weight confirmation from a cleared source and verify DG classification even if description is sanitised", "Reject the load — unidentified cargo cannot be carried", "Increase tie-down density to compensate for unknown weight distribution"], correct: 1 },
+      { id: "c130e-q2", question: "At a GALZ (ground assault landing zone) the C-130's turnaround offload sequence must be:", options: ["Any order — speed is the priority", "Pre-planned by loadmaster before arrival in delivery-priority order", "Ground crew determines on arrival", "Aircraft commander directs from the flight deck in real time"], correct: 1 },
+      { id: "c130e-q3", question: "For a C-130 multi-stop mission, the loadmaster removes a heavy aft pallet at stop one. CG shifts:", options: ["Aft", "Forward — removing aft weight removes rearward moment", "No change", "Laterally only"], correct: 1 },
+      { id: "c130e-q4", question: "SSE material brought aboard the C-130 after a ground assault requires:", options: ["Standard manifest only", "Chain-of-custody documentation and clearance verification matching classification level", "Verbal authority only", "Clearance requirements can be waived at high operational tempo"], correct: 1 },
+      { id: "c130e-q5", question: "C-130 AFSOC pre-planned pallet restraint checks at low level are critical because:", options: ["Pallet locks disengage below 500 ft AGL", "Low-level turbulence can cause pallet movement if tie-downs are not at full tension", "The floor roller system is inactive at low altitude", "Restraint chains are not rated for G-loads below 1,000 ft"], correct: 1 },
+      { id: "c130e-q6", question: "For a classified DG spill from a classified source on the C-130, the loadmaster:", options: ["Repackages with a standard spill kit", "Does not handle or repackage — advises aircraft commander and contacts specialist response", "Jettisons without aircraft commander authority", "Seals the bay and continues mission"], correct: 1 },
+      { id: "c130e-q7", question: "Coalition airlift compliance requires the C-130 loadmaster to apply:", options: ["RAAF regulations only", "Both receiving-nation requirements and RAAF safety standards — most restrictive applies", "Host-nation rules only while in their airspace", "No additional requirements for allied flights"], correct: 1 }
+    ]
+  },
+
+  // ── KC30-A intermediate / advanced / expert ──────────────────────────────
+  "kc30a-intermediate": {
+    questions: [
+      { id: "kc30i-q1", question: "Mixed passenger/cargo on KC30-A main deck requires:", options: ["A curtain divider", "A structural barrier preventing cargo movement reaching passengers under deceleration loads", "A rope or strap across the door", "A safety net only"], correct: 1 },
+      { id: "kc30i-q2", question: "Classified cargo on a KC30-A VIP mission requires a Security Receipt because:", options: ["VIP flights have lower classification", "It provides chain of custody from releasing to receiving authority — travels with the aircraft", "Security Receipts are only for classified passengers", "KC30-A manifests auto-classify all cargo"], correct: 1 },
+      { id: "kc30i-q3", question: "KC30-A lower hold LD3 containers cannot be accessed in flight. This means:", options: ["DG can be placed there without restriction", "All lower hold cargo must be compliant before departure — no in-flight adjustment possible", "Loadmaster can access via pressurised hatch", "Container weight limits are relaxed"], correct: 1 },
+      { id: "kc30i-q4", question: "KC30-A aerial refuelling can be delivered via:", options: ["Wing pods (probe/drogue) and centreline flying boom", "Gravity transfer and pressure fuelling only", "Drogue only — no boom capability", "Boom only — no pod capability"], correct: 0 },
+      { id: "kc30i-q5", question: "In AEROMED configuration, KC30-A litter brackets — the loading sequence is determined by:", options: ["Heaviest patient first", "The medical team based on clinical priority", "Alphabetical order of patient name", "CG requirements alone"], correct: 1 },
+      { id: "kc30i-q6", question: "KC30-A VIP configuration requires an updated OW extract because:", options: ["Standard OW always applies", "VIP cabin equipment changes the actual operating weight and CG — standard OW may not be accurate", "OW extracts are only required for cargo missions", "VIP passengers are assumed heavier"], correct: 1 },
+      { id: "kc30i-q7", question: "DG Class 1 (explosives) with passengers aboard KC30-A:", options: ["Permitted in sealed military packaging", "Permitted for Divisions 1.4 and 1.6 with specific approval", "Prohibited", "At aircraft commander's discretion"], correct: 2 }
+    ]
+  },
+  "kc30a-advanced": {
+    questions: [
+      { id: "kc30av-q1", question: "Post-refuelling CG must be checked because:", options: ["Fuel burn only shifts CG via fuel arms", "Receiving fuel adds mass to wing tanks and shifts CG through the refuelling window", "Cargo CG is unaffected during AR operations", "Only pre-refuelling CG matters for planning"], correct: 1 },
+      { id: "kc30av-q2", question: "KC30-A VIP mission cargo security: a Security Receipt provides:", options: ["Insurance documentation", "Chain of custody from releasing authority to receiving authority — must travel with the aircraft", "Passenger manifest confirmation", "Aircraft commander authorisation only"], correct: 1 },
+      { id: "kc30av-q3", question: "Lateral CG uncertainty in KC30-A mixed pax/cargo configuration arises because:", options: ["Cargo is always loaded on one side", "Passengers move during flight and do not remain at assigned seats", "Aircraft is not symmetric", "Lateral CG is managed solely by the fuel system"], correct: 1 },
+      { id: "kc30av-q4", question: "KC30-A cargo door maximum cross-section constraint means:", options: ["Weight is the only constraint", "Cargo cross-section must be verified — C-17 standard pallets may not fit", "ICAO requires dimensional documentation for all cargo", "Oversized cargo needs a different LD3 specification"], correct: 1 },
+      { id: "kc30av-q5", question: "When transitioning KC30-A main deck from pax to cargo, the FIRST action is:", options: ["Brief crew on new fuel limits", "Complete a pre-conversion inspection, remove seats, and update the load plan", "Refuel to maximum capacity", "Confirm ICAO DG compliance"], correct: 1 },
+      { id: "kc30av-q6", question: "AEROMED patient weight assumed per litter for KC30-A W&B purposes:", options: ["60 kg", "75 kg", "86 kg", "100 kg"], correct: 2 },
+      { id: "kc30av-q7", question: "KC30-A approximate maximum fuel offload capacity:", options: ["50,000 litres", "100,000 litres", "150,000 litres", "270,000 litres"], correct: 2 }
+    ]
+  },
+  "kc30a-expert": {
+    questions: [
+      { id: "kc30e-q1", question: "For a KC30-A dual-role mission (AR tanker + cargo), the loadmaster must plan CG at:", options: ["Max fuel state only", "Both minimum and maximum fuel states — envelope must be maintained throughout the refuelling window", "Departure state only", "Arrival state only"], correct: 1 },
+      { id: "kc30e-q2", question: "Coalition KC30-A operations require compliance with:", options: ["RAAF regulations only", "Both the partnering nation's requirements and RAAF safety standards — most restrictive applies", "Only ICAO Annex 18", "No additional requirements for allied flights"], correct: 1 },
+      { id: "kc30e-q3", question: "A KC30-A carrying classified cargo with VIP passengers: clearance levels must:", options: ["Be confirmed only for the aircraft commander", "Cover both the loadmaster and the relevant custodian — loadmaster cannot physically handle material above their clearance", "Be confirmed verbally on departure", "Only apply to the classified passenger escort"], correct: 1 },
+      { id: "kc30e-q4", question: "Automated load planning tool outputs for KC30-A must be verified by the loadmaster because:", options: ["Tools are not approved for KC30-A", "Tools rely on accurate inputs and may not account for all physical cabin constraints", "Outputs are legally binding without review", "Verification is only required for cargo loads over 20 tonnes"], correct: 1 },
+      { id: "kc30e-q5", question: "KC30-A post-mission audit trail for classified material requires:", options: ["Verbal confirmation only", "Written receipt signatures at each custody transfer with file retention", "Standard manifest notation", "Nothing additional — standard manifest suffices"], correct: 1 },
+      { id: "kc30e-q6", question: "In-flight KC30-A AEROMED deterioration requiring patient repositioning: the loadmaster must:", options: ["Action it immediately without crew notification", "Coordinate with the medical officer and inform the aircraft commander before any repositioning that could affect CG", "Only act if the aircraft commander specifically instructs", "Delay repositioning until landing"], correct: 1 },
+      { id: "kc30e-q7", question: "For a KC30-A emergency jettison, cargo is released:", options: ["By loadmaster independently if delay would endanger the aircraft", "On aircraft commander's order only — loadmaster executes and notifies ATC", "Only after ATC authorises a drop zone", "Never — jettison is prohibited on KC30-A"], correct: 1 }
+    ]
+  },
+
+  // ── C-27J intermediate / advanced / expert ───────────────────────────────
+  "c27j-intermediate": {
+    questions: [
+      { id: "c27ji-q1", question: "C-27J high-altitude airstrip performance tables used unadjusted will:", options: ["Underestimate ground roll — aircraft exceeds performance", "Overestimate performance — actual ground roll will be longer", "Produce identical results — tables cover all conditions", "Only affect fuel burn, not ground roll"], correct: 1 },
+      { id: "c27ji-q2", question: "NGO humanitarian cargo for C-27J with inaccurate manifests should be:", options: ["Accepted at label weight — legally binding", "Estimated visually from cargo volume", "Refused until certified weight documents are provided", "Directly weighed — NGO manifests are frequently inaccurate"], correct: 3 },
+      { id: "c27ji-q3", question: "C-27J AEROMED loading sequence is determined by:", options: ["Loadmaster — heaviest patient first", "CG requirements — forward patients first", "The medical team based on clinical priority", "Aircraft commander based on patient rank"], correct: 2 },
+      { id: "c27ji-q4", question: "C-27J ERO pallet movement uses gravity rollers rather than PDUs, meaning:", options: ["Pallets move faster with less effort", "Physical manual handling is required — loadmaster paces work within the time requirement", "No manual effort needed", "PDUs are available but at a different switch location"], correct: 1 },
+      { id: "c27ji-q5", question: "C-27J 'last tactical mile' role is enabled by operating from strips inaccessible to:", options: ["All RAAF aircraft including King Air", "C-130, C-17, and KC30-A — too short, narrow, or rough for those types", "Rotary-wing aircraft in most cases", "Civilian aircraft only"], correct: 1 },
+      { id: "c27ji-q6", question: "C-27J surface assessment before unprepared strip operations must identify:", options: ["Weather and visibility only", "Obstacles, soft spots, debris, and surface bearing capacity", "Fuel availability and communications", "Civil air traffic in the circuit"], correct: 1 },
+      { id: "c27ji-q7", question: "Litter bracket verification in C-27J AEROMED config is the loadmaster's responsibility because:", options: ["Brackets are installed by maintenance — loadmaster counts only", "Incorrect installation could fail under patient weight in turbulence — loadmaster must verify and load-test", "Brackets are self-certifying", "Medical crew are responsible for all AEROMED equipment"], correct: 1 }
+    ]
+  },
+  "c27j-advanced": {
+    questions: [
+      { id: "c27ja-q1", question: "C-27J departure weight for a mountain airstrip with no fuel available must ensure:", options: ["Maximum payload regardless of distance", "Payload does not exceed the performance-limited TOW for altitude, temperature, and runway length", "Fuel reserve not required below 3,000 m AMSL", "Only the pilot calculates mountain performance"], correct: 1 },
+      { id: "c27ja-q2", question: "C-27J special forces in-flight mission changes require the loadmaster to:", options: ["Refuse in-flight changes — all parameters must be fixed on the ground", "Rapidly reconfigure the cargo compartment accurately under time pressure with minimal lighting", "Accept changes only with written aircraft commander authority", "Contact mission control before accepting any change"], correct: 1 },
+      { id: "c27ja-q3", question: "C-27J joint SOF mission: a JSOA directive to shortcut safety procedures:", options: ["Must be complied with — operational urgency overrides safety", "Must be resisted and escalated to aircraft commander — safety requirements are non-negotiable", "Should be complied with and documented post-flight", "Requires written authority before complying"], correct: 1 },
+      { id: "c27ja-q4", question: "Pre-mission C-27J surface survey at a suspected unimproved strip must confirm:", options: ["Weather conditions only", "Surface obstacles, soft spots, debris, and ground bearing capacity to support aircraft weight", "Fuel availability and communications only", "Civil air traffic only"], correct: 1 },
+      { id: "c27ja-q5", question: "Humanitarian cargo for C-27J that arrives non-palletised requires the loadmaster to:", options: ["Use improvised restraint — standard regulations do not apply to humanitarian flights", "Devise a compliant restraint solution meeting applicable G-force requirements", "Refuse the load — non-palletised cargo cannot be carried", "Load it unsecured if the trip is short"], correct: 1 },
+      { id: "c27ja-q6", question: "At a high-altitude C-27J strip in summer, 'hot and high' performance margins shrink because:", options: ["Turboprop engines are less efficient in mountains", "Reduced air density decreases engine output and increases stall speed, extending ground roll", "Cargo shifts due to turbulence at altitude", "Navigation equipment loses accuracy at high elevation"], correct: 1 },
+      { id: "c27ja-q7", question: "C-27J AEROMED oxygen supply must be confirmed before loading patients because:", options: ["Oxygen system operates differently in AEROMED than in cargo mode", "Patient care may require continuous oxygen — an unexpected failure in flight cannot be remedied", "Standard pre-flight check covers oxygen automatically", "The medical crew confirms oxygen without loadmaster involvement"], correct: 1 }
+    ]
+  },
+  "c27j-expert": {
+    questions: [
+      { id: "c27je-q1", question: "C-27J classified cargo clearance requirements at high operational tempo:", options: ["Can be waived by the aircraft commander", "Must be maintained — loadmaster cannot handle material above their clearance regardless of tempo", "Only apply to non-military cargo", "Can be satisfied verbally on departure"], correct: 1 },
+      { id: "c27je-q2", question: "C-27J GALZ turnaround offload sequence must be:", options: ["Any order — speed is the priority", "Pre-planned by loadmaster before arrival in delivery-priority order", "Determined by ground crew on arrival", "Directed by aircraft commander from the flight deck in real time"], correct: 1 },
+      { id: "c27je-q3", question: "C-27J coalition airlift compliance requires:", options: ["RAAF regulations only", "Both partner-nation requirements and RAAF safety standards — most restrictive applies", "Host-nation rules only while in their airspace", "No additional requirements for allied flights"], correct: 1 },
+      { id: "c27je-q4", question: "For a C-27J multi-leg mission, removing a heavy forward pallet at stop one shifts CG:", options: ["Forward", "Aft — removing forward weight removes forward moment, shifting CG rearward", "No change", "Laterally only"], correct: 1 },
+      { id: "c27je-q5", question: "SSE material brought aboard the C-27J after a ground assault requires:", options: ["Standard manifest entry only", "Chain-of-custody documentation and clearance verification matching classification", "Verbal aircraft commander authority only", "No additional procedures — standard manifest suffices"], correct: 1 },
+      { id: "c27je-q6", question: "C-27J in-flight load shift — multiple restraint failures — first priority:", options: ["Attempt re-securing before notifying crew", "Advise aircraft commander via interphone with location, weight, and restraint status", "Evacuate passengers from cargo compartment", "Reduce airspeed via interphone request"], correct: 1 },
+      { id: "c27je-q7", question: "A classified DG spill on the C-27J from a classified source — the loadmaster:", options: ["Repackages using a standard spill kit", "Does not handle or repackage — advises aircraft commander and contacts specialist response", "Jettisons without aircraft commander authority", "Seals the cargo area and continues"], correct: 1 }
     ]
   }
 }
@@ -759,28 +910,40 @@ export default function ModuleDetailPage() {
   // Map API module IDs to content keys
   const getContentKey = (mod: any) => {
     if (!mod) return ''
-    
-    // If it's a numeric ID from API, map to content key
     if (typeof mod.id === 'number') {
       const aircraft = mod.aircraft
       const difficulty = mod.difficulty
-      
-      // Map based on aircraft type and difficulty
       if (aircraft === 'c17') {
         if (difficulty === 'beginner') return 'c17-basics'
+        if (difficulty === 'intermediate') return 'c17-intermediate'
+        if (difficulty === 'advanced') return 'c17-advanced'
+        if (difficulty === 'expert') return 'c17-expert'
       }
       if (aircraft === 'c130') {
         if (difficulty === 'beginner') return 'c130-basics'
+        if (difficulty === 'intermediate') return 'c130-intermediate'
+        if (difficulty === 'advanced') return 'c130-advanced'
+        if (difficulty === 'expert') return 'c130-expert'
       }
       if (aircraft === 'kc30a') {
         if (difficulty === 'beginner') return 'kc30a-basics'
+        if (difficulty === 'intermediate') return 'kc30a-intermediate'
+        if (difficulty === 'advanced') return 'kc30a-advanced'
+        if (difficulty === 'expert') return 'kc30a-expert'
       }
       if (aircraft === 'c27j') {
         if (difficulty === 'beginner') return 'c27j-basics'
+        if (difficulty === 'intermediate') return 'c27j-intermediate'
+        if (difficulty === 'advanced') return 'c27j-advanced'
+        if (difficulty === 'expert') return 'c27j-expert'
+      }
+      if (aircraft === 'all' || !aircraft) {
+        if (difficulty === 'beginner') return 'all-beginner'
+        if (difficulty === 'intermediate') return 'all-intermediate'
+        if (difficulty === 'advanced') return 'all-advanced'
+        if (difficulty === 'expert') return 'all-expert'
       }
     }
-    
-    // For string IDs, use directly
     return mod.id || ''
   }
 
