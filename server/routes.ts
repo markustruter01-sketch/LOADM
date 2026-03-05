@@ -825,6 +825,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   })
 
+  // Get workbook completion summary for the current user (or any user by ?userId=)
+  app.get("/api/training-assessments/workbooks", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const requestedUserId = req.query.userId ? parseInt(req.query.userId as string) : req.user?.id;
+      if (!requestedUserId) return res.status(401).json({ error: 'Not authenticated' });
+
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+
+      const rows = await sql`
+        SELECT aircraft, COUNT(*) FILTER (WHERE passed = true) AS passed_count
+        FROM training_module_completions
+        WHERE user_id = ${requestedUserId}
+          AND aircraft IN ('c17', 'c130', 'kc30a', 'c27j')
+        GROUP BY aircraft
+      `;
+
+      const result: Record<string, number> = { c17: 0, c130: 0, kc30a: 0, c27j: 0 };
+      for (const row of rows) {
+        result[row.aircraft] = parseInt(row.passed_count as string, 10);
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Workbook completions error:', error);
+      res.status(500).json({ error: 'Failed to fetch workbook completions' });
+    }
+  });
+
   // Mark quiz submission endpoint
   app.post("/api/quiz-submissions/:id/mark", requireInstructor, async (req, res) => {
     try {

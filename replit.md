@@ -14,7 +14,7 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 - Clean, minimalist design for logos and navigation elements.
 - Navigation bar features a prominent, larger Home button centered among other navigation items (Scenarios, Airframe, Documents, Profile, Tools, Instructor).
 - Interactive elements like calculator quick links and login screens feature dark grey gradients and orange hover effects.
-- User profile pages are redesigned with a three-tab interface (Qualifications, Activity History, Flight Records) for organized data.
+- User profile pages feature a four-tab interface (Qualifications, Activity History, Flight Records, Workbooks) for organized data.
 - Chat system displays circular user profile photos.
 - Workforce analytics dashboard uses a single-page layout with distinct sections and a critical alert banner.
 
@@ -96,6 +96,8 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
   - New **Deletion Log** tab in SuperAdmin Dashboard shows full audit table with timestamps, user name/email, action badge, resource type badge, and item name
 - **Phone Directory delete confirmation**: Red trash button now opens AlertDialog requiring user to confirm with entry name before deletion proceeds
 - **Mission Archive**: `isCompleted` + `completedAt` fields on missions; active missions paginated (5/page); collapsible completed missions archive below; "Mark Done" orange button in mission detail dialog; auto-expands archive on mark-done
+- **Training Workbooks tab**: New fourth tab on user profile page showing per-aircraft workbook completion cards (C-17, C-130, KC30-A, C-27J) with circular SVG progress rings; orange for completed, amber border in-progress, muted for not started; `GET /api/training-assessments/workbooks` endpoint aggregates passed completions by aircraft type
+- **Colour theme standardised**: Training modules pages (listing + detail) fully rethemed to orange/grey palette — intermediate difficulty badge is amber, all icon accents in Overview tab are orange, quiz/assessment PASSED results use orange, FAILED uses red; no blue, purple, or standalone green accent colours remain in the training module UI
 
 ## Recent Changes (January 27, 2026)
 - Removed loadmaster character image from scenarios page

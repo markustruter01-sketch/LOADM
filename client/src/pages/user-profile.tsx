@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload } from "lucide-react";
+import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload, BookOpen } from "lucide-react";
 
 export default function UserProfile() {
   const { user } = useIsolatedAuth();
@@ -100,6 +100,20 @@ export default function UserProfile() {
     queryKey: ['/api/user/readiness'],
     enabled: !!user
   });
+
+  // Fetch training workbook completions
+  const { data: workbookData } = useQuery<Record<string, number>>({
+    queryKey: ['/api/training-assessments/workbooks'],
+    enabled: !!user,
+    initialData: { c17: 0, c130: 0, kc30a: 0, c27j: 0 },
+  });
+
+  const WORKBOOKS = [
+    { id: "c17",   label: "C-17",   name: "Globemaster III", type: "Strategic Airlift",  total: 2, colour: "orange" },
+    { id: "c130",  label: "C-130",  name: "Hercules",        type: "Tactical Airlift",   total: 2, colour: "orange" },
+    { id: "kc30a", label: "KC30-A", name: "MRTT",            type: "Multi-Role Tanker",  total: 2, colour: "orange" },
+    { id: "c27j",  label: "C-27J",  name: "Spartan",         type: "Tactical Airlift",   total: 2, colour: "orange" },
+  ];
 
   // Update readiness status mutation
   const updateReadinessMutation = useMutation({
@@ -708,7 +722,7 @@ export default function UserProfile() {
           {/* Right Column - Tabs */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="qualifications" className="w-full">
-              <TabsList className="bg-[#2a2a2a] border border-[#444444] w-full grid grid-cols-3">
+              <TabsList className="bg-[#2a2a2a] border border-[#444444] w-full grid grid-cols-4">
                 <TabsTrigger 
                   value="qualifications" 
                   className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-400"
@@ -732,6 +746,14 @@ export default function UserProfile() {
                 >
                   <Plane className="w-4 h-4 mr-2" />
                   Flight Records
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="workbooks" 
+                  className="data-[state=active]:bg-orange-500 data-[state=active]:text-white text-gray-400"
+                  data-testid="tab-workbooks"
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Workbooks
                 </TabsTrigger>
               </TabsList>
 
@@ -1026,6 +1048,116 @@ export default function UserProfile() {
                           </div>
                         ))
                       )}
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+
+              {/* Training Workbooks Tab */}
+              <TabsContent value="workbooks" className="mt-4">
+                <Card className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333]">
+                  <div className="p-6 space-y-6">
+                    <div>
+                      <h2 className="text-xl font-bold text-white">Training Workbooks</h2>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Complete each aircraft workbook by passing both the quiz and final assessment
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {WORKBOOKS.map((wb) => {
+                        const passed = workbookData?.[wb.id] ?? 0;
+                        const pct = Math.min(Math.round((passed / wb.total) * 100), 100);
+                        const complete = pct >= 100;
+                        const started = passed > 0;
+
+                        // Circular progress SVG values
+                        const r = 38;
+                        const circumference = 2 * Math.PI * r;
+                        const dashOffset = circumference - (pct / 100) * circumference;
+
+                        return (
+                          <div
+                            key={wb.id}
+                            className={`relative rounded-xl border p-5 flex gap-4 items-center transition-all ${
+                              complete
+                                ? "border-orange-500/60 bg-orange-500/10"
+                                : started
+                                ? "border-[#444444] bg-[#222222]"
+                                : "border-[#333333] bg-[#1c1c1c] opacity-75"
+                            }`}
+                          >
+                            {/* Circular progress badge */}
+                            <div className="relative shrink-0 w-24 h-24 flex items-center justify-center">
+                              <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 96 96">
+                                {/* Track */}
+                                <circle
+                                  cx="48" cy="48" r={r}
+                                  fill="none"
+                                  stroke={complete ? "rgba(249,115,22,0.2)" : "rgba(255,255,255,0.08)"}
+                                  strokeWidth="6"
+                                />
+                                {/* Progress arc */}
+                                {pct > 0 && (
+                                  <circle
+                                    cx="48" cy="48" r={r}
+                                    fill="none"
+                                    stroke={complete ? "#f97316" : "#f97316"}
+                                    strokeWidth="6"
+                                    strokeLinecap="round"
+                                    strokeDasharray={circumference}
+                                    strokeDashoffset={dashOffset}
+                                    className="transition-all duration-700"
+                                  />
+                                )}
+                              </svg>
+
+                              {/* Centre content */}
+                              <div className="flex flex-col items-center justify-center z-10">
+                                {complete ? (
+                                  <CheckCircle2 className="w-8 h-8 text-orange-400" />
+                                ) : (
+                                  <>
+                                    <span className="text-lg font-bold text-white leading-none">{pct}%</span>
+                                    <span className="text-xs text-gray-400">{passed}/{wb.total}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Text */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-lg font-bold text-white">{wb.label}</span>
+                                {complete && (
+                                  <span className="text-xs font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
+                                    Completed
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-300 font-medium">{wb.name}</p>
+                              <p className="text-xs text-gray-500">{wb.type}</p>
+
+                              <p className="text-xs mt-2 font-medium">
+                                {complete ? (
+                                  <span className="text-orange-400">✓ {wb.label} Workbook Completed</span>
+                                ) : started ? (
+                                  <span className="text-gray-400">{passed} of {wb.total} assessments passed</span>
+                                ) : (
+                                  <span className="text-gray-600">Not yet started</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex gap-4 pt-2 border-t border-[#333333] text-xs text-gray-500">
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400 inline-block" /> Completed</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-600 inline-block" /> In Progress</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-800 inline-block" /> Not Started</span>
                     </div>
                   </div>
                 </Card>
