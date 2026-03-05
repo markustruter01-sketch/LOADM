@@ -248,7 +248,7 @@ const HELP_CONTENT: Record<string, HelpContent> = {
     ]
   },
   questionDifficulty: {
-    title: "Question Difficulty Analysis",
+    title: "Question Pass Rate",
     icon: AlertTriangle,
     sections: [
       {
@@ -1961,13 +1961,13 @@ export default function AdvancedAnalytics() {
                   </CardContent>
                 </Card>
                 
-                {/* Question Difficulty Analysis */}
+                {/* Question Pass Rate */}
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
                         <BarChart3 className="h-5 w-5" />
-                        Question Difficulty Analysis
+                        Question Pass Rate
                       </CardTitle>
                       <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
                     </div>
