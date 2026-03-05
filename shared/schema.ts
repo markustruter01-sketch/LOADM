@@ -890,3 +890,28 @@ export const insertReadinessSnapshotSchema = createInsertSchema(readinessSnapsho
 
 export type ReadinessSnapshot = typeof readinessSnapshots.$inferSelect;
 export type InsertReadinessSnapshot = z.infer<typeof insertReadinessSnapshotSchema>;
+
+// Training Module Assessment Completions - records assessment submissions from training modules
+export const trainingModuleCompletions = pgTable("training_module_completions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  moduleId: text("module_id").notNull(),
+  moduleTitle: text("module_title").notNull(),
+  aircraft: text("aircraft").notNull().default("all"),
+  difficulty: text("difficulty").notNull().default("beginner"),
+  score: integer("score").notNull(),
+  passed: boolean("passed").notNull(),
+  totalQuestions: integer("total_questions").notNull(),
+  correctCount: integer("correct_count").notNull(),
+  squadron: text("squadron").notNull().default("AMG"),
+  answers: json("answers").notNull(),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+});
+
+export const insertTrainingModuleCompletionSchema = createInsertSchema(trainingModuleCompletions).omit({
+  id: true,
+  submittedAt: true,
+});
+
+export type TrainingModuleCompletion = typeof trainingModuleCompletions.$inferSelect;
+export type InsertTrainingModuleCompletion = z.infer<typeof insertTrainingModuleCompletionSchema>;

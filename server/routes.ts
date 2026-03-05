@@ -721,6 +721,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Training Module Assessment Submission
+  app.post("/api/training-assessments", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' })
+
+      const { moduleId, moduleTitle, aircraft, difficulty, score, passed, totalQuestions, correctCount, squadron, answers } = req.body
+
+      if (score === undefined || passed === undefined || !moduleId) {
+        return res.status(400).json({ error: 'Missing required fields' })
+      }
+
+      const { neon } = await import('@neondatabase/serverless')
+      const sql = neon(process.env.DATABASE_URL!)
+
+      const [row] = await sql`
+        INSERT INTO training_module_completions
+          (user_id, module_id, module_title, aircraft, difficulty, score, passed, total_questions, correct_count, squadron, answers)
+        VALUES
+          (${userId}, ${moduleId}, ${moduleTitle || 'Training Assessment'}, ${aircraft || 'all'}, ${difficulty || 'beginner'},
+           ${score}, ${passed}, ${totalQuestions || 10}, ${correctCount || 0}, ${squadron || 'AMG'}, ${JSON.stringify(answers || [])})
+        RETURNING id, submitted_at
+      `
+
+      res.json({ success: true, id: row.id, submittedAt: row.submitted_at })
+    } catch (error) {
+      console.error('Training assessment submission error:', error)
+      res.status(500).json({ error: 'Failed to record assessment' })
+    }
+  })
+
+  // Get current user's training assessment history
+  app.get("/api/training-assessments/my", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id
+      if (!userId) return res.status(401).json({ error: 'Not authenticated' })
+
+      const { neon } = await import('@neondatabase/serverless')
+      const sql = neon(process.env.DATABASE_URL!)
+
+      const rows = await sql`
+        SELECT id, module_id, module_title, aircraft, difficulty, score, passed, total_questions, correct_count, squadron, submitted_at
+        FROM training_module_completions
+        WHERE user_id = ${userId}
+        ORDER BY submitted_at DESC
+        LIMIT 50
+      `
+
+      res.json(rows)
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch assessment history' })
+    }
+  })
+
   // Mark quiz submission endpoint
   app.post("/api/quiz-submissions/:id/mark", requireInstructor, async (req, res) => {
     try {
