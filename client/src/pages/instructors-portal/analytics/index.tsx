@@ -818,11 +818,12 @@ export default function AdvancedAnalytics() {
       : 0;
     
     // Get breakdown by squadron with normalized formatting
+    const VALID_DISPLAY_SQUADRONS = new Set(['33 Squadron', '35 Squadron', '36 Squadron', '37 Squadron']);
     const squadronCounts: Record<string, number> = {};
     submissions.forEach(sub => {
       // Get squadron - directly from sub.squadron or from studentId
       let squadron = sub.squadron || sub.squadronFromId || null;
-      if (!squadron) return; // Skip submissions with no squadron — excludes AMG/leadership data
+      if (!squadron) return; // Skip submissions with no squadron
       
       // Normalize squadron format - convert "33" to "33 Squadron", "33SQN" to "33 Squadron", etc.
       if (squadron.match(/^\d+$/)) {
@@ -830,6 +831,9 @@ export default function AdvancedAnalytics() {
       } else if (squadron.match(/^\d+SQN$/)) {
         squadron = `${squadron.replace('SQN', '')} Squadron`;
       }
+      
+      // Only count valid flying squadron submissions — excludes AMG and any non-standard values
+      if (!VALID_DISPLAY_SQUADRONS.has(squadron)) return;
       
       squadronCounts[squadron] = (squadronCounts[squadron] || 0) + 1;
     });
@@ -878,12 +882,13 @@ export default function AdvancedAnalytics() {
       count
     }));
     
-    // Calculate performance by squadron
+    // Calculate performance by squadron — only include the 4 flying squadrons
+    const VALID_PERF_SQUADRONS = new Set(['33 Squadron', '35 Squadron', '36 Squadron', '37 Squadron']);
     const squadronData: Record<string, { scores: number[], passed: number, total: number }> = {};
     
     submissions.forEach(sub => {
       let squadron = sub.squadron || sub.squadronFromId || null;
-      if (!squadron) return; // Skip submissions with no squadron — excludes AMG/leadership data
+      if (!squadron) return; // Skip submissions with no squadron
       
       // Normalize squadron format - convert "33" to "33 Squadron", "33SQN" to "33 Squadron", etc.
       if (squadron.match(/^\d+$/)) {
@@ -891,6 +896,9 @@ export default function AdvancedAnalytics() {
       } else if (squadron.match(/^\d+SQN$/)) {
         squadron = `${squadron.replace('SQN', '')} Squadron`;
       }
+      
+      // Exclude AMG and any non-standard squadron values
+      if (!VALID_PERF_SQUADRONS.has(squadron)) return;
       
       if (!squadronData[squadron]) {
         squadronData[squadron] = {

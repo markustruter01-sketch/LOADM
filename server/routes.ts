@@ -725,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Get quiz submissions with proper ordering and joins
+      // Get quiz submissions with proper ordering and joins — exclude leadership/superadmin (AMG accounts)
       const submissions = await sql`
         SELECT 
           qs.id,
@@ -743,7 +743,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           q.description as quiz_description
         FROM quiz_submissions qs
         LEFT JOIN users u ON qs.user_id = u.id
+        LEFT JOIN licenses l ON u.license_id = l.id
         LEFT JOIN quizzes q ON qs.quiz_id = q.id
+        WHERE l.license_type NOT IN ('leadership', 'superadmin')
         ORDER BY qs.submission_date DESC
       `;
       
@@ -1265,12 +1267,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Get all quiz and scenario submissions with squadron info
+      // Get all quiz and scenario submissions with squadron info — exclude leadership/superadmin (AMG accounts)
       const quizSubmissions = await sql`
         SELECT qs.user_id, qs.score, qs.squadron, u.email, l.first_name, l.last_name
         FROM quiz_submissions qs
         LEFT JOIN users u ON qs.user_id = u.id
         LEFT JOIN licenses l ON u.license_id = l.id
+        WHERE l.license_type NOT IN ('leadership', 'superadmin')
       `;
       
       const scenarioSubmissions = await sql`
@@ -1278,7 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM scenario_submissions ss
         LEFT JOIN users u ON ss.user_id = u.id
         LEFT JOIN licenses l ON u.license_id = l.id
-        WHERE ss.score IS NOT NULL
+        WHERE ss.score IS NOT NULL AND l.license_type NOT IN ('leadership', 'superadmin')
       `;
       
       // Combine all submissions
@@ -1294,9 +1297,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: string;
       }> = {};
       
+      const VALID_SQUADRONS = new Set(['33SQN', '35SQN', '36SQN', '37SQN']);
       allSubmissions.forEach((sub: any) => {
         const squadron = sub.squadron || null;
-        if (!squadron) return; // Exclude unattributed submissions (AMG/leadership data)
+        if (!squadron || !VALID_SQUADRONS.has(squadron)) return; // Exclude AMG and any non-standard squadron values
         const userId = sub.user_id;
         const score = sub.score || 0;
         
@@ -1338,7 +1342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         difference: stats.count > 0 
           ? Math.round((stats.totalScore / stats.count) - (squadronAverages[stats.squadron] || 0))
           : 0
-      }));
+      })).sort((a, b) => b.studentAverage - a.studentAverage); // Sort by student average descending
       
       res.json(studentComparisons);
     } catch (error) {
@@ -1374,12 +1378,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Get all user submissions
+      // Get all user submissions — exclude leadership/superadmin (AMG accounts)
       const quizSubmissions = await sql`
         SELECT qs.user_id, qs.score, u.email, l.first_name, l.last_name, l.squadron
         FROM quiz_submissions qs
         LEFT JOIN users u ON qs.user_id = u.id
         LEFT JOIN licenses l ON u.license_id = l.id
+        WHERE l.license_type NOT IN ('leadership', 'superadmin')
       `;
       
       const scenarioSubmissions = await sql`
@@ -1387,7 +1392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM scenario_submissions ss
         LEFT JOIN users u ON ss.user_id = u.id
         LEFT JOIN licenses l ON u.license_id = l.id
-        WHERE ss.score IS NOT NULL
+        WHERE ss.score IS NOT NULL AND l.license_type NOT IN ('leadership', 'superadmin')
       `;
       
       // Calculate readiness scores
@@ -1488,12 +1493,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Get all active users with recent activity
+      // Get all active users with recent activity — exclude leadership/superadmin (AMG accounts)
       const users_list = await sql`
         SELECT u.id, u.email, u.last_login, l.first_name, l.last_name, l.squadron
         FROM users u
         LEFT JOIN licenses l ON u.license_id = l.id
-        WHERE l.is_active = true AND u.is_super_admin = false
+        WHERE l.is_active = true AND l.license_type NOT IN ('leadership', 'superadmin')
       `;
       
       // Get all submissions from last 30 days
@@ -1793,22 +1798,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden: Can only access your own submissions" });
       }
       
-      let whereConditions = [];
+      // Build base conditions — instructors always get submissions filtered to flying personnel only
+      const baseConditions: any[] = [];
+      
       if (scenarioId) {
-        whereConditions.push(eq(scenarioSubmissions.scenarioId, scenarioId));
+        baseConditions.push(eq(scenarioSubmissions.scenarioId, scenarioId));
       }
       
-      // For instructors: return ALL submissions by default (unless filtered)
-      // For students: return only their own submissions
+      // For instructors viewing analytics: exclude leadership/superadmin submissions
+      // For students: restrict to their own submissions only
       if (userId !== undefined) {
-        whereConditions.push(eq(scenarioSubmissions.userId, userId));
+        baseConditions.push(eq(scenarioSubmissions.userId, userId));
       } else if (!isInstructor && req.user?.id) {
-        // Only students are restricted to their own submissions when no userId specified
-        whereConditions.push(eq(scenarioSubmissions.userId, req.user.id));
+        baseConditions.push(eq(scenarioSubmissions.userId, req.user.id));
       }
       
-      const submissions = whereConditions.length > 0 
-        ? await db.select().from(scenarioSubmissions).where(and(...whereConditions)).orderBy(desc(scenarioSubmissions.submissionDate))
+      // For instructor analytics views (no specific userId filter), exclude leadership/superadmin
+      if (isInstructor && userId === undefined) {
+        const { neon } = await import('@neondatabase/serverless');
+        const neonSql = neon(process.env.DATABASE_URL!);
+        
+        let submissions;
+        if (scenarioId) {
+          submissions = await neonSql`
+            SELECT ss.*
+            FROM scenario_submissions ss
+            LEFT JOIN users u ON ss.user_id = u.id
+            LEFT JOIN licenses l ON u.license_id = l.id
+            WHERE l.license_type NOT IN ('leadership', 'superadmin')
+            AND ss.scenario_id = ${scenarioId}
+            ORDER BY ss.submission_date DESC
+          `;
+        } else {
+          submissions = await neonSql`
+            SELECT ss.*
+            FROM scenario_submissions ss
+            LEFT JOIN users u ON ss.user_id = u.id
+            LEFT JOIN licenses l ON u.license_id = l.id
+            WHERE l.license_type NOT IN ('leadership', 'superadmin')
+            ORDER BY ss.submission_date DESC
+          `;
+        }
+        return res.json(submissions);
+      }
+      
+      // For student views or userId-specific queries: use Drizzle
+      const submissions = baseConditions.length > 0 
+        ? await db.select().from(scenarioSubmissions).where(and(...baseConditions)).orderBy(desc(scenarioSubmissions.submissionDate))
         : await db.select().from(scenarioSubmissions).orderBy(desc(scenarioSubmissions.submissionDate));
       res.json(submissions);
     } catch (error) {
@@ -4393,10 +4429,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(userQualifications)
       .leftJoin(users, eq(userQualifications.userId, users.id))
-      .leftJoin(licenses, eq(users.licenseId, licenses.id));
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(notInArray(licenses.licenseType, ['leadership', 'superadmin']));
 
-      // Filter by squadron if specified
-      let filteredQuals = qualifications.filter(q => q.expiryDate !== null);
+      // Filter by squadron if specified — always exclude AMG residual entries
+      let filteredQuals = qualifications.filter(q => q.expiryDate !== null && q.squadron && q.squadron !== 'AMG');
       if (squadron && squadron !== 'all') {
         filteredQuals = filteredQuals.filter(q => q.squadron === squadron);
       }
