@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRoute, useLocation } from 'wouter'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users, Star, Plane, BookOpen, Target, Award, FileText, FileCheck, AlertCircle } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users, Star, Plane, BookOpen, Target, Award, FileText, FileCheck, AlertCircle, Check, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useQuery } from '@tanstack/react-query'
+import { useIsolatedAuth } from "@/auth-isolated/auth-context"
 
 // Simple placeholder components for content that doesn't exist yet
 const TrainingVideoPlayer = ({ title, description }: { title: string; description: string }) => (
@@ -209,13 +213,211 @@ const moduleContents: Record<string, any[]> = {
   ]
 }
 
+// Sample quiz questions per airframe
+const moduleQuizData: Record<string, { questions: { id: string; question: string; options: string[]; correct: number }[] }> = {
+  "c17-basics": {
+    questions: [
+      {
+        id: "c17-q1",
+        question: "What is the maximum payload capacity of the C-17 Globemaster III?",
+        options: ["55,000 kg", "77,519 kg", "100,000 kg", "45,000 kg"],
+        correct: 1
+      },
+      {
+        id: "c17-q2",
+        question: "What type of cargo restraint system is primarily used in C-17 operations?",
+        options: ["Netting only", "Chains and heavy straps", "Pallet locks and NATO-standard tie-down rings", "Foam padding and friction mats"],
+        correct: 2
+      },
+      {
+        id: "c17-q3",
+        question: "The C-17 cargo floor roller system is designed to assist with:",
+        options: ["Passenger boarding", "Fuel transfer operations", "Movement and positioning of palletised cargo", "Crew rest equipment setup"],
+        correct: 2
+      },
+      {
+        id: "c17-q4",
+        question: "What is the maximum floor load rating per linear metre for the C-17 main cargo deck?",
+        options: ["5,000 kg/lm", "10,000 kg/lm", "15,450 kg/lm", "20,000 kg/lm"],
+        correct: 2
+      },
+      {
+        id: "c17-q5",
+        question: "Before commencing C-17 cargo loading, the loadmaster must first verify:",
+        options: ["Fuel state only", "Load plan, weight and balance sheet, and aircraft documentation", "Passenger manifest", "Maintenance crew availability"],
+        correct: 1
+      },
+      {
+        id: "c17-q6",
+        question: "What minimum breaking strength (MBS) is required for tie-down chains used on the C-17?",
+        options: ["5,000 lb MBS", "10,000 lb MBS", "20,000 lb MBS", "25,000 lb MBS"],
+        correct: 2
+      },
+      {
+        id: "c17-q7",
+        question: "The C-17's rear cargo ramp can support vehicle loading up to what maximum axle load?",
+        options: ["5 tonnes per axle", "10 tonnes per axle", "15 tonnes per axle", "20 tonnes per axle"],
+        correct: 1
+      }
+    ]
+  },
+  "c130-basics": {
+    questions: [
+      {
+        id: "c130-q1",
+        question: "What is the maximum payload weight of the C-130 Hercules?",
+        options: ["10,000 kg", "19,000 kg", "25,000 kg", "30,000 kg"],
+        correct: 1
+      },
+      {
+        id: "c130-q2",
+        question: "The C-130's cargo ramp is primarily designed to support:",
+        options: ["Passenger boarding only", "Vehicle loading and airdrop operations", "Fuel transfer", "Medical evacuation only"],
+        correct: 1
+      },
+      {
+        id: "c130-q3",
+        question: "When loading wheeled vehicles on the C-130, the loadmaster must observe:",
+        options: ["No restrictions apply", "Floor load limits per square metre", "Weight distribution via pallets only", "Maximum axle load limits per the load manual"],
+        correct: 3
+      },
+      {
+        id: "c130-q4",
+        question: "What safety check must be completed before closing the C-130 cargo ramp for departure?",
+        options: ["Fuel check only", "Tie-down tension verification and cargo headcount", "Engine start clearance from ATC", "Altimeter setting confirmation"],
+        correct: 1
+      },
+      {
+        id: "c130-q5",
+        question: "The C-130 cargo compartment is approximately how long?",
+        options: ["7.5 m", "12.0 m", "16.9 m", "20.0 m"],
+        correct: 1
+      },
+      {
+        id: "c130-q6",
+        question: "What is the standard tie-down pattern for palletised cargo in the C-130?",
+        options: ["2 forward, 2 aft", "4 forward, 4 aft at 45-degree angles", "Chain only fore and aft", "No pattern required if pallet locks engaged"],
+        correct: 1
+      },
+      {
+        id: "c130-q7",
+        question: "At what aircraft bank angle must cargo be secured to prevent shifting during flight?",
+        options: ["10 degrees", "20 degrees", "30 degrees", "45 degrees"],
+        correct: 2
+      }
+    ]
+  },
+  "kc30a-basics": {
+    questions: [
+      {
+        id: "kc30a-q1",
+        question: "What is the primary dual role of the KC30-A MRTT?",
+        options: ["Fighter escort and surveillance", "Aerial refuelling and cargo/passenger transport", "Maritime patrol and electronic warfare", "VIP transport and medical evacuation"],
+        correct: 1
+      },
+      {
+        id: "kc30a-q2",
+        question: "The KC30-A uses which refuelling system for fast-jet operations?",
+        options: ["Probe and drogue only", "Flying boom only", "Both probe/drogue pods and centreline flying boom", "Gravity transfer only"],
+        correct: 2
+      },
+      {
+        id: "kc30a-q3",
+        question: "What document must be verified before initiating KC30-A cargo loading operations?",
+        options: ["Passenger manifest only", "Load plan and weight and balance sheet", "Fuel uplift record only", "Maintenance crew sign-off only"],
+        correct: 1
+      },
+      {
+        id: "kc30a-q4",
+        question: "The KC30-A main deck can accommodate how many standard military cargo pallets?",
+        options: ["4 pallets", "8 pallets", "12 pallets", "20 pallets"],
+        correct: 2
+      },
+      {
+        id: "kc30a-q5",
+        question: "What is the approximate maximum fuel transfer capacity of the KC30-A?",
+        options: ["50,000 litres", "100,000 litres", "270,000 litres", "150,000 litres"],
+        correct: 2
+      },
+      {
+        id: "kc30a-q6",
+        question: "When transitioning the KC30-A from passenger configuration to cargo, the loadmaster must first:",
+        options: ["Remove all seating and notify engineering", "Complete a pre-conversion inspection and update the load plan", "Refuel the aircraft to maximum capacity", "Brief the flight crew on new weight limits"],
+        correct: 1
+      },
+      {
+        id: "kc30a-q7",
+        question: "Dangerous goods carried on the KC30-A must comply with which regulations?",
+        options: ["ICAO TI and IATA DGR", "Local ground transport rules only", "Manufacturer guidelines only", "No formal regulations apply to military aircraft"],
+        correct: 0
+      }
+    ]
+  },
+  "c27j-basics": {
+    questions: [
+      {
+        id: "c27j-q1",
+        question: "What is the maximum payload of the C-27J Spartan?",
+        options: ["4,000 kg", "6,000 kg", "11,500 kg", "15,000 kg"],
+        correct: 2
+      },
+      {
+        id: "c27j-q2",
+        question: "What characteristic makes the C-27J particularly suited for short unprepared airstrip operations?",
+        options: ["Jet engines for rapid acceleration", "High-lift wing design combined with turboprop propulsion", "Extended undercarriage for rough terrain", "Retractable cargo ramp for aerodynamic efficiency"],
+        correct: 1
+      },
+      {
+        id: "c27j-q3",
+        question: "The C-27J is primarily employed for which type of mission?",
+        options: ["Strategic long-range airlift", "Ocean patrol and maritime surveillance", "Tactical intra-theatre transport and battlefield logistics", "Heavy lift and outsized cargo"],
+        correct: 2
+      },
+      {
+        id: "c27j-q4",
+        question: "Which tie-down method is standard for securing palletised cargo in the C-27J?",
+        options: ["Friction mats only", "CGU-1/B straps to floor tie-down rings", "Bungee cords rated at 500 kg", "Net restraints along the fuselage wall"],
+        correct: 1
+      },
+      {
+        id: "c27j-q5",
+        question: "Before any airdrop operation from the C-27J, the loadmaster must confirm:",
+        options: ["Only fuel state is correct", "Drop zone weather, rigging configuration, and equipment inspection complete", "Passenger count and seating plan", "Maintenance release only"],
+        correct: 1
+      },
+      {
+        id: "c27j-q6",
+        question: "What is the approximate usable cargo compartment length of the C-27J Spartan?",
+        options: ["5.5 m", "8.0 m", "10.5 m", "12.2 m"],
+        correct: 1
+      },
+      {
+        id: "c27j-q7",
+        question: "When loading hazardous materials aboard the C-27J, the loadmaster is responsible for:",
+        options: ["Confirming the items are declared and segregated per DG regulations", "Only informing the pilot verbally", "Signing the manifest and ignoring segregation rules", "Delegating all responsibility to the ground crew"],
+        correct: 0
+      }
+    ]
+  }
+}
+
 export default function ModuleDetailPage() {
   const [, params] = useRoute('/training-modules/:id')
   const [, navigate] = useLocation()
   const { toast } = useToast()
+  const { user } = useIsolatedAuth()
   const [currentTab, setCurrentTab] = useState('overview')
   const [moduleProgress, setModuleProgress] = useState(0)
   const [completedLessons, setCompletedLessons] = useState<string[]>([])
+
+  // Quiz tab state
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({})
+  const [quizSquadron, setQuizSquadron] = useState('AMG')
+  const [quizSubmitted, setQuizSubmitted] = useState(false)
+  const [quizScore, setQuizScore] = useState<number | null>(null)
+  const [quizResults, setQuizResults] = useState<{ questionId: string; isCorrect: boolean; correctAnswer: string; yourAnswer: string; questionText: string }[]>([])
+  const [quizSubmitting, setQuizSubmitting] = useState(false)
+  const quizResultsRef = useRef<HTMLDivElement>(null)
   
   // Force background color on component mount and prevent blue backgrounds
   useEffect(() => {
@@ -380,6 +582,59 @@ export default function ModuleDetailPage() {
         description: "Your progress has been saved.",
       })
     }
+  }
+
+  // Quiz handlers
+  const handleQuizSubmit = () => {
+    const quizData = moduleQuizData[contentKey]
+    if (!quizData) return
+
+    const questions = quizData.questions
+    if (Object.keys(quizAnswers).length < questions.length) {
+      toast({
+        title: "Incomplete quiz",
+        description: "Please answer all questions before submitting.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setQuizSubmitting(true)
+    setTimeout(() => {
+      let correct = 0
+      const results = questions.map(q => {
+        const answeredIndex = parseInt(quizAnswers[q.id] || "-1")
+        const isCorrect = answeredIndex === q.correct
+        if (isCorrect) correct++
+        return {
+          questionId: q.id,
+          questionText: q.question,
+          isCorrect,
+          yourAnswer: q.options[answeredIndex] || "No answer",
+          correctAnswer: q.options[q.correct]
+        }
+      })
+      const score = Math.round((correct / questions.length) * 100)
+      setQuizScore(score)
+      setQuizResults(results)
+      setQuizSubmitted(true)
+      setQuizSubmitting(false)
+      toast({
+        title: "Quiz Submitted!",
+        description: `You scored ${score}% (${correct}/${questions.length} correct)`,
+      })
+      setTimeout(() => {
+        quizResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }, 600)
+  }
+
+  const resetQuiz = () => {
+    setQuizAnswers({})
+    setQuizSubmitted(false)
+    setQuizScore(null)
+    setQuizResults([])
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // Early return if module not found
@@ -916,106 +1171,203 @@ export default function ModuleDetailPage() {
             </Card>
           </TabsContent>
 
-          {/* Quiz Tab Content - ALWAYS PRESENT */}
+          {/* Quiz Tab Content - Inline quiz matching scenarios quiz UI */}
           <TabsContent value="quiz">
-            <Card className="border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-white">Knowledge Quiz</CardTitle>
-                <CardDescription>
-                  Test your understanding with quiz questions for {module.title}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Show quiz content - always navigate to actual quiz */}
-                  {content.filter(lesson => lesson.type === 'quiz').length > 0 ? (
-                    content
-                      .filter(lesson => lesson.type === 'quiz')
-                      .map(lesson => (
-                        <div key={lesson.id} className="space-y-4">
-                          <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-800">
-                            <h3 className="text-lg font-medium text-white mb-2">{lesson.title}</h3>
-                            <p className="text-muted-foreground mb-4">{lesson.description}</p>
-                            
-                            {/* Placeholder for quiz content */}
-                            <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
-                              <div className="text-center">
-                                <div className="text-4xl mb-4">📝</div>
-                                <h4 className="text-lg font-medium text-white mb-2">Knowledge Quiz</h4>
-                                <p className="text-muted-foreground">Click "Start Quiz" to test your knowledge</p>
-                              </div>
-                            </div>
-                            
-                            <div className="flex justify-between items-center mt-4">
-                              <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                                {lesson.duration}
-                              </Badge>
-                              <Button 
-                                className="bg-primary hover:bg-primary/90 text-white"
-                                onClick={() => {
-                                  // Navigate to an available quiz
-                                  if (availableQuizzes && availableQuizzes.length > 0) {
-                                    navigate(`/quizzes/${availableQuizzes[0].id}`)
-                                  } else {
-                                    navigate('/scenarios')
-                                  }
-                                }}
-                              >
-                                <PlayCircle className="h-4 w-4 mr-2" />
-                                Start Quiz
-                              </Button>
-                            </div>
+            {(() => {
+              const quizData = moduleQuizData[contentKey]
+              const questions = quizData?.questions || []
+
+              if (!quizData || questions.length === 0) {
+                return (
+                  <Card className="border-gray-800">
+                    <CardContent className="pt-6 text-center text-muted-foreground">
+                      No quiz questions are available for this module yet.
+                    </CardContent>
+                  </Card>
+                )
+              }
+
+              return (
+                <>
+                  <Card className="mb-8 border-gray-800">
+                    <CardHeader className="bg-orange-500/10 border-b border-gray-800">
+                      <CardTitle className="text-2xl font-bold text-white">Knowledge Quiz</CardTitle>
+                      <CardDescription>
+                        Test your understanding of {module.title} concepts
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      {/* Quiz info bar */}
+                      <div className="bg-card p-4 rounded-lg border border-gray-800 mb-6">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                          <div>
+                            <p className="text-sm font-medium mb-1">Quiz Information</p>
+                            <ul className="text-sm text-muted-foreground">
+                              <li>• {questions.length} questions</li>
+                              <li>• Passing score: 70%</li>
+                            </ul>
+                          </div>
+                          <div className="min-w-[200px]">
+                            <p className="text-sm font-medium mb-1">Your Squadron</p>
+                            <Select value={quizSquadron} onValueChange={setQuizSquadron}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Squadron" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="AMG">AMG</SelectItem>
+                                <SelectItem value="33SQN">33SQN</SelectItem>
+                                <SelectItem value="35SQN">35SQN</SelectItem>
+                                <SelectItem value="36SQN">36SQN</SelectItem>
+                                <SelectItem value="37SQN">37SQN</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
-                      ))
-                  ) : (
-                    /* Default quiz content for all modules */
-                    <>
-                      <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 text-center">
-                        <div className="text-4xl mb-4">📝</div>
-                        <h4 className="font-medium text-white mb-2">Knowledge Quiz</h4>
-                        <p className="text-gray-300 text-sm mb-4">
-                          Test your understanding of {module.title.toLowerCase()} concepts
-                        </p>
-                        <Button 
-                          className="bg-primary hover:bg-primary/90 text-white"
-                          onClick={() => {
-                            // Navigate to an available quiz
-                            if (availableQuizzes && availableQuizzes.length > 0) {
-                              navigate(`/quizzes/${availableQuizzes[0].id}`)
-                            } else {
-                              toast({
-                                title: "No Quizzes Available",
-                                description: "Please check the Scenarios page for available quizzes.",
-                              })
-                              navigate('/scenarios')
-                            }
-                          }}
-                        >
-                          <PlayCircle className="h-4 w-4 mr-2" />
-                          Start Quiz
-                        </Button>
                       </div>
 
-                      <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/30 text-center">
-                        <div className="text-4xl mb-4">🎯</div>
-                        <h4 className="font-medium text-white mb-2">Practice Questions</h4>
-                        <p className="text-gray-300 text-sm mb-4">
-                          Review practice questions to reinforce your learning
-                        </p>
-                        <Button 
-                          className="bg-primary hover:bg-primary/90 text-white"
-                          onClick={() => navigate('/scenarios')}
-                        >
-                          <PlayCircle className="h-4 w-4 mr-2" />
-                          Practice Now
-                        </Button>
+                      {/* Questions */}
+                      <div className="space-y-6">
+                        {questions.map((question, index) => (
+                          <Card key={question.id} className="border-gray-800">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-lg text-white">
+                                Question {index + 1}: {question.question}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <RadioGroup
+                                value={quizAnswers[question.id] || ""}
+                                onValueChange={(value) =>
+                                  setQuizAnswers(prev => ({ ...prev, [question.id]: value }))
+                                }
+                              >
+                                <div className="space-y-3">
+                                  {question.options.map((option, optionIndex) => (
+                                    <div
+                                      key={optionIndex}
+                                      className="flex items-center space-x-2 p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 cursor-pointer"
+                                      onClick={() =>
+                                        setQuizAnswers(prev => ({ ...prev, [question.id]: optionIndex.toString() }))
+                                      }
+                                    >
+                                      <RadioGroupItem
+                                        value={optionIndex.toString()}
+                                        id={`${question.id}-${optionIndex}`}
+                                        className="pointer-events-none"
+                                      />
+                                      <Label
+                                        htmlFor={`${question.id}-${optionIndex}`}
+                                        className="text-base cursor-pointer flex-1 pointer-events-none"
+                                      >
+                                        {option}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </RadioGroup>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                    </>
+                    </CardContent>
+                    <CardFooter className="flex justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        {Object.keys(quizAnswers).length} of {questions.length} questions answered
+                      </div>
+                      <Button
+                        className={`bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200 ${
+                          Object.keys(quizAnswers).length === questions.length ? 'opacity-100' : 'opacity-70'
+                        }`}
+                        disabled={quizSubmitting || Object.keys(quizAnswers).length < questions.length}
+                        onClick={handleQuizSubmit}
+                      >
+                        {quizSubmitting ? (
+                          <div className="flex items-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            Submitting...
+                          </div>
+                        ) : "Submit Quiz"}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+
+                  {/* Results section */}
+                  {quizSubmitted && quizScore !== null && (
+                    <div ref={quizResultsRef} className="scroll-mt-8">
+                      <Card className="mb-8 border-gray-800">
+                        <CardHeader className={quizScore >= 70 ? "bg-green-500/10" : "bg-red-500/10"}>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-2xl font-bold">Quiz Results</CardTitle>
+                            <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                              quizScore >= 70 ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
+                            }`}>
+                              {quizScore >= 70 ? (
+                                <><Check className="h-4 w-4 mr-1" /> Passed</>
+                              ) : (
+                                <><X className="h-4 w-4 mr-1" /> Failed</>
+                              )}
+                            </div>
+                          </div>
+                          <CardDescription>
+                            Quiz completed {new Date().toLocaleDateString()} · Squadron: {quizSquadron}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <div className="mb-8 text-center">
+                            <div className="text-6xl font-bold mb-2">{quizScore}%</div>
+                            <p className="text-sm text-muted-foreground">
+                              {quizScore >= 70
+                                ? "Congratulations! You've passed this quiz."
+                                : "You didn't pass this time. The passing score is 70%. Review the material and try again."}
+                            </p>
+                          </div>
+
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold mb-2">Question Feedback</h3>
+                            {quizResults.map((result, index) => (
+                              <div
+                                key={result.questionId}
+                                className={`p-4 rounded-lg border ${
+                                  result.isCorrect
+                                    ? "border-green-500/30 bg-green-500/10"
+                                    : "border-red-500/30 bg-red-500/10"
+                                }`}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <div className={`mt-1 ${result.isCorrect ? "text-green-500" : "text-red-500"}`}>
+                                    {result.isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-medium mb-2">Question {index + 1}: {result.questionText}</p>
+                                    <p className="text-sm font-medium">Your answer: {result.yourAnswer}</p>
+                                    {!result.isCorrect && (
+                                      <p className="text-sm font-medium text-green-500">
+                                        Correct answer: {result.correctAnswer}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-between">
+                          <Button variant="outline" onClick={() => setCurrentTab('readings')}>
+                            Review Material
+                          </Button>
+                          <Button
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                            onClick={resetQuiz}
+                          >
+                            Retry Quiz
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
+                </>
+              )
+            })()}
           </TabsContent>
 
           {/* Assessment Tab Content - ALWAYS PRESENT */}
