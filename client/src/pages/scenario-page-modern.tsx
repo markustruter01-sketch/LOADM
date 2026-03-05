@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioQuestion } from "@shared/schema";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,6 @@ import SuccessAnimation from "@/components/SuccessAnimation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PermissionDialog } from "@/components/PermissionDialog";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -95,7 +95,7 @@ export default function ModernScenarioPage() {
 
   // Modern submission mutation
   const submitMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (overrideType?: "training" | "assessment") => {
       console.log('🚀 MODERN SCENARIO SUBMISSION - Starting');
       
       if (!user) {
@@ -106,8 +106,13 @@ export default function ModernScenarioPage() {
         throw new Error("Scenario data not found");
       }
 
-      if (!studentName.trim() || !studentId.trim() || !selectedSquadron) {
-        throw new Error("Student name, ID, and squadron are required");
+      // For training mode, studentId is not required - use user's account ID as fallback
+      const effectiveStudentName = studentName.trim() || user.firstName || user.email || "Student";
+      const effectiveStudentId = studentId.trim() || String(user.id);
+      const effectiveSquadron = selectedSquadron || "AMG";
+
+      if (!effectiveStudentName || !effectiveStudentId) {
+        throw new Error("Student name and ID are required");
       }
 
       // Format answers according to modern backend schema
@@ -122,12 +127,12 @@ export default function ModernScenarioPage() {
       const payload = {
         scenarioId: scenario.id,
         answers: formattedAnswers,
-        studentName: studentName.trim(),
-        studentId: studentId.trim(),
-        squadron: selectedSquadron,
+        studentName: effectiveStudentName,
+        studentId: effectiveStudentId,
+        squadron: effectiveSquadron,
         timeSpent: 300,
-        notes: `Scenario submission from ${studentName}`,
-        submissionType: submissionType
+        notes: `Scenario submission from ${effectiveStudentName}`,
+        submissionType: overrideType || submissionType
       };
 
       console.log('📤 MODERN SUBMISSION - Sending payload:', payload);
@@ -154,15 +159,16 @@ export default function ModernScenarioPage() {
       console.log('✅ MODERN SUBMISSION - Success');
       return response;
     },
-    onSuccess: (response) => {
+    onSuccess: (response, overrideType) => {
       console.log('🎉 MODERN SUBMISSION - Triggering success animation');
       
-      if (submissionType === 'training') {
+      const effectiveType = overrideType || submissionType;
+      if (effectiveType === 'training') {
         // Training submissions only invalidate user activity history
         queryClient.invalidateQueries({ queryKey: ["/api/user/activity-history"] });
         toast({
           title: "Training Complete",
-          description: response.message || "Training scenario completed successfully. Results saved to your activity history.",
+          description: "Training scenario completed. Review your answers in the results window.",
         });
       } else {
         // Assessment submissions invalidate instructor portal data
@@ -242,8 +248,7 @@ export default function ModernScenarioPage() {
     
     if (isTrainingMode) {
       console.log('🚀 TRAINING MODE - Skipping submission type dialog');
-      setSubmissionType('training');
-      handleFinalSubmit();
+      submitMutation.mutate('training');
       return;
     }
 

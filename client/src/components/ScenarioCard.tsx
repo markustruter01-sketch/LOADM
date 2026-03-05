@@ -8,12 +8,9 @@ interface ScenarioCardProps {
   activeTab?: string;
 }
 
-export default function ScenarioCard(props: ScenarioCardProps) {
-  const { scenario, activeTab } = props;
-  
+export default function ScenarioCard({ scenario, activeTab }: ScenarioCardProps) {
   return (
     <div className="bg-card rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-700/50">
-      {/* Banner */}
       <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 p-4 border-b border-gray-700/30">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
