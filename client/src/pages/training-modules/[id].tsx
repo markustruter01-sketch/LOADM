@@ -12,6 +12,11 @@ import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Us
 import { useToast } from "@/hooks/use-toast"
 import { useQuery } from '@tanstack/react-query'
 import { useIsolatedAuth } from "@/auth-isolated/auth-context"
+import C17CargoBayLayout from "./reading-content/c17-cargo-bay-layout"
+import C17WeightBalance from "./reading-content/c17-weight-balance"
+import C130CargoConfigurations from "./reading-content/c130-cargo-configurations"
+import KC30ACargoBaySystems from "./reading-content/kc30a-cargo-systems"
+import C27JOperations from "./reading-content/c27j-operations"
 
 // Simple placeholder components for content that doesn't exist yet
 const TrainingVideoPlayer = ({ title, description }: { title: string; description: string }) => (
@@ -211,6 +216,15 @@ const moduleContents: Record<string, any[]> = {
       completed: false
     }
   ]
+}
+
+// Map lesson IDs to their reading content components
+const readingContentMap: Record<string, () => JSX.Element> = {
+  "c17-cargo-bay-layout": C17CargoBayLayout,
+  "c17-basics-4": C17WeightBalance,
+  "c130-basics-2": C130CargoConfigurations,
+  "kc30a-basics-2": KC30ACargoBaySystems,
+  "c27j-basics-2": C27JOperations,
 }
 
 // Sample quiz questions per airframe
@@ -418,6 +432,9 @@ export default function ModuleDetailPage() {
   const [quizResults, setQuizResults] = useState<{ questionId: string; isCorrect: boolean; correctAnswer: string; yourAnswer: string; questionText: string }[]>([])
   const [quizSubmitting, setQuizSubmitting] = useState(false)
   const quizResultsRef = useRef<HTMLDivElement>(null)
+
+  // Expanded readings state
+  const [expandedReadings, setExpandedReadings] = useState<string[]>([])
   
   // Force background color on component mount and prevent blue backgrounds
   useEffect(() => {
@@ -1101,71 +1118,168 @@ export default function ModuleDetailPage() {
             </Card>
           </TabsContent>
 
-          {/* Readings Tab Content */}
+          {/* Readings Tab Content — PDF page viewer */}
           <TabsContent value="readings">
             <Card className="border-gray-800">
               <CardHeader>
                 <CardTitle>Reading Materials</CardTitle>
                 <CardDescription>
-                  Study the reading materials to deepen your understanding
+                  Study the reading materials to deepen your understanding of {module.title}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {content
                     .filter(lesson => lesson.type === 'reading')
-                    .map(lesson => (
-                      <Card key={lesson.id} className="border-gray-800">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                            <Badge variant="outline" className="bg-gray-800/20 border-gray-800/30">
-                              {lesson.duration}
-                            </Badge>
+                    .map(lesson => {
+                      const ReadingComponent = readingContentMap[lesson.id]
+                      const isExpanded = expandedReadings.includes(lesson.id)
+                      const isCompleted = completedLessons.includes(lesson.id)
+
+                      return (
+                        <div key={lesson.id} className="border border-gray-700 rounded-lg overflow-hidden">
+                          {/* Document header bar */}
+                          <div className="flex items-center justify-between px-5 py-4 bg-gray-800/60">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded bg-orange-500/15 flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-orange-400" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-white text-sm">{lesson.title}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{lesson.description}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
+                                {lesson.duration}
+                              </Badge>
+                              {isCompleted && (
+                                <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" /> Read
+                                </Badge>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs"
+                                onClick={() => setExpandedReadings(prev =>
+                                  prev.includes(lesson.id)
+                                    ? prev.filter(id => id !== lesson.id)
+                                    : [...prev, lesson.id]
+                                )}
+                              >
+                                {isExpanded ? "Close Document" : "Read Document"}
+                              </Button>
+                            </div>
                           </div>
-                          <CardDescription>{lesson.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="prose prose-invert max-w-none">
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {lesson.content}
-                            </p>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end">
-                          <Button 
-                            variant="outline"
-                            className="mr-2"
-                            onClick={() => {
-                              toast({
-                                title: "Reading downloaded",
-                                description: "The reading material has been saved for offline access",
-                              })
-                            }}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download PDF
-                          </Button>
-                          <Button 
-                            onClick={() => completeLesson(lesson.id)}
-                            disabled={completedLessons.includes(lesson.id)}
-                            className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
-                          >
-                            {completedLessons.includes(lesson.id) ? (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                Completed
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 mr-2" />
-                                Mark as Read
-                              </>
-                            )}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+
+                          {/* PDF-style page viewer */}
+                          {isExpanded && (
+                            <div className="bg-gray-700/30 p-6">
+                              {/* Page container — white paper look */}
+                              <div
+                                className="mx-auto max-w-[780px] rounded-sm shadow-2xl"
+                                style={{
+                                  background: '#fafaf8',
+                                  boxShadow: '0 4px 6px rgba(0,0,0,0.4), 0 10px 40px rgba(0,0,0,0.5)',
+                                  border: '1px solid #d4d4d0',
+                                }}
+                              >
+                                {/* Page top margin with document metadata strip */}
+                                <div
+                                  style={{
+                                    borderBottom: '2px solid #c2410c',
+                                    background: '#1c1917',
+                                    padding: '10px 48px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <span style={{ color: '#fb923c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                    LOADMworkflow — Training Module
+                                  </span>
+                                  <span style={{ color: '#9ca3af', fontSize: '11px' }}>
+                                    {module.title}
+                                  </span>
+                                </div>
+
+                                {/* Page body */}
+                                <div style={{ padding: '48px 56px 56px', color: '#1c1917' }}>
+                                  {ReadingComponent ? (
+                                    <div
+                                      style={{ color: '#1c1917' }}
+                                      className="reading-document"
+                                    >
+                                      <style>{`
+                                        .reading-document { font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.75; }
+                                        .reading-document h1 { font-size: 1.5rem; font-weight: 700; color: #1c1917; margin-bottom: 0.75rem; font-family: system-ui, sans-serif; border-bottom: 2px solid #c2410c; padding-bottom: 0.5rem; }
+                                        .reading-document h2 { font-size: 1.15rem; font-weight: 700; color: #1c1917; margin-top: 2rem; margin-bottom: 0.6rem; font-family: system-ui, sans-serif; }
+                                        .reading-document h3 { font-size: 1rem; font-weight: 700; color: #374151; margin-top: 1.25rem; margin-bottom: 0.4rem; font-family: system-ui, sans-serif; }
+                                        .reading-document p { color: #374151; margin-bottom: 0.9rem; font-size: 0.925rem; }
+                                        .reading-document ul, .reading-document ol { color: #374151; padding-left: 1.5rem; margin-bottom: 1rem; font-size: 0.925rem; }
+                                        .reading-document li { margin-bottom: 0.35rem; }
+                                        .reading-document strong { color: #1c1917; font-weight: 700; }
+                                        .reading-document table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; }
+                                        .reading-document th { background: #f3f4f6; color: #1c1917; font-weight: 700; padding: 8px 12px; border: 1px solid #d1d5db; text-align: left; }
+                                        .reading-document td { padding: 7px 12px; border: 1px solid #d1d5db; color: #374151; }
+                                        .reading-document tr:nth-child(even) td { background: #f9fafb; }
+                                      `}</style>
+                                      <ReadingComponent />
+                                    </div>
+                                  ) : (
+                                    <div style={{ color: '#374151' }}>
+                                      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', fontFamily: 'system-ui', borderBottom: '2px solid #c2410c', paddingBottom: '0.5rem', color: '#1c1917' }}>
+                                        {lesson.title}
+                                      </h1>
+                                      <p style={{ marginBottom: '1rem' }}>{lesson.description}</p>
+                                      <p>{lesson.content}</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Page footer */}
+                                <div
+                                  style={{
+                                    borderTop: '1px solid #e5e7eb',
+                                    padding: '10px 48px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    background: '#f9faf8',
+                                  }}
+                                >
+                                  <span style={{ color: '#9ca3af', fontSize: '10px' }}>
+                                    RESTRICTED — FOR TRAINING PURPOSES ONLY
+                                  </span>
+                                  <span style={{ color: '#9ca3af', fontSize: '10px' }}>
+                                    LOADMworkflow Training Platform
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Mark as read button below the document */}
+                              <div className="flex justify-center mt-5">
+                                <Button
+                                  onClick={() => {
+                                    completeLesson(lesson.id)
+                                    setExpandedReadings(prev => prev.filter(id => id !== lesson.id))
+                                  }}
+                                  disabled={isCompleted}
+                                  className={isCompleted ? "bg-green-600 hover:bg-green-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}
+                                >
+                                  {isCompleted ? (
+                                    <><CheckCircle2 className="h-4 w-4 mr-2" /> Already Completed</>
+                                  ) : (
+                                    <><CheckCircle2 className="h-4 w-4 mr-2" /> Mark as Read</>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                 </div>
               </CardContent>
             </Card>
