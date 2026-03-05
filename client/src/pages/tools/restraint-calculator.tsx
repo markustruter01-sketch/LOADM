@@ -352,16 +352,27 @@ export default function RestraintCalculatorPage() {
                   <div className="p-3 bg-muted rounded">
                     <div className="font-medium text-primary mb-2">Effective Force:</div>
                     <div>Force × cos(horizontal_angle)</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                      <span className="text-primary/70">e.g.</span> 5,000 lbs × cos(30°) = <span className="text-primary">4,330 lbs</span>
+                    </div>
                   </div>
                   <div className="p-3 bg-muted rounded">
                     <div className="font-medium text-primary mb-2">Component Forces:</div>
                     <div>Forward/Aft = Force × cos(θh)</div>
                     <div>Lateral = Force × sin(θh)</div>
                     <div>Vertical = Force × sin(θv)</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground space-y-0.5">
+                      <div><span className="text-primary/70">e.g.</span> Forward: 5,000 × cos(30°) = <span className="text-primary">4,330 lbs</span></div>
+                      <div><span className="text-primary/70">e.g.</span> Lateral: 5,000 × sin(30°) = <span className="text-primary">2,500 lbs</span></div>
+                      <div><span className="text-primary/70">e.g.</span> Vertical: 5,000 × sin(15°) = <span className="text-primary">1,294 lbs</span></div>
+                    </div>
                   </div>
                   <div className="p-3 bg-muted rounded">
                     <div className="font-medium text-primary mb-2">G-Force:</div>
                     <div>G = Component_Force / Cargo_Weight</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                      <span className="text-primary/70">e.g.</span> 4,330 lbs ÷ 10,000 lbs = <span className="text-primary">0.43G</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>

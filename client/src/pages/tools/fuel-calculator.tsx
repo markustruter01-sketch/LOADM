@@ -408,25 +408,41 @@ export default function FuelCalculatorPage() {
 
           {/* Information Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            {/* Calculation Notes */}
+            {/* Calculation Formulas */}
             <Card>
               <CardHeader>
-                <CardTitle>Calculation Notes</CardTitle>
+                <CardTitle>Calculation Formulas</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <strong>Fuel Burn Rate:</strong> Calculated based on aircraft type, weight, altitude, and weather conditions.
-                  </p>
-                  <p>
-                    <strong>Trip Fuel:</strong> Required fuel for the planned route based on distance and ground speed.
-                  </p>
-                  <p>
-                    <strong>Reserve Fuel:</strong> Additional fuel for contingencies, typically 45 minutes at cruise power.
-                  </p>
-                  <p>
-                    <strong>Weather Factors:</strong> Applied to account for increased fuel consumption in adverse conditions.
-                  </p>
+                <div className="space-y-3 text-sm font-mono">
+                  <div className="p-3 bg-muted rounded">
+                    <div className="font-medium text-primary mb-1 font-sans">Fuel Burn Rate:</div>
+                    <div>Base_Burn × Weight_Factor × Weather_Factor</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                      <span className="text-primary/70">e.g.</span> 3,500 L/h × 1.05 × 1.15 = <span className="text-primary">4,226 L/h</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted rounded">
+                    <div className="font-medium text-primary mb-1 font-sans">Trip Fuel:</div>
+                    <div>Burn_Rate × Flight_Time</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                      <span className="text-primary/70">e.g.</span> 4,226 L/h × 4.5 hrs = <span className="text-primary">19,017 L</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted rounded">
+                    <div className="font-medium text-primary mb-1 font-sans">Reserve Fuel:</div>
+                    <div>Burn_Rate × Reserve_Time (hrs)</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                      <span className="text-primary/70">e.g.</span> 4,226 L/h × 0.75 hrs = <span className="text-primary">3,170 L</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted rounded">
+                    <div className="font-medium text-primary mb-1 font-sans">Total Fuel Required:</div>
+                    <div>Trip_Fuel + Reserve_Fuel</div>
+                    <div className="mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                      <span className="text-primary/70">e.g.</span> 19,017 L + 3,170 L = <span className="text-primary">22,187 L</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

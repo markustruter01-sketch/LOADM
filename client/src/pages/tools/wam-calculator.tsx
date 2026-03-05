@@ -158,6 +158,9 @@ export default function WAMCalculatorPage() {
                   <div className="space-y-4">
                     <div className="p-3 bg-slate-800 rounded-md mb-6">
                       <p className="text-center font-medium">Arm × Weight = Moment</p>
+                      <p className="text-center text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                        <span className="text-primary/70">e.g.</span> 120 in × 1,500 kg = <span className="text-primary font-semibold">180,000 in·kg</span>
+                      </p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -211,6 +214,9 @@ export default function WAMCalculatorPage() {
                   <div className="space-y-4">
                     <div className="p-3 bg-slate-800 rounded-md mb-6">
                       <p className="text-center font-medium">Moment ÷ Arm = Weight</p>
+                      <p className="text-center text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                        <span className="text-primary/70">e.g.</span> 180,000 in·kg ÷ 120 in = <span className="text-primary font-semibold">1,500 kg</span>
+                      </p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -264,6 +270,9 @@ export default function WAMCalculatorPage() {
                   <div className="space-y-4">
                     <div className="p-3 bg-slate-800 rounded-md mb-6">
                       <p className="text-center font-medium">Moment ÷ Weight = Arm</p>
+                      <p className="text-center text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                        <span className="text-primary/70">e.g.</span> 180,000 in·kg ÷ 1,500 kg = <span className="text-primary font-semibold">120 in</span>
+                      </p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
