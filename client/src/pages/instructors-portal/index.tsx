@@ -97,17 +97,17 @@ export default function InstructorsPortal() {
         <div className="flex items-center justify-center gap-4 mb-8">
           <button 
             onClick={() => setIsMottoModalOpen(true)}
-            className="inline-flex items-center gap-4 px-8 py-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-primary/30 hover:shadow-primary/10 hover:shadow-xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-sm shadow-black/5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50"
             data-testid="button-motto"
           >
             <p 
-              className="text-2xl md:text-3xl lg:text-4xl text-foreground tracking-wide"
+              className="text-sm md:text-base text-foreground/80 tracking-wide"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'italic', fontWeight: 300 }}
             >
               "Decisions in data, assurance in action"
             </p>
             <span 
-              className="text-xl md:text-2xl text-primary font-bold tracking-widest"
+              className="text-xs md:text-sm text-primary font-normal tracking-widest"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             >
               — DDG
@@ -188,7 +188,7 @@ export default function InstructorsPortal() {
           <Button
             onClick={() => setIsReportModalOpen(true)}
             size="lg"
-            className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-600/90 text-white px-8 py-6 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02]"
+            className="bg-primary/80 hover:bg-primary/90 text-white px-8 py-6 text-lg font-semibold shadow-sm transition-all duration-200"
             data-testid="button-generate-user-report"
           >
             <FileUser className="h-5 w-5 mr-3" />
