@@ -999,6 +999,9 @@ export default function ToolsPage() {
                     <CardDescription className="text-gray-400">One-Click Mission Difficulty Assessment</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
+                    <p className="text-sm text-gray-400 mb-6 leading-relaxed border-l-2 border-orange-500/40 pl-4">
+                      This tool is designed to help loadmasters and mission planning teams assess the complexity and risk profile of a given mission based on factors directly relevant to the loadmaster's role — including cargo type, aircraft configuration, crew composition, and operational conditions. By scoring these variables, the analyzer provides an objective difficulty rating and recommends an appropriate loadmaster experience level, supporting sound crew assignment decisions and pre-mission planning.
+                    </p>
                     <MissionComplexityAnalyzer />
                   </CardContent>
                 </Card>
