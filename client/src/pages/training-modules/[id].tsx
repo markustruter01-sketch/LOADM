@@ -19,13 +19,20 @@ import KC30ACargoBaySystems from "./reading-content/kc30a-cargo-systems"
 import C27JOperations from "./reading-content/c27j-operations"
 import { getDynamicReadingJSX } from "./reading-content/dynamic-content"
 
-// Simple placeholder components for content that doesn't exist yet
+// Video player using the placeholder training video
 const TrainingVideoPlayer = ({ title, description }: { title: string; description: string }) => (
-  <div className="aspect-video bg-black rounded-lg flex items-center justify-center border border-gray-700">
-    <div className="text-center">
-      <div className="text-4xl mb-4">🎥</div>
-      <h4 className="text-lg font-medium mb-2">{title}</h4>
-      <p className="text-muted-foreground">{description}</p>
+  <div className="rounded-lg border border-gray-700 overflow-hidden bg-black">
+    <video
+      controls
+      className="w-full aspect-video"
+      src="/videos/placeholder.mp4"
+      preload="metadata"
+    >
+      Your browser does not support video playback.
+    </video>
+    <div className="p-4 bg-gray-900/60">
+      <h4 className="text-base font-semibold text-white mb-1">{title}</h4>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   </div>
 )
