@@ -93,6 +93,17 @@ export default function DocumentsPage() {
   const [missionDetailOpen, setMissionDetailOpen] = useState(false);
   const [isAddingDocument, setIsAddingDocument] = useState(false);
   const [selectedDocumentToAdd, setSelectedDocumentToAdd] = useState("");
+  const [isEditingMission, setIsEditingMission] = useState(false);
+  const [editMissionData, setEditMissionData] = useState({
+    missionName: "",
+    aircraftCallSign: "",
+    captainName: "",
+    departureLocation: "",
+    arrivalDestination: "",
+    loadmaster1Name: "",
+    loadmaster2Name: "",
+    hasDangerousGoods: false,
+  });
   const [newMissionData, setNewMissionData] = useState({
     missionName: "",
     aircraftCallSign: "",
@@ -275,6 +286,32 @@ export default function DocumentsPage() {
       toast({
         title: "Error Deleting Missions",
         description: error.message || "Failed to delete missions. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMissionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: typeof editMissionData }) => {
+      return await apiRequest({
+        url: `/api/missions/${id}`,
+        method: "PATCH",
+        body: data,
+      });
+    },
+    onSuccess: (updated: Mission) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      setSelectedMission(updated);
+      setIsEditingMission(false);
+      toast({
+        title: "Mission Updated",
+        description: "Mission details have been saved.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Updating Mission",
+        description: error.message || "Failed to update mission. Please try again.",
         variant: "destructive",
       });
     },
@@ -1223,42 +1260,177 @@ export default function DocumentsPage() {
 
       {/* Mission Detail Dialog */}
       {selectedMission && (
-        <Dialog open={missionDetailOpen} onOpenChange={setMissionDetailOpen}>
+        <Dialog open={missionDetailOpen} onOpenChange={(open) => {
+          if (!open) { setIsEditingMission(false); }
+          setMissionDetailOpen(open);
+        }}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl">{selectedMission.missionName}</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              {/* Mission Details */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-                <div>
-                  <p className="text-sm text-muted-foreground">Aircraft</p>
-                  <p className="font-medium">{selectedMission.aircraftCallSign}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Captain</p>
-                  <p className="font-medium">{selectedMission.captainName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Departure</p>
-                  <p className="font-medium">{selectedMission.departureLocation}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Arrival</p>
-                  <p className="font-medium">{selectedMission.arrivalDestination}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Loadmaster 1</p>
-                  <p className="font-medium">{selectedMission.loadmaster1Name}</p>
-                </div>
-                {selectedMission.loadmaster2Name && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Loadmaster 2</p>
-                    <p className="font-medium">{selectedMission.loadmaster2Name}</p>
+              <div className="flex items-center justify-between pr-8">
+                <DialogTitle className="text-2xl">
+                  {isEditingMission ? editMissionData.missionName || selectedMission.missionName : selectedMission.missionName}
+                </DialogTitle>
+                {!isEditingMission ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditMissionData({
+                        missionName: selectedMission.missionName,
+                        aircraftCallSign: selectedMission.aircraftCallSign,
+                        captainName: selectedMission.captainName,
+                        departureLocation: selectedMission.departureLocation,
+                        arrivalDestination: selectedMission.arrivalDestination,
+                        loadmaster1Name: selectedMission.loadmaster1Name,
+                        loadmaster2Name: selectedMission.loadmaster2Name || "",
+                        hasDangerousGoods: selectedMission.hasDangerousGoods,
+                      });
+                      setIsEditingMission(true);
+                    }}
+                  >
+                    <Edit2 className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => updateMissionMutation.mutate({ id: selectedMission.id, data: editMissionData })}
+                      disabled={
+                        !editMissionData.missionName ||
+                        !editMissionData.aircraftCallSign ||
+                        !editMissionData.captainName ||
+                        !editMissionData.departureLocation ||
+                        !editMissionData.arrivalDestination ||
+                        !editMissionData.loadmaster1Name ||
+                        updateMissionMutation.isPending
+                      }
+                    >
+                      {updateMissionMutation.isPending ? (
+                        <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Saving...</>
+                      ) : (
+                        <><Save className="w-4 h-4 mr-1" />Save</>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsEditingMission(false)}
+                      disabled={updateMissionMutation.isPending}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Cancel
+                    </Button>
                   </div>
                 )}
               </div>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Mission Details — view or edit mode */}
+              {!isEditingMission ? (
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Aircraft</p>
+                    <p className="font-medium">{selectedMission.aircraftCallSign}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Captain</p>
+                    <p className="font-medium">{selectedMission.captainName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Departure</p>
+                    <p className="font-medium">{selectedMission.departureLocation}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Arrival</p>
+                    <p className="font-medium">{selectedMission.arrivalDestination}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Loadmaster 1</p>
+                    <p className="font-medium">{selectedMission.loadmaster1Name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Loadmaster 2</p>
+                    <p className="font-medium">{selectedMission.loadmaster2Name || <span className="text-muted-foreground italic">None</span>}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Dangerous Goods</p>
+                    <p className="font-medium">{selectedMission.hasDangerousGoods ? "Yes" : "No"}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-muted rounded-lg space-y-4">
+                  <div>
+                    <Label>Mission Name *</Label>
+                    <Input
+                      value={editMissionData.missionName}
+                      onChange={(e) => setEditMissionData(prev => ({ ...prev, missionName: e.target.value }))}
+                      placeholder="Mission name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Aircraft Call Sign *</Label>
+                      <Input
+                        value={editMissionData.aircraftCallSign}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, aircraftCallSign: e.target.value }))}
+                        placeholder="e.g., ASSY106"
+                      />
+                    </div>
+                    <div>
+                      <Label>Captain Name *</Label>
+                      <Input
+                        value={editMissionData.captainName}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, captainName: e.target.value }))}
+                        placeholder="e.g., SQNLDR Smith"
+                      />
+                    </div>
+                    <div>
+                      <Label>Departure Location *</Label>
+                      <Input
+                        value={editMissionData.departureLocation}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, departureLocation: e.target.value }))}
+                        placeholder="e.g., RAAF Amberley"
+                      />
+                    </div>
+                    <div>
+                      <Label>Arrival Destination *</Label>
+                      <Input
+                        value={editMissionData.arrivalDestination}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, arrivalDestination: e.target.value }))}
+                        placeholder="e.g., RAAF Tindal"
+                      />
+                    </div>
+                    <div>
+                      <Label>Loadmaster 1 *</Label>
+                      <Input
+                        value={editMissionData.loadmaster1Name}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, loadmaster1Name: e.target.value }))}
+                        placeholder="e.g., SGT Truter"
+                      />
+                    </div>
+                    <div>
+                      <Label>Loadmaster 2</Label>
+                      <Input
+                        value={editMissionData.loadmaster2Name}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, loadmaster2Name: e.target.value }))}
+                        placeholder="e.g., CPL Jones (optional)"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit-dangerous-goods"
+                      checked={editMissionData.hasDangerousGoods}
+                      onChange={(e) => setEditMissionData(prev => ({ ...prev, hasDangerousGoods: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <Label htmlFor="edit-dangerous-goods" className="cursor-pointer">Contains Dangerous Goods</Label>
+                  </div>
+                </div>
+              )}
 
               {/* Documents Section */}
               <div className="space-y-4">

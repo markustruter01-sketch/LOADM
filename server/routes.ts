@@ -209,6 +209,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/missions/:id", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const missionId = parseInt(req.params.id);
+      if (isNaN(missionId)) {
+        return res.status(400).json({ message: "Invalid mission ID" });
+      }
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const mission = await db.select().from(missions).where(eq(missions.id, missionId)).limit(1);
+      if (mission.length === 0) {
+        return res.status(404).json({ message: "Mission not found" });
+      }
+      const isOwner = mission[0].userId === req.user.id;
+      const isInstructor = req.user.role === 'instructor';
+      const isSuperAdmin = req.user.role === 'superadmin';
+      if (!isOwner && !isInstructor && !isSuperAdmin) {
+        return res.status(403).json({ message: "You can only edit your own missions" });
+      }
+      const { missionName, aircraftCallSign, captainName, departureLocation, arrivalDestination, loadmaster1Name, loadmaster2Name, hasDangerousGoods } = req.body;
+      const [updated] = await db
+        .update(missions)
+        .set({ missionName, aircraftCallSign, captainName, departureLocation, arrivalDestination, loadmaster1Name, loadmaster2Name, hasDangerousGoods, updatedAt: new Date() })
+        .where(eq(missions.id, missionId))
+        .returning();
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating mission:", error);
+      res.status(500).json({ message: "Failed to update mission" });
+    }
+  });
+
   // Mission Documents API endpoints
   app.get("/api/missions/:missionId/documents", requireAuth, async (req, res) => {
     try {
