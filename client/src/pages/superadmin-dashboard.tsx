@@ -20,8 +20,22 @@ import {
   Activity,
   TrendingUp,
   MessageCircle,
-  Trash2
+  Trash2,
+  ClipboardList,
+  RefreshCw
 } from "lucide-react";
+
+interface ActivityLogEntry {
+  id: number;
+  userId: number | null;
+  userEmail: string;
+  userName: string;
+  action: string;
+  resourceType: string;
+  resourceName: string;
+  details: string | null;
+  performedAt: string;
+}
 
 interface DashboardStats {
   totalLicenses: number;
@@ -41,6 +55,11 @@ export default function SuperAdminDashboard() {
   // Fetch dashboard stats
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/licensing/dashboard-stats']
+  });
+
+  // Fetch activity log
+  const { data: activityLogs = [], isLoading: logsLoading, refetch: refetchLogs } = useQuery<ActivityLogEntry[]>({
+    queryKey: ['/api/activity-log'],
   });
 
   // Chat reset mutation
@@ -181,7 +200,7 @@ export default function SuperAdminDashboard() {
 
         {/* Main Management Interface */}
         <Tabs defaultValue="licensing" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
             <TabsTrigger value="licensing" className="data-[state=active]:bg-purple-600">
               License Management
             </TabsTrigger>
@@ -190,6 +209,10 @@ export default function SuperAdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600">
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="deletion-log" className="data-[state=active]:bg-orange-600">
+              <ClipboardList className="w-4 h-4 mr-1.5" />
+              Deletion Log
             </TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600">
               Settings
@@ -363,6 +386,94 @@ export default function SuperAdminDashboard() {
                     Track license usage, user engagement, and system performance over time.
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="deletion-log" className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <ClipboardList className="w-5 h-5 text-orange-400" />
+                      Deletion Activity Log
+                    </CardTitle>
+                    <CardDescription className="text-slate-400">
+                      All destructive deletion actions performed by users across the platform
+                    </CardDescription>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                    onClick={() => refetchLogs()}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-1.5" />
+                    Refresh
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {logsLoading ? (
+                  <div className="text-center py-12 text-slate-400">Loading log entries...</div>
+                ) : activityLogs.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400">
+                    <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="font-medium">No deletions recorded yet</p>
+                    <p className="text-sm mt-1">Log entries will appear here whenever a user deletes something.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-700">
+                          <th className="text-left py-3 px-4 text-slate-400 font-medium">When</th>
+                          <th className="text-left py-3 px-4 text-slate-400 font-medium">User</th>
+                          <th className="text-left py-3 px-4 text-slate-400 font-medium">Action</th>
+                          <th className="text-left py-3 px-4 text-slate-400 font-medium">Type</th>
+                          <th className="text-left py-3 px-4 text-slate-400 font-medium">Item Deleted</th>
+                          <th className="text-left py-3 px-4 text-slate-400 font-medium">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activityLogs.map((entry) => (
+                          <tr key={entry.id} className="border-b border-slate-700/50 hover:bg-slate-700/30">
+                            <td className="py-3 px-4 text-slate-400 whitespace-nowrap">
+                              {new Date(entry.performedAt).toLocaleString("en-AU", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="text-white font-medium">{entry.userName}</div>
+                              <div className="text-slate-400 text-xs">{entry.userEmail}</div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge variant="destructive" className="bg-red-500/20 text-red-400 border-red-500/30">
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                {entry.action}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
+                                {entry.resourceType}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4 text-white font-medium">{entry.resourceName}</td>
+                            <td className="py-3 px-4 text-slate-400 text-xs">{entry.details ?? "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-slate-500 mt-3 px-4">
+                      Showing {activityLogs.length} most recent entries
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

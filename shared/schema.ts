@@ -917,3 +917,24 @@ export const insertTrainingModuleCompletionSchema = createInsertSchema(trainingM
 
 export type TrainingModuleCompletion = typeof trainingModuleCompletions.$inferSelect;
 export type InsertTrainingModuleCompletion = z.infer<typeof insertTrainingModuleCompletionSchema>;
+
+// Activity Log — tracks destructive actions (deletions) for SuperAdmin audit trail
+export const activityLog = pgTable("activity_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  userEmail: text("user_email").notNull(),
+  userName: text("user_name").notNull(),
+  action: text("action").notNull(), // e.g. "DELETE"
+  resourceType: text("resource_type").notNull(), // e.g. "Phone Directory Entry"
+  resourceName: text("resource_name").notNull(), // e.g. "Adelaide Airport"
+  details: text("details"), // optional extra context
+  performedAt: timestamp("performed_at").defaultNow().notNull(),
+});
+
+export const insertActivityLogSchema = createInsertSchema(activityLog).omit({
+  id: true,
+  performedAt: true,
+});
+
+export type ActivityLog = typeof activityLog.$inferSelect;
+export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;

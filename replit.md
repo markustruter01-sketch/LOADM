@@ -85,6 +85,18 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 - Platform now contains only legitimate user data from 11 real accounts with licenses
 - Analytics and performance features will show real data only (some sections may appear empty until real usage generates data)
 
+## Recent Changes (March 5, 2026)
+- **Deletion Activity Log**: New `activity_log` table tracks all destructive deletions across the platform
+  - Phone Directory Entry deletions (in `server/index.ts`)
+  - Mission deletions (in `server/routes.ts`)
+  - PDF Document deletions (in `server/routes.ts`)
+  - Scenario deletions (in `server/routes.ts`)
+  - Each entry records: who deleted it, what type of resource, the resource name, timestamp, and optional details
+  - SuperAdmin-only `GET /api/activity-log` endpoint returns up to 500 most recent entries
+  - New **Deletion Log** tab in SuperAdmin Dashboard shows full audit table with timestamps, user name/email, action badge, resource type badge, and item name
+- **Phone Directory delete confirmation**: Red trash button now opens AlertDialog requiring user to confirm with entry name before deletion proceeds
+- **Mission Archive**: `isCompleted` + `completedAt` fields on missions; active missions paginated (5/page); collapsible completed missions archive below; "Mark Done" orange button in mission detail dialog; auto-expands archive on mark-done
+
 ## Recent Changes (January 27, 2026)
 - Removed loadmaster character image from scenarios page
 - Added DialogDescription to Data Audit Modal and Instructor Portal modals for accessibility

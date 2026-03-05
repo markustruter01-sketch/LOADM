@@ -1,7 +1,23 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
-import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, checklistStepAudit, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS, quizzes, quizSubmissions } from "@shared/schema";
+import { insertDocumentSchema, insertScenarioSchema, insertDocumentSubmissionSchema, insertScenarioSubmissionSchema, insertPhoneDirectorySchema, insertMissionSchema, insertMissionDocumentSchema, insertTrainingModuleVideoSchema, insertChecklistSchema, insertChecklistItemSchema, insertChecklistCompletionSchema, insertUserQualificationSchema, insertFlightRecordSchema, insertSafetyRecordSchema, insertTrainingModuleSchema, insertTrainingModuleContentSchema, phoneDirectory, missions, missionDocuments, licenses, users, documents, scenarios, documentSubmissions, scenarioSubmissions, trainingModuleVideos, checklists, checklistItems, checklistCompletions, checklistStepAudit, userQualifications, flightRecords, safetyRecords, trainingModules, trainingModuleContent, readinessSnapshots, NOT_READY_REASONS, quizzes, quizSubmissions, activityLog } from "@shared/schema";
+
+async function writeActivityLog(user: any, action: string, resourceType: string, resourceName: string, details?: string) {
+  try {
+    await db.insert(activityLog).values({
+      userId: user?.id ?? null,
+      userEmail: user?.email ?? "unknown",
+      userName: user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email : "unknown",
+      action,
+      resourceType,
+      resourceName,
+      details: details ?? null,
+    });
+  } catch (err) {
+    console.error("Failed to write activity log:", err);
+  }
+}
 import { eq, and, gt, desc, lt, sql, inArray } from "drizzle-orm";
 import { db } from "./db";
 
@@ -202,6 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await db.delete(missions).where(eq(missions.id, missionId));
+      await writeActivityLog(req.user, "DELETE", "Mission", mission[0].missionName, `Aircraft: ${mission[0].aircraftCallSign}`);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting mission:", error);
@@ -1518,13 +1535,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/documents/:id", requireInstructor, async (req, res) => {
+  app.delete("/api/documents/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const documentId = parseInt(req.params.id);
+      const [doc] = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
       const result = await db.delete(documents).where(eq(documents.id, documentId));
       
       if (result.rowCount === 0) {
         return res.status(404).json({ message: "Document not found" });
+      }
+
+      if (doc) {
+        await writeActivityLog(req.user, "DELETE", "PDF Document", doc.title);
       }
       
       res.status(204).send();
@@ -1641,13 +1663,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/scenarios/:id", requireInstructor, async (req, res) => {
+  app.delete("/api/scenarios/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const scenarioId = parseInt(req.params.id);
+      const [scenario] = await db.select().from(scenarios).where(eq(scenarios.id, scenarioId)).limit(1);
       const result = await db.delete(scenarios).where(eq(scenarios.id, scenarioId));
       
       if (result.rowCount === 0) {
         return res.status(404).json({ message: "Scenario not found" });
+      }
+
+      if (scenario) {
+        await writeActivityLog(req.user, "DELETE", "Scenario", scenario.title);
       }
       
       res.status(204).send();

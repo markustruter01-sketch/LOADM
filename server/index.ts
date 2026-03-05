@@ -64,8 +64,31 @@ app.use('/auth', isolatedAuthRoutes);
 
 // NUCLEAR FIX: Phone Directory endpoints - bypassing all middleware
 import { db } from './db';
-import { phoneDirectory, chatMessages } from '../shared/schema';
-import { eq, sql, gte } from 'drizzle-orm';
+import { phoneDirectory, chatMessages, activityLog } from '../shared/schema';
+import { eq, sql, gte, desc } from 'drizzle-orm';
+
+async function logActivity(params: {
+  req: any;
+  action: string;
+  resourceType: string;
+  resourceName: string;
+  details?: string;
+}) {
+  try {
+    const user = params.req.user || params.req.isolatedUser;
+    await db.insert(activityLog).values({
+      userId: user?.id ?? null,
+      userEmail: user?.email ?? "unknown",
+      userName: user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email : "unknown",
+      action: params.action,
+      resourceType: params.resourceType,
+      resourceName: params.resourceName,
+      details: params.details ?? null,
+    });
+  } catch (err) {
+    console.error("Failed to write activity log:", err);
+  }
+}
 
 // Debug endpoint to check active sessions
 app.get("/api/debug-sessions", (req, res) => {
@@ -89,15 +112,39 @@ app.get("/api/phone-directory", async (req, res) => {
   }
 });
 
-app.delete("/api/phone-directory/:id", async (req, res) => {
+app.delete("/api/phone-directory/:id", async (req: any, res) => {
   try {
     console.log("NUCLEAR: Phone directory DELETE request received");
     const id = parseInt(req.params.id);
+    const [entry] = await db.select().from(phoneDirectory).where(eq(phoneDirectory.id, id)).limit(1);
     await db.delete(phoneDirectory).where(eq(phoneDirectory.id, id));
+    if (entry) {
+      await logActivity({
+        req,
+        action: "DELETE",
+        resourceType: "Phone Directory Entry",
+        resourceName: `${entry.airbaseCode} – ${entry.airbaseName}`,
+      });
+    }
     res.json({ message: "Directory entry deleted successfully" });
   } catch (error) {
     console.error("NUCLEAR: Error deleting phone directory entry:", error);
     res.status(500).json({ message: "Failed to delete phone directory entry" });
+  }
+});
+
+// Activity Log endpoint - superadmin only
+app.get("/api/activity-log", async (req: any, res) => {
+  try {
+    const user = req.user || req.isolatedUser;
+    if (!user || user.role !== "superadmin") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const logs = await db.select().from(activityLog).orderBy(desc(activityLog.performedAt)).limit(500);
+    res.json(logs);
+  } catch (error) {
+    console.error("Error fetching activity log:", error);
+    res.status(500).json({ message: "Failed to fetch activity log" });
   }
 });
 
