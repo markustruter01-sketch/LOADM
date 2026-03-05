@@ -6,11 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, Users, Clock, AlertTriangle, CheckCircle2, Shield, Award,
   Plane, TrendingUp, TrendingDown, Calendar, Activity, RefreshCw,
   UserX, Stethoscope, GraduationCap, FileWarning, AlertCircle, Loader2,
-  LineChart, BarChart3, Bell, Target, Info, HelpCircle, X
+  LineChart, BarChart3, Bell, Target, Info, HelpCircle, X, Plus, Pencil, Trash2
 } from "lucide-react";
 
 const SQUADRONS = ['33', '35', '36', '37'];
@@ -367,7 +373,26 @@ function HelpModal({ helpKey, onClose }: { helpKey: string | null; onClose: () =
   );
 }
 
+const EMPTY_SAFETY_FORM = {
+  recordType: 'incident',
+  safetyLevel: 'Level 4 - Negligible',
+  severity: 'minor',
+  date: new Date().toISOString().split('T')[0],
+  squadron: '33SQN',
+  aircraftType: 'C130J',
+  location: '',
+  flightPhase: 'ground',
+  userId: '',
+  description: '',
+  immediateActions: '',
+  contributingFactors: '',
+  correctiveActions: '',
+  status: 'open',
+  resolutionNotes: '',
+};
+
 export default function WorkforceAnalytics() {
+  const { toast } = useToast();
   const [selectedSquadron, setSelectedSquadron] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -381,6 +406,15 @@ export default function WorkforceAnalytics() {
   const [safetyData, setSafetyData] = useState<any>(null);
   const [historyData, setHistoryData] = useState<any>(null);
   const [forecastData, setForecastData] = useState<any>(null);
+
+  // Safety occurrence management state
+  const [safetyRecordsList, setSafetyRecordsList] = useState<any[]>([]);
+  const [safetyDialogOpen, setSafetyDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [safetyFormData, setSafetyFormData] = useState<any>(EMPTY_SAFETY_FORM);
+  const [safetyFormSubmitting, setSafetyFormSubmitting] = useState(false);
+  const [loadmasterUsers, setLoadmasterUsers] = useState<any[]>([]);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -423,8 +457,109 @@ export default function WorkforceAnalytics() {
     }
   };
 
+  const fetchSafetyRecords = async () => {
+    try {
+      const res = await fetch('/api/safety-records', { credentials: 'include' });
+      if (res.ok) setSafetyRecordsList(await res.json());
+    } catch (err) {
+      console.error("Error fetching safety records:", err);
+    }
+  };
+
+  const fetchLoadmasterUsers = async () => {
+    try {
+      const res = await fetch('/api/instructor/users', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setLoadmasterUsers(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  };
+
+  const openCreateDialog = () => {
+    setEditingRecord(null);
+    setSafetyFormData({ ...EMPTY_SAFETY_FORM, date: new Date().toISOString().split('T')[0] });
+    setSafetyDialogOpen(true);
+  };
+
+  const openEditDialog = (record: any) => {
+    setEditingRecord(record);
+    setSafetyFormData({
+      recordType: record.recordType || 'incident',
+      safetyLevel: record.safetyLevel || 'Level 4 - Negligible',
+      severity: record.severity || 'minor',
+      date: record.date ? new Date(record.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      squadron: record.squadron || '33SQN',
+      aircraftType: record.aircraftType || 'C130J',
+      location: record.location || '',
+      flightPhase: record.flightPhase || 'ground',
+      userId: record.userId?.toString() || '',
+      description: record.description || '',
+      immediateActions: record.immediateActions || '',
+      contributingFactors: record.contributingFactors || '',
+      correctiveActions: record.correctiveActions || '',
+      status: record.status || 'open',
+      resolutionNotes: record.resolutionNotes || '',
+    });
+    setSafetyDialogOpen(true);
+  };
+
+  const handleSafetyFormSubmit = async () => {
+    if (!safetyFormData.description.trim()) {
+      toast({ title: "Validation Error", description: "Description is required.", variant: "destructive" });
+      return;
+    }
+    if (!safetyFormData.userId) {
+      toast({ title: "Validation Error", description: "Please select a subject personnel member.", variant: "destructive" });
+      return;
+    }
+    setSafetyFormSubmitting(true);
+    try {
+      const payload = {
+        ...safetyFormData,
+        userId: parseInt(safetyFormData.userId),
+        severity: ['incident', 'training_failure'].includes(safetyFormData.recordType) ? safetyFormData.severity : null,
+        date: new Date(safetyFormData.date).toISOString(),
+      };
+      const url = editingRecord ? `/api/safety-records/${editingRecord.id}` : '/api/safety-records';
+      const method = editingRecord ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      toast({ title: editingRecord ? "Record Updated" : "Record Created", description: editingRecord ? "Safety occurrence updated successfully." : "Safety occurrence submitted successfully." });
+      setSafetyDialogOpen(false);
+      fetchSafetyRecords();
+      fetchAllData();
+    } catch (err) {
+      toast({ title: "Error", description: "Failed to save safety occurrence.", variant: "destructive" });
+    } finally {
+      setSafetyFormSubmitting(false);
+    }
+  };
+
+  const handleDeleteRecord = async (id: number) => {
+    try {
+      const res = await fetch(`/api/safety-records/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) throw new Error();
+      toast({ title: "Record Deleted", description: "Safety occurrence removed." });
+      setDeleteConfirmId(null);
+      fetchSafetyRecords();
+      fetchAllData();
+    } catch {
+      toast({ title: "Error", description: "Failed to delete record.", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     fetchAllData();
+    fetchSafetyRecords();
+    fetchLoadmasterUsers();
   }, [selectedSquadron, historyRange, flightRange]);
 
   const getReasonIcon = (reason: string) => {
@@ -981,7 +1116,13 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Shield className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Safety & Compliance</h2>
-            <span className="text-xs text-gray-500 ml-auto mr-2">All-time records</span>
+            <div className="ml-auto flex items-center gap-2 mr-2">
+              <span className="text-xs text-gray-500">All-time records</span>
+              <Button size="sm" onClick={openCreateDialog} className="bg-orange-500 hover:bg-orange-600 text-white h-7 text-xs px-3">
+                <Plus className="h-3 w-3 mr-1" />
+                Report Occurrence
+              </Button>
+            </div>
             <HelpButton helpKey="safetyCompliance" onClick={setActiveHelp} />
           </div>
 
@@ -1076,7 +1217,6 @@ export default function WorkforceAnalytics() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {safetyData?.byType ? (
                   <>
-                    {/* Incidents */}
                     <div className="p-4 bg-[#1a1a1a] rounded-lg text-center">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -1087,7 +1227,6 @@ export default function WorkforceAnalytics() {
                         {safetyData.summary?.total > 0 ? ((incidents / safetyData.summary.total) * 100).toFixed(0) : 0}% of records
                       </div>
                     </div>
-                    {/* Observations */}
                     <div className="p-4 bg-[#1a1a1a] rounded-lg text-center">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <Shield className="h-5 w-5 text-blue-500" />
@@ -1098,7 +1237,6 @@ export default function WorkforceAnalytics() {
                         {safetyData.summary?.total > 0 ? ((observations / safetyData.summary.total) * 100).toFixed(0) : 0}% of records
                       </div>
                     </div>
-                    {/* Commendations */}
                     <div className="p-4 bg-[#1a1a1a] rounded-lg text-center">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <Award className="h-5 w-5 text-green-500" />
@@ -1114,6 +1252,106 @@ export default function WorkforceAnalytics() {
                   <div className="col-span-3 text-center py-6 text-gray-500">No safety records available</div>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Safety Occurrences Table */}
+          <Card className="bg-[#2a2a2a] border-[#333333]">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-white text-lg">Safety Occurrences</CardTitle>
+                  <CardDescription className="text-gray-400">{safetyRecordsList.length} records — sorted by most recent</CardDescription>
+                </div>
+                <Button size="sm" onClick={openCreateDialog} className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                  <Plus className="h-3 w-3 mr-1" /> New Occurrence
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {safetyRecordsList.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">No safety occurrences recorded. Click "New Occurrence" to submit the first one.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#333] text-gray-400 text-xs uppercase">
+                        <th className="text-left px-4 py-3">Date</th>
+                        <th className="text-left px-4 py-3">Type</th>
+                        <th className="text-left px-4 py-3">Level</th>
+                        <th className="text-left px-4 py-3">Severity</th>
+                        <th className="text-left px-4 py-3">Squadron</th>
+                        <th className="text-left px-4 py-3">Aircraft</th>
+                        <th className="text-left px-4 py-3 max-w-[220px]">Description</th>
+                        <th className="text-left px-4 py-3">Status</th>
+                        <th className="text-left px-4 py-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {safetyRecordsList.slice(0, 25).map((record: any) => (
+                        <tr key={record.id} className="border-b border-[#2a2a2a] hover:bg-[#333]/30 transition-colors">
+                          <td className="px-4 py-3 text-gray-300 whitespace-nowrap text-xs">
+                            {new Date(record.date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: '2-digit' })}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={`text-xs ${
+                              record.recordType === 'incident' ? 'bg-red-900/50 text-red-400 border-red-700' :
+                              record.recordType === 'observation' ? 'bg-blue-900/50 text-blue-400 border-blue-700' :
+                              record.recordType === 'commendation' ? 'bg-green-900/50 text-green-400 border-green-700' :
+                              'bg-yellow-900/50 text-yellow-400 border-yellow-700'
+                            } border`}>
+                              {record.recordType === 'training_failure' ? 'Training' : record.recordType}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                            {record.safetyLevel ? record.safetyLevel.replace(' - ', '\n').split('\n')[0] : '—'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {record.severity ? (
+                              <Badge className={`text-xs ${
+                                record.severity === 'major' ? 'bg-red-900/50 text-red-400' :
+                                record.severity === 'moderate' ? 'bg-orange-900/50 text-orange-400' :
+                                'bg-gray-800 text-gray-400'
+                              }`}>
+                                {record.severity}
+                              </Badge>
+                            ) : <span className="text-gray-600">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-gray-300 text-xs">{record.squadron || '—'}</td>
+                          <td className="px-4 py-3 text-gray-400 text-xs">{record.aircraftType || '—'}</td>
+                          <td className="px-4 py-3 text-gray-300 text-xs max-w-[220px]">
+                            <span className="line-clamp-2">{record.description}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge className={`text-xs ${
+                              record.status === 'open' ? 'bg-red-900/40 text-red-400' :
+                              record.status === 'reviewed' ? 'bg-yellow-900/40 text-yellow-400' :
+                              'bg-green-900/40 text-green-400'
+                            }`}>
+                              {record.status}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => openEditDialog(record)} className="h-7 w-7 p-0 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10">
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setDeleteConfirmId(record.id)} className="h-7 w-7 p-0 text-gray-400 hover:text-red-400 hover:bg-red-500/10">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {safetyRecordsList.length > 25 && (
+                    <div className="text-center py-3 text-xs text-gray-500 border-t border-[#333]">
+                      Showing 25 of {safetyRecordsList.length} records. Use filters to narrow results.
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </section>
@@ -1471,6 +1709,218 @@ export default function WorkforceAnalytics() {
 
       {/* Help Modal */}
       <HelpModal helpKey={activeHelp} onClose={() => setActiveHelp(null)} />
+
+      {/* Safety Occurrence Dialog */}
+      <Dialog open={safetyDialogOpen} onOpenChange={setSafetyDialogOpen}>
+        <DialogContent className="bg-[#1e1e1e] border-[#333] text-white max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-orange-400 text-xl flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              {editingRecord ? 'Edit Safety Occurrence' : 'Report Safety Occurrence'}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {editingRecord ? 'Update the details of this safety occurrence report.' : 'Submit a new aviation safety occurrence. All fields marked * are required.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 pt-2">
+            {/* Section 1: Event Classification */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-500/20 pb-1">Event Classification</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Record Type *</Label>
+                  <Select value={safetyFormData.recordType} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, recordType: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                      <SelectItem value="incident" className="text-white">Incident</SelectItem>
+                      <SelectItem value="observation" className="text-white">Safety Observation</SelectItem>
+                      <SelectItem value="commendation" className="text-white">Commendation</SelectItem>
+                      <SelectItem value="training_failure" className="text-white">Training Failure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Safety Level *</Label>
+                  <Select value={safetyFormData.safetyLevel} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, safetyLevel: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                      <SelectItem value="Level 1 - Catastrophic" className="text-red-400">Level 1 – Catastrophic</SelectItem>
+                      <SelectItem value="Level 2 - Critical" className="text-orange-400">Level 2 – Critical</SelectItem>
+                      <SelectItem value="Level 3 - Marginal" className="text-yellow-400">Level 3 – Marginal</SelectItem>
+                      <SelectItem value="Level 4 - Negligible" className="text-gray-300">Level 4 – Negligible</SelectItem>
+                      <SelectItem value="Observation" className="text-blue-400">Observation</SelectItem>
+                      <SelectItem value="Commendation" className="text-green-400">Commendation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {['incident', 'training_failure'].includes(safetyFormData.recordType) && (
+                  <div className="space-y-1.5">
+                    <Label className="text-gray-300 text-xs">Severity *</Label>
+                    <Select value={safetyFormData.severity} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, severity: v }))}>
+                      <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                        <SelectItem value="minor" className="text-gray-300">Minor</SelectItem>
+                        <SelectItem value="moderate" className="text-yellow-400">Moderate</SelectItem>
+                        <SelectItem value="major" className="text-red-400">Major</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Event Date *</Label>
+                  <Input type="date" value={safetyFormData.date} onChange={e => setSafetyFormData((p: any) => ({ ...p, date: e.target.value }))} className="bg-[#2a2a2a] border-[#444] text-white h-9" />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Personnel & Location */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-500/20 pb-1">Personnel & Location</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Subject Personnel *</Label>
+                  <Select value={safetyFormData.userId} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, userId: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue placeholder="Select personnel..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444] max-h-52">
+                      {loadmasterUsers.map((u: any) => (
+                        <SelectItem key={u.userId} value={u.userId.toString()} className="text-white">
+                          {u.firstName} {u.lastName} {u.squadron ? `(${u.squadron})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Squadron *</Label>
+                  <Select value={safetyFormData.squadron} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, squadron: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                      {['33SQN', '35SQN', '36SQN', '37SQN'].map(s => (
+                        <SelectItem key={s} value={s} className="text-white">{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Aircraft Type</Label>
+                  <Select value={safetyFormData.aircraftType} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, aircraftType: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                      <SelectItem value="C130J" className="text-white">C-130J Hercules</SelectItem>
+                      <SelectItem value="C17A" className="text-white">C-17A Globemaster</SelectItem>
+                      <SelectItem value="KC30A" className="text-white">KC-30A Airbus</SelectItem>
+                      <SelectItem value="C27J" className="text-white">C-27J Spartan</SelectItem>
+                      <SelectItem value="N/A" className="text-white">N/A (Ground Event)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Phase of Flight</Label>
+                  <Select value={safetyFormData.flightPhase} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, flightPhase: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                      {['ground', 'parking', 'taxi', 'takeoff', 'climb', 'cruise', 'descent', 'approach', 'landing'].map(phase => (
+                        <SelectItem key={phase} value={phase} className="text-white capitalize">{phase.charAt(0).toUpperCase() + phase.slice(1)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-gray-300 text-xs">Location</Label>
+                  <Input value={safetyFormData.location} onChange={e => setSafetyFormData((p: any) => ({ ...p, location: e.target.value }))} placeholder="e.g. RAAF Base Amberley, En Route YBBN-YMML" className="bg-[#2a2a2a] border-[#444] text-white h-9 placeholder:text-gray-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Event Details */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-500/20 pb-1">Event Details</h3>
+              <div className="space-y-1.5">
+                <Label className="text-gray-300 text-xs">Description of Event *</Label>
+                <Textarea value={safetyFormData.description} onChange={e => setSafetyFormData((p: any) => ({ ...p, description: e.target.value }))} placeholder="Provide a full factual account of the event, what happened, when, and the outcome..." className="bg-[#2a2a2a] border-[#444] text-white placeholder:text-gray-600 min-h-[90px] resize-none" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-gray-300 text-xs">Immediate Actions Taken</Label>
+                <Textarea value={safetyFormData.immediateActions} onChange={e => setSafetyFormData((p: any) => ({ ...p, immediateActions: e.target.value }))} placeholder="What actions were taken immediately at the time of the event..." className="bg-[#2a2a2a] border-[#444] text-white placeholder:text-gray-600 min-h-[70px] resize-none" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-gray-300 text-xs">Contributing Factors</Label>
+                <Textarea value={safetyFormData.contributingFactors} onChange={e => setSafetyFormData((p: any) => ({ ...p, contributingFactors: e.target.value }))} placeholder="Causal or contributing factors identified (human, technical, environmental, organisational)..." className="bg-[#2a2a2a] border-[#444] text-white placeholder:text-gray-600 min-h-[70px] resize-none" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-gray-300 text-xs">Corrective / Preventive Actions</Label>
+                <Textarea value={safetyFormData.correctiveActions} onChange={e => setSafetyFormData((p: any) => ({ ...p, correctiveActions: e.target.value }))} placeholder="Actions taken or planned to prevent recurrence..." className="bg-[#2a2a2a] border-[#444] text-white placeholder:text-gray-600 min-h-[70px] resize-none" />
+              </div>
+            </div>
+
+            {/* Section 4: Status */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-500/20 pb-1">Status & Resolution</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-gray-300 text-xs">Record Status</Label>
+                  <Select value={safetyFormData.status} onValueChange={v => setSafetyFormData((p: any) => ({ ...p, status: v }))}>
+                    <SelectTrigger className="bg-[#2a2a2a] border-[#444] text-white h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2a2a2a] border-[#444]">
+                      <SelectItem value="open" className="text-red-400">Open – Action Required</SelectItem>
+                      <SelectItem value="reviewed" className="text-yellow-400">Reviewed – Under Action</SelectItem>
+                      <SelectItem value="closed" className="text-green-400">Closed – Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-gray-300 text-xs">Resolution Notes</Label>
+                <Textarea value={safetyFormData.resolutionNotes} onChange={e => setSafetyFormData((p: any) => ({ ...p, resolutionNotes: e.target.value }))} placeholder="How was this record resolved? What was the outcome?..." className="bg-[#2a2a2a] border-[#444] text-white placeholder:text-gray-600 min-h-[60px] resize-none" />
+              </div>
+            </div>
+
+            {/* Submit / Cancel */}
+            <div className="flex justify-end gap-3 pt-2 border-t border-[#333]">
+              <Button variant="outline" onClick={() => setSafetyDialogOpen(false)} className="border-[#444] text-gray-300 hover:bg-[#333]">Cancel</Button>
+              <Button onClick={handleSafetyFormSubmit} disabled={safetyFormSubmitting} className="bg-orange-500 hover:bg-orange-600 text-white">
+                {safetyFormSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {editingRecord ? 'Save Changes' : 'Submit Occurrence'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={open => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent className="bg-[#1e1e1e] border-[#333] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Safety Record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              This will permanently remove this safety occurrence from the system. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#444] text-gray-300 bg-transparent hover:bg-[#333]">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteConfirmId && handleDeleteRecord(deleteConfirmId)} className="bg-red-600 hover:bg-red-700 text-white">
+              Delete Record
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

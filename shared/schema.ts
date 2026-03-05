@@ -779,6 +779,14 @@ export const safetyRecords = pgTable("safety_records", {
   status: text("status").default("open").notNull(), // "open", "reviewed", "closed"
   resolutionNotes: text("resolution_notes"),
   squadron: text("squadron"),
+  // Aviation-specific fields
+  location: text("location"),                     // e.g. "RAAF Base Amberley", "En Route"
+  aircraftType: text("aircraft_type"),            // C130J, C17A, KC30A, C27J
+  flightPhase: text("flight_phase"),              // ground, taxi, takeoff, climb, cruise, descent, approach, landing, parking
+  safetyLevel: text("safety_level"),             // Level 1-Catastrophic, Level 2-Critical, Level 3-Marginal, Level 4-Negligible
+  immediateActions: text("immediate_actions"),    // What was done at the time
+  contributingFactors: text("contributing_factors"), // Causal/contributing factors
+  correctiveActions: text("corrective_actions"), // Follow-up actions to prevent recurrence
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -789,6 +797,13 @@ export const insertSafetyRecordSchema = createInsertSchema(safetyRecords).omit({
   updatedAt: true,
 }).extend({
   date: z.coerce.date(),
+  location: z.string().optional(),
+  aircraftType: z.string().optional(),
+  flightPhase: z.string().optional(),
+  safetyLevel: z.string().optional(),
+  immediateActions: z.string().optional(),
+  contributingFactors: z.string().optional(),
+  correctiveActions: z.string().optional(),
 });
 
 export type SafetyRecord = typeof safetyRecords.$inferSelect;

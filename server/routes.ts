@@ -3579,6 +3579,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: safetyRecords.status,
         resolutionNotes: safetyRecords.resolutionNotes,
         squadron: safetyRecords.squadron,
+        location: safetyRecords.location,
+        aircraftType: safetyRecords.aircraftType,
+        flightPhase: safetyRecords.flightPhase,
+        safetyLevel: safetyRecords.safetyLevel,
+        immediateActions: safetyRecords.immediateActions,
+        contributingFactors: safetyRecords.contributingFactors,
+        correctiveActions: safetyRecords.correctiveActions,
         createdAt: safetyRecords.createdAt,
         userName: sql<string>`CONCAT(${licenses.firstName}, ' ', ${licenses.lastName})`,
         userEmail: licenses.email
@@ -3635,14 +3642,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/safety-records/:id", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {
       const recordId = parseInt(req.params.id);
-      const { status, resolutionNotes, severity, description } = req.body;
+      const {
+        status, resolutionNotes, severity, description, recordType, date, squadron, userId,
+        location, aircraftType, flightPhase, safetyLevel, immediateActions, contributingFactors, correctiveActions
+      } = req.body;
 
       const [updatedRecord] = await db.update(safetyRecords)
         .set({
-          status: status,
-          resolutionNotes: resolutionNotes,
-          severity: severity,
-          description: description,
+          ...(recordType !== undefined && { recordType }),
+          ...(description !== undefined && { description }),
+          ...(severity !== undefined && { severity }),
+          ...(date !== undefined && { date: new Date(date) }),
+          ...(squadron !== undefined && { squadron }),
+          ...(userId !== undefined && { userId }),
+          ...(status !== undefined && { status }),
+          ...(resolutionNotes !== undefined && { resolutionNotes }),
+          ...(location !== undefined && { location }),
+          ...(aircraftType !== undefined && { aircraftType }),
+          ...(flightPhase !== undefined && { flightPhase }),
+          ...(safetyLevel !== undefined && { safetyLevel }),
+          ...(immediateActions !== undefined && { immediateActions }),
+          ...(contributingFactors !== undefined && { contributingFactors }),
+          ...(correctiveActions !== undefined && { correctiveActions }),
           updatedAt: new Date(),
         })
         .where(eq(safetyRecords.id, recordId))
@@ -4104,6 +4125,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         date: safetyRecords.date,
         status: safetyRecords.status,
         squadron: safetyRecords.squadron,
+        safetyLevel: safetyRecords.safetyLevel,
+        location: safetyRecords.location,
+        aircraftType: safetyRecords.aircraftType,
       })
       .from(safetyRecords)
       .orderBy(desc(safetyRecords.date));
@@ -4205,6 +4229,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         else safetyScoreLabel = 'Critical';
       }
 
+      // Count by safety level
+      const byLevel = {
+        catastrophic: filteredRecords.filter(r => r.safetyLevel?.includes('Level 1')).length,
+        critical: filteredRecords.filter(r => r.safetyLevel?.includes('Level 2')).length,
+        marginal: filteredRecords.filter(r => r.safetyLevel?.includes('Level 3')).length,
+        negligible: filteredRecords.filter(r => r.safetyLevel?.includes('Level 4')).length,
+      };
+
       res.json({
         summary: {
           total: filteredRecords.length,
@@ -4212,12 +4244,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         byType,
         bySeverity,
+        byLevel,
         byStatus,
         bySquadron: Array.from(squadronMap.values()),
         monthlyTrend,
         openItems: filteredRecords
           .filter(r => r.status === 'open')
-          .slice(0, 10), // Latest 10 open items
+          .slice(0, 10),
         safetyScore,
         safetyScoreLabel,
       });

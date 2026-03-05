@@ -96,7 +96,15 @@ AMG (Air Mobility Group) is a structural parent container — **never appears in
 - Submission forms auto-populate squadron from `/api/user/squadron` API (read-only display — no AMG option ever shown to flying personnel)
 - Database verified: AMG licenses = 5 leadership only; 0 AMG quiz/scenario submissions from loadmaster/instructor accounts; 0 AMG readiness snapshots
 
-## Recent Changes (March 5, 2026)
+## Recent Changes (March 5, 2026) — Safety Occurrence Management
+- **Safety Occurrence Management System**: Full CRUD system in Safety & Compliance section of Workforce Analytics
+  - `safety_records` schema extended with 7 new aviation fields: `location`, `aircraftType`, `flightPhase`, `safetyLevel`, `immediateActions`, `contributingFactors`, `correctiveActions`
+  - 43 realistic records seeded (45 total): ~18 incidents, ~15 observations, ~8 commendations, ~2 training failures across all 4 squadrons, 2023–2026
+  - Backend: GET/POST/PUT/DELETE `/api/safety-records` all updated to handle new fields; safety-summary includes `byLevel` breakdown
+  - Frontend: "Report Occurrence" orange button in Safety & Compliance section header; full modal form with 4 sections (Event Classification, Personnel & Location, Event Details, Status & Resolution); records table with 25 most recent entries, colour-coded type/severity/status badges, per-row edit and delete with confirmation dialog
+  - Personnel dropdown populated from `/api/instructor/users`; squadron restricted to 33SQN/35SQN/36SQN/37SQN only
+
+## Previous Changes (March 5, 2026)
 - **Deletion Activity Log**: New `activity_log` table tracks all destructive deletions across the platform
   - Phone Directory Entry deletions (in `server/index.ts`)
   - Mission deletions (in `server/routes.ts`)
