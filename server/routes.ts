@@ -4203,12 +4203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Calculate safety score (0-100)
-      // Start at 100, subtract for incidents (5 per incident, severity weighted)
-      // Minor incidents lose less points
+      // Severity-weighted deduction per incident, with bonuses for positive events
       const minorIncidents = incidents.filter(r => r.severity === 'minor').length;
       const moderateIncidents = incidents.filter(r => r.severity === 'moderate').length;
       const majorIncidents = incidents.filter(r => r.severity === 'major').length;
-      const incidentDeduction = (minorIncidents * 2) + (moderateIncidents * 5) + (majorIncidents * 10);
+      const incidentDeduction = (minorIncidents * 0.5) + (moderateIncidents * 2) + (majorIncidents * 4.5);
       
       // Bonus for commendations (up to 20 points)
       const commendationBonus = Math.min(byType.commendation * 0.5, 20);

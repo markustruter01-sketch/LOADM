@@ -415,6 +415,10 @@ export default function WorkforceAnalytics() {
   const [safetyFormData, setSafetyFormData] = useState<any>(EMPTY_SAFETY_FORM);
   const [safetyFormSubmitting, setSafetyFormSubmitting] = useState(false);
   const [loadmasterUsers, setLoadmasterUsers] = useState<any[]>([]);
+  const [safetyTableExpanded, setSafetyTableExpanded] = useState(false);
+  const [safetyPage, setSafetyPage] = useState(1);
+  const [viewingRecord, setViewingRecord] = useState<any>(null);
+  const SAFETY_PAGE_SIZE = 10;
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -1149,9 +1153,9 @@ export default function WorkforceAnalytics() {
                     <p className="text-xs text-gray-500 mb-2 font-medium">Score Calculation:</p>
                     <ul className="text-xs text-gray-500 space-y-1">
                       <li>• Base: 100 points</li>
-                      <li>• Minor incidents: -2 pts each</li>
-                      <li>• Moderate incidents: -5 pts each</li>
-                      <li>• Major incidents: -10 pts each</li>
+                      <li>• Minor incidents: -0.5 pts each</li>
+                      <li>• Moderate incidents: -2 pts each</li>
+                      <li>• Major incidents: -4.5 pts each</li>
                       <li>• Commendations: +0.5 pts (max 20)</li>
                       <li>• Observations: +0.3 pts (max 10)</li>
                     </ul>
@@ -1255,104 +1259,170 @@ export default function WorkforceAnalytics() {
             </CardContent>
           </Card>
 
-          {/* Safety Occurrences Table */}
+          {/* Safety Occurrences — Collapsible */}
           <Card className="bg-[#2a2a2a] border-[#333333]">
-            <CardHeader>
+            <CardHeader
+              className="cursor-pointer select-none"
+              onClick={() => setSafetyTableExpanded(p => !p)}
+            >
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-white text-lg">Safety Occurrences</CardTitle>
-                  <CardDescription className="text-gray-400">{safetyRecordsList.length} records — sorted by most recent</CardDescription>
+                <div className="flex items-center gap-3">
+                  <div className={`transition-transform duration-200 ${safetyTableExpanded ? 'rotate-90' : 'rotate-0'}`}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
+                      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <CardTitle className="text-white text-lg">Safety Occurrences</CardTitle>
+                    <CardDescription className="text-gray-400">
+                      {safetyRecordsList.length} records — {safetyTableExpanded ? 'click to collapse' : 'click to expand'}
+                    </CardDescription>
+                  </div>
                 </div>
-                <Button size="sm" onClick={openCreateDialog} className="bg-orange-500 hover:bg-orange-600 text-white text-xs">
+                <Button
+                  size="sm"
+                  onClick={e => { e.stopPropagation(); openCreateDialog(); }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
+                >
                   <Plus className="h-3 w-3 mr-1" /> New Occurrence
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              {safetyRecordsList.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">No safety occurrences recorded. Click "New Occurrence" to submit the first one.</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-[#333] text-gray-400 text-xs uppercase">
-                        <th className="text-left px-4 py-3">Date</th>
-                        <th className="text-left px-4 py-3">Type</th>
-                        <th className="text-left px-4 py-3">Level</th>
-                        <th className="text-left px-4 py-3">Severity</th>
-                        <th className="text-left px-4 py-3">Squadron</th>
-                        <th className="text-left px-4 py-3">Aircraft</th>
-                        <th className="text-left px-4 py-3 max-w-[220px]">Description</th>
-                        <th className="text-left px-4 py-3">Status</th>
-                        <th className="text-left px-4 py-3">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {safetyRecordsList.slice(0, 25).map((record: any) => (
-                        <tr key={record.id} className="border-b border-[#2a2a2a] hover:bg-[#333]/30 transition-colors">
-                          <td className="px-4 py-3 text-gray-300 whitespace-nowrap text-xs">
-                            {new Date(record.date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: '2-digit' })}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge className={`text-xs ${
-                              record.recordType === 'incident' ? 'bg-red-900/50 text-red-400 border-red-700' :
-                              record.recordType === 'observation' ? 'bg-blue-900/50 text-blue-400 border-blue-700' :
-                              record.recordType === 'commendation' ? 'bg-green-900/50 text-green-400 border-green-700' :
-                              'bg-yellow-900/50 text-yellow-400 border-yellow-700'
-                            } border`}>
-                              {record.recordType === 'training_failure' ? 'Training' : record.recordType}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
-                            {record.safetyLevel ? record.safetyLevel.replace(' - ', '\n').split('\n')[0] : '—'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {record.severity ? (
-                              <Badge className={`text-xs ${
-                                record.severity === 'major' ? 'bg-red-900/50 text-red-400' :
-                                record.severity === 'moderate' ? 'bg-orange-900/50 text-orange-400' :
-                                'bg-gray-800 text-gray-400'
-                              }`}>
-                                {record.severity}
-                              </Badge>
-                            ) : <span className="text-gray-600">—</span>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-300 text-xs">{record.squadron || '—'}</td>
-                          <td className="px-4 py-3 text-gray-400 text-xs">{record.aircraftType || '—'}</td>
-                          <td className="px-4 py-3 text-gray-300 text-xs max-w-[220px]">
-                            <span className="line-clamp-2">{record.description}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge className={`text-xs ${
-                              record.status === 'open' ? 'bg-red-900/40 text-red-400' :
-                              record.status === 'reviewed' ? 'bg-yellow-900/40 text-yellow-400' :
-                              'bg-green-900/40 text-green-400'
-                            }`}>
-                              {record.status}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1">
-                              <Button size="sm" variant="ghost" onClick={() => openEditDialog(record)} className="h-7 w-7 p-0 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10">
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => setDeleteConfirmId(record.id)} className="h-7 w-7 p-0 text-gray-400 hover:text-red-400 hover:bg-red-500/10">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {safetyRecordsList.length > 25 && (
-                    <div className="text-center py-3 text-xs text-gray-500 border-t border-[#333]">
-                      Showing 25 of {safetyRecordsList.length} records. Use filters to narrow results.
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
+
+            {safetyTableExpanded && (
+              <CardContent className="p-0">
+                {safetyRecordsList.length === 0 ? (
+                  <div className="text-center py-10 text-gray-500">No safety occurrences recorded. Click "New Occurrence" to submit the first one.</div>
+                ) : (() => {
+                  const totalPages = Math.ceil(safetyRecordsList.length / SAFETY_PAGE_SIZE);
+                  const pageRecords = safetyRecordsList.slice((safetyPage - 1) * SAFETY_PAGE_SIZE, safetyPage * SAFETY_PAGE_SIZE);
+                  return (
+                    <>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-[#333] text-gray-400 text-xs uppercase">
+                              <th className="text-left px-4 py-3">Date</th>
+                              <th className="text-left px-4 py-3">Type</th>
+                              <th className="text-left px-4 py-3">Level</th>
+                              <th className="text-left px-4 py-3">Severity</th>
+                              <th className="text-left px-4 py-3">Squadron</th>
+                              <th className="text-left px-4 py-3">Aircraft</th>
+                              <th className="text-left px-4 py-3 max-w-[220px]">Description</th>
+                              <th className="text-left px-4 py-3">Status</th>
+                              <th className="text-left px-4 py-3">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pageRecords.map((record: any) => (
+                              <tr
+                                key={record.id}
+                                className="border-b border-[#2a2a2a] hover:bg-[#333]/40 transition-colors cursor-pointer group"
+                                onClick={() => setViewingRecord(record)}
+                              >
+                                <td className="px-4 py-3 text-gray-300 whitespace-nowrap text-xs">
+                                  {new Date(record.date).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Badge className={`text-xs ${
+                                    record.recordType === 'incident' ? 'bg-red-900/50 text-red-400 border-red-700' :
+                                    record.recordType === 'observation' ? 'bg-blue-900/50 text-blue-400 border-blue-700' :
+                                    record.recordType === 'commendation' ? 'bg-green-900/50 text-green-400 border-green-700' :
+                                    'bg-yellow-900/50 text-yellow-400 border-yellow-700'
+                                  } border`}>
+                                    {record.recordType === 'training_failure' ? 'Training' : record.recordType}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                                  {record.safetyLevel ? record.safetyLevel.split(' - ')[0] : '—'}
+                                </td>
+                                <td className="px-4 py-3">
+                                  {record.severity ? (
+                                    <Badge className={`text-xs ${
+                                      record.severity === 'major' ? 'bg-red-900/50 text-red-400' :
+                                      record.severity === 'moderate' ? 'bg-orange-900/50 text-orange-400' :
+                                      'bg-gray-800 text-gray-400'
+                                    }`}>
+                                      {record.severity}
+                                    </Badge>
+                                  ) : <span className="text-gray-600">—</span>}
+                                </td>
+                                <td className="px-4 py-3 text-gray-300 text-xs">{record.squadron || '—'}</td>
+                                <td className="px-4 py-3 text-gray-400 text-xs">{record.aircraftType || '—'}</td>
+                                <td className="px-4 py-3 text-gray-300 text-xs max-w-[220px]">
+                                  <span className="line-clamp-2 group-hover:text-orange-300 transition-colors">{record.description}</span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <Badge className={`text-xs ${
+                                    record.status === 'open' ? 'bg-red-900/40 text-red-400' :
+                                    record.status === 'reviewed' ? 'bg-yellow-900/40 text-yellow-400' :
+                                    'bg-green-900/40 text-green-400'
+                                  }`}>
+                                    {record.status}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                                    <Button size="sm" variant="ghost" onClick={() => openEditDialog(record)} className="h-7 w-7 p-0 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10">
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setDeleteConfirmId(record.id)} className="h-7 w-7 p-0 text-gray-400 hover:text-red-400 hover:bg-red-500/10">
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Pagination */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between px-4 py-3 border-t border-[#333]">
+                          <span className="text-xs text-gray-500">
+                            Showing {(safetyPage - 1) * SAFETY_PAGE_SIZE + 1}–{Math.min(safetyPage * SAFETY_PAGE_SIZE, safetyRecordsList.length)} of {safetyRecordsList.length} records
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={safetyPage === 1}
+                              onClick={() => setSafetyPage(p => p - 1)}
+                              className="h-7 px-2 text-gray-400 hover:text-white disabled:opacity-30"
+                            >
+                              ← Prev
+                            </Button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(pg => (
+                              <button
+                                key={pg}
+                                onClick={() => setSafetyPage(pg)}
+                                className={`h-7 w-7 text-xs rounded transition-colors ${
+                                  pg === safetyPage
+                                    ? 'bg-orange-500 text-white'
+                                    : 'text-gray-400 hover:bg-[#444] hover:text-white'
+                                }`}
+                              >
+                                {pg}
+                              </button>
+                            ))}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={safetyPage === totalPages}
+                              onClick={() => setSafetyPage(p => p + 1)}
+                              className="h-7 px-2 text-gray-400 hover:text-white disabled:opacity-30"
+                            >
+                              Next →
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </CardContent>
+            )}
           </Card>
         </section>
 
@@ -1706,6 +1776,143 @@ export default function WorkforceAnalytics() {
           Workforce Health Analytics Dashboard • Data refreshed at {lastRefresh.toLocaleString()}
         </div>
       </div>
+
+      {/* Read-Only Safety Record Viewer */}
+      <Dialog open={!!viewingRecord} onOpenChange={open => !open && setViewingRecord(null)}>
+        <DialogContent className="bg-[#1e1e1e] border-[#333] text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          {viewingRecord && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    viewingRecord.recordType === 'incident' ? 'bg-red-900/40' :
+                    viewingRecord.recordType === 'observation' ? 'bg-blue-900/40' :
+                    viewingRecord.recordType === 'commendation' ? 'bg-green-900/40' :
+                    'bg-yellow-900/40'
+                  }`}>
+                    {viewingRecord.recordType === 'incident' ? <AlertTriangle className={`h-5 w-5 text-red-400`} /> :
+                     viewingRecord.recordType === 'observation' ? <Shield className="h-5 w-5 text-blue-400" /> :
+                     viewingRecord.recordType === 'commendation' ? <Award className="h-5 w-5 text-green-400" /> :
+                     <GraduationCap className="h-5 w-5 text-yellow-400" />}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-white text-lg capitalize">
+                      {viewingRecord.recordType === 'training_failure' ? 'Training Failure' : viewingRecord.recordType} Report
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-400 text-xs mt-0.5">
+                      {new Date(viewingRecord.date).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      {viewingRecord.squadron && ` • ${viewingRecord.squadron}`}
+                      {viewingRecord.aircraftType && ` • ${viewingRecord.aircraftType}`}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-5 pt-1">
+                {/* Status banner */}
+                <div className={`flex items-center justify-between px-4 py-2.5 rounded-lg border ${
+                  viewingRecord.status === 'open' ? 'bg-red-900/20 border-red-700/40' :
+                  viewingRecord.status === 'reviewed' ? 'bg-yellow-900/20 border-yellow-700/40' :
+                  'bg-green-900/20 border-green-700/40'
+                }`}>
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Status</span>
+                  <Badge className={`capitalize text-sm px-3 py-0.5 ${
+                    viewingRecord.status === 'open' ? 'bg-red-900/50 text-red-400' :
+                    viewingRecord.status === 'reviewed' ? 'bg-yellow-900/50 text-yellow-400' :
+                    'bg-green-900/50 text-green-400'
+                  }`}>
+                    {viewingRecord.status}
+                  </Badge>
+                </div>
+
+                {/* Classification row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Safety Level', value: viewingRecord.safetyLevel || '—' },
+                    { label: 'Severity', value: viewingRecord.severity ? viewingRecord.severity.charAt(0).toUpperCase() + viewingRecord.severity.slice(1) : '—' },
+                    { label: 'Aircraft', value: viewingRecord.aircraftType || '—' },
+                    { label: 'Flight Phase', value: viewingRecord.flightPhase ? viewingRecord.flightPhase.charAt(0).toUpperCase() + viewingRecord.flightPhase.slice(1) : '—' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="bg-[#2a2a2a] rounded-lg p-3">
+                      <div className="text-xs text-gray-500 mb-1">{label}</div>
+                      <div className="text-sm text-white font-medium">{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {viewingRecord.location && (
+                  <div className="bg-[#2a2a2a] rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-1">Location</div>
+                    <div className="text-sm text-white">{viewingRecord.location}</div>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Description of Event</div>
+                  <div className="bg-[#2a2a2a] rounded-lg p-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                    {viewingRecord.description}
+                  </div>
+                </div>
+
+                {viewingRecord.immediateActions && (
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Immediate Actions Taken</div>
+                    <div className="bg-[#2a2a2a] rounded-lg p-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                      {viewingRecord.immediateActions}
+                    </div>
+                  </div>
+                )}
+
+                {viewingRecord.contributingFactors && (
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Contributing Factors</div>
+                    <div className="bg-[#2a2a2a] rounded-lg p-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                      {viewingRecord.contributingFactors}
+                    </div>
+                  </div>
+                )}
+
+                {viewingRecord.correctiveActions && (
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Corrective / Preventive Actions</div>
+                    <div className="bg-[#2a2a2a] rounded-lg p-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                      {viewingRecord.correctiveActions}
+                    </div>
+                  </div>
+                )}
+
+                {viewingRecord.resolutionNotes && (
+                  <div className="space-y-1">
+                    <div className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Resolution Notes</div>
+                    <div className="bg-[#2a2a2a] rounded-lg p-4 text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">
+                      {viewingRecord.resolutionNotes}
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer actions */}
+                <div className="flex items-center justify-between pt-2 border-t border-[#333]">
+                  <span className="text-xs text-gray-600">Record #{viewingRecord.id} • Read-only view</span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setViewingRecord(null); openEditDialog(viewingRecord); }}
+                      className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 text-xs"
+                    >
+                      <Pencil className="h-3 w-3 mr-1" /> Edit Record
+                    </Button>
+                    <Button size="sm" onClick={() => setViewingRecord(null)} className="bg-[#333] hover:bg-[#444] text-white text-xs">
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Help Modal */}
       <HelpModal helpKey={activeHelp} onClose={() => setActiveHelp(null)} />
