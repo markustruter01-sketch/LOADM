@@ -114,7 +114,7 @@ export default function ScenariosPage() {
                 {activeTab === "training" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {scenarios?.map((scenario) => (
-                      <ScenarioCard key={`training-${scenario.id}`} scenario={scenario} />
+                      <ScenarioCard key={`training-${scenario.id}`} scenario={scenario} activeTab="training" />
                     ))}
                   </div>
                 )}
@@ -122,7 +122,7 @@ export default function ScenariosPage() {
                 {activeTab === "assessment" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {scenarios?.map((scenario) => (
-                      <ScenarioCard key={`assessment-${scenario.id}`} scenario={scenario} />
+                      <ScenarioCard key={`assessment-${scenario.id}`} scenario={scenario} activeTab="assessment" />
                     ))}
                   </div>
                 )}

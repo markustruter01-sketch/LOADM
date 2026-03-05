@@ -54,6 +54,16 @@ export default function ModernScenarioPage() {
   const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [selectedSquadron, setSelectedSquadron] = useState("AMG");
+  const [isTrainingMode, setIsTrainingMode] = useState(false);
+
+  // Check if we are in training mode based on URL or state
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'training') {
+      setIsTrainingMode(true);
+      setSubmissionType('training');
+    }
+  }, []);
 
   // Fetch user squadron data
   const { data: userSquadron } = useQuery({
@@ -229,6 +239,13 @@ export default function ModernScenarioPage() {
       return;
     }
     
+    if (isTrainingMode) {
+      console.log('🚀 TRAINING MODE - Skipping submission type dialog');
+      setSubmissionType('training');
+      handleFinalSubmit();
+      return;
+    }
+
     console.log('✅ Opening submission dialog');
     setShowSubmissionDialog(true);
   };
@@ -471,31 +488,86 @@ export default function ModernScenarioPage() {
 
       {/* Results Dialog */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Scenario Complete</DialogTitle>
+            <div className="flex justify-between items-center mb-2">
+              <DialogTitle className="text-2xl font-bold">Scenario Results</DialogTitle>
+              <div className="flex gap-2 no-print">
+                <Button variant="outline" size="sm" onClick={() => window.print()}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                  Print
+                </Button>
+                <Button variant="outline" size="sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  Save / Download
+                </Button>
+                <Button variant="outline" size="sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  AirDrop
+                </Button>
+              </div>
+            </div>
             <DialogDescription>
-              You have completed the "{scenario.title}" scenario
+              {submissionType === 'training' ? 
+                `Review your answers for "${scenario.title}". These results were not submitted to an instructor.` :
+                `Your assessment for "${scenario.title}" has been submitted for instructor review.`
+              }
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <div className="flex justify-center items-center mb-4">
-              <div className="bg-green-100 rounded-full h-32 w-32 flex items-center justify-center animate-pulse">
-                <svg className="w-16 h-16 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+          <div className="py-6 space-y-6">
+            <div className="bg-muted p-4 rounded-lg flex justify-between items-center mb-6">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Student Name</p>
+                <p className="text-lg font-bold">{studentName}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Score</p>
+                <p className="text-lg font-bold text-orange-500">{score}%</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Type</p>
+                <Badge variant="outline" className="capitalize">{submissionType}</Badge>
               </div>
             </div>
-            <p className="text-center mb-6">
-              {submissionType === 'training' ? 
-                "Training completed successfully! Results saved to your activity history." :
-                "Assessment submitted for instructor review."
-              }
-            </p>
+
+            <div className="space-y-8">
+              {questions.map((question, index) => (
+                <div key={question.id} className="border-b pb-6 last:border-b-0">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-bold flex gap-3">
+                      <span className="text-muted-foreground">{index + 1}.</span>
+                      {question.question}
+                    </h4>
+                    {question.questionType === "multiple-choice" && (
+                      <Badge variant={answers[question.id] === question.correctAnswer ? "success" : "destructive"}>
+                        {answers[question.id] === question.correctAnswer ? "Correct" : "Incorrect"}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="ml-8 space-y-2">
+                    <div className="p-3 rounded bg-muted/50">
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Your Answer:</p>
+                      <p>{answers[question.id] || "No answer provided"}</p>
+                    </div>
+                    {question.correctAnswer && answers[question.id] !== question.correctAnswer && (
+                      <div className="p-3 rounded bg-green-500/10 border border-green-500/20">
+                        <p className="text-sm font-medium text-green-600 mb-1">Correct Answer:</p>
+                        <p>{question.correctAnswer}</p>
+                      </div>
+                    )}
+                    {notes[question.id] && (
+                      <div className="p-3 rounded border border-border italic text-sm text-muted-foreground">
+                        <span className="font-bold not-italic">Notes:</span> {notes[question.id]}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="no-print">
             <Button onClick={finishScenario} className="w-full">
               Return to Dashboard
             </Button>

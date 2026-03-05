@@ -5,9 +5,12 @@ import { Link } from "wouter";
 
 interface ScenarioCardProps {
   scenario: Scenario;
+  activeTab?: string;
 }
 
-export default function ScenarioCard({ scenario }: ScenarioCardProps) {
+export default function ScenarioCard(props: ScenarioCardProps) {
+  const { scenario, activeTab } = props;
+  
   return (
     <div className="bg-card rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-700/50">
       {/* Banner */}
@@ -25,7 +28,7 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
             <span className="text-xs font-medium text-gray-200">{scenario.numberOfQuestions} questions</span>
           </div>
           <Badge variant="outline" className="bg-orange-500/20 text-orange-400 border-orange-500/20">
-            Scenario
+            {activeTab === 'training' ? 'Training' : 'Assessment'}
           </Badge>
         </div>
       </div>
@@ -40,7 +43,7 @@ export default function ScenarioCard({ scenario }: ScenarioCardProps) {
           <span className="text-xs text-muted-foreground">
             {scenario.numberOfQuestions} questions
           </span>
-          <Link href={`/scenarios/${scenario.id}`}>
+          <Link href={`/scenarios/${scenario.id}${activeTab === 'training' ? '?mode=training' : ''}`}>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
               Start
             </Button>
