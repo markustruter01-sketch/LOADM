@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, PartyPopper } from "lucide-react";
 
-type SuccessAnimationType = "login" | "register" | "submission";
+type SuccessAnimationType = "login" | "register" | "submission" | "checklist";
 
 interface SuccessAnimationProps {
   type: SuccessAnimationType;
@@ -46,6 +46,12 @@ export default function SuccessAnimation({ type, show, onComplete }: SuccessAnim
           icon: <Check className="h-10 w-10 text-white" />,
           title: "Great job!",
           message: "Submission completed successfully"
+        };
+      case "checklist":
+        return {
+          icon: <Check className="h-10 w-10 text-white" />,
+          title: "Checklist Complete!",
+          message: "All items verified and signed off"
         };
     }
   };
@@ -104,6 +110,32 @@ export default function SuccessAnimation({ type, show, onComplete }: SuccessAnim
               {content.message}
             </motion.p>
             
+            {/* Particle burst for checklist completion */}
+            {type === "checklist" && (
+              <>
+                {Array.from({ length: 24 }).map((_, index) => (
+                  <motion.div
+                    key={index}
+                    className="absolute"
+                    initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
+                    animate={{
+                      x: Math.cos((index / 24) * Math.PI * 2) * (80 + Math.random() * 80),
+                      y: Math.sin((index / 24) * Math.PI * 2) * (80 + Math.random() * 80),
+                      scale: Math.random() * 0.6 + 0.4,
+                      opacity: 0,
+                    }}
+                    transition={{ duration: 0.9 + Math.random() * 0.5, delay: Math.random() * 0.2 }}
+                    style={{
+                      width: index % 2 === 0 ? '10px' : '6px',
+                      height: index % 2 === 0 ? '10px' : '6px',
+                      borderRadius: index % 3 === 0 ? '50%' : '2px',
+                      background: index % 3 === 0 ? '#f97316' : index % 3 === 1 ? '#fdba74' : '#ffffff',
+                    }}
+                  />
+                ))}
+              </>
+            )}
+
             {/* Confetti effect for register */}
             {type === "register" && (
               <>

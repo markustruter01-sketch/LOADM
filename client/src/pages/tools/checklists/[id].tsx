@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { usePermissions } from "@/lib/permissions";
 import { PermissionDialog } from "@/components/PermissionDialog";
+import SuccessAnimation from "@/components/SuccessAnimation";
 
 interface ChecklistItem {
   id: number;
