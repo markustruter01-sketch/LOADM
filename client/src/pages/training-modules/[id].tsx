@@ -17,6 +17,7 @@ import C17WeightBalance from "./reading-content/c17-weight-balance"
 import C130CargoConfigurations from "./reading-content/c130-cargo-configurations"
 import KC30ACargoBaySystems from "./reading-content/kc30a-cargo-systems"
 import C27JOperations from "./reading-content/c27j-operations"
+import { getDynamicReadingJSX } from "./reading-content/dynamic-content"
 
 // Simple placeholder components for content that doesn't exist yet
 const TrainingVideoPlayer = ({ title, description }: { title: string; description: string }) => (
@@ -1228,12 +1229,30 @@ export default function ModuleDetailPage() {
                                       <ReadingComponent />
                                     </div>
                                   ) : (
-                                    <div style={{ color: '#374151' }}>
-                                      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', fontFamily: 'system-ui', borderBottom: '2px solid #c2410c', paddingBottom: '0.5rem', color: '#1c1917' }}>
-                                        {lesson.title}
-                                      </h1>
-                                      <p style={{ marginBottom: '1rem' }}>{lesson.description}</p>
-                                      <p>{lesson.content}</p>
+                                    <div
+                                      style={{ color: '#1c1917' }}
+                                      className="reading-document"
+                                    >
+                                      <style>{`
+                                        .reading-document { font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.75; }
+                                        .reading-document h1 { font-size: 1.5rem; font-weight: 700; color: #1c1917; margin-bottom: 0.75rem; font-family: system-ui, sans-serif; border-bottom: 2px solid #c2410c; padding-bottom: 0.5rem; }
+                                        .reading-document h2 { font-size: 1.15rem; font-weight: 700; color: #1c1917; margin-top: 2rem; margin-bottom: 0.6rem; font-family: system-ui, sans-serif; }
+                                        .reading-document h3 { font-size: 1rem; font-weight: 700; color: #374151; margin-top: 1.25rem; margin-bottom: 0.4rem; font-family: system-ui, sans-serif; }
+                                        .reading-document p { color: #374151; margin-bottom: 0.9rem; font-size: 0.925rem; }
+                                        .reading-document ul, .reading-document ol { color: #374151; padding-left: 1.5rem; margin-bottom: 1rem; font-size: 0.925rem; }
+                                        .reading-document li { margin-bottom: 0.35rem; }
+                                        .reading-document strong { color: #1c1917; font-weight: 700; }
+                                        .reading-document table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; }
+                                        .reading-document th { background: #f3f4f6; color: #1c1917; font-weight: 700; padding: 8px 12px; border: 1px solid #d1d5db; text-align: left; }
+                                        .reading-document td { padding: 7px 12px; border: 1px solid #d1d5db; color: #374151; }
+                                        .reading-document tr:nth-child(even) td { background: #f9fafb; }
+                                      `}</style>
+                                      {getDynamicReadingJSX(
+                                        module.aircraft || "all",
+                                        module.difficulty || "beginner",
+                                        Array.isArray(module.topics) ? module.topics : [],
+                                        module.title || lesson.title
+                                      )}
                                     </div>
                                   )}
                                 </div>
