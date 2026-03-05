@@ -434,7 +434,7 @@ export default function TrainingModulesPage({ hideHeader = false, params }: Trai
           {/* Module Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModules.map((module) => (
-              <Card key={module.id} className="border-gray-800 bg-card hover:bg-card/90 transition-colors">
+              <Card key={module.id} className="border-gray-800 bg-card hover:bg-card/90 transition-colors cursor-pointer" onClick={() => navigate(`/training-modules/${module.id}`)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between mb-2">
                     <Badge variant="outline" className={`${difficultyColors[module.difficulty]} border`}>
