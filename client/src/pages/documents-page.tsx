@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -100,6 +101,7 @@ export default function DocumentsPage() {
   const [archivePage, setArchivePage] = useState(1);
   const [archiveExpanded, setArchiveExpanded] = useState(false);
   const MISSIONS_PER_PAGE = 5;
+  const [pendingDeleteEntry, setPendingDeleteEntry] = useState<{ id: number; name: string } | null>(null);
   const [editMissionData, setEditMissionData] = useState({
     missionName: "",
     aircraftCallSign: "",
@@ -972,7 +974,7 @@ export default function DocumentsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => deleteDirectoryMutation.mutate(entry.id)}
+                              onClick={() => setPendingDeleteEntry({ id: entry.id, name: entry.airbaseName })}
                               className="text-red-600 border-red-200 hover:bg-red-50"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1799,6 +1801,38 @@ export default function DocumentsPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Directory Entry Confirmation Dialog */}
+      <AlertDialog open={!!pendingDeleteEntry} onOpenChange={(open) => { if (!open) setPendingDeleteEntry(null); }}>
+        <AlertDialogContent className="bg-gray-900 border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Directory Entry</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Are you sure you want to delete <span className="text-white font-semibold">{pendingDeleteEntry?.name}</span>? This will permanently remove the airbase and all its contacts from the phone directory.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+              onClick={() => setPendingDeleteEntry(null)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                if (pendingDeleteEntry) {
+                  deleteDirectoryMutation.mutate(pendingDeleteEntry.id);
+                  setPendingDeleteEntry(null);
+                }
+              }}
+              disabled={deleteDirectoryMutation.isPending}
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
