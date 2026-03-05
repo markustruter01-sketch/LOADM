@@ -12,7 +12,7 @@ import TrainingModulesPage from "@/pages/training-modules";
 
 export default function AirframeIntegratedPage() {
   const [location, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState("load-planning");
+  const [activeTab, setActiveTab] = useState("training-modules");
   const [selectedAircraft, setSelectedAircraft] = useState<string | null>(null);
 
   // Check URL parameters for tab selection and aircraft
@@ -20,9 +20,9 @@ export default function AirframeIntegratedPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const hash = window.location.hash;
     
-    // Check for training modules in URL parameters or hash
-    if (urlParams.get('tab') === 'training-modules' || hash === '#training-modules') {
-      setActiveTab("training-modules");
+    // Check for load planning in URL parameters or hash
+    if (urlParams.get('tab') === 'load-planning' || hash === '#load-planning') {
+      setActiveTab("load-planning");
     }
     
     // Check for aircraft parameter
@@ -71,29 +71,29 @@ export default function AirframeIntegratedPage() {
             Access load planning simulations and training modules for various aircraft
           </p>
 
-          {/* Tab toggle between Load Planning and Training Modules */}
+          {/* Tab toggle between Training Modules and Load Planning */}
           <Tabs
-            defaultValue="load-planning"
+            defaultValue="training-modules"
             value={activeTab}
             onValueChange={setActiveTab}
             className="mb-6"
           >
             <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="load-planning">Load Planning</TabsTrigger>
               <TabsTrigger value="training-modules">Training Modules</TabsTrigger>
+              <TabsTrigger value="load-planning">Load Planning</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="load-planning" className="mt-6">
-              {/* Reuse the content from the existing load planning page */}
-              <div className="pt-2">
-                <LoadPlanningContent />
-              </div>
-            </TabsContent>
 
             <TabsContent value="training-modules" className="mt-6">
               {/* Reuse the content from the existing training modules page */}
               <div className="pt-2">
                 <TrainingModulesContent />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="load-planning" className="mt-6">
+              {/* Reuse the content from the existing load planning page */}
+              <div className="pt-2">
+                <LoadPlanningContent />
               </div>
             </TabsContent>
           </Tabs>
