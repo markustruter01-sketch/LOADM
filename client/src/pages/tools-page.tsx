@@ -999,9 +999,11 @@ export default function ToolsPage() {
                     <CardDescription className="text-gray-400">One-Click Mission Difficulty Assessment</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <p className="text-sm text-gray-400 mb-6 leading-relaxed border-l-2 border-orange-500/40 pl-4">
-                      This tool is designed to help loadmasters and mission planning teams assess the complexity and risk profile of a given mission based on factors directly relevant to the loadmaster's role, allowing proper allocation of resources for safe operations.
-                    </p>
+                    <div className="mb-6 px-4 py-3 rounded-md bg-orange-500/10 border border-orange-500/20">
+                      <p className="text-sm text-gray-300 leading-relaxed">
+                        <span className="font-semibold text-orange-400">NOTE:</span> This tool is designed to help loadmasters and mission planning teams assess the complexity and risk profile of a given mission based on factors directly relevant to the loadmaster's role, allowing proper allocation of resources for safe operations.
+                      </p>
+                    </div>
                     <MissionComplexityAnalyzer />
                   </CardContent>
                 </Card>
