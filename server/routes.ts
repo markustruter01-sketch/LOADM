@@ -4549,7 +4549,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get unique squadrons for multi-line chart
       const squadrons = squadron === 'all' 
-        ? ['33SQN', '35SQN', '36SQN', '37SQN', 'AMG']
+        ? ['33SQN', '35SQN', '36SQN', '37SQN']
         : [squadron as string];
 
       // Initialize bins for 0-12 years

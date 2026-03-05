@@ -537,6 +537,9 @@ export default function AdvancedAnalytics() {
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
   const [iccMetric, setIccMetric] = useState<string>("assessmentsPassed");
   const [showIccFormulaModal, setShowIccFormulaModal] = useState<boolean>(false);
+  const [iccSquadronToggles, setIccSquadronToggles] = useState<Record<string, boolean>>({
+    '33SQN': true, '35SQN': true, '36SQN': true, '37SQN': true
+  });
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -1040,71 +1043,6 @@ export default function AdvancedAnalytics() {
           </div>
         </div>
         
-        {/* Filter Bar */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filters:</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Label htmlFor="squadron-filter" className="text-sm whitespace-nowrap">Squadron:</Label>
-                <Select 
-                  value={selectedSquadron} 
-                  onValueChange={setSelectedSquadron}
-                >
-                  <SelectTrigger id="squadron-filter" className="h-8 w-[140px]">
-                    <SelectValue placeholder="All Squadrons" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Squadrons</SelectItem>
-                    {SQUADRONS.map(sq => (
-                      <SelectItem key={sq} value={sq}>{sq}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Label htmlFor="type-filter" className="text-sm whitespace-nowrap">Assessment Type:</Label>
-                <Select 
-                  value={selectedAssessmentType} 
-                  onValueChange={setSelectedAssessmentType}
-                >
-                  <SelectTrigger id="type-filter" className="h-8 w-[160px]">
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="scenario">Scenarios</SelectItem>
-                    <SelectItem value="quiz">Quizzes</SelectItem>
-                    <SelectItem value="document">Documents</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Label htmlFor="date-filter" className="text-sm whitespace-nowrap">Time Period:</Label>
-                <Select 
-                  value={selectedDateRange} 
-                  onValueChange={setSelectedDateRange}
-                >
-                  <SelectTrigger id="date-filter" className="h-8 w-[140px]">
-                    <SelectValue placeholder="All Time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="week">Last 7 Days</SelectItem>
-                    <SelectItem value="month">Last 30 Days</SelectItem>
-                    <SelectItem value="quarter">Last 90 Days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
       
       {isLoading ? (
@@ -1240,6 +1178,35 @@ export default function AdvancedAnalytics() {
                 </div>
               ) : iccData?.curves && iccData.curves.length > 0 ? (
                 <>
+                  {/* Squadron Toggle Pills */}
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <span className="text-xs text-muted-foreground font-medium mr-1">Show:</span>
+                    {iccData.curves.map((curve) => {
+                      const isOn = iccSquadronToggles[curve.squadron] !== false;
+                      return (
+                        <button
+                          key={curve.squadron}
+                          onClick={() => {
+                            const activeCount = Object.values(iccSquadronToggles).filter(Boolean).length;
+                            if (isOn && activeCount <= 1) return;
+                            setIccSquadronToggles(prev => ({ ...prev, [curve.squadron]: !isOn }));
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
+                            isOn
+                              ? 'bg-gray-800 border-gray-600 text-gray-200'
+                              : 'bg-gray-900/60 border-gray-800 text-gray-600 line-through'
+                          }`}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: isOn ? curve.color : '#4B5563' }}
+                          />
+                          {curve.squadron}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   {/* Chart */}
                   <div className="h-[400px] w-full" data-testid="icc-chart-container">
                     <ResponsiveContainer width="100%" height="100%">
@@ -1276,7 +1243,7 @@ export default function AdvancedAnalytics() {
                         <Legend 
                           wrapperStyle={{ paddingTop: '20px' }}
                         />
-                        {iccData.curves.map((curve, index) => (
+                        {iccData.curves.filter(curve => iccSquadronToggles[curve.squadron] !== false).map((curve, index) => (
                           <Line
                             key={curve.squadron}
                             data={curve.dataPoints}
@@ -1493,6 +1460,72 @@ export default function AdvancedAnalytics() {
             </CardContent>
           </Card>
           
+          {/* Filter Bar — applies to charts below */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filters:</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="squadron-filter" className="text-sm whitespace-nowrap">Squadron:</Label>
+                  <Select 
+                    value={selectedSquadron} 
+                    onValueChange={setSelectedSquadron}
+                  >
+                    <SelectTrigger id="squadron-filter" className="h-8 w-[140px]">
+                      <SelectValue placeholder="All Squadrons" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Squadrons</SelectItem>
+                      {SQUADRONS.map(sq => (
+                        <SelectItem key={sq} value={sq}>{sq}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="type-filter" className="text-sm whitespace-nowrap">Assessment Type:</Label>
+                  <Select 
+                    value={selectedAssessmentType} 
+                    onValueChange={setSelectedAssessmentType}
+                  >
+                    <SelectTrigger id="type-filter" className="h-8 w-[160px]">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="scenario">Scenarios</SelectItem>
+                      <SelectItem value="quiz">Quizzes</SelectItem>
+                      <SelectItem value="document">Documents</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="date-filter" className="text-sm whitespace-nowrap">Time Period:</Label>
+                  <Select 
+                    value={selectedDateRange} 
+                    onValueChange={setSelectedDateRange}
+                  >
+                    <SelectTrigger id="date-filter" className="h-8 w-[140px]">
+                      <SelectValue placeholder="All Time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="week">Last 7 Days</SelectItem>
+                      <SelectItem value="month">Last 30 Days</SelectItem>
+                      <SelectItem value="quarter">Last 90 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Main Content Area */}
           <div className="space-y-6">
               {/* Performance Overview - 2-column layout */}
