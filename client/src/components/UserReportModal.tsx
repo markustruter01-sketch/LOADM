@@ -393,12 +393,12 @@ export function UserReportModal({ open, onOpenChange }: UserReportModalProps) {
                     <Popover>
                       <PopoverTrigger asChild>
                         <button 
-                          className="text-right p-3 -m-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group"
+                          className="text-right px-3 py-2 rounded-lg border border-border hover:border-primary/50 hover:bg-accent/50 transition-all duration-200 cursor-pointer group"
                           data-testid="button-risk-score"
                         >
                           <div className="text-sm text-muted-foreground flex items-center gap-1 justify-end">
                             Risk Score
-                            <HelpCircle className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                            <HelpCircle className="h-3 w-3 opacity-60 group-hover:opacity-100 group-hover:text-primary transition-colors" />
                           </div>
                           <div className="flex items-center gap-2 justify-end">
                             <span className="text-3xl font-bold">{report.riskAssessment.score}</span>
