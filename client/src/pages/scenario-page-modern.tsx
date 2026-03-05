@@ -16,6 +16,7 @@ import SuccessAnimation from "@/components/SuccessAnimation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PermissionDialog } from "@/components/PermissionDialog";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
