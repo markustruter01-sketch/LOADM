@@ -281,7 +281,7 @@ const trainingModules: Module[] = [
 // Difficulty color mapping
 const difficultyColors: Record<DifficultyLevel, string> = {
   beginner: "bg-green-500/20 text-green-500 border-green-500/30",
-  intermediate: "bg-blue-500/20 text-blue-500 border-blue-500/30",
+  intermediate: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   advanced: "bg-amber-500/20 text-amber-500 border-amber-500/30",
   expert: "bg-red-500/20 text-red-500 border-red-500/30"
 };

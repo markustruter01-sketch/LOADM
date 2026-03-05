@@ -1246,11 +1246,11 @@ export default function ModuleDetailPage() {
                       <span className="text-xs text-gray-300">{module.duration || '3 hours'}</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gray-800/50 px-2.5 py-1 rounded border border-gray-700">
-                      <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                      <BookOpen className="w-3.5 h-3.5 text-orange-400" />
                       <span className="text-xs text-gray-300">{content.length} lessons</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gray-800/50 px-2.5 py-1 rounded border border-gray-700">
-                      <Target className="w-3.5 h-3.5 text-green-400" />
+                      <Target className="w-3.5 h-3.5 text-orange-400" />
                       <span className="text-xs text-gray-300">80% pass</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-gray-800/50 px-2.5 py-1 rounded border border-gray-700">
@@ -1269,8 +1269,8 @@ export default function ModuleDetailPage() {
                   <Card className="border-gray-800 overflow-hidden">
                     <CardHeader className="py-3 px-4 bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded bg-green-500/20 flex items-center justify-center">
-                          <Target className="w-4 h-4 text-green-400" />
+                        <div className="w-7 h-7 rounded bg-orange-500/20 flex items-center justify-center">
+                          <Target className="w-4 h-4 text-orange-400" />
                         </div>
                         <CardTitle className="text-white text-sm">What You'll Learn</CardTitle>
                       </div>
@@ -1282,7 +1282,7 @@ export default function ModuleDetailPage() {
                             key={index} 
                             className="flex items-start gap-2 p-2.5 rounded bg-gray-800/30 border border-gray-700/50"
                           >
-                            <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                            <CheckCircle2 className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
                             <span className="text-gray-300 text-xs leading-relaxed">{objective}</span>
                           </div>
                         ))}
@@ -1294,8 +1294,8 @@ export default function ModuleDetailPage() {
                   <Card className="border-gray-800 overflow-hidden">
                     <CardHeader className="py-3 px-4 bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded bg-blue-500/20 flex items-center justify-center">
-                          <BookOpen className="w-4 h-4 text-blue-400" />
+                        <div className="w-7 h-7 rounded bg-orange-500/20 flex items-center justify-center">
+                          <BookOpen className="w-4 h-4 text-orange-400" />
                         </div>
                         <CardTitle className="text-white text-sm">Topics Covered</CardTitle>
                       </div>
@@ -1319,8 +1319,8 @@ export default function ModuleDetailPage() {
                   <Card className="border-gray-800 overflow-hidden">
                     <CardHeader className="py-3 px-4 bg-gradient-to-r from-gray-800/50 to-transparent border-b border-gray-800">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded bg-purple-500/20 flex items-center justify-center">
-                          <FileText className="w-4 h-4 text-purple-400" />
+                        <div className="w-7 h-7 rounded bg-orange-500/20 flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-orange-400" />
                         </div>
                         <CardTitle className="text-white text-sm">Course Structure</CardTitle>
                       </div>
@@ -1328,15 +1328,15 @@ export default function ModuleDetailPage() {
                     <CardContent className="p-3">
                       <div className="grid grid-cols-4 gap-2">
                         <div className="text-center p-2 rounded bg-gray-800/30 border border-gray-700/50">
-                          <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <PlayCircle className="w-4 h-4 text-blue-400" />
+                          <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-orange-500/20 flex items-center justify-center">
+                            <PlayCircle className="w-4 h-4 text-orange-400" />
                           </div>
                           <div className="text-lg font-bold text-white">{content.filter(l => l.type === 'video').length || 2}</div>
                           <div className="text-xs text-gray-400">Videos</div>
                         </div>
                         <div className="text-center p-2 rounded bg-gray-800/30 border border-gray-700/50">
-                          <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <FileText className="w-4 h-4 text-green-400" />
+                          <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-gray-700/50 flex items-center justify-center">
+                            <FileText className="w-4 h-4 text-gray-300" />
                           </div>
                           <div className="text-lg font-bold text-white">{content.filter(l => l.type === 'reading').length || (module.topics?.length || 5)}</div>
                           <div className="text-xs text-gray-400">Readings</div>
@@ -1425,11 +1425,11 @@ export default function ModuleDetailPage() {
                     <CardContent className="p-3">
                       <div className="space-y-1.5 mb-3">
                         <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3 h-3 text-green-400" />
+                          <CheckCircle2 className="w-3 h-3 text-orange-400" />
                           Complete all lessons
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3 h-3 text-green-400" />
+                          <CheckCircle2 className="w-3 h-3 text-orange-400" />
                           Pass assessment (80%+)
                         </div>
                       </div>
@@ -1526,7 +1526,7 @@ export default function ModuleDetailPage() {
                               size="sm"
                               onClick={() => completeLesson(lesson.id)}
                               disabled={completedLessons.includes(lesson.id)}
-                              className={completedLessons.includes(lesson.id) ? "bg-green-600 hover:bg-green-700" : ""}
+                              className={completedLessons.includes(lesson.id) ? "bg-orange-600 hover:bg-orange-700" : ""}
                             >
                               {completedLessons.includes(lesson.id) ? (
                                 <>
@@ -1601,7 +1601,7 @@ export default function ModuleDetailPage() {
                                 {lesson.duration}
                               </Badge>
                               {isCompleted && (
-                                <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                                <Badge className="text-xs bg-orange-500/20 text-orange-400 border-orange-500/30">
                                   <CheckCircle2 className="w-3 h-3 mr-1" /> Read
                                 </Badge>
                               )}
@@ -1731,7 +1731,7 @@ export default function ModuleDetailPage() {
                                     setExpandedReadings(prev => prev.filter(id => id !== lesson.id))
                                   }}
                                   disabled={isCompleted}
-                                  className={isCompleted ? "bg-green-600 hover:bg-green-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}
+                                  className={isCompleted ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}
                                 >
                                   {isCompleted ? (
                                     <><CheckCircle2 className="h-4 w-4 mr-2" /> Already Completed</>
@@ -1874,11 +1874,11 @@ export default function ModuleDetailPage() {
                   {quizSubmitted && quizScore !== null && (
                     <div ref={quizResultsRef} className="scroll-mt-8">
                       <Card className="mb-8 border-gray-800">
-                        <CardHeader className={quizScore >= 70 ? "bg-green-500/10" : "bg-red-500/10"}>
+                        <CardHeader className={quizScore >= 70 ? "bg-orange-500/10" : "bg-red-500/10"}>
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-2xl font-bold">Quiz Results</CardTitle>
                             <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              quizScore >= 70 ? "bg-green-500/20 text-green-500" : "bg-red-500/20 text-red-500"
+                              quizScore >= 70 ? "bg-orange-500/20 text-orange-500" : "bg-red-500/20 text-red-500"
                             }`}>
                               {quizScore >= 70 ? (
                                 <><Check className="h-4 w-4 mr-1" /> Passed</>
@@ -1908,19 +1908,19 @@ export default function ModuleDetailPage() {
                                 key={result.questionId}
                                 className={`p-4 rounded-lg border ${
                                   result.isCorrect
-                                    ? "border-green-500/30 bg-green-500/10"
+                                    ? "border-orange-500/30 bg-orange-500/10"
                                     : "border-red-500/30 bg-red-500/10"
                                 }`}
                               >
                                 <div className="flex items-start gap-2">
-                                  <div className={`mt-1 ${result.isCorrect ? "text-green-500" : "text-red-500"}`}>
+                                  <div className={`mt-1 ${result.isCorrect ? "text-orange-500" : "text-red-500"}`}>
                                     {result.isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                                   </div>
                                   <div className="flex-1">
                                     <p className="font-medium mb-2">Question {index + 1}: {result.questionText}</p>
                                     <p className="text-sm font-medium">Your answer: {result.yourAnswer}</p>
                                     {!result.isCorrect && (
-                                      <p className="text-sm font-medium text-green-500">
+                                      <p className="text-sm font-medium text-orange-500">
                                         Correct answer: {result.correctAnswer}
                                       </p>
                                     )}
@@ -2089,11 +2089,11 @@ export default function ModuleDetailPage() {
                   {assessmentSubmitted && assessmentScore !== null && (
                     <div ref={assessmentResultsRef} className="scroll-mt-8">
                       <Card className="mb-8 border-gray-800">
-                        <CardHeader className={assessmentScore >= 80 ? "bg-green-500/10 border-b border-green-500/20" : "bg-red-500/10 border-b border-red-500/20"}>
+                        <CardHeader className={assessmentScore >= 80 ? "bg-orange-500/10 border-b border-orange-500/20" : "bg-red-500/10 border-b border-red-500/20"}>
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-2xl font-bold">Assessment Results</CardTitle>
                             <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                              assessmentScore >= 80 ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                              assessmentScore >= 80 ? "bg-orange-500/20 text-orange-400" : "bg-red-500/20 text-red-400"
                             }`}>
                               {assessmentScore >= 80 ? (
                                 <><Check className="h-4 w-4 mr-1" /> PASSED</>
@@ -2108,7 +2108,7 @@ export default function ModuleDetailPage() {
                         </CardHeader>
                         <CardContent className="pt-6">
                           <div className="mb-8 text-center">
-                            <div className={`text-7xl font-bold mb-2 ${assessmentScore >= 80 ? 'text-green-400' : 'text-red-400'}`}>
+                            <div className={`text-7xl font-bold mb-2 ${assessmentScore >= 80 ? 'text-orange-400' : 'text-red-400'}`}>
                               {assessmentScore}%
                             </div>
                             <p className="text-sm text-muted-foreground">
@@ -2125,19 +2125,19 @@ export default function ModuleDetailPage() {
                                 key={result.questionId}
                                 className={`p-4 rounded-lg border ${
                                   result.isCorrect
-                                    ? "border-green-500/30 bg-green-500/10"
+                                    ? "border-orange-500/30 bg-orange-500/10"
                                     : "border-red-500/30 bg-red-500/10"
                                 }`}
                               >
                                 <div className="flex items-start gap-2">
-                                  <div className={`mt-0.5 shrink-0 ${result.isCorrect ? "text-green-400" : "text-red-400"}`}>
+                                  <div className={`mt-0.5 shrink-0 ${result.isCorrect ? "text-orange-400" : "text-red-400"}`}>
                                     {result.isCorrect ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
                                   </div>
                                   <div className="flex-1">
                                     <p className="font-medium text-sm mb-1">Q{index + 1}: {result.questionText}</p>
-                                    <p className="text-sm text-gray-400">Your answer: <span className={result.isCorrect ? 'text-green-400' : 'text-red-400'}>{result.yourAnswer}</span></p>
+                                    <p className="text-sm text-gray-400">Your answer: <span className={result.isCorrect ? 'text-orange-400' : 'text-red-400'}>{result.yourAnswer}</span></p>
                                     {!result.isCorrect && (
-                                      <p className="text-sm text-green-400 mt-0.5">
+                                      <p className="text-sm text-orange-400 mt-0.5">
                                         Correct answer: {result.correctAnswer}
                                       </p>
                                     )}
