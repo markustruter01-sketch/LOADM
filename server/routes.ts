@@ -4572,6 +4572,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
+      // Squadron profiles reflecting real RAAF airframe capabilities and operational roles:
+      // 33SQN = C-17 Globemaster III (heavy strategic airlift, ~77,500 kg payload)
+      // 35SQN = C-27J Spartan (light tactical transport, ~11,500 kg payload)
+      // 36SQN = C-130J Hercules (medium tactical, ~20,000 kg payload)
+      // 37SQN = C-130J Hercules (medium tactical, slightly different role mix)
+      const squadronProfiles: Record<string, {
+        ceiling: Record<string, number>; // Max normalized performance per metric (0-1)
+        k: number;    // Sigmoid steepness (higher = faster initial learning)
+        x0: number;   // Midpoint year (when peak development occurs)
+        dataWeight: number; // How much real data vs sigmoid model
+      }> = {
+        '33SQN': { // C-17: complex aircraft, high cargo, longer learning curve
+          ceiling: { assessmentsPassed: 0.88, totalFlightHours: 0.92, activeQualifications: 0.95, averageScore: 0.90, cargoWeight: 1.00 },
+          k: 0.65, x0: 6.5, dataWeight: 0.65,
+        },
+        '35SQN': { // C-27J Spartan: simpler aircraft, very low cargo, faster plateau
+          ceiling: { assessmentsPassed: 0.68, totalFlightHours: 0.55, activeQualifications: 0.60, averageScore: 0.87, cargoWeight: 0.22 },
+          k: 1.15, x0: 3.0, dataWeight: 0.55,
+        },
+        '36SQN': { // C-130J: medium complexity, medium cargo, moderate curve
+          ceiling: { assessmentsPassed: 0.78, totalFlightHours: 0.75, activeQualifications: 0.82, averageScore: 0.83, cargoWeight: 0.58 },
+          k: 0.85, x0: 4.5, dataWeight: 0.60,
+        },
+        '37SQN': { // C-130J: similar to 36SQN, slightly heavier cargo ops tempo
+          ceiling: { assessmentsPassed: 0.75, totalFlightHours: 0.80, activeQualifications: 0.78, averageScore: 0.81, cargoWeight: 0.63 },
+          k: 0.80, x0: 5.0, dataWeight: 0.60,
+        },
+      };
+
       // Calculate cumulative power law curves
       // For each squadron, calculate normalized cumulative performance
       const curves = squadrons.map(sq => {
@@ -4582,6 +4611,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                           metric === 'totalFlightHours' ? 800 :
                           metric === 'activeQualifications' ? 15 :
                           50000; // cargoWeight
+
+        const profile = squadronProfiles[sq] || { ceiling: {}, k: 0.8, x0: 5, dataWeight: 0.6 };
+        const metricKey = metric as string;
+        const ceiling = profile.ceiling[metricKey] ?? 0.80;
+        const sqK = profile.k;
+        const sqX0 = profile.x0;
+        const dataWeight = profile.dataWeight;
 
         const dataPoints = [];
         for (let year = 0; year <= 12; year++) {
@@ -4599,12 +4635,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Normalize to 0-1 scale for power law curve
           const normalizedValue = Math.min(1, avgMetric / maxPossible);
           
-          // Apply sigmoid transformation for S-curve shape
+          // Apply sigmoid transformation with squadron-specific shape
           // Using logistic function: 1 / (1 + e^(-k(x-x0)))
-          const k = 0.8; // Steepness
-          const x0 = 5; // Midpoint (years)
-          const sigmoidModifier = 1 / (1 + Math.exp(-k * (year - x0)));
-          const blendedValue = (normalizedValue * 0.6) + (sigmoidModifier * 0.4);
+          const sigmoidModifier = 1 / (1 + Math.exp(-sqK * (year - sqX0)));
+
+          // Blend real data with sigmoid model, then scale by squadron ceiling
+          const blended = (normalizedValue * dataWeight) + (sigmoidModifier * (1 - dataWeight));
+          const blendedValue = blended * ceiling;
 
           dataPoints.push({
             year,
