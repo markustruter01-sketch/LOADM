@@ -540,6 +540,9 @@ export default function AdvancedAnalytics() {
   const [iccSquadronToggles, setIccSquadronToggles] = useState<Record<string, boolean>>({
     '33SQN': true, '35SQN': true, '36SQN': true, '37SQN': true
   });
+  const [analyticsSquadronToggles, setAnalyticsSquadronToggles] = useState<Record<string, boolean>>({
+    "33 Squadron": true, "35 Squadron": true, "36 Squadron": true, "37 Squadron": true, "AMG": true
+  });
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -685,11 +688,16 @@ export default function AdvancedAnalytics() {
     
     // Apply filters
     const filteredSubmissions = allSubmissions.filter(sub => {
-      // Squadron filter
+      // Squadron filter (single-select dropdown)
       if (selectedSquadron !== "all") {
-        // Use squadronFromId that we've already extracted for all submission types
         const subSquadron = sub.squadronFromId;
         if (subSquadron !== selectedSquadron) return false;
+      }
+
+      // Squadron toggle filter (multi-select pills)
+      const subSquadron = sub.squadronFromId;
+      if (subSquadron && analyticsSquadronToggles[subSquadron] === false) {
+        return false;
       }
       
       // Assessment type filter
@@ -728,6 +736,7 @@ export default function AdvancedAnalytics() {
     selectedSquadron,
     selectedAssessmentType,
     selectedDateRange,
+    analyticsSquadronToggles,
     isLoadingScenarioSubmissions,
     isLoadingQuizSubmissions,
     isLoadingDocumentSubmissions,
@@ -1521,6 +1530,36 @@ export default function AdvancedAnalytics() {
                       <SelectItem value="quarter">Last 90 Days</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Squadron toggle pills */}
+                <div className="flex items-center gap-2 ml-auto">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Show SQN:</span>
+                  {SQUADRONS.map(sq => {
+                    const isOn = analyticsSquadronToggles[sq] !== false;
+                    const color = COLORS.squadrons[sq as keyof typeof COLORS.squadrons] || "#6B7280";
+                    const activeCount = Object.values(analyticsSquadronToggles).filter(Boolean).length;
+                    return (
+                      <button
+                        key={sq}
+                        onClick={() => {
+                          if (isOn && activeCount <= 1) return;
+                          setAnalyticsSquadronToggles(prev => ({ ...prev, [sq]: !isOn }));
+                        }}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
+                          isOn
+                            ? 'bg-gray-800 border-gray-600 text-gray-200'
+                            : 'bg-gray-900/60 border-gray-800 text-gray-600 line-through'
+                        }`}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: isOn ? color : '#4B5563' }}
+                        />
+                        {sq.replace(' Squadron', '')}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
