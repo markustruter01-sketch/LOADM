@@ -568,29 +568,6 @@ export default function ModernScenarioPage() {
               </Select>
             </div>
             
-            <div>
-              <Label>Submission Type</Label>
-              <RadioGroup value={submissionType} onValueChange={(value: "training" | "assessment") => setSubmissionType(value)} className="mt-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="training" id="training" />
-                  <Label htmlFor="training" className="cursor-pointer">
-                    <div>
-                      <div className="font-medium">Training</div>
-                      <div className="text-sm text-muted-foreground">Practice mode - results stay private</div>
-                    </div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="assessment" id="assessment" />
-                  <Label htmlFor="assessment" className="cursor-pointer">
-                    <div>
-                      <div className="font-medium">Assessment</div>
-                      <div className="text-sm text-muted-foreground">Evaluation mode - submitted for instructor review</div>
-                    </div>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
           </div>
 
           <DialogFooter>
