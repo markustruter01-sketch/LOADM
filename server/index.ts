@@ -673,7 +673,7 @@ app.get("/api/licenses/expired", async (req, res) => {
 
 app.get("/api/workforce/squadrons", requireInstructor, async (req, res) => {
   try {
-    const squadrons = ['33SQN', '35SQN', '36SQN', '37SQN', 'AMG'];
+    const squadrons = ['33SQN', '35SQN', '36SQN', '37SQN'];
     res.json(squadrons);
   } catch (error) {
     console.error('Error fetching squadrons:', error);

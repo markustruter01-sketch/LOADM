@@ -275,7 +275,6 @@ export default function LicenseRegistration() {
                     <option value="35SQN">35 Squadron</option>
                     <option value="36SQN">36 Squadron</option>
                     <option value="37SQN">37 Squadron</option>
-                    <option value="AMG">AMG</option>
                   </select>
                 </div>
 

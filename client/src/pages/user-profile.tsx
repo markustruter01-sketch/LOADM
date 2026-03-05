@@ -625,11 +625,10 @@ export default function UserProfile() {
                         <SelectItem value="35SQN">35 Squadron</SelectItem>
                         <SelectItem value="36SQN">36 Squadron</SelectItem>
                         <SelectItem value="37SQN">37 Squadron</SelectItem>
-                        <SelectItem value="AMG">AMG</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <p className="text-white font-medium">{(userSquadron as any)?.squadron || 'AMG'}</p>
+                    <p className="text-white font-medium">{(userSquadron as any)?.squadron || 'Unassigned'}</p>
                   )}
                 </div>
 

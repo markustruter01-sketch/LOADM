@@ -770,18 +770,35 @@ export default function ModuleDetailPage() {
   const [moduleProgress, setModuleProgress] = useState(0)
   const [completedLessons, setCompletedLessons] = useState<string[]>([])
 
+  // Auto-load squadron from the user's license — squadron is never user-editable on submissions
+  const { data: userSquadronData } = useQuery<{ squadron: string | null }>({
+    queryKey: ["/api/user/squadron"],
+  })
+  const userSquadron = (() => {
+    const sq = (userSquadronData as any)?.squadron;
+    return sq && sq !== 'AMG' ? sq : '33SQN';
+  })()
+
   // Quiz tab state
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({})
-  const [quizSquadron, setQuizSquadron] = useState('AMG')
+  const [quizSquadron, setQuizSquadron] = useState('33SQN')
   const [quizSubmitted, setQuizSubmitted] = useState(false)
   const [quizScore, setQuizScore] = useState<number | null>(null)
   const [quizResults, setQuizResults] = useState<{ questionId: string; isCorrect: boolean; correctAnswer: string; yourAnswer: string; questionText: string }[]>([])
   const [quizSubmitting, setQuizSubmitting] = useState(false)
   const quizResultsRef = useRef<HTMLDivElement>(null)
 
+  // Sync both submission squadron values from user's license when data loads
+  useEffect(() => {
+    if (userSquadron) {
+      setQuizSquadron(userSquadron)
+      setAssessmentSquadron(userSquadron)
+    }
+  }, [userSquadron])
+
   // Assessment tab state
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({})
-  const [assessmentSquadron, setAssessmentSquadron] = useState('AMG')
+  const [assessmentSquadron, setAssessmentSquadron] = useState('33SQN')
   const [assessmentSubmitted, setAssessmentSubmitted] = useState(false)
   const [assessmentScore, setAssessmentScore] = useState<number | null>(null)
   const [assessmentResults, setAssessmentResults] = useState<{ questionId: string; isCorrect: boolean; correctAnswer: string; yourAnswer: string; questionText: string }[]>([])
@@ -1786,20 +1803,11 @@ export default function ModuleDetailPage() {
                               <li>• Passing score: 70%</li>
                             </ul>
                           </div>
-                          <div className="min-w-[200px]">
+                          <div className="min-w-[160px]">
                             <p className="text-sm font-medium mb-1">Your Squadron</p>
-                            <Select value={quizSquadron} onValueChange={setQuizSquadron}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Squadron" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="AMG">AMG</SelectItem>
-                                <SelectItem value="33SQN">33SQN</SelectItem>
-                                <SelectItem value="35SQN">35SQN</SelectItem>
-                                <SelectItem value="36SQN">36SQN</SelectItem>
-                                <SelectItem value="37SQN">37SQN</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center h-10 px-3 rounded-md border border-border bg-muted/30">
+                              <span className="text-sm font-semibold text-primary">{quizSquadron}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1998,20 +2006,11 @@ export default function ModuleDetailPage() {
                               <li>• Multiple attempts permitted</li>
                             </ul>
                           </div>
-                          <div className="min-w-[200px]">
+                          <div className="min-w-[160px]">
                             <p className="text-sm font-medium mb-1">Your Squadron</p>
-                            <Select value={assessmentSquadron} onValueChange={setAssessmentSquadron}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select Squadron" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="AMG">AMG</SelectItem>
-                                <SelectItem value="33SQN">33SQN</SelectItem>
-                                <SelectItem value="35SQN">35SQN</SelectItem>
-                                <SelectItem value="36SQN">36SQN</SelectItem>
-                                <SelectItem value="37SQN">37SQN</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center h-10 px-3 rounded-md border border-border bg-muted/30">
+                              <span className="text-sm font-semibold text-primary">{assessmentSquadron}</span>
+                            </div>
                           </div>
                         </div>
                       </div>

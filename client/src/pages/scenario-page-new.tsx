@@ -50,7 +50,7 @@ export default function ScenarioPage() {
   const [expandedValue, setExpandedValue] = useState<string | undefined>(undefined);
   const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("33SQN");
 
   // Fetch user squadron data
   const { data: userSquadron } = useQuery({
@@ -62,10 +62,10 @@ export default function ScenarioPage() {
   useEffect(() => {
     if (user) {
       setStudentName(user.firstName || "");
-      // Use squadron from profile API, fallback to AMG only if no squadron is set
+      // Use squadron from profile API — squadron is auto-populated and read-only
       const squadronValue = userSquadron && typeof userSquadron === 'object' && 'squadron' in userSquadron 
-        ? (userSquadron as any).squadron 
-        : "AMG";
+        ? ((userSquadron as any).squadron || "33SQN")
+        : "33SQN";
       setSelectedSquadron(squadronValue);
       console.log('🏷️ AUTO-FILL: Setting squadron to:', squadronValue, 'from user profile');
     }
@@ -478,7 +478,6 @@ export default function ScenarioPage() {
                 <SelectItem value="35SQN">35SQN</SelectItem>
                 <SelectItem value="36SQN">36SQN</SelectItem>
                 <SelectItem value="37SQN">37SQN</SelectItem>
-                <SelectItem value="AMG">AMG</SelectItem>
               </SelectContent>
             </Select>
           </div>

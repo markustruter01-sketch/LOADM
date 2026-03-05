@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
@@ -22,7 +22,7 @@ export default function QuizPage() {
   const { user } = useIsolatedAuth();
   const { checkPermission, showPermissionError, showPermissionDialog, setShowPermissionDialog, permissionAction } = usePermissions();
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [squadron, setSquadron] = useState<string>("AMG");
+  const [squadron, setSquadron] = useState<string>("33SQN");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
@@ -61,6 +61,15 @@ export default function QuizPage() {
         }),
     enabled: !!quizId
   });
+
+  // Auto-load squadron from the user's license — squadron is never user-editable on submissions
+  const { data: userSquadronData } = useQuery<{ squadron: string | null }>({
+    queryKey: ["/api/user/squadron"],
+  });
+  useEffect(() => {
+    const sq = (userSquadronData as any)?.squadron;
+    if (sq && sq !== 'AMG') setSquadron(sq);
+  }, [userSquadronData]);
 
   // Extract questions array from the response
   const questions = questionsData?.questions || [];
@@ -280,23 +289,11 @@ export default function QuizPage() {
                       )}
                     </ul>
                   </div>
-                  <div className="min-w-[200px]">
+                  <div className="min-w-[160px]">
                     <p className="text-sm font-medium mb-1">Your Squadron</p>
-                    <Select
-                      value={squadron}
-                      onValueChange={setSquadron}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Squadron" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AMG">AMG</SelectItem>
-                        <SelectItem value="33SQN">33SQN</SelectItem>
-                        <SelectItem value="35SQN">35SQN</SelectItem>
-                        <SelectItem value="36SQN">36SQN</SelectItem>
-                        <SelectItem value="37SQN">37SQN</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center h-10 px-3 rounded-md border border-border bg-muted/30">
+                      <span className="text-sm font-semibold text-primary">{squadron}</span>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -186,7 +186,6 @@ export default function StudentProgress() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Squadrons</SelectItem>
-                  <SelectItem value="AMG">AMG</SelectItem>
                   <SelectItem value="33SQN">33SQN</SelectItem>
                   <SelectItem value="35SQN">35SQN</SelectItem>
                   <SelectItem value="36SQN">36SQN</SelectItem>

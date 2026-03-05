@@ -75,7 +75,7 @@ export class ScenarioSubmissionService {
         const activityDetails = JSON.stringify({
           scenarioId,
           answers,
-          squadron: squadron || 'AMG',
+          squadron: squadron || null,
           notes: notes || ''
         });
 
@@ -106,7 +106,7 @@ export class ScenarioSubmissionService {
           status: 'submitted',
           studentName: studentName || '',
           studentId: studentId || '',
-          squadron: squadron || 'AMG',
+          squadron: squadron || null,
           timeSpent: timeSpent || 0,
           notes: notes || '',
           submissionType: 'assessment'

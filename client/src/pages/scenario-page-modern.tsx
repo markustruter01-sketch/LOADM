@@ -54,7 +54,7 @@ export default function ModernScenarioPage() {
   const [showResults, setShowResults] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [studentId, setStudentId] = useState("");
-  const [selectedSquadron, setSelectedSquadron] = useState("AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState("33SQN");
   const [isTrainingMode, setIsTrainingMode] = useState(false);
 
   // Check if we are in training mode based on URL or state
@@ -76,10 +76,10 @@ export default function ModernScenarioPage() {
   useEffect(() => {
     if (user) {
       setStudentName(user.firstName || "");
-      // Use squadron from profile API, fallback to AMG only if no squadron is set
+      // Use squadron from profile API — squadron is auto-populated and read-only
       const squadronValue = userSquadron && typeof userSquadron === 'object' && 'squadron' in userSquadron 
-        ? (userSquadron as any).squadron 
-        : "AMG";
+        ? ((userSquadron as any).squadron || "33SQN")
+        : "33SQN";
       setSelectedSquadron(squadronValue);
       console.log('🏷️ AUTO-FILL: Setting squadron to:', squadronValue, 'from user profile');
     }
@@ -109,7 +109,7 @@ export default function ModernScenarioPage() {
       // For training mode, studentId is not required - use user's account ID as fallback
       const effectiveStudentName = studentName.trim() || user.firstName || user.email || "Student";
       const effectiveStudentId = studentId.trim() || String(user.id);
-      const effectiveSquadron = selectedSquadron || "AMG";
+      const effectiveSquadron = selectedSquadron || "33SQN";
 
       if (!effectiveStudentName || !effectiveStudentId) {
         throw new Error("Student name and ID are required");
@@ -557,7 +557,6 @@ export default function ModernScenarioPage() {
                   <SelectItem value="35SQN">35 Squadron</SelectItem>
                   <SelectItem value="36SQN">36 Squadron</SelectItem>
                   <SelectItem value="37SQN">37 Squadron</SelectItem>
-                  <SelectItem value="AMG">AMG</SelectItem>
                 </SelectContent>
               </Select>
             </div>

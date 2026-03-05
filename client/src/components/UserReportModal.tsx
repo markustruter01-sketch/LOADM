@@ -258,7 +258,6 @@ export function UserReportModal({ open, onOpenChange }: UserReportModalProps) {
                     <SelectItem value="35">35 Squadron</SelectItem>
                     <SelectItem value="36">36 Squadron</SelectItem>
                     <SelectItem value="37">37 Squadron</SelectItem>
-                    <SelectItem value="AMG">AMG</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

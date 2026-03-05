@@ -85,6 +85,17 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 - Platform now contains only legitimate user data from 11 real accounts with licenses
 - Analytics and performance features will show real data only (some sections may appear empty until real usage generates data)
 
+## AMG Architecture Rule (March 5, 2026)
+AMG (Air Mobility Group) is a structural parent container — **never appears in analytics, charts, or user-facing dropdowns**.
+- Loadmasters + Instructors → numbered squadrons (33SQN/35SQN/36SQN/37SQN) — appear in all analytics
+- Leadership + SuperAdmin → AMG — excluded from all analytics and dropdowns
+- All `|| 'AMG'` fallbacks replaced with `|| null` across backend (auth-core.ts, auth-middleware-unified.ts, routes.ts, scenario-submission-service.ts, quiz-new.ts)
+- `/api/workforce/squadrons` returns only 4 numbered squadrons
+- Snapshot service generates snapshots for 33/35/36/37 only (AMG removed)
+- All analytics endpoints filter out leadership/superadmin via `notInArray(licenses.licenseType, ['leadership','superadmin'])`
+- Submission forms auto-populate squadron from `/api/user/squadron` API (read-only display — no AMG option ever shown to flying personnel)
+- Database verified: AMG licenses = 5 leadership only; 0 AMG quiz/scenario submissions from loadmaster/instructor accounts; 0 AMG readiness snapshots
+
 ## Recent Changes (March 5, 2026)
 - **Deletion Activity Log**: New `activity_log` table tracks all destructive deletions across the platform
   - Phone Directory Entry deletions (in `server/index.ts`)

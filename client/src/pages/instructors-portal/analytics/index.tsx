@@ -419,8 +419,7 @@ const HELP_CONTENT: Record<string, HelpContent> = {
           "Orange - 33 Squadron",
           "Green - 35 Squadron",
           "Blue - 36 Squadron",
-          "Purple - 37 Squadron",
-          "Yellow - AMG"
+          "Purple - 37 Squadron"
         ]
       }
     ]
@@ -504,7 +503,7 @@ function HelpModal({ helpKey, onClose }: { helpKey: string | null; onClose: () =
 }
 
 // A set of predefined squadrons for filtering
-const SQUADRONS = ["33 Squadron", "35 Squadron", "36 Squadron", "37 Squadron", "AMG"];
+const SQUADRONS = ["33 Squadron", "35 Squadron", "36 Squadron", "37 Squadron"];
 
 // Color constants for charts
 const COLORS = {
@@ -519,7 +518,6 @@ const COLORS = {
     "35 Squadron": "#10B981",
     "36 Squadron": "#3B82F6",
     "37 Squadron": "#8B5CF6",
-    "AMG": "#FBBF24"
   },
   scoreRanges: {
     "0-49%": "#EF4444",
@@ -541,7 +539,7 @@ export default function AdvancedAnalytics() {
     '33SQN': true, '35SQN': true, '36SQN': true, '37SQN': true
   });
   const [analyticsSquadronToggles, setAnalyticsSquadronToggles] = useState<Record<string, boolean>>({
-    "33 Squadron": true, "35 Squadron": true, "36 Squadron": true, "37 Squadron": true, "AMG": true
+    "33 Squadron": true, "35 Squadron": true, "36 Squadron": true, "37 Squadron": true
   });
   
   // Fetch all data types we need for comprehensive analytics
@@ -668,7 +666,7 @@ export default function AdvancedAnalytics() {
         ...sub,
         type: 'quiz',
         // Get squadron directly if available, or extract from ID
-        squadronFromId: sub.squadron || "AMG",
+        squadronFromId: sub.squadron || null,
         calculatedScore: sub.score,
         date: sub.submissionDate ? new Date(sub.submissionDate) : new Date(),
         passed: sub.score >= 70, // Default pass threshold for quizzes
@@ -678,7 +676,7 @@ export default function AdvancedAnalytics() {
       ...(documentSubmissions || []).map(sub => ({
         ...sub,
         type: 'document',
-        squadronFromId: "AMG", // Default squadron if not specified
+        squadronFromId: null, // Documents have no squadron — excluded from squadron breakdowns
         calculatedScore: 0, // Documents typically don't have scores
         date: sub.submissionDate ? new Date(sub.submissionDate) : new Date(),
         passed: true, // Documents are typically pass/fail based on completion
@@ -751,13 +749,13 @@ export default function AdvancedAnalytics() {
   
   function extractSquadronFromId(studentId: string | null | undefined) {
     // Extract squadron from format "ID - Squadron"
-    if (!studentId) return "AMG"; // Default squadron if not provided
+    if (!studentId) return null; // No squadron — submission will be excluded from squadron breakdowns
     
     const parts = studentId.split(' - ');
     if (parts.length > 1) {
       return parts[1];
     }
-    return "AMG"; // Default squadron if not specified
+    return null; // No squadron info available
   }
   
   function calculateScoreFromMarkedAnswers(markedAnswers: any) {
@@ -823,7 +821,8 @@ export default function AdvancedAnalytics() {
     const squadronCounts: Record<string, number> = {};
     submissions.forEach(sub => {
       // Get squadron - directly from sub.squadron or from studentId
-      let squadron = sub.squadron || sub.squadronFromId || "AMG";
+      let squadron = sub.squadron || sub.squadronFromId || null;
+      if (!squadron) return; // Skip submissions with no squadron — excludes AMG/leadership data
       
       // Normalize squadron format - convert "33" to "33 Squadron", "33SQN" to "33 Squadron", etc.
       if (squadron.match(/^\d+$/)) {
@@ -883,7 +882,8 @@ export default function AdvancedAnalytics() {
     const squadronData: Record<string, { scores: number[], passed: number, total: number }> = {};
     
     submissions.forEach(sub => {
-      let squadron = sub.squadron || sub.squadronFromId || "AMG";
+      let squadron = sub.squadron || sub.squadronFromId || null;
+      if (!squadron) return; // Skip submissions with no squadron — excludes AMG/leadership data
       
       // Normalize squadron format - convert "33" to "33 Squadron", "33SQN" to "33 Squadron", etc.
       if (squadron.match(/^\d+$/)) {

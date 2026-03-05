@@ -182,7 +182,7 @@ router.post('/:id/submit', requireAuth, async (req: AuthenticatedRequest, res: R
         ${user.id}, 
         ${JSON.stringify(answers)}, 
         ${score}, 
-        ${squadron || 'AMG'}, 
+        ${squadron || null}, 
         NOW(),
         ${correctCount},
         ${totalQuestions},

@@ -2,7 +2,7 @@ import { db } from "../db";
 import { users, licenses, userQualifications, readinessSnapshots } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 
-const SQUADRONS = ["33", "35", "36", "37", "AMG"];
+const SQUADRONS = ["33", "35", "36", "37"];
 
 interface SnapshotData {
   squadron: string;
@@ -28,6 +28,8 @@ async function calculateSquadronSnapshot(squadron: string | null): Promise<Snaps
   .from(users)
   .leftJoin(licenses, eq(users.licenseId, licenses.id))
   .where(eq(licenses.isActive, true));
+  // Note: leadership and superadmin (squadron = 'AMG') are excluded automatically
+  // because SQUADRONS only contains numbered squadrons — AMG is never iterated
 
   const allPersonnel = await personnelQuery;
   

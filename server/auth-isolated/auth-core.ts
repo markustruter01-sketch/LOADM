@@ -159,7 +159,7 @@ export async function authenticateUser(email: string, password: string) {
       firstName: user.first_name || user.firstName || '',
       lastName: user.last_name || user.lastName || '',
       role: user.user_role || user.role || 'loadmaster',
-      squadron: squadronData?.squadron || 'AMG',
+      squadron: squadronData?.squadron || null,
       category: squadronData?.category || 'D',
       isFirstLogin: user.is_first_login
     };

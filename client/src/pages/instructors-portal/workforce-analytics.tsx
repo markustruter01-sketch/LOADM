@@ -13,7 +13,7 @@ import {
   LineChart, BarChart3, Bell, Target, Info, HelpCircle, X
 } from "lucide-react";
 
-const SQUADRONS = ['33', '35', '36', '37', 'AMG'];
+const SQUADRONS = ['33', '35', '36', '37'];
 
 interface HelpContent {
   title: string;

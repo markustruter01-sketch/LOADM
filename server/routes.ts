@@ -18,7 +18,7 @@ async function writeActivityLog(user: any, action: string, resourceType: string,
     console.error("Failed to write activity log:", err);
   }
 }
-import { eq, and, gt, desc, lt, sql, inArray } from "drizzle-orm";
+import { eq, and, gt, desc, lt, sql, inArray, notInArray } from "drizzle-orm";
 import { db } from "./db";
 
 import { sendLicenseWelcomeEmail } from "./services/email-service";
@@ -755,7 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         submissionDate: submission.submission_date,
         answers: submission.answers,
         score: submission.score,
-        squadron: submission.squadron || 'AMG',
+        squadron: submission.squadron || null,
         status: submission.status || 'submitted',
         email: submission.email || 'Unknown User',
         firstName: submission.first_name || '',
@@ -791,7 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (user_id, module_id, module_title, aircraft, difficulty, score, passed, total_questions, correct_count, squadron, answers)
         VALUES
           (${userId}, ${moduleId}, ${moduleTitle || 'Training Assessment'}, ${aircraft || 'all'}, ${difficulty || 'beginner'},
-           ${score}, ${passed}, ${totalQuestions || 10}, ${correctCount || 0}, ${squadron || 'AMG'}, ${JSON.stringify(answers || [])})
+           ${score}, ${passed}, ${totalQuestions || 10}, ${correctCount || 0}, ${squadron || null}, ${JSON.stringify(answers || [])})
         RETURNING id, submitted_at
       `
 
@@ -1295,7 +1295,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }> = {};
       
       allSubmissions.forEach((sub: any) => {
-        const squadron = sub.squadron || 'AMG';
+        const squadron = sub.squadron || null;
+        if (!squadron) return; // Exclude unattributed submissions (AMG/leadership data)
         const userId = sub.user_id;
         const score = sub.score || 0;
         
@@ -1416,7 +1417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalScenarioScore: 0,
             name: `${sub.first_name || ''} ${sub.last_name || ''}`.trim() || 'Unknown',
             email: sub.email || 'Unknown',
-            squadron: sub.squadron || 'AMG'
+            squadron: sub.squadron || null
           };
         }
         userReadiness[userId].quizCount += 1;
@@ -1543,7 +1544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId,
           name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown',
           email: user.email,
-          squadron: user.squadron || 'AMG',
+          squadron: user.squadron || null,
           totalSubmissions,
           avgQuizScore: Math.round(avgQuizScore),
           avgScenarioScore: Math.round(avgScenarioScore),
@@ -3656,6 +3657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .from(flightRecords)
       .leftJoin(users, eq(flightRecords.userId, users.id))
       .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(notInArray(licenses.licenseType, ['leadership', 'superadmin']))
       .orderBy(desc(flightRecords.date));
 
       // Filter by squadron if provided
@@ -3663,6 +3665,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (squadron && squadron !== 'all') {
         filteredRecords = filteredRecords.filter(r => r.squadron === squadron);
       }
+      // Exclude AMG residual entries
+      filteredRecords = filteredRecords.filter(r => r.squadron && r.squadron !== 'AMG');
       
       // Filter by date range if provided
       if (startDate) {
@@ -3825,10 +3829,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(userQualifications)
       .leftJoin(users, eq(userQualifications.userId, users.id))
-      .leftJoin(licenses, eq(users.licenseId, licenses.id));
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(notInArray(licenses.licenseType, ['leadership', 'superadmin']));
 
-      // Filter by squadron if provided
-      let filteredQuals = qualifications;
+      // Filter by squadron if provided, always excluding AMG
+      let filteredQuals = qualifications.filter(q => q.squadron && q.squadron !== 'AMG');
       if (squadron && squadron !== 'all') {
         filteredQuals = filteredQuals.filter(q => q.squadron === squadron);
       }
@@ -3957,7 +3962,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(users)
       .leftJoin(licenses, eq(users.licenseId, licenses.id))
-      .where(eq(licenses.isActive, true));
+      .where(and(
+        eq(licenses.isActive, true),
+        notInArray(licenses.licenseType, ['leadership', 'superadmin'])
+      ));
 
       // Group by squadron
       type UserRecord = typeof allUsers[number];
@@ -3971,7 +3979,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }>();
 
       allUsers.forEach(user => {
-        const sqn = user.squadron || 'Unknown';
+        if (!user.squadron || user.squadron === 'AMG') return; // Exclude AMG — not a flying squadron
+        const sqn = user.squadron;
         const existing = squadronMap.get(sqn) || {
           squadron: sqn,
           total: 0,
@@ -4063,8 +4072,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .from(safetyRecords)
       .orderBy(desc(safetyRecords.date));
 
-      // Filter
-      let filteredRecords = records;
+      // Filter — always exclude AMG (leadership/admin container)
+      let filteredRecords = records.filter(r => r.squadron && r.squadron !== 'AMG');
       if (squadron && squadron !== 'all') {
         filteredRecords = filteredRecords.filter(r => r.squadron === squadron);
       }
@@ -4259,8 +4268,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      // Get all squadrons plus AMG and ALL
-      const squadrons = ['33', '35', '36', '37', 'AMG', 'ALL'];
+      // Get all numbered squadrons plus ALL — AMG is a parent container, not a data squadron
+      const squadrons = ['33', '35', '36', '37', 'ALL'];
       const snapshots = [];
 
       for (const squadron of squadrons) {
@@ -4291,7 +4300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.userRole, 'loadmaster'));
 
         let filteredUsers = usersQuery;
-        if (squadron !== 'ALL' && squadron !== 'AMG') {
+        if (squadron !== 'ALL') {
           filteredUsers = usersQuery.filter(u => u.squadron === squadron);
         }
 
@@ -4311,7 +4320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .leftJoin(licenses, eq(users.licenseId, licenses.id));
 
         let filteredQuals = qualStats;
-        if (squadron !== 'ALL' && squadron !== 'AMG') {
+        if (squadron !== 'ALL') {
           const squadronUserIds = filteredUsers.map(u => u.id);
           filteredQuals = qualStats.filter(q => squadronUserIds.includes(q.userId));
         }
@@ -4821,7 +4830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ));
 
       // Filter by squadron if provided
-      if (squadron && squadron !== 'all' && squadron !== 'AMG') {
+      if (squadron && squadron !== 'all') {
         allUsers = allUsers.filter(u => u.squadron === squadron || u.squadron === `${squadron}SQN`);
       }
 

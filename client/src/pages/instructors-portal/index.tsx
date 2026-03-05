@@ -25,7 +25,7 @@ export default function InstructorsPortal() {
   const [, setLocation] = useLocation();
 
   // Remove the automatic redirect - superadmins should be able to access instructor portal
-  const [selectedSquadron, setSelectedSquadron] = useState<string>("AMG");
+  const [selectedSquadron, setSelectedSquadron] = useState<string>("ALL");
   const [isMottoModalOpen, setIsMottoModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
@@ -62,12 +62,10 @@ export default function InstructorsPortal() {
   });
   
   // Calculate total submissions shown based on squadron filter
-  const filteredCount = selectedSquadron === "AMG"
+  // Document submissions don't yet carry squadron info, so they only appear under "All Squadrons"
+  const filteredCount = selectedSquadron === "ALL"
     ? documentSubmissions?.length || 0
-    : documentSubmissions?.filter(submission => {
-        // Since document submissions don't have squadron info yet, we only show AMG
-        return selectedSquadron === "AMG";
-      }).length || 0;
+    : 0;
 
   return (
     <div>

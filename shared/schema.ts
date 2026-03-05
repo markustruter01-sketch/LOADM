@@ -19,7 +19,7 @@ export const licenses = pgTable("licenses", {
   lastName: text("last_name").default(""),
   licenseKey: text("license_key").notNull().unique(),
   licenseType: text("license_type").notNull().default("loadmaster"), // loadmaster, instructor, superadmin, readonly
-  squadron: text("squadron").default("AMG").notNull(), // 33SQN, 35SQN, 36SQN, 37SQN, AMG
+  squadron: text("squadron").default("AMG").notNull(), // 33SQN | 35SQN | 36SQN | 37SQN (flying units) | AMG (leadership/admin container only)
   category: text("category").default("D").notNull(), // D, C, B, A (seniority level)
   isActive: boolean("is_active").default(true).notNull(),
   issuedDate: timestamp("issued_date").defaultNow().notNull(),
@@ -234,7 +234,7 @@ export const quizSubmissions = pgTable("quiz_submissions", {
   submissionDate: timestamp("submission_date").defaultNow().notNull(),
   answers: json("answers").notNull().$type<Array<{questionId: string, answeredOption: number}>>(),
   score: integer("score").notNull(),
-  squadron: text("squadron").default('AMG').notNull(),
+  squadron: text("squadron").default('33SQN').notNull(), // 33SQN | 35SQN | 36SQN | 37SQN — flying units only; null recorded as unattributed
 });
 
 export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).pick({
@@ -871,7 +871,7 @@ export type InsertTrainingModuleContent = z.infer<typeof insertTrainingModuleCon
 export const readinessSnapshots = pgTable("readiness_snapshots", {
   id: serial("id").primaryKey(),
   snapshotDate: timestamp("snapshot_date").notNull(),
-  squadron: text("squadron").notNull(), // "33", "35", "36", "37", "AMG", "ALL"
+  squadron: text("squadron").notNull(), // "33" | "35" | "36" | "37" (flying squadrons) | "ALL" — AMG excluded (leadership are not flight-ready metrics subjects)
   totalPersonnel: integer("total_personnel").notNull(),
   readyCount: integer("ready_count").notNull(),
   notReadyCount: integer("not_ready_count").notNull(),
@@ -905,7 +905,7 @@ export const trainingModuleCompletions = pgTable("training_module_completions", 
   passed: boolean("passed").notNull(),
   totalQuestions: integer("total_questions").notNull(),
   correctCount: integer("correct_count").notNull(),
-  squadron: text("squadron").notNull().default("AMG"),
+  squadron: text("squadron").notNull().default("33SQN"), // 33SQN | 35SQN | 36SQN | 37SQN — flying units; defaults to 33SQN for safety (auto-populated from session in practice)
   answers: json("answers").notNull(),
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
 });

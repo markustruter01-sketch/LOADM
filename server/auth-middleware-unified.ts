@@ -31,7 +31,7 @@ export function unifiedAuthMiddleware(req: any, res: Response, next: NextFunctio
     id: userId,
     email: session.email,
     role: session.role,
-    squadron: (session as any).squadron || 'AMG',
+    squadron: (session as any).squadron || null,
     category: (session as any).category || 'D'
   };
   

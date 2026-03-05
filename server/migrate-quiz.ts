@@ -27,7 +27,7 @@ async function createQuizTables() {
         submission_date TIMESTAMP NOT NULL DEFAULT NOW(),
         answers JSONB NOT NULL,
         score INTEGER NOT NULL,
-        squadron TEXT NOT NULL DEFAULT 'AMG'
+        squadron TEXT NOT NULL DEFAULT '33SQN'
       )
     `);
     
