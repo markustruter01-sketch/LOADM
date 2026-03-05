@@ -349,25 +349,27 @@ export function DataAuditModal({ isOpen, onClose }: DataAuditModalProps) {
 
 interface DataAuditButtonProps {
   onClick: () => void;
+  className?: string;
 }
 
-export function DataAuditButton({ onClick }: DataAuditButtonProps) {
+export function DataAuditButton({ onClick, className }: DataAuditButtonProps) {
   return (
     <Button 
       variant="outline"
       size="icon"
       onClick={onClick}
-      className="
-        h-16 w-16 rounded-xl 
+      className={`
+        rounded-xl 
         bg-card border-border text-primary 
         shadow-[inset_0px_1px_4px_rgba(0,0,0,0.4)] 
         hover:bg-primary/10 hover:border-primary/50 hover:text-primary 
         active:scale-95
         transition-all duration-200
-      "
+        ${className ?? 'h-16 w-16'}
+      `}
       title="View Data Integrity Trail"
     >
-      <Activity size={24} className="group-hover:animate-pulse" />
+      <Activity size={20} className="group-hover:animate-pulse" />
     </Button>
   );
 }

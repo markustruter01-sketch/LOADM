@@ -94,7 +94,7 @@ export default function InstructorsPortal() {
         </div>
 
         {/* DDG Quote with Glassmorphic Frame - Clickable */}
-        <div className="flex items-center justify-center gap-4 mb-8">
+        <div className="flex items-stretch justify-center gap-4 mb-8">
           <button 
             onClick={() => setIsMottoModalOpen(true)}
             className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-sm shadow-black/5 cursor-pointer transition-all duration-300 hover:bg-white/10 hover:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -115,7 +115,7 @@ export default function InstructorsPortal() {
           </button>
           
           {/* Data Audit Trail Button */}
-          <DataAuditButton onClick={() => setIsAuditModalOpen(true)} />
+          <DataAuditButton onClick={() => setIsAuditModalOpen(true)} className="h-full aspect-square" />
         </div>
         
         {/* Data Audit Modal */}
@@ -188,7 +188,7 @@ export default function InstructorsPortal() {
           <Button
             onClick={() => setIsReportModalOpen(true)}
             size="lg"
-            className="bg-primary/80 hover:bg-primary/90 text-white px-8 py-6 text-lg font-semibold shadow-sm transition-all duration-200"
+            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg font-semibold transition-all duration-200"
             data-testid="button-generate-user-report"
           >
             <FileUser className="h-5 w-5 mr-3" />
