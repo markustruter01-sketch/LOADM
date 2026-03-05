@@ -564,7 +564,7 @@ export default function AdvancedAnalytics() {
   });
 
   const { data: users, isLoading: isLoadingUsers } = useQuery<any[]>({
-    queryKey: ["/api/users"],
+    queryKey: ["/api/licensing/licenses"],
   });
   
   // Fetch advanced analytics data
@@ -774,7 +774,7 @@ export default function AdvancedAnalytics() {
   function calculateOverviewStats(submissions: any[]) {
     // Count total licensed students from users data (all active users except superadmins)
     const totalLicensedStudents = users ? users.filter(user => 
-      user.licenseStatus === 'active' && user.role !== 'superadmin'
+      user.isActive === true && user.licenseType !== 'superadmin' && user.licenseType !== 'leadership'
     ).length : 0;
     
     // Filter submissions with scores
