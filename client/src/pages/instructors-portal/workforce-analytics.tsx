@@ -373,6 +373,7 @@ export default function WorkforceAnalytics() {
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
   const [historyRange, setHistoryRange] = useState<30 | 60 | 90>(30);
+  const [flightRange, setFlightRange] = useState<30 | 90 | 180 | 365>(365);
   
   const [flightData, setFlightData] = useState<any>(null);
   const [currencyData, setCurrencyData] = useState<any>(null);
@@ -395,9 +396,12 @@ export default function WorkforceAnalytics() {
       const daysAgo = new Date();
       daysAgo.setDate(daysAgo.getDate() - historyRange);
       const startDateParam = `startDate=${daysAgo.toISOString()}`;
+      const flightDaysAgo = new Date();
+      flightDaysAgo.setDate(flightDaysAgo.getDate() - flightRange);
+      const flightStartDateParam = `startDate=${flightDaysAgo.toISOString()}`;
       
       const [flightRes, currencyRes, readinessRes, safetyRes, historyRes, forecastRes] = await Promise.all([
-        fetch(`/api/analytics/flight-hours?${startDateParam}&${squadronParam}`, { credentials: 'include' }),
+        fetch(`/api/analytics/flight-hours?${flightStartDateParam}&${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/currency-status?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/squadron-readiness?${squadronParam}`, { credentials: 'include' }),
         fetch(`/api/analytics/safety-summary?${squadronParam}`, { credentials: 'include' }),
@@ -421,7 +425,7 @@ export default function WorkforceAnalytics() {
 
   useEffect(() => {
     fetchAllData();
-  }, [selectedSquadron, historyRange]);
+  }, [selectedSquadron, historyRange, flightRange]);
 
   const getReasonIcon = (reason: string) => {
     const normalizedReason = reason?.toLowerCase().trim();
@@ -691,7 +695,21 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Plane className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Flight Operations</h2>
-            <span className="text-xs text-gray-500 ml-auto mr-2">Last 30 days</span>
+            <div className="ml-auto flex gap-1 mr-2">
+              {([30, 90, 180, 365] as const).map(days => (
+                <button
+                  key={days}
+                  onClick={() => setFlightRange(days)}
+                  className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                    flightRange === days
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-[#333] text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {days === 365 ? '1yr' : `${days}d`}
+                </button>
+              ))}
+            </div>
             <HelpButton helpKey="flightOperations" onClick={setActiveHelp} />
           </div>
 
@@ -705,7 +723,7 @@ export default function WorkforceAnalytics() {
                 </div>
                 <div className="text-3xl font-bold text-white">{totalHours.toFixed(1)}</div>
                 <div className="text-sm text-gray-400">Total Flight Hours</div>
-                <div className="text-xs text-gray-500 mt-1">Combined hours logged in last 30 days</div>
+                <div className="text-xs text-gray-500 mt-1">Combined hours logged in last {flightRange === 365 ? '12 months' : `${flightRange} days`}</div>
                 <div className="mt-3 pt-3 border-t border-[#333]">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Day Hours</span>
@@ -723,7 +741,7 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Activity className="h-8 w-8 text-orange-500" />
-                  <span className="text-xs text-gray-500">Last 30 Days</span>
+                  <span className="text-xs text-gray-500">Last {flightRange === 365 ? '12 Months' : `${flightRange} Days`}</span>
                 </div>
                 <div className="text-3xl font-bold text-white">{totalFlights}</div>
                 <div className="text-sm text-gray-400">Total Flights Logged</div>
@@ -741,7 +759,7 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Users className="h-8 w-8 text-green-500" />
-                  <span className="text-xs text-gray-500">Last 30 Days</span>
+                  <span className="text-xs text-gray-500">Last {flightRange === 365 ? '12 Months' : `${flightRange} Days`}</span>
                 </div>
                 <div className="text-3xl font-bold text-white">{flightData?.summary?.uniqueUsers || 0}</div>
                 <div className="text-sm text-gray-400">Personnel with Flights</div>
@@ -759,7 +777,7 @@ export default function WorkforceAnalytics() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
                   <Clock className="h-8 w-8 text-purple-500" />
-                  <span className="text-xs text-gray-500">Last 30 Days</span>
+                  <span className="text-xs text-gray-500">Last {flightRange === 365 ? '12 Months' : `${flightRange} Days`}</span>
                 </div>
                 <div className="text-3xl font-bold text-white">
                   {flightData?.summary?.avgHoursPerPerson || 0}
@@ -780,7 +798,7 @@ export default function WorkforceAnalytics() {
           <Card className="bg-[#2a2a2a] border-[#333333]">
             <CardHeader>
               <CardTitle className="text-white text-lg">Hours by Aircraft Type</CardTitle>
-              <CardDescription className="text-gray-400">Flight time distribution across airframes (last 30 days)</CardDescription>
+              <CardDescription className="text-gray-400">Flight time distribution across airframes (last {flightRange === 365 ? '12 months' : `${flightRange} days`})</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
