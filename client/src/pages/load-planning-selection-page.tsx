@@ -78,6 +78,15 @@ export default function LoadPlanningSelectionPage() {
           </p>
         </div>
 
+        <div className="max-w-4xl mx-auto mb-10">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-center">
+            <p className="text-white text-sm font-medium">
+              <span className="text-orange-500 font-bold mr-1">CAUTION:</span>
+              This Load Planning tool is for general planning purposes only. Refer to SQN procedures for operational weight and balance calculations
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {aircraftList.map((aircraft) => (
             <Card 
@@ -130,10 +139,7 @@ export default function LoadPlanningSelectionPage() {
           ))}
         </div>
 
-        <div className="mt-12 text-center max-w-2xl mx-auto">
-          <p className="text-amber-500/80 text-sm font-medium mb-6 bg-amber-500/5 py-3 px-4 rounded-lg border border-amber-500/20">
-            CAUTION: This Load Planning tool is for general planning purposes only. Refer to SQN procedures for operational weight and balance calculations
-          </p>
+        <div className="mt-12 text-center">
           <Button 
             variant="outline" 
             onClick={() => navigate("/")}
