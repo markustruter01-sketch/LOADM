@@ -620,7 +620,7 @@ export default function ModernScenarioPage() {
 
       {/* Results Dialog */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pt-10">
           <DialogHeader>
             <div className="flex justify-between items-center mb-2">
               <DialogTitle className="text-2xl font-bold">Scenario Results</DialogTitle>
