@@ -179,7 +179,7 @@ export default function PdfViewer({ file, className = "", height = 600 }: PdfVie
 
         {/* PDF Display */}
         <div 
-          className="flex justify-center items-center overflow-auto bg-gray-100"
+          className="flex justify-center items-start overflow-auto bg-gray-100 pt-4 pb-4"
           style={{ height: `${height}px` }}
         >
           {loading && (
