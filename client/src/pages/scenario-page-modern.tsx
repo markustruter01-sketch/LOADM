@@ -164,19 +164,9 @@ export default function ModernScenarioPage() {
       
       const effectiveType = overrideType || submissionType;
       if (effectiveType === 'training') {
-        // Training submissions only invalidate user activity history
         queryClient.invalidateQueries({ queryKey: ["/api/user/activity-history"] });
-        toast({
-          title: "Training Complete",
-          description: "Training scenario completed. Review your answers in the results window.",
-        });
       } else {
-        // Assessment submissions invalidate instructor portal data
         queryClient.invalidateQueries({ queryKey: ["/api/scenario-submissions"] });
-        toast({
-          title: "Assessment Submitted",
-          description: "Your assessment has been submitted for instructor review.",
-        });
       }
       
       setShowSubmissionDialog(false);
@@ -401,7 +391,11 @@ export default function ModernScenarioPage() {
         onComplete={() => {
           console.log('🎬 Success animation completed');
           setShowSuccessAnimation(false);
-          setShowResults(true);
+          if (isTrainingMode) {
+            setShowResults(true);
+          } else {
+            setLocation("/scenarios");
+          }
         }}
       />
       
