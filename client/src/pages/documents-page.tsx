@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft, FileText, Eye, Download, Briefcase } from "lucide-react";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft, FileText, Eye, Download, Briefcase, CheckCircle, Archive } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,8 @@ interface Mission {
   loadmaster1Name: string;
   loadmaster2Name: string;
   hasDangerousGoods: boolean;
+  isCompleted: boolean;
+  completedAt: string | null;
   userId: number;
   createdAt: string;
   updatedAt: string;
@@ -94,6 +96,10 @@ export default function DocumentsPage() {
   const [isAddingDocument, setIsAddingDocument] = useState(false);
   const [selectedDocumentToAdd, setSelectedDocumentToAdd] = useState("");
   const [isEditingMission, setIsEditingMission] = useState(false);
+  const [activeMissionsPage, setActiveMissionsPage] = useState(1);
+  const [archivePage, setArchivePage] = useState(1);
+  const [archiveExpanded, setArchiveExpanded] = useState(false);
+  const MISSIONS_PER_PAGE = 5;
   const [editMissionData, setEditMissionData] = useState({
     missionName: "",
     aircraftCallSign: "",
@@ -312,6 +318,43 @@ export default function DocumentsPage() {
       toast({
         title: "Error Updating Mission",
         description: error.message || "Failed to update mission. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const markMissionDoneMutation = useMutation({
+    mutationFn: async (mission: Mission) => {
+      return await apiRequest({
+        url: `/api/missions/${mission.id}`,
+        method: "PATCH",
+        body: {
+          missionName: mission.missionName,
+          aircraftCallSign: mission.aircraftCallSign,
+          captainName: mission.captainName,
+          departureLocation: mission.departureLocation,
+          arrivalDestination: mission.arrivalDestination,
+          loadmaster1Name: mission.loadmaster1Name,
+          loadmaster2Name: mission.loadmaster2Name,
+          hasDangerousGoods: mission.hasDangerousGoods,
+          isCompleted: true,
+        },
+      });
+    },
+    onSuccess: (updated: Mission) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      setSelectedMission(updated);
+      setMissionDetailOpen(false);
+      setArchiveExpanded(true);
+      toast({
+        title: "Mission Archived",
+        description: `"${updated.missionName}" has been marked as done and moved to the archive.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to mark mission as done.",
         variant: "destructive",
       });
     },
@@ -620,97 +663,242 @@ export default function DocumentsPage() {
                 </Button>
               </div>
 
-              {/* Missions Table */}
-              {missionsLoading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : missions.length === 0 ? (
-                <div className="text-center py-12 border rounded-lg">
-                  <Briefcase className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No missions created</h3>
-                  <p className="text-muted-foreground mb-4">Create your first mission to get started</p>
-                  <Button onClick={() => setIsCreatingMission(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Mission
-                  </Button>
-                </div>
-              ) : (
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-muted">
-                      <tr>
-                        <th className="px-4 py-3 text-left">
-                          <input
-                            type="checkbox"
-                            checked={selectedMissions.size === missions.length && missions.length > 0}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedMissions(new Set(missions.map(m => m.id)));
-                              } else {
-                                setSelectedMissions(new Set());
-                              }
-                            }}
-                            className="rounded"
-                          />
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">Mission Name</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">Aircraft</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">Captain</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">Route</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">Loadmasters</th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold">DG</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {missions.map((mission) => (
-                        <tr 
-                          key={mission.id} 
-                          className="border-t hover:bg-muted/50 cursor-pointer"
-                          onClick={() => {
-                            setSelectedMission(mission);
-                            setMissionDetailOpen(true);
-                          }}
-                        >
-                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                            <input
-                              type="checkbox"
-                              checked={selectedMissions.has(mission.id)}
-                              onChange={(e) => {
-                                const newSelected = new Set(selectedMissions);
-                                if (e.target.checked) {
-                                  newSelected.add(mission.id);
-                                } else {
-                                  newSelected.delete(mission.id);
-                                }
-                                setSelectedMissions(newSelected);
-                              }}
-                              className="rounded"
-                            />
-                          </td>
-                          <td className="px-4 py-3 font-medium">{mission.missionName}</td>
-                          <td className="px-4 py-3">{mission.aircraftCallSign}</td>
-                          <td className="px-4 py-3">{mission.captainName}</td>
-                          <td className="px-4 py-3 text-sm">
-                            {mission.departureLocation} → {mission.arrivalDestination}
-                          </td>
-                          <td className="px-4 py-3 text-sm">
-                            {mission.loadmaster1Name}
-                            {mission.loadmaster2Name && `, ${mission.loadmaster2Name}`}
-                          </td>
-                          <td className="px-4 py-3">
-                            {mission.hasDangerousGoods ? (
-                              <Badge variant="destructive">Yes</Badge>
-                            ) : (
-                              <Badge variant="secondary">No</Badge>
+              {/* Missions Table — active only, paginated */}
+              {(() => {
+                const activeMissions = missions.filter(m => !m.isCompleted);
+                const completedMissions = missions.filter(m => m.isCompleted);
+                const totalActivePages = Math.max(1, Math.ceil(activeMissions.length / MISSIONS_PER_PAGE));
+                const pagedActive = activeMissions.slice((activeMissionsPage - 1) * MISSIONS_PER_PAGE, activeMissionsPage * MISSIONS_PER_PAGE);
+                const totalArchivePages = Math.max(1, Math.ceil(completedMissions.length / MISSIONS_PER_PAGE));
+                const pagedArchive = completedMissions.slice((archivePage - 1) * MISSIONS_PER_PAGE, archivePage * MISSIONS_PER_PAGE);
+
+                return (
+                  <>
+                    {missionsLoading ? (
+                      <div className="flex justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : activeMissions.length === 0 ? (
+                      <div className="text-center py-12 border rounded-lg">
+                        <Briefcase className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-muted-foreground mb-2">No active missions</h3>
+                        <p className="text-muted-foreground mb-4">Create your first mission to get started</p>
+                        <Button onClick={() => setIsCreatingMission(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Mission
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="border rounded-lg overflow-hidden">
+                          <table className="w-full">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="px-4 py-3 text-left">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedMissions.size === activeMissions.length && activeMissions.length > 0}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedMissions(new Set(activeMissions.map(m => m.id)));
+                                      } else {
+                                        setSelectedMissions(new Set());
+                                      }
+                                    }}
+                                    className="rounded"
+                                  />
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Mission Name</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Aircraft</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Captain</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Route</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Loadmasters</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">DG</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {pagedActive.map((mission) => (
+                                <tr
+                                  key={mission.id}
+                                  className="border-t hover:bg-muted/50 cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedMission(mission);
+                                    setMissionDetailOpen(true);
+                                  }}
+                                >
+                                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedMissions.has(mission.id)}
+                                      onChange={(e) => {
+                                        const newSelected = new Set(selectedMissions);
+                                        if (e.target.checked) {
+                                          newSelected.add(mission.id);
+                                        } else {
+                                          newSelected.delete(mission.id);
+                                        }
+                                        setSelectedMissions(newSelected);
+                                      }}
+                                      className="rounded"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-3 font-medium">{mission.missionName}</td>
+                                  <td className="px-4 py-3">{mission.aircraftCallSign}</td>
+                                  <td className="px-4 py-3">{mission.captainName}</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    {mission.departureLocation} → {mission.arrivalDestination}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm">
+                                    {mission.loadmaster1Name}
+                                    {mission.loadmaster2Name && `, ${mission.loadmaster2Name}`}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {mission.hasDangerousGoods ? (
+                                      <Badge variant="destructive">Yes</Badge>
+                                    ) : (
+                                      <Badge variant="secondary">No</Badge>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Active missions pagination */}
+                        {totalActivePages > 1 && (
+                          <div className="flex items-center justify-between pt-2">
+                            <p className="text-sm text-muted-foreground">
+                              Page {activeMissionsPage} of {totalActivePages} · {activeMissions.length} active missions
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={activeMissionsPage <= 1}
+                                onClick={() => setActiveMissionsPage(p => Math.max(1, p - 1))}
+                              >
+                                <ChevronRight className="w-4 h-4 rotate-180" />
+                                Prev
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={activeMissionsPage >= totalActivePages}
+                                onClick={() => setActiveMissionsPage(p => Math.min(totalActivePages, p + 1))}
+                              >
+                                Next
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Archive — collapsible */}
+                    <div className="border rounded-lg overflow-hidden">
+                      <button
+                        className="w-full flex items-center justify-between px-4 py-3 bg-muted hover:bg-muted/80 transition-colors"
+                        onClick={() => setArchiveExpanded(v => !v)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Archive className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-semibold text-sm">Completed Missions Archive</span>
+                          <Badge variant="secondary" className="text-xs">{completedMissions.length}</Badge>
+                        </div>
+                        {archiveExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </button>
+
+                      {archiveExpanded && (
+                        completedMissions.length === 0 ? (
+                          <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                            No completed missions yet. Mark a mission as done to archive it.
+                          </div>
+                        ) : (
+                          <>
+                            <table className="w-full">
+                              <thead className="bg-muted/50">
+                                <tr>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Mission Name</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Aircraft</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Route</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Completed</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">DG</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {pagedArchive.map((mission) => (
+                                  <tr
+                                    key={mission.id}
+                                    className="border-t hover:bg-muted/30 cursor-pointer opacity-75"
+                                    onClick={() => {
+                                      setSelectedMission(mission);
+                                      setMissionDetailOpen(true);
+                                    }}
+                                  >
+                                    <td className="px-4 py-3">
+                                      <div className="flex items-center gap-2">
+                                        <CheckCircle className="w-4 h-4 text-orange-400 shrink-0" />
+                                        <span className="font-medium">{mission.missionName}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">{mission.aircraftCallSign}</td>
+                                    <td className="px-4 py-3 text-sm">{mission.departureLocation} → {mission.arrivalDestination}</td>
+                                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                                      {mission.completedAt ? new Date(mission.completedAt).toLocaleDateString() : "—"}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      {mission.hasDangerousGoods ? (
+                                        <Badge variant="destructive">Yes</Badge>
+                                      ) : (
+                                        <Badge variant="secondary">No</Badge>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            {/* Archive pagination */}
+                            {totalArchivePages > 1 && (
+                              <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/20">
+                                <p className="text-sm text-muted-foreground">
+                                  Page {archivePage} of {totalArchivePages}
+                                </p>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={archivePage <= 1}
+                                    onClick={() => setArchivePage(p => Math.max(1, p - 1))}
+                                  >
+                                    <ChevronRight className="w-4 h-4 rotate-180" />
+                                    Prev
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={archivePage >= totalArchivePages}
+                                    onClick={() => setArchivePage(p => Math.min(totalArchivePages, p + 1))}
+                                  >
+                                    Next
+                                    <ChevronRight className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
                             )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                          </>
+                        )
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </TabsContent>
 
@@ -1271,26 +1459,48 @@ export default function DocumentsPage() {
                   {isEditingMission ? editMissionData.missionName || selectedMission.missionName : selectedMission.missionName}
                 </DialogTitle>
                 {!isEditingMission ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setEditMissionData({
-                        missionName: selectedMission.missionName,
-                        aircraftCallSign: selectedMission.aircraftCallSign,
-                        captainName: selectedMission.captainName,
-                        departureLocation: selectedMission.departureLocation,
-                        arrivalDestination: selectedMission.arrivalDestination,
-                        loadmaster1Name: selectedMission.loadmaster1Name,
-                        loadmaster2Name: selectedMission.loadmaster2Name || "",
-                        hasDangerousGoods: selectedMission.hasDangerousGoods,
-                      });
-                      setIsEditingMission(true);
-                    }}
-                  >
-                    <Edit2 className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
+                  <div className="flex gap-2">
+                    {!selectedMission.isCompleted && (
+                      <Button
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                        onClick={() => markMissionDoneMutation.mutate(selectedMission)}
+                        disabled={markMissionDoneMutation.isPending}
+                      >
+                        {markMissionDoneMutation.isPending ? (
+                          <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Marking...</>
+                        ) : (
+                          <><CheckCircle className="w-4 h-4 mr-1" />Mark Done</>
+                        )}
+                      </Button>
+                    )}
+                    {selectedMission.isCompleted && (
+                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Completed {selectedMission.completedAt ? new Date(selectedMission.completedAt).toLocaleDateString() : ""}
+                      </Badge>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditMissionData({
+                          missionName: selectedMission.missionName,
+                          aircraftCallSign: selectedMission.aircraftCallSign,
+                          captainName: selectedMission.captainName,
+                          departureLocation: selectedMission.departureLocation,
+                          arrivalDestination: selectedMission.arrivalDestination,
+                          loadmaster1Name: selectedMission.loadmaster1Name,
+                          loadmaster2Name: selectedMission.loadmaster2Name || "",
+                          hasDangerousGoods: selectedMission.hasDangerousGoods,
+                        });
+                        setIsEditingMission(true);
+                      }}
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
                 ) : (
                   <div className="flex gap-2">
                     <Button

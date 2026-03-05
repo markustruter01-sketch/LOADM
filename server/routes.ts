@@ -228,10 +228,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!isOwner && !isInstructor && !isSuperAdmin) {
         return res.status(403).json({ message: "You can only edit your own missions" });
       }
-      const { missionName, aircraftCallSign, captainName, departureLocation, arrivalDestination, loadmaster1Name, loadmaster2Name, hasDangerousGoods } = req.body;
+      const { missionName, aircraftCallSign, captainName, departureLocation, arrivalDestination, loadmaster1Name, loadmaster2Name, hasDangerousGoods, isCompleted } = req.body;
+      const completedAt = isCompleted ? new Date() : null;
       const [updated] = await db
         .update(missions)
-        .set({ missionName, aircraftCallSign, captainName, departureLocation, arrivalDestination, loadmaster1Name, loadmaster2Name, hasDangerousGoods, updatedAt: new Date() })
+        .set({ missionName, aircraftCallSign, captainName, departureLocation, arrivalDestination, loadmaster1Name, loadmaster2Name, hasDangerousGoods, isCompleted: isCompleted ?? false, completedAt, updatedAt: new Date() })
         .where(eq(missions.id, missionId))
         .returning();
       res.json(updated);

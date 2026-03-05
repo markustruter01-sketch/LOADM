@@ -305,6 +305,8 @@ export const missions = pgTable("missions", {
   loadmaster1Name: text("loadmaster1_name").notNull(),
   loadmaster2Name: text("loadmaster2_name").default(""),
   hasDangerousGoods: boolean("has_dangerous_goods").default(false).notNull(),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at"),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
