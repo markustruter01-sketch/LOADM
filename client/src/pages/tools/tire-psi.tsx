@@ -178,6 +178,9 @@ export default function TirePsiCalculatorPage() {
                 <TabsContent value="single-tire" className="mt-6 space-y-6">
                   <div className="p-3 bg-slate-800 rounded-md text-center">
                     <p className="font-medium">Weight ÷ (Contact Width × Contact Length) = PSI</p>
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                      <span className="text-primary/70">e.g.</span> 3,000 lbs ÷ (8 in × 10 in) = <span className="text-primary font-semibold">37.5 PSI</span>
+                    </p>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-6">
@@ -265,6 +268,9 @@ export default function TirePsiCalculatorPage() {
                 <TabsContent value="multiple-tires" className="mt-6 space-y-6">
                   <div className="p-3 bg-slate-800 rounded-md text-center">
                     <p className="font-medium">(Total Weight ÷ # of Tires) ÷ (Contact Width × Contact Length) = PSI per Tire</p>
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                      <span className="text-primary/70">e.g.</span> (12,000 lbs ÷ 4 tires) ÷ (8 in × 10 in) = <span className="text-primary font-semibold">37.5 PSI per tire</span>
+                    </p>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-6">

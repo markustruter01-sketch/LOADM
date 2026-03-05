@@ -132,6 +132,9 @@ export default function SkiddedBoxPsiCalculatorPage() {
               <div className="space-y-6">
                 <div className="p-3 bg-slate-800 rounded-md text-center">
                   <p className="font-medium">GW ÷ (L of skid × W of skid × # of skids) = PSI</p>
+                  <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                    <span className="text-primary/70">e.g.</span> 4,000 lbs ÷ (48 in × 4 in × 2 skids) = <span className="text-primary font-semibold">10.42 PSI</span>
+                  </p>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-6">

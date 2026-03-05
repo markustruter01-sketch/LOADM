@@ -125,6 +125,9 @@ export default function VehicleCgfaPage() {
               <div className="space-y-6">
                 <div className="p-3 bg-slate-800 rounded-md text-center">
                   <p className="font-medium">RAW × WB ÷ GW = CGFA in Inches</p>
+                  <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                    <span className="text-primary/70">e.g.</span> 6,500 lbs × 120 in ÷ 15,000 lbs = <span className="text-primary font-semibold">52.0 in</span>
+                  </p>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-6">

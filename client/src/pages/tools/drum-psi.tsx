@@ -175,9 +175,19 @@ export default function DrumPsiCalculatorPage() {
                 
                 <div className="bg-slate-800 rounded-md p-3 text-center">
                   {drumType === "with-rim" ? (
-                    <p className="font-medium">Weight ÷ [π × (Outer radius² - Inner radius²)] = PSI</p>
+                    <>
+                      <p className="font-medium">Weight ÷ [π × (Outer radius² - Inner radius²)] = PSI</p>
+                      <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                        <span className="text-primary/70">e.g.</span> 500 lbs ÷ [π × (9² − 7²)] = 500 ÷ 100.5 = <span className="text-primary font-semibold">4.97 PSI</span>
+                      </p>
+                    </>
                   ) : (
-                    <p className="font-medium">Weight ÷ (π × radius²) = PSI</p>
+                    <>
+                      <p className="font-medium">Weight ÷ (π × radius²) = PSI</p>
+                      <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                        <span className="text-primary/70">e.g.</span> 500 lbs ÷ (π × 9²) = 500 ÷ 254.5 = <span className="text-primary font-semibold">1.97 PSI</span>
+                      </p>
+                    </>
                   )}
                 </div>
                 

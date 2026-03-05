@@ -119,6 +119,9 @@ export default function BoxPsiCalculatorPage() {
               <div className="space-y-6">
                 <div className="p-3 bg-slate-800 rounded-md text-center">
                   <p className="font-medium">Weight ÷ (Length × Width) = PSI</p>
+                  <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/40">
+                    <span className="text-primary/70">e.g.</span> 2,000 lbs ÷ (24 in × 20 in) = <span className="text-primary font-semibold">4.17 PSI</span>
+                  </p>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-6">
