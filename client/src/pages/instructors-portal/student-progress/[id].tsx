@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -33,7 +33,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, CheckCircle, Loader2, XCircle, BarChart4 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, XCircle, BarChart4, ClipboardCheck, User, Calendar } from "lucide-react";
 import { format } from 'date-fns';
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 
@@ -60,33 +60,35 @@ export default function SubmissionReview() {
   const { data: submission, isLoading: isLoadingSubmission } = useQuery<ScenarioSubmission>({
     queryKey: [`/api/scenario-submissions/${submissionId}`],
     enabled: !isNaN(submissionId),
-    onSuccess: (data) => {
-      // Initialize feedback if it exists
-      if (data.instructorFeedback) {
-        setInstructorFeedback(data.instructorFeedback);
-      }
-      
-      // Initialize pass/fail status if it exists
-      if (data.passed !== null) {
-        setManualPassFail(data.passed);
-      }
-      
-      // Initialize marked answers if they exist
-      if (data.markedAnswers) {
-        try {
-          const marked = JSON.parse(data.markedAnswers as string);
-          if (typeof marked === 'object') {
-            setMarkedAnswers(marked);
-          }
-        } catch (e) {
-          // Silent fail and continue with empty marked answers
+  });
+
+  // Initialize state when submission data loads (useEffect required in React Query v5 — onSuccess removed)
+  useEffect(() => {
+    if (!submission) return;
+
+    if (submission.instructorFeedback) {
+      setInstructorFeedback(submission.instructorFeedback);
+    }
+
+    if (submission.passed !== null && submission.passed !== undefined) {
+      setManualPassFail(submission.passed);
+    }
+
+    if (submission.markedAnswers) {
+      try {
+        // Drizzle returns JSON columns as already-parsed objects; guard against both cases
+        const raw = submission.markedAnswers;
+        const marked: Record<string, boolean> = typeof raw === 'string' ? JSON.parse(raw) : raw as Record<string, boolean>;
+        if (marked && typeof marked === 'object') {
+          setMarkedAnswers(marked);
         }
-      } else {
-        // Reset marked answers if none exist
+      } catch (e) {
         setMarkedAnswers({});
       }
+    } else {
+      setMarkedAnswers({});
     }
-  });
+  }, [submission?.id]);
   
   // Fetch scenario data
   const { data: scenario } = useQuery<Scenario>({
@@ -664,6 +666,48 @@ export default function SubmissionReview() {
                 )}
               </Button>
             </div>
+
+            {/* Review Log — shown only for already-reviewed submissions */}
+            {submission?.status === 'reviewed' && (submission as any).reviewedBy && (
+              <Card className="mt-6 border-border bg-muted/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ClipboardCheck className="h-4 w-4 text-primary" />
+                    Review Record
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:gap-8 gap-3">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Reviewed by</p>
+                        <p className="text-sm font-medium">{(submission as any).reviewedBy}</p>
+                      </div>
+                    </div>
+                    {(submission as any).reviewedAt && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Reviewed on</p>
+                          <p className="text-sm font-medium">
+                            {format(new Date((submission as any).reviewedAt), 'MMM d, yyyy h:mm a')}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {submission?.instructorFeedback && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Instructor Notes</p>
+                      <div className="bg-background border border-border rounded-md p-3 text-sm text-foreground whitespace-pre-wrap">
+                        {submission.instructorFeedback}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

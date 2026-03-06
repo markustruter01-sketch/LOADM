@@ -1863,7 +1863,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timeSpent: scenarioSubmissions.timeSpent,
         notes: scenarioSubmissions.notes,
         scenarioTitle: scenarios.title,
-        scenarioQuestions: scenarios.questions
+        scenarioQuestions: scenarios.questions,
+        reviewedBy: scenarioSubmissions.reviewedBy,
+        reviewedAt: scenarioSubmissions.reviewedAt,
       })
         .from(scenarioSubmissions)
         .leftJoin(scenarios, eq(scenarioSubmissions.scenarioId, scenarios.id))
@@ -1936,17 +1938,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📝 Updating scenario submission:', submissionId);
       console.log('📝 Review by instructor:', req.user?.email);
 
-      // Convert markedAnswers to JSON string if it's an object
-      const markedAnswersJson = typeof markedAnswers === 'object' ? 
-        JSON.stringify(markedAnswers) : markedAnswers;
+      // Build reviewer name from user info
+      const reviewerName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ') || req.user?.email || 'Instructor';
 
       const [updatedSubmission] = await db.update(scenarioSubmissions)
         .set({
           instructorFeedback: instructorFeedback || '',
-          markedAnswers: markedAnswersJson,
+          markedAnswers: markedAnswers,
           status,
           score,
-          passed
+          passed,
+          reviewedBy: reviewerName,
+          reviewedAt: new Date(),
         })
         .where(eq(scenarioSubmissions.id, submissionId))
         .returning();

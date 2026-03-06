@@ -176,6 +176,8 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
   timeSpent: integer("time_spent"),
   notes: text("notes"),
   submissionType: text("submission_type").default("assessment").notNull(), // "training" or "assessment"
+  reviewedBy: text("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
 });
 
 export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions, {
