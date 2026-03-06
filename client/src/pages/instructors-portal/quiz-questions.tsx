@@ -453,18 +453,18 @@ export default function QuizQuestionsPage() {
                                   key={index} 
                                   className={`flex items-center gap-2 p-2 rounded ${
                                     index === question.correctAnswer 
-                                      ? 'bg-green-50 border border-green-200' 
+                                      ? 'bg-yellow-500/15 border border-yellow-500/50' 
                                       : 'bg-background/50'
                                   }`}
                                 >
                                   {index === question.correctAnswer && (
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <CheckCircle className="h-4 w-4 text-yellow-400" />
                                   )}
                                   <span className="text-foreground">
                                     {String.fromCharCode(65 + index)}. {option}
                                   </span>
                                   {index === question.correctAnswer && (
-                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-auto">
+                                    <span className="text-xs bg-yellow-500/30 text-yellow-300 border border-yellow-500/40 px-2 py-1 rounded ml-auto font-medium">
                                       Correct
                                     </span>
                                   )}

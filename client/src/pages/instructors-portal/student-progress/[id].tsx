@@ -603,37 +603,41 @@ export default function SubmissionReview() {
                         
                         <div className="flex space-x-10">
                           <div 
-                            className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors ${
-                              manualPassFail === true ? 'bg-green-100 dark:bg-green-900' : 'hover:bg-muted-foreground/10'
+                            className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors border ${
+                              manualPassFail === true 
+                                ? 'bg-green-500/20 border-green-500 text-green-400' 
+                                : 'border-transparent hover:bg-muted-foreground/10 text-foreground'
                             }`}
                             onClick={() => setManualPassFail(true)}
                           >
-                            <div className={`w-6 h-6 rounded-full ${
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
                               manualPassFail === true ? 'bg-green-500' : 'border-2 border-muted-foreground'
-                            } flex items-center justify-center`}>
+                            }`}>
                               {manualPassFail === true && (
                                 <CheckCircle className="w-4 h-4 text-white" />
                               )}
                             </div>
-                            <span className={`${manualPassFail === true ? 'font-semibold' : ''}`}>
+                            <span className={`font-medium ${manualPassFail === true ? 'font-semibold' : ''}`}>
                               Pass
                             </span>
                           </div>
                           
                           <div 
-                            className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors ${
-                              manualPassFail === false ? 'bg-red-100 dark:bg-red-900' : 'hover:bg-muted-foreground/10'
+                            className={`flex items-center space-x-3 p-3 rounded-md cursor-pointer transition-colors border ${
+                              manualPassFail === false 
+                                ? 'bg-red-500/20 border-red-500 text-red-400' 
+                                : 'border-transparent hover:bg-muted-foreground/10 text-foreground'
                             }`}
                             onClick={() => setManualPassFail(false)}
                           >
-                            <div className={`w-6 h-6 rounded-full ${
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
                               manualPassFail === false ? 'bg-red-500' : 'border-2 border-muted-foreground'
-                            } flex items-center justify-center`}>
+                            }`}>
                               {manualPassFail === false && (
                                 <XCircle className="w-4 h-4 text-white" />
                               )}
                             </div>
-                            <span className={`${manualPassFail === false ? 'font-semibold' : ''}`}>
+                            <span className={`font-medium ${manualPassFail === false ? 'font-semibold' : ''}`}>
                               Fail
                             </span>
                           </div>
