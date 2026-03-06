@@ -858,6 +858,17 @@ export default function ModuleDetailPage() {
     enabled: !!module?.id && typeof module.id === 'number',
   })
 
+  // Fetch this module's DB content items (quiz/assessment/reading created in the instructor portal)
+  const { data: singleModuleData } = useQuery({
+    queryKey: ['/api/training-modules', numericId],
+    queryFn: async () => {
+      const response = await fetch(`/api/training-modules/${numericId}`)
+      if (!response.ok) return null
+      return response.json()
+    },
+    enabled: !isNaN(numericId),
+  })
+
   // Fetch available quizzes for quiz/assessment buttons
   const { data: availableQuizzes } = useQuery({
     queryKey: ['/api/quizzes'],
@@ -969,6 +980,28 @@ export default function ModuleDetailPage() {
   const hardcodedContent = moduleContents[contentKey] || []
   const content = hardcodedContent.length > 0 ? hardcodedContent : generateDynamicContent(module)
 
+  // Parse DB-stored quiz/assessment/reading content items (created via instructor portal)
+  const parseDbQuestion = (item: any) => {
+    try {
+      const raw = item.content
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+      if (!parsed?.question) return null
+      return {
+        id: `db-${item.id}`,
+        question: parsed.question as string,
+        options: Array.isArray(parsed.options) ? parsed.options as string[] : ['', '', '', ''],
+        correct: typeof parsed.correct === 'number' ? parsed.correct : 0,
+        explanation: (parsed.explanation as string) || ''
+      }
+    } catch {
+      return null
+    }
+  }
+  const dbContent: any[] = singleModuleData?.content || []
+  const dbQuizQuestions = dbContent.filter((i: any) => i.type === 'quiz').map(parseDbQuestion).filter(Boolean) as NonNullable<ReturnType<typeof parseDbQuestion>>[]
+  const dbAssessmentQuestions = dbContent.filter((i: any) => i.type === 'assessment').map(parseDbQuestion).filter(Boolean) as NonNullable<ReturnType<typeof parseDbQuestion>>[]
+  const dbReadingItems = dbContent.filter((i: any) => i.type === 'reading')
+
   const completeLesson = (lessonId: string) => {
     if (!completedLessons.includes(lessonId)) {
       const newCompleted = [...completedLessons, lessonId]
@@ -987,10 +1020,9 @@ export default function ModuleDetailPage() {
 
   // Quiz handlers
   const handleQuizSubmit = () => {
-    const quizData = moduleQuizData[contentKey]
-    if (!quizData) return
+    const questions = dbQuizQuestions.length > 0 ? dbQuizQuestions : (moduleQuizData[contentKey]?.questions || [])
+    if (questions.length === 0) return
 
-    const questions = quizData.questions
     if (Object.keys(quizAnswers).length < questions.length) {
       toast({
         title: "Incomplete quiz",
@@ -1040,10 +1072,9 @@ export default function ModuleDetailPage() {
 
   // Assessment handlers
   const handleAssessmentSubmit = async () => {
-    const assessData = getAssessmentData(module, contentKey)
-    if (!assessData) return
+    const questions = dbAssessmentQuestions.length > 0 ? dbAssessmentQuestions : (getAssessmentData(module, contentKey)?.questions || [])
+    if (questions.length === 0) return
 
-    const questions = assessData.questions
     if (Object.keys(assessmentAnswers).length < questions.length) {
       toast({
         title: "Incomplete assessment",
@@ -1593,7 +1624,92 @@ export default function ModuleDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {content
+                  {/* DB reading items authored by instructors (if any) */}
+                  {dbReadingItems.length > 0 && dbReadingItems.map((dbLesson: any) => {
+                    const lessonKey = `db-reading-${dbLesson.id}`
+                    const isExpanded = expandedReadings.includes(lessonKey)
+                    const isCompleted = completedLessons.includes(lessonKey)
+                    const bodyText: string = typeof dbLesson.content === 'string'
+                      ? dbLesson.content
+                      : (dbLesson.content?.text || dbLesson.description || '')
+                    return (
+                      <div key={lessonKey} className="border border-gray-700 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-5 py-4 bg-gray-800/60">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded bg-orange-500/15 flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-orange-400" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-white text-sm">{dbLesson.title}</p>
+                              {dbLesson.description && <p className="text-xs text-gray-400 mt-0.5">{dbLesson.description}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {dbLesson.duration && (
+                              <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">{dbLesson.duration}</Badge>
+                            )}
+                            {isCompleted && (
+                              <Badge className="text-xs bg-orange-500/20 text-orange-400 border-orange-500/30">
+                                <CheckCircle2 className="w-3 h-3 mr-1" /> Read
+                              </Badge>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs"
+                              onClick={() => setExpandedReadings(prev =>
+                                prev.includes(lessonKey) ? prev.filter(id => id !== lessonKey) : [...prev, lessonKey]
+                              )}
+                            >
+                              {isExpanded ? "Close Document" : "Read Document"}
+                            </Button>
+                          </div>
+                        </div>
+                        {isExpanded && (
+                          <div className="bg-gray-700/30 p-6">
+                            <div className="mx-auto max-w-[780px] rounded-sm shadow-2xl" style={{ background: '#fafaf8', boxShadow: '0 4px 6px rgba(0,0,0,0.4), 0 10px 40px rgba(0,0,0,0.5)', border: '1px solid #d4d4d0' }}>
+                              <div style={{ borderBottom: '2px solid #c2410c', background: '#1c1917', padding: '10px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: '#fb923c', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>LOADMworkflow — Training Module</span>
+                                <span style={{ color: '#9ca3af', fontSize: '11px' }}>{module.title}</span>
+                              </div>
+                              <div style={{ padding: '48px 56px 56px', color: '#1c1917' }} className="reading-document">
+                                <style>{`
+                                  .reading-document { font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.75; }
+                                  .reading-document h1 { font-size: 1.5rem; font-weight: 700; color: #1c1917; margin-bottom: 0.75rem; font-family: system-ui, sans-serif; border-bottom: 2px solid #c2410c; padding-bottom: 0.5rem; }
+                                  .reading-document h2 { font-size: 1.15rem; font-weight: 700; color: #1c1917; margin-top: 2rem; margin-bottom: 0.6rem; font-family: system-ui, sans-serif; }
+                                  .reading-document p { color: #374151; margin-bottom: 0.9rem; font-size: 0.925rem; }
+                                `}</style>
+                                <h1 style={{ fontFamily: 'system-ui, sans-serif', fontSize: '1.5rem', fontWeight: 700, color: '#1c1917', borderBottom: '2px solid #c2410c', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+                                  {dbLesson.title}
+                                </h1>
+                                {bodyText ? bodyText.split('\n').map((para: string, pi: number) => para.trim() ? (
+                                  <p key={pi} style={{ color: '#374151', marginBottom: '0.9rem', fontSize: '0.925rem', fontFamily: "'Georgia', serif", lineHeight: 1.75 }}>{para}</p>
+                                ) : null) : (
+                                  <p style={{ color: '#6b7280', fontStyle: 'italic', fontFamily: "'Georgia', serif" }}>No content provided for this reading material.</p>
+                                )}
+                              </div>
+                              <div style={{ borderTop: '1px solid #e5e7eb', padding: '10px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9faf8' }}>
+                                <span style={{ color: '#9ca3af', fontSize: '10px' }}>RESTRICTED — FOR TRAINING PURPOSES ONLY</span>
+                                <span style={{ color: '#9ca3af', fontSize: '10px' }}>LOADMworkflow Training Platform</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-center mt-5">
+                              <Button
+                                onClick={() => { completeLesson(lessonKey); setExpandedReadings(prev => prev.filter(id => id !== lessonKey)) }}
+                                disabled={isCompleted}
+                                className={isCompleted ? "bg-orange-600 hover:bg-orange-700 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"}
+                              >
+                                {isCompleted ? <><CheckCircle2 className="h-4 w-4 mr-2" /> Already Completed</> : <><CheckCircle2 className="h-4 w-4 mr-2" /> Mark as Read</>}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+
+                  {/* Hardcoded/dynamic reading lessons (for legacy modules) */}
+                  {(dbReadingItems.length === 0) && content
                     .filter(lesson => lesson.type === 'reading')
                     .map(lesson => {
                       const ReadingComponent = readingContentMap[lesson.id]
@@ -1770,10 +1886,9 @@ export default function ModuleDetailPage() {
           {/* Quiz Tab Content - Inline quiz matching scenarios quiz UI */}
           <TabsContent value="quiz">
             {(() => {
-              const quizData = moduleQuizData[contentKey]
-              const questions = quizData?.questions || []
+              const questions = dbQuizQuestions.length > 0 ? dbQuizQuestions : (moduleQuizData[contentKey]?.questions || [])
 
-              if (!quizData || questions.length === 0) {
+              if (questions.length === 0) {
                 return (
                   <Card className="border-gray-800">
                     <CardContent className="pt-6 text-center text-muted-foreground">
@@ -1960,10 +2075,9 @@ export default function ModuleDetailPage() {
           {/* Assessment Tab — inline MCQ, 80% pass, results logged to profile */}
           <TabsContent value="assessment">
             {(() => {
-              const assessData = getAssessmentData(module, contentKey)
-              const questions = assessData?.questions || []
+              const questions = dbAssessmentQuestions.length > 0 ? dbAssessmentQuestions : (getAssessmentData(module, contentKey)?.questions || [])
 
-              if (!assessData || questions.length === 0) {
+              if (questions.length === 0) {
                 return (
                   <Card className="border-gray-800">
                     <CardContent className="pt-6 text-center text-muted-foreground">

@@ -51,6 +51,22 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 4. Configure SENDGRID_VERIFIED_SENDER for email notifications
 5. Review license expiry settings and readiness snapshot schedules
 
+## Recent Changes (March 6, 2026) — Edit Training Module Redesign
+- **Edit Training Module Dialog Rebuilt** (`client/src/pages/instructors-portal/training-modules/index.tsx`):
+  - Overview tab cleaned up: removed orphaned `prerequisites` and `resources` fields (not in DB schema); added helpful tip section
+  - Readings tab: replaced free-form textarea with a structured CRUD manager — add/edit/delete reading items with title + content body; each item persists via `POST/PUT/DELETE /api/training-modules/:id/content`
+  - Quiz tab: replaced textarea with a full question builder — question text, 4 labeled options (A–D), radio button for correct answer (accent-yellow-500 styling), optional explanation; question cards display with yellow highlight on correct option; full add/edit/delete per question via content CRUD API
+  - Assessment tab: identical structure to Quiz tab but with `type="assessment"` content items; pass threshold 80% shown in UI
+  - All correct-answer radio inputs are now standard `<input type="radio">` elements (accessible, works with automation tools)
+  - Empty states shown with icon when no items exist; warning banner shown for non-numeric module IDs
+- **Student View Updated** (`client/src/pages/training-modules/[id].tsx`):
+  - Added `GET /api/training-modules/:numericId` query to fetch full module with DB content items
+  - Quiz tab: uses DB quiz items if any exist (type="quiz"), falls back to hardcoded `moduleQuizData` for legacy string-ID modules
+  - Assessment tab: uses DB assessment items if any exist (type="assessment"), falls back to hardcoded data
+  - Readings tab: renders DB reading items (type="reading") above legacy hardcoded items; hides hardcoded items when DB items exist
+  - DB reading content rendered in the same document-style PDF viewer with orange header/footer
+  - Legacy string-ID modules (c17-basics, c130-basics, kc30a-basics, c27j-basics) have zero regression — still use all hardcoded data
+
 ## Recent Changes (January 28, 2026)
 - **Leadership Role Implementation**: Added new "Leadership" role with read-only observation access
   - Leadership users have same view access as instructors but cannot make changes (read-only mode)

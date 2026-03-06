@@ -17,7 +17,14 @@ import {
   Upload,
   VideoIcon,
   X,
-  Play
+  Play,
+  CheckCircle2,
+  Save,
+  FileQuestion,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle
 } from "lucide-react";
 import { 
   Card, 
@@ -74,6 +81,48 @@ interface TrainingModule {
   createdBy?: string;
   lastModified?: string;
 }
+
+interface ContentItem {
+  id: number;
+  moduleId: number;
+  title: string;
+  type: 'video' | 'reading' | 'quiz' | 'assessment';
+  duration: string;
+  description: string;
+  content: string;
+  videoUrl?: string;
+  orderIndex: number;
+}
+
+interface QuestionForm {
+  id?: number;
+  question: string;
+  options: [string, string, string, string];
+  correct: number;
+  explanation: string;
+}
+
+interface ReadingForm {
+  id?: number;
+  title: string;
+  description: string;
+  duration: string;
+  content: string;
+}
+
+const blankQuestion = (): QuestionForm => ({
+  question: '',
+  options: ['', '', '', ''],
+  correct: 0,
+  explanation: '',
+});
+
+const blankReading = (): ReadingForm => ({
+  title: '',
+  description: '',
+  duration: '15 min',
+  content: '',
+});
 
 // Initial training modules data
 const initialTrainingModules: TrainingModule[] = [
@@ -617,6 +666,17 @@ export default function TrainingModulesManagement() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Content item management state
+  const [quizForm, setQuizForm] = useState<QuestionForm>(blankQuestion());
+  const [assessmentForm, setAssessmentForm] = useState<QuestionForm>(blankQuestion());
+  const [readingForm, setReadingForm] = useState<ReadingForm>(blankReading());
+  const [showAddQuiz, setShowAddQuiz] = useState(false);
+  const [showAddAssessment, setShowAddAssessment] = useState(false);
+  const [showAddReading, setShowAddReading] = useState(false);
+  const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
+  const [editingAssessmentId, setEditingAssessmentId] = useState<number | null>(null);
+  const [editingReadingId, setEditingReadingId] = useState<number | null>(null);
+
   // Video upload related state
 
   // Difficulty order for sorting (beginner first, advanced last)
@@ -800,8 +860,139 @@ export default function TrainingModulesManagement() {
     enabled: !!selectedModule?.id && selectedModule.id !== "undefined" && !isNaN(parseInt(selectedModule.id)) && isEditDialogOpen,
   });
 
+  // Fetch content items for selected module
+  const { data: moduleContentItems, refetch: refetchContent } = useQuery<ContentItem[]>({
+    queryKey: ['/api/training-modules', selectedModule?.id, 'content'],
+    queryFn: async () => {
+      if (!selectedModule?.id) return [];
+      const moduleIdNum = parseInt(String(selectedModule.id));
+      if (isNaN(moduleIdNum)) return [];
+      const response = await fetch(`/api/training-modules/${moduleIdNum}`, { credentials: 'include' });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.content || [];
+    },
+    enabled: !!selectedModule?.id && !isNaN(parseInt(String(selectedModule.id))) && isEditDialogOpen,
+  });
+
+  const quizItems = (moduleContentItems || []).filter(i => i.type === 'quiz');
+  const assessmentItems = (moduleContentItems || []).filter(i => i.type === 'assessment');
+  const readingItems = (moduleContentItems || []).filter(i => i.type === 'reading');
+
+  // Create content item
+  const createContentMutation = useMutation({
+    mutationFn: async (item: Omit<ContentItem, 'id' | 'moduleId' | 'orderIndex'> & { type: string }) => {
+      const moduleIdNum = parseInt(String(selectedModule?.id));
+      const response = await fetch(`/api/training-modules/${moduleIdNum}/content`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ...item, orderIndex: (moduleContentItems?.length || 0) }),
+      });
+      if (!response.ok) throw new Error('Failed to save content');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchContent();
+      toast({ title: "Saved", description: "Content item added." });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to save.", variant: "destructive" }),
+  });
+
+  // Update content item
+  const updateContentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<ContentItem> }) => {
+      const moduleIdNum = parseInt(String(selectedModule?.id));
+      const response = await fetch(`/api/training-modules/${moduleIdNum}/content/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update content');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchContent();
+      toast({ title: "Updated", description: "Content item updated." });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to update.", variant: "destructive" }),
+  });
+
+  // Delete content item
+  const deleteContentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const moduleIdNum = parseInt(String(selectedModule?.id));
+      const response = await fetch(`/api/training-modules/${moduleIdNum}/content/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to delete content');
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchContent();
+      toast({ title: "Deleted", description: "Content item removed." });
+    },
+    onError: () => toast({ title: "Error", description: "Failed to delete.", variant: "destructive" }),
+  });
+
+  // Helpers: save a quiz or assessment question
+  const saveQuestion = (type: 'quiz' | 'assessment', form: QuestionForm, editingId: number | null, onDone: () => void) => {
+    if (!form.question.trim() || form.options.some(o => !o.trim())) {
+      toast({ title: "Incomplete", description: "Fill in the question and all four options.", variant: "destructive" });
+      return;
+    }
+    const contentJson = JSON.stringify({ question: form.question, options: form.options, correct: form.correct, explanation: form.explanation });
+    const title = form.question.length > 60 ? form.question.slice(0, 60) + '...' : form.question;
+    if (editingId) {
+      updateContentMutation.mutate({ id: editingId, data: { title, type, content: contentJson, description: form.question, duration: '5 min' } });
+    } else {
+      createContentMutation.mutate({ title, type, content: contentJson, description: form.question, duration: '5 min', videoUrl: undefined });
+    }
+    onDone();
+  };
+
+  // Helper: save a reading item
+  const saveReading = (form: ReadingForm, editingId: number | null, onDone: () => void) => {
+    if (!form.title.trim() || !form.content.trim()) {
+      toast({ title: "Incomplete", description: "Fill in the title and content.", variant: "destructive" });
+      return;
+    }
+    if (editingId) {
+      updateContentMutation.mutate({ id: editingId, data: { title: form.title, type: 'reading', content: form.content, description: form.description, duration: form.duration } });
+    } else {
+      createContentMutation.mutate({ title: form.title, type: 'reading', content: form.content, description: form.description, duration: form.duration, videoUrl: undefined });
+    }
+    onDone();
+  };
+
+  const parseQuestionContent = (item: ContentItem): QuestionForm => {
+    try {
+      const parsed = JSON.parse(item.content || '{}');
+      return {
+        id: item.id,
+        question: parsed.question || '',
+        options: parsed.options?.length === 4 ? parsed.options : ['', '', '', ''],
+        correct: parsed.correct ?? 0,
+        explanation: parsed.explanation || '',
+      };
+    } catch {
+      return { ...blankQuestion(), id: item.id };
+    }
+  };
+
   const openEditDialog = (module: any) => {
     setSelectedModule(module);
+    setShowAddQuiz(false);
+    setShowAddAssessment(false);
+    setShowAddReading(false);
+    setEditingQuizId(null);
+    setEditingAssessmentId(null);
+    setEditingReadingId(null);
+    setQuizForm(blankQuestion());
+    setAssessmentForm(blankQuestion());
+    setReadingForm(blankReading());
     setFormData({
       title: module.title,
       description: module.description,
@@ -1244,16 +1435,6 @@ export default function TrainingModulesManagement() {
                         />
                       </div>
                       
-                      <div>
-                        <Label htmlFor="edit-prerequisites">Prerequisites</Label>
-                        <Textarea
-                          id="edit-prerequisites"
-                          value={formData.prerequisites}
-                          onChange={(e) => setFormData(prev => ({ ...prev, prerequisites: e.target.value }))}
-                          placeholder="Required knowledge or previous modules"
-                          rows={2}
-                        />
-                      </div>
                     </div>
                     
                     <div className="space-y-4">
@@ -1279,29 +1460,10 @@ export default function TrainingModulesManagement() {
                         />
                       </div>
                       
-                      <div>
-                        <Label htmlFor="edit-resources">Additional Resources</Label>
-                        <Textarea
-                          id="edit-resources"
-                          value={formData.resources}
-                          onChange={(e) => setFormData(prev => ({ ...prev, resources: e.target.value }))}
-                          placeholder="Additional learning materials, manuals, references"
-                          rows={3}
-                        />
-                      </div>
                     </div>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="edit-overview-content">Overview Content</Label>
-                    <Textarea
-                      id="edit-overview-content"
-                      value={formData.overviewContent}
-                      onChange={(e) => setFormData(prev => ({ ...prev, overviewContent: e.target.value }))}
-                      placeholder="Detailed overview content for this training module..."
-                      rows={8}
-                      className="w-full"
-                    />
+                  <div className="bg-muted/30 border border-muted rounded-lg p-3 text-xs text-muted-foreground">
+                    <strong>Tip:</strong> After saving these details, use the Videos, Readings, Quiz, and Assessment tabs to add the actual content students will see.
                   </div>
                 </TabsContent>
 
@@ -1562,112 +1724,377 @@ export default function TrainingModulesManagement() {
                 </TabsContent>
 
                 {/* Readings Tab */}
-                <TabsContent value="readings" className="flex-1 space-y-4 overflow-y-auto">
+                <TabsContent value="readings" className="flex-1 overflow-y-auto">
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-reading-content">Reading Material Content</Label>
-                      <Textarea
-                        id="edit-reading-content"
-                        value={formData.readingContent}
-                        onChange={(e) => setFormData(prev => ({ ...prev, readingContent: e.target.value }))}
-                        placeholder="Enter comprehensive reading material content. Use markdown formatting for structure..."
-                        rows={20}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                    
-                    <div className="bg-gray-800/20 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Reading Content Guidelines:</h4>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Use clear headings and subheadings</li>
-                        <li>• Include relevant diagrams and illustrations references</li>
-                        <li>• Reference official military publications when applicable</li>
-                        <li>• Structure content progressively from basic to advanced concepts</li>
-                        <li>• Include real-world examples and case studies</li>
-                      </ul>
-                    </div>
+                    {/* Module ID guard */}
+                    {isNaN(parseInt(String(selectedModule?.id))) ? (
+                      <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        <p className="text-sm">Save the module's overview details first before adding readings.</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold flex items-center gap-2"><FileText className="h-4 w-4 text-orange-500" /> Reading Materials ({readingItems.length})</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">Add structured reading content that students work through in the module.</p>
+                          </div>
+                          {!showAddReading && !editingReadingId && (
+                            <Button size="sm" onClick={() => { setReadingForm(blankReading()); setShowAddReading(true); }} className="bg-orange-500 hover:bg-orange-600">
+                              <Plus className="h-4 w-4 mr-1" /> Add Reading
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Existing reading items */}
+                        {readingItems.length === 0 && !showAddReading && (
+                          <div className="border border-dashed border-muted-foreground/30 rounded-lg p-8 text-center text-muted-foreground">
+                            <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                            <p className="text-sm">No reading materials yet. Add your first reading above.</p>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          {readingItems.map((item) => (
+                            <div key={item.id}>
+                              {editingReadingId === item.id ? (
+                                <div className="border border-orange-500/40 rounded-lg p-4 space-y-3 bg-orange-500/5">
+                                  <h4 className="font-medium text-sm text-orange-400">Editing Reading</h4>
+                                  <div>
+                                    <Label className="text-xs">Title</Label>
+                                    <Input value={readingForm.title} onChange={e => setReadingForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g., C-17 Cargo Bay Layout" />
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <Label className="text-xs">Description (short)</Label>
+                                      <Input value={readingForm.description} onChange={e => setReadingForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief summary" />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Duration</Label>
+                                      <Input value={readingForm.duration} onChange={e => setReadingForm(p => ({ ...p, duration: e.target.value }))} placeholder="e.g., 15 min" />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs">Content</Label>
+                                    <Textarea value={readingForm.content} onChange={e => setReadingForm(p => ({ ...p, content: e.target.value }))} placeholder="Full reading text. Use line breaks to separate sections." rows={10} className="font-mono text-sm" />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button size="sm" onClick={() => saveReading(readingForm, editingReadingId, () => setEditingReadingId(null))} className="bg-orange-500 hover:bg-orange-600">
+                                      <Save className="h-3.5 w-3.5 mr-1" /> Save Changes
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={() => setEditingReadingId(null)}>Cancel</Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="border border-muted rounded-lg p-3 flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm">{item.title}</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{item.description || 'No description'} · {item.duration}</p>
+                                    {item.content && (
+                                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2 font-mono">{item.content.slice(0, 120)}{item.content.length > 120 ? '...' : ''}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    <Button size="sm" variant="ghost" onClick={() => { setReadingForm({ id: item.id, title: item.title, description: item.description, duration: item.duration, content: item.content }); setEditingReadingId(item.id); setShowAddReading(false); }}>
+                                      <Edit className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => { if (confirm('Delete this reading?')) deleteContentMutation.mutate(item.id); }}>
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add new reading form */}
+                        {showAddReading && (
+                          <div className="border border-orange-500/40 rounded-lg p-4 space-y-3 bg-orange-500/5">
+                            <h4 className="font-medium text-sm text-orange-400">New Reading Material</h4>
+                            <div>
+                              <Label className="text-xs">Title</Label>
+                              <Input value={readingForm.title} onChange={e => setReadingForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g., C-17 Cargo Bay Layout" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs">Description (short)</Label>
+                                <Input value={readingForm.description} onChange={e => setReadingForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief summary" />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Duration</Label>
+                                <Input value={readingForm.duration} onChange={e => setReadingForm(p => ({ ...p, duration: e.target.value }))} placeholder="e.g., 15 min" />
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Content</Label>
+                              <Textarea value={readingForm.content} onChange={e => setReadingForm(p => ({ ...p, content: e.target.value }))} placeholder="Full reading text. Use line breaks to separate sections." rows={10} className="font-mono text-sm" />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => saveReading(readingForm, null, () => { setShowAddReading(false); setReadingForm(blankReading()); })} className="bg-orange-500 hover:bg-orange-600">
+                                <Save className="h-3.5 w-3.5 mr-1" /> Save Reading
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => { setShowAddReading(false); setReadingForm(blankReading()); }}>Cancel</Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </TabsContent>
 
-                {/* Quiz Tab (formerly Interactive) */}
-                <TabsContent value="quiz" className="flex-1 space-y-4 overflow-y-auto">
+                {/* Quiz Tab */}
+                <TabsContent value="quiz" className="flex-1 overflow-y-auto">
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-quiz-content">Quiz Content & Questions</Label>
-                      <Textarea
-                        id="edit-quiz-content"
-                        value={formData.quizContent}
-                        onChange={(e) => setFormData(prev => ({ ...prev, quizContent: e.target.value }))}
-                        placeholder="Define quiz questions, multiple choice options, correct answers, and explanations..."
-                        rows={15}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-800/20 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Quiz Types:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Multiple choice questions</li>
-                          <li>• True/False questions</li>
-                          <li>• Fill in the blank</li>
-                          <li>• Matching exercises</li>
-                          <li>• Short answer questions</li>
-                        </ul>
+                    {isNaN(parseInt(String(selectedModule?.id))) ? (
+                      <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        <p className="text-sm">Save the module's overview details first before adding quiz questions.</p>
                       </div>
-                      
-                      <div className="bg-gray-800/20 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Implementation Notes:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Include answer explanations</li>
-                          <li>• Provide immediate feedback</li>
-                          <li>• Allow multiple attempts</li>
-                          <li>• Track progress automatically</li>
-                          <li>• Randomize question order</li>
-                        </ul>
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold flex items-center gap-2"><FileQuestion className="h-4 w-4 text-orange-500" /> Quiz Questions ({quizItems.length})</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">Multiple-choice questions students answer during the module. Immediate feedback is shown after submission.</p>
+                          </div>
+                          {!showAddQuiz && !editingQuizId && (
+                            <Button size="sm" onClick={() => { setQuizForm(blankQuestion()); setShowAddQuiz(true); }} className="bg-orange-500 hover:bg-orange-600">
+                              <Plus className="h-4 w-4 mr-1" /> Add Question
+                            </Button>
+                          )}
+                        </div>
+
+                        {quizItems.length === 0 && !showAddQuiz && (
+                          <div className="border border-dashed border-muted-foreground/30 rounded-lg p-8 text-center text-muted-foreground">
+                            <FileQuestion className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                            <p className="text-sm">No quiz questions yet. Add your first question above.</p>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          {quizItems.map((item, idx) => {
+                            const q = parseQuestionContent(item);
+                            const optionLetters = ['A', 'B', 'C', 'D'];
+                            return (
+                              <div key={item.id}>
+                                {editingQuizId === item.id ? (
+                                  <div className="border border-orange-500/40 rounded-lg p-4 space-y-3 bg-orange-500/5">
+                                    <h4 className="text-sm font-medium text-orange-400">Editing Question {idx + 1}</h4>
+                                    <div>
+                                      <Label className="text-xs">Question</Label>
+                                      <Textarea value={quizForm.question} onChange={e => setQuizForm(p => ({ ...p, question: e.target.value }))} placeholder="Enter the question text..." rows={2} />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                      {quizForm.options.map((opt, oi) => (
+                                        <div key={oi} className={`flex items-center gap-2 p-2 rounded border ${quizForm.correct === oi ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-muted'}`}>
+                                          <input type="radio" name={`quiz-edit-${editingQuizId}`} checked={quizForm.correct === oi} onChange={() => setQuizForm(p => ({ ...p, correct: oi }))} className="w-4 h-4 flex-shrink-0 accent-yellow-500 cursor-pointer" />
+                                          <span className="text-xs font-medium text-muted-foreground w-4">{optionLetters[oi]}.</span>
+                                          <Input value={opt} onChange={e => { const opts = [...quizForm.options] as [string,string,string,string]; opts[oi] = e.target.value; setQuizForm(p => ({ ...p, options: opts })); }} placeholder={`Option ${optionLetters[oi]}`} className="h-7 text-sm" />
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Click the circle next to an option to mark it as correct.</p>
+                                    <div>
+                                      <Label className="text-xs">Explanation (optional)</Label>
+                                      <Input value={quizForm.explanation} onChange={e => setQuizForm(p => ({ ...p, explanation: e.target.value }))} placeholder="Explain why the correct answer is correct..." />
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" onClick={() => saveQuestion('quiz', quizForm, editingQuizId, () => setEditingQuizId(null))} className="bg-orange-500 hover:bg-orange-600">
+                                        <Save className="h-3.5 w-3.5 mr-1" /> Save Changes
+                                      </Button>
+                                      <Button size="sm" variant="outline" onClick={() => setEditingQuizId(null)}>Cancel</Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="border border-muted rounded-lg p-3 space-y-2">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <p className="font-medium text-sm">Q{idx + 1}. {q.question}</p>
+                                      <div className="flex gap-1 flex-shrink-0">
+                                        <Button size="sm" variant="ghost" onClick={() => { setQuizForm(q); setEditingQuizId(item.id); setShowAddQuiz(false); }}>
+                                          <Edit className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => { if (confirm('Delete this question?')) deleteContentMutation.mutate(item.id); }}>
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                      {q.options.map((opt, oi) => (
+                                        <div key={oi} className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs ${q.correct === oi ? 'bg-yellow-500/15 border border-yellow-500/40 text-yellow-300' : 'bg-muted/30 text-muted-foreground'}`}>
+                                          {q.correct === oi && <CheckCircle2 className="h-3 w-3 flex-shrink-0" />}
+                                          <span className="font-medium">{optionLetters[oi]}.</span> {opt}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    {q.explanation && <p className="text-xs text-muted-foreground italic">💡 {q.explanation}</p>}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Add new question form */}
+                        {showAddQuiz && (
+                          <div className="border border-orange-500/40 rounded-lg p-4 space-y-3 bg-orange-500/5">
+                            <h4 className="text-sm font-medium text-orange-400">New Quiz Question</h4>
+                            <div>
+                              <Label className="text-xs">Question</Label>
+                              <Textarea value={quizForm.question} onChange={e => setQuizForm(p => ({ ...p, question: e.target.value }))} placeholder="Enter the question text..." rows={2} />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {quizForm.options.map((opt, oi) => (
+                                <div key={oi} className={`flex items-center gap-2 p-2 rounded border ${quizForm.correct === oi ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-muted'}`}>
+                                  <input type="radio" name="quiz-add-correct" checked={quizForm.correct === oi} onChange={() => setQuizForm(p => ({ ...p, correct: oi }))} className="w-4 h-4 flex-shrink-0 accent-yellow-500 cursor-pointer" />
+                                  <span className="text-xs font-medium text-muted-foreground w-4">{['A','B','C','D'][oi]}.</span>
+                                  <Input value={opt} onChange={e => { const opts = [...quizForm.options] as [string,string,string,string]; opts[oi] = e.target.value; setQuizForm(p => ({ ...p, options: opts })); }} placeholder={`Option ${['A','B','C','D'][oi]}`} className="h-7 text-sm" />
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">Click the circle next to an option to mark it as the correct answer.</p>
+                            <div>
+                              <Label className="text-xs">Explanation (optional)</Label>
+                              <Input value={quizForm.explanation} onChange={e => setQuizForm(p => ({ ...p, explanation: e.target.value }))} placeholder="Explain why the correct answer is correct..." />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => saveQuestion('quiz', quizForm, null, () => { setShowAddQuiz(false); setQuizForm(blankQuestion()); })} className="bg-orange-500 hover:bg-orange-600">
+                                <Save className="h-3.5 w-3.5 mr-1" /> Save Question
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => { setShowAddQuiz(false); setQuizForm(blankQuestion()); }}>Cancel</Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </TabsContent>
 
-                {/* Assessment Tab (formerly Quiz) */}
-                <TabsContent value="assessment" className="flex-1 space-y-4 overflow-y-auto">
+                {/* Assessment Tab */}
+                <TabsContent value="assessment" className="flex-1 overflow-y-auto">
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-assessment-content">Assessment Content</Label>
-                      <Textarea
-                        id="edit-assessment-content"
-                        value={formData.assessmentContent}
-                        onChange={(e) => setFormData(prev => ({ ...prev, assessmentContent: e.target.value }))}
-                        placeholder="Define final assessment questions and evaluation criteria..."
-                        rows={15}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-800/20 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Assessment Types:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Comprehensive final exams</li>
-                          <li>• Practical evaluations</li>
-                          <li>• Load planning exercises</li>
-                          <li>• Scenario-based assessments</li>
-                          <li>• Certification tests</li>
-                        </ul>
+                    {isNaN(parseInt(String(selectedModule?.id))) ? (
+                      <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-400">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                        <p className="text-sm">Save the module's overview details first before adding assessment questions.</p>
                       </div>
-                      
-                      <div className="bg-gray-800/20 p-4 rounded-lg">
-                        <h4 className="font-medium mb-2">Assessment Guidelines:</h4>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Minimum passing score required</li>
-                          <li>• Timed evaluation periods</li>
-                          <li>• Limited attempts allowed</li>
-                          <li>• Instructor review required</li>
-                          <li>• Certification upon passing</li>
-                        </ul>
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold flex items-center gap-2"><GraduationCap className="h-4 w-4 text-orange-500" /> Assessment Questions ({assessmentItems.length})</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">Final assessment questions. Students need 80% to pass. Results are saved to their profile.</p>
+                          </div>
+                          {!showAddAssessment && !editingAssessmentId && (
+                            <Button size="sm" onClick={() => { setAssessmentForm(blankQuestion()); setShowAddAssessment(true); }} className="bg-orange-500 hover:bg-orange-600">
+                              <Plus className="h-4 w-4 mr-1" /> Add Question
+                            </Button>
+                          )}
+                        </div>
+
+                        {assessmentItems.length === 0 && !showAddAssessment && (
+                          <div className="border border-dashed border-muted-foreground/30 rounded-lg p-8 text-center text-muted-foreground">
+                            <GraduationCap className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                            <p className="text-sm">No assessment questions yet. Add your first question above.</p>
+                            <p className="text-xs mt-1">Students need at least 1 question and 80% correct to pass.</p>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          {assessmentItems.map((item, idx) => {
+                            const q = parseQuestionContent(item);
+                            const optionLetters = ['A', 'B', 'C', 'D'];
+                            return (
+                              <div key={item.id}>
+                                {editingAssessmentId === item.id ? (
+                                  <div className="border border-orange-500/40 rounded-lg p-4 space-y-3 bg-orange-500/5">
+                                    <h4 className="text-sm font-medium text-orange-400">Editing Assessment Question {idx + 1}</h4>
+                                    <div>
+                                      <Label className="text-xs">Question</Label>
+                                      <Textarea value={assessmentForm.question} onChange={e => setAssessmentForm(p => ({ ...p, question: e.target.value }))} placeholder="Enter the question text..." rows={2} />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                      {assessmentForm.options.map((opt, oi) => (
+                                        <div key={oi} className={`flex items-center gap-2 p-2 rounded border ${assessmentForm.correct === oi ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-muted'}`}>
+                                          <input type="radio" name={`assess-edit-${editingAssessmentId}`} checked={assessmentForm.correct === oi} onChange={() => setAssessmentForm(p => ({ ...p, correct: oi }))} className="w-4 h-4 flex-shrink-0 accent-yellow-500 cursor-pointer" />
+                                          <span className="text-xs font-medium text-muted-foreground w-4">{optionLetters[oi]}.</span>
+                                          <Input value={opt} onChange={e => { const opts = [...assessmentForm.options] as [string,string,string,string]; opts[oi] = e.target.value; setAssessmentForm(p => ({ ...p, options: opts })); }} placeholder={`Option ${optionLetters[oi]}`} className="h-7 text-sm" />
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Click the circle next to an option to mark it as correct.</p>
+                                    <div>
+                                      <Label className="text-xs">Explanation (optional)</Label>
+                                      <Input value={assessmentForm.explanation} onChange={e => setAssessmentForm(p => ({ ...p, explanation: e.target.value }))} placeholder="Explain why the correct answer is correct..." />
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button size="sm" onClick={() => saveQuestion('assessment', assessmentForm, editingAssessmentId, () => setEditingAssessmentId(null))} className="bg-orange-500 hover:bg-orange-600">
+                                        <Save className="h-3.5 w-3.5 mr-1" /> Save Changes
+                                      </Button>
+                                      <Button size="sm" variant="outline" onClick={() => setEditingAssessmentId(null)}>Cancel</Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="border border-muted rounded-lg p-3 space-y-2">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <p className="font-medium text-sm">Q{idx + 1}. {q.question}</p>
+                                      <div className="flex gap-1 flex-shrink-0">
+                                        <Button size="sm" variant="ghost" onClick={() => { setAssessmentForm(q); setEditingAssessmentId(item.id); setShowAddAssessment(false); }}>
+                                          <Edit className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => { if (confirm('Delete this question?')) deleteContentMutation.mutate(item.id); }}>
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                      {q.options.map((opt, oi) => (
+                                        <div key={oi} className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs ${q.correct === oi ? 'bg-yellow-500/15 border border-yellow-500/40 text-yellow-300' : 'bg-muted/30 text-muted-foreground'}`}>
+                                          {q.correct === oi && <CheckCircle2 className="h-3 w-3 flex-shrink-0" />}
+                                          <span className="font-medium">{optionLetters[oi]}.</span> {opt}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    {q.explanation && <p className="text-xs text-muted-foreground italic">💡 {q.explanation}</p>}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Add new assessment question form */}
+                        {showAddAssessment && (
+                          <div className="border border-orange-500/40 rounded-lg p-4 space-y-3 bg-orange-500/5">
+                            <h4 className="text-sm font-medium text-orange-400">New Assessment Question</h4>
+                            <div>
+                              <Label className="text-xs">Question</Label>
+                              <Textarea value={assessmentForm.question} onChange={e => setAssessmentForm(p => ({ ...p, question: e.target.value }))} placeholder="Enter the question text..." rows={2} />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {assessmentForm.options.map((opt, oi) => (
+                                <div key={oi} className={`flex items-center gap-2 p-2 rounded border ${assessmentForm.correct === oi ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-muted'}`}>
+                                  <input type="radio" name="assess-add-correct" checked={assessmentForm.correct === oi} onChange={() => setAssessmentForm(p => ({ ...p, correct: oi }))} className="w-4 h-4 flex-shrink-0 accent-yellow-500 cursor-pointer" />
+                                  <span className="text-xs font-medium text-muted-foreground w-4">{['A','B','C','D'][oi]}.</span>
+                                  <Input value={opt} onChange={e => { const opts = [...assessmentForm.options] as [string,string,string,string]; opts[oi] = e.target.value; setAssessmentForm(p => ({ ...p, options: opts })); }} placeholder={`Option ${['A','B','C','D'][oi]}`} className="h-7 text-sm" />
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">Click the circle next to an option to mark it as the correct answer.</p>
+                            <div>
+                              <Label className="text-xs">Explanation (optional)</Label>
+                              <Input value={assessmentForm.explanation} onChange={e => setAssessmentForm(p => ({ ...p, explanation: e.target.value }))} placeholder="Explain why the correct answer is correct..." />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => saveQuestion('assessment', assessmentForm, null, () => { setShowAddAssessment(false); setAssessmentForm(blankQuestion()); })} className="bg-orange-500 hover:bg-orange-600">
+                                <Save className="h-3.5 w-3.5 mr-1" /> Save Question
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => { setShowAddAssessment(false); setAssessmentForm(blankQuestion()); }}>Cancel</Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
