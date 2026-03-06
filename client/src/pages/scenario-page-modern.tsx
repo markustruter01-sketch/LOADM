@@ -145,21 +145,12 @@ export default function ModernScenarioPage() {
 
       // Calculate score for display
       const questions = scenario?.questions as ScenarioQuestion[] || [];
-      const gradableQuestions = questions.filter(q =>
-        ['multiple-choice', 'multiple-choice-quiz', 'true-false'].includes(q.questionType) && q.correctAnswer
-      );
-      if (gradableQuestions.length > 0) {
-        const correctAnswers = gradableQuestions.filter(q => {
-          const studentAnswer = answers[q.id];
-          if (!studentAnswer) return false;
-          // Support both index-based correctAnswer (new format) and text-based (legacy format)
-          const correctIdx = parseInt(q.correctAnswer || "");
-          if (!isNaN(correctIdx) && q.options && q.options[correctIdx]) {
-            return studentAnswer === q.options[correctIdx];
-          }
-          return studentAnswer === q.correctAnswer;
-        }).length;
-        const scorePercentage = Math.round((correctAnswers / gradableQuestions.length) * 100);
+      const multipleChoiceQuestions = questions.filter(q => q.questionType === "multiple-choice" && q.correctAnswer);
+      if (multipleChoiceQuestions.length > 0) {
+        const correctAnswers = multipleChoiceQuestions.filter(q => 
+          answers[q.id] === q.correctAnswer
+        ).length;
+        const scorePercentage = Math.round((correctAnswers / multipleChoiceQuestions.length) * 100);
         setScore(scorePercentage);
       } else {
         setScore(100);
@@ -444,23 +435,15 @@ export default function ModernScenarioPage() {
                     {index + 1}. {question.question}
                   </h3>
                   
-                  {(question.questionType === "multiple-choice" || question.questionType === "multiple-choice-quiz" || question.questionType === "true-false") && question.options ? (
+                  {question.questionType === "multiple-choice" && question.options ? (
                     <RadioGroup
                       value={answers[question.id] || ""}
                       onValueChange={(value) => setAnswers(prev => ({ ...prev, [question.id]: value }))}
                     >
-                      {question.options.filter((o: string) => o).map((option: string, optionIndex: number) => (
-                        <div key={optionIndex} className={`flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
-                          answers[question.id] === option
-                            ? "border-orange-500/60 bg-orange-900/10"
-                            : "border-border hover:border-orange-500/30"
-                        }`}>
-                          <RadioGroupItem value={option} id={`${question.id}-${optionIndex}`} className="accent-orange-500" />
-                          <Label htmlFor={`${question.id}-${optionIndex}`} className="cursor-pointer flex-1">
-                            {question.questionType === "true-false" ? option : (
-                              <span><span className="font-semibold text-orange-400 mr-2">{String.fromCharCode(65 + optionIndex)}.</span>{option}</span>
-                            )}
-                          </Label>
+                      {question.options.map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex items-center space-x-2">
+                          <RadioGroupItem value={option} id={`${question.id}-${optionIndex}`} />
+                          <Label htmlFor={`${question.id}-${optionIndex}`}>{option}</Label>
                         </div>
                       ))}
                     </RadioGroup>
@@ -658,20 +641,15 @@ export default function ModernScenarioPage() {
                       <span className="text-muted-foreground">{index + 1}.</span>
                       {question.question}
                     </h4>
-                    {['multiple-choice', 'multiple-choice-quiz', 'true-false'].includes(question.questionType) && question.correctAnswer && (
-                      (() => {
-                        const studentAns = answers[question.id];
-                        const correctIdx = parseInt(question.correctAnswer || "");
-                        const correctText = (!isNaN(correctIdx) && question.options?.[correctIdx])
-                          ? question.options[correctIdx]
-                          : question.correctAnswer;
-                        const isRight = studentAns === correctText;
-                        return (
-                          <Badge variant="outline" className={isRight ? "border-green-500 text-green-500 bg-green-500/10" : "border-red-500 text-red-500 bg-red-500/10"}>
-                            {isRight ? "✓ Correct" : "✗ Incorrect"}
-                          </Badge>
-                        );
-                      })()
+                    {question.questionType === "multiple-choice" && (
+                      <Badge 
+                        variant="outline" 
+                        className={answers[question.id] === question.correctAnswer 
+                          ? "border-green-500 text-green-500 bg-green-500/10" 
+                          : "border-red-500 text-red-500 bg-red-500/10"}
+                      >
+                        {answers[question.id] === question.correctAnswer ? "✓ Correct" : "✗ Incorrect"}
+                      </Badge>
                     )}
                   </div>
                   <div className="ml-8 space-y-2">
@@ -679,20 +657,12 @@ export default function ModernScenarioPage() {
                       <p className="text-sm font-medium text-muted-foreground mb-1">Your Answer:</p>
                       <p>{answers[question.id] || "No answer provided"}</p>
                     </div>
-                    {question.correctAnswer && (() => {
-                      const studentAns = answers[question.id];
-                      const correctIdx = parseInt(question.correctAnswer || "");
-                      const correctText = (!isNaN(correctIdx) && question.options?.[correctIdx])
-                        ? question.options[correctIdx]
-                        : question.correctAnswer;
-                      if (studentAns === correctText) return null;
-                      return (
-                        <div className="p-3 rounded bg-green-500/10 border border-green-500/20">
-                          <p className="text-sm font-medium text-green-600 mb-1">Correct Answer:</p>
-                          <p>{correctText}</p>
-                        </div>
-                      );
-                    })()}
+                    {question.correctAnswer && answers[question.id] !== question.correctAnswer && (
+                      <div className="p-3 rounded bg-green-500/10 border border-green-500/20">
+                        <p className="text-sm font-medium text-green-600 mb-1">Correct Answer:</p>
+                        <p>{question.correctAnswer}</p>
+                      </div>
+                    )}
                     {notes[question.id] && (
                       <div className="p-3 rounded border border-border italic text-sm text-muted-foreground">
                         <span className="font-bold not-italic">Notes:</span> {notes[question.id]}

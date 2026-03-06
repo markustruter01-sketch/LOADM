@@ -28,7 +28,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, BookOpen, CheckCircle, Loader2, Plus, Search, Trash2, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,37 +39,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const QUESTION_TYPES = [
-  { value: "free-text", label: "Text (Free Response)" },
-  { value: "multiple-choice", label: "Multiple Choice" },
-  { value: "multiple-choice-quiz", label: "Multiple Choice (from Quiz Library)" },
-  { value: "true-false", label: "True / False" },
-] as const;
-
-const QUIZ_CATEGORIES = [
-  { value: "all", label: "All Categories" },
-  { value: "dangerous-goods", label: "Dangerous Goods" },
-  { value: "loadmaster-fundamentals", label: "Loadmaster Fundamentals" },
-  { value: "emergency-procedures", label: "Emergency Procedures" },
-  { value: "weight-balance", label: "Weight & Balance" },
-  { value: "cargo-securing", label: "Cargo Securing" },
-  { value: "aircraft-systems", label: "Aircraft Systems" },
-  { value: "regulations", label: "Regulations" },
-  { value: "equipment-handling", label: "Equipment Handling" },
-];
-
-type QuizLibraryQuestion = {
-  id: string; question: string; options: string[]; correctAnswer: number; category: string; difficulty: string;
-};
-
 // Define form types
 const scenarioFormSchema = insertScenarioSchema.extend({
   questions: z.array(
     z.object({
       id: z.string().min(1, "Question ID is required").default(""),
       question: z.string().min(1, "Question text is required"),
-      questionType: z.enum(["multiple-choice", "free-text", "multiple-choice-quiz", "true-false"]),
-      options: z.array(z.string()).min(0),
+      questionType: z.enum(["multiple-choice", "free-text"]),
+      options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
       correctAnswer: z.string().optional(),
     })
   ),
@@ -83,19 +60,6 @@ export default function EditScenario() {
   const { id } = useParams();
   const scenarioId = parseInt(id);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  // Quiz library state
-  const [quizLibrary, setQuizLibrary] = useState<QuizLibraryQuestion[]>([]);
-  const [quizPickerOpen, setQuizPickerOpen] = useState<number | null>(null);
-  const [quizSearch, setQuizSearch] = useState("");
-  const [quizCategoryFilter, setQuizCategoryFilter] = useState("all");
-
-  useEffect(() => {
-    fetch("/api/quiz-questions", { credentials: "include" })
-      .then(r => r.json())
-      .then(data => setQuizLibrary(Array.isArray(data) ? data : []))
-      .catch(() => setQuizLibrary([]));
-  }, []);
 
   // Set up form
   const form = useForm<ScenarioFormValues>({
@@ -310,25 +274,6 @@ export default function EditScenario() {
     navigate("/instructors-portal/scenarios");
   };
 
-  const applyLibraryQuestion = (qIndex: number, libQ: QuizLibraryQuestion) => {
-    form.setValue(`questions.${qIndex}.question`, libQ.question);
-    form.setValue(`questions.${qIndex}.options`, libQ.options.slice(0, 4).concat(Array(4).fill("")).slice(0, 4));
-    form.setValue(`questions.${qIndex}.correctAnswer`, libQ.correctAnswer.toString());
-    setQuizPickerOpen(null);
-    setQuizSearch("");
-  };
-
-  const filteredLibraryQuestions = quizLibrary.filter(q => {
-    const matchesCategory = quizCategoryFilter === "all" || q.category === quizCategoryFilter;
-    const matchesSearch = !quizSearch || q.question.toLowerCase().includes(quizSearch.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const difficultyColour = (d: string) =>
-    d === "easy" ? "bg-green-900/40 text-green-300 border-green-700" :
-    d === "hard" ? "bg-red-900/40 text-red-300 border-red-700" :
-    "bg-yellow-900/40 text-yellow-300 border-yellow-700";
-
   if (isLoadingScenario) {
     return (
       <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
@@ -499,13 +444,8 @@ export default function EditScenario() {
                         <FormItem>
                           <FormLabel>Question Type</FormLabel>
                           <Select
-                            onValueChange={v => {
-                              field.onChange(v);
-                              form.setValue(`questions.${qIndex}.options`, ["", "", "", ""]);
-                              form.setValue(`questions.${qIndex}.correctAnswer`, "");
-                              if (v === "multiple-choice-quiz") setQuizPickerOpen(qIndex);
-                              else setQuizPickerOpen(null);
-                            }}
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
                             value={field.value}
                           >
                             <FormControl>
@@ -514,173 +454,126 @@ export default function EditScenario() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {QUESTION_TYPES.map(t => (
-                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                              ))}
+                              <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                              <SelectItem value="free-text">Free Text Input</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormDescription>Choose how students will answer this question</FormDescription>
+                          <FormDescription>
+                            Choose how students will answer this question
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    {/* ── Free Text ── */}
-                    {form.watch(`questions.${qIndex}.questionType`) === "free-text" && (
-                      <FormField control={form.control} name={`questions.${qIndex}.correctAnswer`} render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Sample Answer (Instructor Reference)</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="Enter the model answer for grading reference" rows={3} className="text-white font-medium" />
-                          </FormControl>
-                          <FormDescription>Used as reference during manual grading</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
-                    )}
-
-                    {/* ── Multiple Choice (custom) ── */}
-                    {form.watch(`questions.${qIndex}.questionType`) === "multiple-choice" && (
+                    {/* Conditional display based on question type */}
+                    {form.watch(`questions.${qIndex}.questionType`) === "multiple-choice" ? (
                       <>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <FormLabel>Answer Options</FormLabel>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => addOption(qIndex)} className="text-xs" disabled={question.options.length >= 6}>
-                              <Plus className="h-3 w-3 mr-1" />Add Option
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => addOption(qIndex)}
+                              className="text-xs"
+                              disabled={question.options.length >= 6}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Option
                             </Button>
                           </div>
+
                           {question.options.map((_, oIndex) => (
                             <div key={oIndex} className="flex items-center gap-2">
-                              <FormField control={form.control} name={`questions.${qIndex}.options.${oIndex}`} render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormControl>
-                                    <div className="flex items-center gap-2">
-                                      <Input {...field} placeholder={`Option ${oIndex + 1}`} className="text-white font-medium" />
-                                      <Button type="button" variant="ghost" size="icon" onClick={() => removeOption(qIndex, oIndex)} className="h-8 w-8 text-destructive hover:text-destructive/90" disabled={question.options.length <= 2}>
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )} />
+                              <FormField
+                                control={form.control}
+                                name={`questions.${qIndex}.options.${oIndex}`}
+                                render={({ field }) => (
+                                  <FormItem className="flex-1">
+                                    <FormControl>
+                                      <div className="flex items-center gap-2">
+                                        <Input {...field} placeholder={`Option ${oIndex + 1}`} className="text-white font-medium" />
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => removeOption(qIndex, oIndex)}
+                                          className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                          disabled={question.options.length <= 2}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
                             </div>
                           ))}
                         </div>
-                        <FormField control={form.control} name={`questions.${qIndex}.correctAnswer`} render={({ field }) => (
+
+                        <FormField
+                          control={form.control}
+                          name={`questions.${qIndex}.correctAnswer`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Correct Answer</FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className="flex flex-col space-y-2"
+                                >
+                                  {question.options.map((option, oIndex) => (
+                                    <div key={oIndex} className="flex items-center space-x-2">
+                                      <RadioGroupItem
+                                        value={option}
+                                        id={`q${qIndex}-option-${oIndex}`}
+                                        disabled={!option}
+                                      />
+                                      <Label
+                                        htmlFor={`q${qIndex}-option-${oIndex}`}
+                                        className={!option ? "text-muted-foreground" : ""}
+                                      >
+                                        {option || `Option ${oIndex + 1} (enter text first)`}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormDescription>
+                                Select the correct answer for this question
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name={`questions.${qIndex}.correctAnswer`}
+                        render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Correct Answer</FormLabel>
+                            <FormLabel>Correct Answer (Instructor Reference)</FormLabel>
                             <FormControl>
-                              <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-2">
-                                {question.options.map((option, oIndex) => (
-                                  <div key={oIndex} className="flex items-center space-x-2">
-                                    <RadioGroupItem value={oIndex.toString()} id={`q${qIndex}-option-${oIndex}`} />
-                                    <Label htmlFor={`q${qIndex}-option-${oIndex}`} className={!option ? "text-muted-foreground" : ""}>
-                                      {option || `Option ${oIndex + 1} (enter text first)`}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </RadioGroup>
+                              <Textarea
+                                {...field}
+                                placeholder="Enter the model answer for this free text question"
+                                rows={3}
+                                className="text-white font-medium"
+                              />
                             </FormControl>
+                            <FormDescription>
+                              This will be used as a reference for grading free text answers
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
-                        )} />
-                      </>
-                    )}
-
-                    {/* ── True / False ── */}
-                    {form.watch(`questions.${qIndex}.questionType`) === "true-false" && (
-                      <>
-                        {(() => {
-                          const opts = form.watch(`questions.${qIndex}.options`);
-                          if (opts[0] !== "True" || opts[1] !== "False") {
-                            form.setValue(`questions.${qIndex}.options`, ["True", "False", "", ""]);
-                          }
-                          return null;
-                        })()}
-                        <div className="space-y-2">
-                          <FormLabel>Correct Answer</FormLabel>
-                          <div className="flex gap-4">
-                            {["True", "False"].map((label, idx) => (
-                              <label key={label} className={`flex items-center gap-2 cursor-pointer px-5 py-3 rounded-lg border transition-colors ${
-                                form.watch(`questions.${qIndex}.correctAnswer`) === idx.toString()
-                                  ? "border-orange-500 bg-orange-900/20 text-orange-300"
-                                  : "border-border text-muted-foreground hover:border-orange-500/50"
-                              }`}>
-                                <input type="radio" name={`tf-edit-${qIndex}`} value={idx.toString()}
-                                  checked={form.watch(`questions.${qIndex}.correctAnswer`) === idx.toString()}
-                                  onChange={e => { if (e.target.checked) form.setValue(`questions.${qIndex}.correctAnswer`, idx.toString()); }}
-                                  className="accent-orange-500" />
-                                {label}
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    {/* ── Multiple Choice from Quiz Library ── */}
-                    {form.watch(`questions.${qIndex}.questionType`) === "multiple-choice-quiz" && (
-                      <div className="space-y-4">
-                        {form.watch(`questions.${qIndex}.question`) ? (
-                          <div className="rounded-lg border border-orange-500/40 bg-orange-900/10 p-4 space-y-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-medium text-white">{form.watch(`questions.${qIndex}.question`)}</p>
-                              <Button type="button" variant="ghost" size="sm" onClick={() => setQuizPickerOpen(qIndex)} className="text-orange-400 hover:text-orange-300 text-xs shrink-0">Change</Button>
-                            </div>
-                            <div className="space-y-1">
-                              {form.watch(`questions.${qIndex}.options`)?.filter(Boolean).map((opt, oIdx) => (
-                                <div key={oIdx} className={`flex items-center gap-2 text-sm px-2 py-1 rounded ${
-                                  form.watch(`questions.${qIndex}.correctAnswer`) === oIdx.toString() ? "bg-green-900/30 text-green-300" : "text-gray-400"
-                                }`}>
-                                  <span className="font-semibold w-4">{String.fromCharCode(65 + oIdx)}.</span>
-                                  {opt}
-                                  {form.watch(`questions.${qIndex}.correctAnswer`) === oIdx.toString() && <CheckCircle className="h-3 w-3 ml-auto text-green-400" />}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <Button type="button" variant="outline" className="w-full border-dashed border-orange-500/40 text-orange-400 hover:bg-orange-900/20" onClick={() => setQuizPickerOpen(qIndex)}>
-                            <BookOpen className="mr-2 h-4 w-4" />Browse Quiz Library
-                          </Button>
                         )}
-                        {quizPickerOpen === qIndex && (
-                          <div className="rounded-lg border border-[#444] bg-[#1a1a1a] p-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-semibold text-white flex items-center gap-2"><BookOpen className="h-4 w-4 text-orange-400" />Quiz Library</h4>
-                              <Button type="button" variant="ghost" size="sm" onClick={() => setQuizPickerOpen(null)} className="text-gray-400 h-6 w-6 p-0"><X className="h-4 w-4" /></Button>
-                            </div>
-                            <div className="flex gap-2">
-                              <div className="relative flex-1">
-                                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />
-                                <Input value={quizSearch} onChange={e => setQuizSearch(e.target.value)} placeholder="Search questions..." className="pl-8 h-8 text-sm bg-[#252525] border-[#444]" />
-                              </div>
-                              <Select value={quizCategoryFilter} onValueChange={setQuizCategoryFilter}>
-                                <SelectTrigger className="w-48 h-8 text-sm bg-[#252525] border-[#444]"><SelectValue /></SelectTrigger>
-                                <SelectContent>{QUIZ_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                              {filteredLibraryQuestions.length === 0 ? (
-                                <p className="text-center text-gray-500 text-sm py-6">No questions match your search</p>
-                              ) : filteredLibraryQuestions.map(libQ => (
-                                <button key={libQ.id} type="button" onClick={() => applyLibraryQuestion(qIndex, libQ)}
-                                  className="w-full text-left p-3 rounded-lg border border-[#333] bg-[#242424] hover:border-orange-500/50 hover:bg-orange-900/10 transition-colors">
-                                  <div className="flex items-start justify-between gap-2 mb-2">
-                                    <p className="text-sm text-white leading-snug">{libQ.question}</p>
-                                    <span className={`text-xs px-2 py-0.5 rounded border shrink-0 ${difficultyColour(libQ.difficulty)}`}>{libQ.difficulty}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-500 bg-[#333] px-2 py-0.5 rounded">{QUIZ_CATEGORIES.find(c => c.value === libQ.category)?.label || libQ.category}</span>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                            <p className="text-xs text-gray-600 text-center">{filteredLibraryQuestions.length} questions available</p>
-                          </div>
-                        )}
-                      </div>
+                      />
                     )}
                   </CardContent>
                 </Card>
