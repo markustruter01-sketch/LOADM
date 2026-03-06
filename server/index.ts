@@ -681,6 +681,29 @@ app.get("/api/workforce/squadrons", requireInstructor, async (req, res) => {
   }
 });
 
+app.get("/api/workforce/squadron-personnel-counts", requireInstructor, async (req, res) => {
+  try {
+    const { neon } = await import('@neondatabase/serverless');
+    const sql = neon(process.env.DATABASE_URL!);
+    const rows = await sql`
+      SELECT
+        l.squadron,
+        COUNT(*) FILTER (WHERE l.license_type IN ('loadmaster','instructor')) AS total,
+        COUNT(*) FILTER (WHERE l.license_type = 'loadmaster') AS loadmasters,
+        COUNT(*) FILTER (WHERE l.license_type = 'instructor') AS instructors
+      FROM licenses l
+      WHERE l.squadron IN ('33SQN','35SQN','36SQN','37SQN')
+        AND l.is_active = true
+      GROUP BY l.squadron
+      ORDER BY l.squadron
+    `;
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching squadron personnel counts:', error);
+    res.status(500).json({ error: "Failed to fetch squadron personnel counts" });
+  }
+});
+
 app.get("/api/workforce/squadron/:squadronId/users", requireInstructor, async (req, res) => {
   console.log('✅ WORKFORCE: GET squadron users request received');
   console.log('✅ WORKFORCE: Squadron ID:', req.params.squadronId);

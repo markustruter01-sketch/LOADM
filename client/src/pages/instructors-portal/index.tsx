@@ -60,7 +60,12 @@ export default function InstructorsPortal() {
     queryKey: ["/api/scenario-submissions"],
     enabled: !!user,
   });
-  
+
+  const { data: squadronPersonnelCounts } = useQuery<Array<{ squadron: string; total: string; loadmasters: string; instructors: string }>>({
+    queryKey: ["/api/workforce/squadron-personnel-counts"],
+    enabled: !!user,
+  });
+
   // Calculate total submissions shown based on squadron filter
   // Document submissions don't yet carry squadron info, so they only appear under "All Squadrons"
   const filteredCount = selectedSquadron === "ALL"
@@ -274,33 +279,43 @@ export default function InstructorsPortal() {
           <h3 className="text-xl font-semibold mb-4 text-foreground">Squadron Performance Overview</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {['All Units', '33 Squadron', '35 Squadron', '36 Squadron', '37 Squadron'].map(squadron => {
+              const sqnKey = squadron === 'All Units' ? null : squadron.split(' ')[0] + 'SQN'; // e.g. "33SQN"
+
+              // Personnel headcount from the new endpoint
+              const personnelRow = sqnKey
+                ? squadronPersonnelCounts?.find(r => r.squadron === sqnKey)
+                : null;
+              const personnelCount = sqnKey
+                ? (personnelRow ? parseInt(personnelRow.total) : 0)
+                : (squadronPersonnelCounts?.reduce((sum, r) => sum + parseInt(r.total), 0) ?? 0);
+
+              // Submission pass rate (secondary metric)
               const squadronSubmissions = scenarioSubmissions?.filter(sub => {
                 if (squadron === 'All Units') return true;
-                
-                // Handle different squadron formats: "33 Squadron", "33", "33SQN", "37SQN", etc.
-                const squadronNumber = squadron.split(' ')[0]; // Extract "33" from "33 Squadron"
+                const squadronNumber = squadron.split(' ')[0];
                 const userSquadron = (sub.squadron || '').toString();
-                
-                // Comprehensive squadron matching
-                return userSquadron.includes(squadronNumber) || 
+                return userSquadron.includes(squadronNumber) ||
                        userSquadron === squadron ||
                        userSquadron === squadronNumber ||
                        userSquadron === `${squadronNumber}SQN` ||
                        userSquadron.startsWith(squadronNumber);
               }) || [];
               const squadronPassed = squadronSubmissions.filter(sub => sub.passed === true).length;
-              const squadronPassRate = squadronSubmissions.length > 0 ? Math.round((squadronPassed / squadronSubmissions.length) * 100) : 0;
-              
+              const squadronPassRate = squadronSubmissions.length > 0
+                ? Math.round((squadronPassed / squadronSubmissions.length) * 100)
+                : null;
+
               return (
                 <Card key={squadron} className="bg-card hover:bg-card/90 transition-colors">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">{squadron}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-lg font-bold">{squadronSubmissions.length}</div>
-                    <p className="text-xs text-muted-foreground">
-                      {squadronPassRate}% pass rate
-                    </p>
+                    <div className="text-2xl font-bold">{personnelCount}</div>
+                    <p className="text-xs text-muted-foreground">personnel</p>
+                    {squadronPassRate !== null && (
+                      <p className="text-xs text-primary mt-1">{squadronPassRate}% pass rate</p>
+                    )}
                   </CardContent>
                 </Card>
               );
