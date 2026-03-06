@@ -1813,32 +1813,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         baseConditions.push(eq(scenarioSubmissions.userId, req.user.id));
       }
       
-      // For instructor analytics views (no specific userId filter), exclude leadership/superadmin
+      // For instructor analytics views (no specific userId filter), return all submissions
       if (isInstructor && userId === undefined) {
-        const { neon } = await import('@neondatabase/serverless');
-        const neonSql = neon(process.env.DATABASE_URL!);
-        
-        let submissions;
-        if (scenarioId) {
-          submissions = await neonSql`
-            SELECT ss.*
-            FROM scenario_submissions ss
-            LEFT JOIN users u ON ss.user_id = u.id
-            LEFT JOIN licenses l ON u.license_id = l.id
-            WHERE l.license_type NOT IN ('leadership', 'superadmin')
-            AND ss.scenario_id = ${scenarioId}
-            ORDER BY ss.submission_date DESC
-          `;
-        } else {
-          submissions = await neonSql`
-            SELECT ss.*
-            FROM scenario_submissions ss
-            LEFT JOIN users u ON ss.user_id = u.id
-            LEFT JOIN licenses l ON u.license_id = l.id
-            WHERE l.license_type NOT IN ('leadership', 'superadmin')
-            ORDER BY ss.submission_date DESC
-          `;
-        }
+        const instructorConditions = scenarioId
+          ? [eq(scenarioSubmissions.scenarioId, scenarioId)]
+          : [];
+        const submissions = instructorConditions.length > 0
+          ? await db.select().from(scenarioSubmissions).where(and(...instructorConditions)).orderBy(desc(scenarioSubmissions.submissionDate))
+          : await db.select().from(scenarioSubmissions).orderBy(desc(scenarioSubmissions.submissionDate));
         return res.json(submissions);
       }
       
