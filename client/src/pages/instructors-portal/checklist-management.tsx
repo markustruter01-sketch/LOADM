@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
-import { Plus, Edit, Trash2, CheckSquare, Plane, Clock, Users, ShieldCheck } from "lucide-react";
+import { Plus, Edit, Trash2, CheckSquare, Plane, Clock, Users, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -446,9 +447,16 @@ export default function ChecklistManagement() {
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Checklist Management</h1>
-              <p className="text-muted-foreground">Create and manage aircraft operational checklists</p>
+            <div className="flex items-center gap-4">
+              <Link href="/instructors-portal">
+                <Button variant="ghost" className="text-primary hover:text-primary/80 p-2">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold mb-2">Checklist Management</h1>
+                <p className="text-muted-foreground">Create and manage aircraft operational checklists</p>
+              </div>
             </div>
             
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
