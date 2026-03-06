@@ -38,6 +38,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, ClipboardList, Edit, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Link } from "wouter";
 import {
   AlertDialog,
@@ -65,8 +72,9 @@ const scenarioFormSchema = insertScenarioSchema.extend({
     z.object({
       id: z.string().min(1, "Question ID is required"),
       question: z.string().min(1, "Question text is required"),
-      options: z.array(z.string().min(1, "Option text is required")).min(2, "At least 2 options are required"),
-      correctAnswer: z.string().min(1, "Correct answer is required"),
+      questionType: z.enum(["multiple-choice", "free-text"]).default("multiple-choice"),
+      options: z.array(z.string()).default(["", ""]),
+      correctAnswer: z.string().optional(),
     })
   ),
 });
@@ -96,6 +104,7 @@ export default function ScenarioManagement() {
         {
           id: "q1",
           question: "",
+          questionType: "multiple-choice" as const,
           options: ["", ""],
           correctAnswer: "",
         },
@@ -197,6 +206,7 @@ export default function ScenarioManagement() {
       {
         id: `q${questions.length + 1}`,
         question: "",
+        questionType: "multiple-choice" as const,
         options: ["", ""],
         correctAnswer: "",
       },
@@ -416,78 +426,131 @@ export default function ScenarioManagement() {
                             )}
                           />
 
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <FormLabel>Options</FormLabel>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => addOption(qIndex)}
-                                className="text-xs"
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add Option
-                              </Button>
-                            </div>
-
-                            {question.options.map((_, oIndex) => (
-                              <div key={oIndex} className="flex items-center gap-2">
-                                <FormField
-                                  control={form.control}
-                                  name={`questions.${qIndex}.options.${oIndex}`}
-                                  render={({ field }) => (
-                                    <FormItem className="flex-1">
-                                      <FormControl>
-                                        <div className="flex items-center gap-2">
-                                          <Input {...field} placeholder={`Option ${oIndex + 1}`} />
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeOption(qIndex, oIndex)}
-                                            className="h-8 w-8 text-destructive hover:text-destructive/90"
-                                            disabled={question.options.length <= 2}
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            ))}
-                          </div>
-
                           <FormField
                             control={form.control}
-                            name={`questions.${qIndex}.correctAnswer`}
+                            name={`questions.${qIndex}.questionType`}
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Correct Answer</FormLabel>
-                                <FormControl>
-                                  <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                  >
-                                    <option value="">Select correct answer</option>
-                                    {question.options.map((option, oIndex) => (
-                                      <option key={oIndex} value={option} disabled={!option.trim()}>
-                                        {option || `Option ${oIndex + 1} (empty)`}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </FormControl>
-                                <FormDescription>
-                                  Select which option is the correct answer
-                                </FormDescription>
+                                <FormLabel>Question Type</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || "multiple-choice"}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select question type" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                                    <SelectItem value="free-text">Free Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+
+                          {form.watch(`questions.${qIndex}.questionType`) !== "free-text" && (
+                            <>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <FormLabel>Options</FormLabel>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => addOption(qIndex)}
+                                    className="text-xs"
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add Option
+                                  </Button>
+                                </div>
+
+                                {question.options.map((_, oIndex) => (
+                                  <div key={oIndex} className="flex items-center gap-2">
+                                    <FormField
+                                      control={form.control}
+                                      name={`questions.${qIndex}.options.${oIndex}`}
+                                      render={({ field }) => (
+                                        <FormItem className="flex-1">
+                                          <FormControl>
+                                            <div className="flex items-center gap-2">
+                                              <Input {...field} placeholder={`Option ${oIndex + 1}`} />
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => removeOption(qIndex, oIndex)}
+                                                className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                                disabled={question.options.length <= 2}
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+
+                              <FormField
+                                control={form.control}
+                                name={`questions.${qIndex}.correctAnswer`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Correct Answer</FormLabel>
+                                    <FormControl>
+                                      <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                      >
+                                        <option value="">Select correct answer</option>
+                                        {question.options.map((option, oIndex) => (
+                                          <option key={oIndex} value={option} disabled={!option.trim()}>
+                                            {option || `Option ${oIndex + 1} (empty)`}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </FormControl>
+                                    <FormDescription>
+                                      Select which option is the correct answer
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </>
+                          )}
+
+                          {form.watch(`questions.${qIndex}.questionType`) === "free-text" && (
+                            <FormField
+                              control={form.control}
+                              name={`questions.${qIndex}.correctAnswer`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Model Answer (Instructor Reference)</FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      {...field}
+                                      value={field.value || ""}
+                                      placeholder="Enter the model answer for grading reference"
+                                      rows={3}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Used as a reference when grading free text answers
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
                         </CardContent>
                       </Card>
                     ))}
@@ -625,78 +688,131 @@ export default function ScenarioManagement() {
                             )}
                           />
 
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <FormLabel>Options</FormLabel>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => addOption(qIndex)}
-                                className="text-xs"
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add Option
-                              </Button>
-                            </div>
-
-                            {question.options.map((_, oIndex) => (
-                              <div key={oIndex} className="flex items-center gap-2">
-                                <FormField
-                                  control={form.control}
-                                  name={`questions.${qIndex}.options.${oIndex}`}
-                                  render={({ field }) => (
-                                    <FormItem className="flex-1">
-                                      <FormControl>
-                                        <div className="flex items-center gap-2">
-                                          <Input {...field} placeholder={`Option ${oIndex + 1}`} />
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeOption(qIndex, oIndex)}
-                                            className="h-8 w-8 text-destructive hover:text-destructive/90"
-                                            disabled={question.options.length <= 2}
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            ))}
-                          </div>
-
                           <FormField
                             control={form.control}
-                            name={`questions.${qIndex}.correctAnswer`}
+                            name={`questions.${qIndex}.questionType`}
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Correct Answer</FormLabel>
-                                <FormControl>
-                                  <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                  >
-                                    <option value="">Select correct answer</option>
-                                    {question.options.map((option, oIndex) => (
-                                      <option key={oIndex} value={option} disabled={!option.trim()}>
-                                        {option || `Option ${oIndex + 1} (empty)`}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </FormControl>
-                                <FormDescription>
-                                  Select which option is the correct answer
-                                </FormDescription>
+                                <FormLabel>Question Type</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || "multiple-choice"}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select question type" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="multiple-choice">Multiple Choice</SelectItem>
+                                    <SelectItem value="free-text">Free Text</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
+
+                          {form.watch(`questions.${qIndex}.questionType`) !== "free-text" && (
+                            <>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <FormLabel>Options</FormLabel>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => addOption(qIndex)}
+                                    className="text-xs"
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add Option
+                                  </Button>
+                                </div>
+
+                                {question.options.map((_, oIndex) => (
+                                  <div key={oIndex} className="flex items-center gap-2">
+                                    <FormField
+                                      control={form.control}
+                                      name={`questions.${qIndex}.options.${oIndex}`}
+                                      render={({ field }) => (
+                                        <FormItem className="flex-1">
+                                          <FormControl>
+                                            <div className="flex items-center gap-2">
+                                              <Input {...field} placeholder={`Option ${oIndex + 1}`} />
+                                              <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => removeOption(qIndex, oIndex)}
+                                                className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                                disabled={question.options.length <= 2}
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+
+                              <FormField
+                                control={form.control}
+                                name={`questions.${qIndex}.correctAnswer`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Correct Answer</FormLabel>
+                                    <FormControl>
+                                      <select
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                      >
+                                        <option value="">Select correct answer</option>
+                                        {question.options.map((option, oIndex) => (
+                                          <option key={oIndex} value={option} disabled={!option.trim()}>
+                                            {option || `Option ${oIndex + 1} (empty)`}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </FormControl>
+                                    <FormDescription>
+                                      Select which option is the correct answer
+                                    </FormDescription>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </>
+                          )}
+
+                          {form.watch(`questions.${qIndex}.questionType`) === "free-text" && (
+                            <FormField
+                              control={form.control}
+                              name={`questions.${qIndex}.correctAnswer`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Model Answer (Instructor Reference)</FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      {...field}
+                                      value={field.value || ""}
+                                      placeholder="Enter the model answer for grading reference"
+                                      rows={3}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Used as a reference when grading free text answers
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
                         </CardContent>
                       </Card>
                     ))}
