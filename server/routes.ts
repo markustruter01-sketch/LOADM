@@ -4590,6 +4590,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Expiring qualifications detail — for clickable forecast modal
+  app.get("/api/analytics/expiring-qualifications", requireInstructor, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { squadron = "all", months = "6" } = req.query;
+      const numMonths = parseInt(months as string);
+      const now = new Date();
+      const futureLimit = new Date(now.getFullYear(), now.getMonth() + numMonths, 0, 23, 59, 59);
+
+      const qualifications = await db.select({
+        userId: userQualifications.userId,
+        qualId: userQualifications.id,
+        qualName: userQualifications.name,
+        expiryDate: userQualifications.expiryDate,
+        squadron: licenses.squadron,
+        firstName: licenses.firstName,
+        lastName: licenses.lastName,
+        rank: licenses.category,
+        profilePhotoUrl: licenses.profilePhotoUrl,
+        licenseType: licenses.licenseType,
+      })
+      .from(userQualifications)
+      .leftJoin(users, eq(userQualifications.userId, users.id))
+      .leftJoin(licenses, eq(users.licenseId, licenses.id))
+      .where(notInArray(licenses.licenseType, ['leadership', 'superadmin']));
+
+      let filtered = qualifications.filter(q =>
+        q.expiryDate !== null &&
+        q.squadron && q.squadron !== 'AMG' &&
+        new Date(q.expiryDate!) >= now &&
+        new Date(q.expiryDate!) <= futureLimit
+      );
+
+      if (squadron && squadron !== 'all') {
+        filtered = filtered.filter(q => q.squadron === squadron);
+      }
+
+      // Sort by expiry date ascending (most urgent first)
+      filtered.sort((a, b) => new Date(a.expiryDate!).getTime() - new Date(b.expiryDate!).getTime());
+
+      const results = filtered.map(q => {
+        const expiry = new Date(q.expiryDate!);
+        const daysUntil = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          userId: q.userId,
+          qualId: q.qualId,
+          qualName: q.qualName,
+          expiryDate: q.expiryDate,
+          daysUntilExpiry: daysUntil,
+          squadron: q.squadron,
+          firstName: q.firstName,
+          lastName: q.lastName,
+          userName: `${q.firstName || ''} ${q.lastName || ''}`.trim(),
+          rank: q.rank,
+          profilePhotoUrl: q.profilePhotoUrl,
+          urgency: daysUntil <= 30 ? 'critical' : daysUntil <= 60 ? 'high' : daysUntil <= 90 ? 'medium' : 'low',
+        };
+      });
+
+      res.json(results);
+    } catch (error) {
+      console.error("Error fetching expiring qualifications:", error);
+      res.status(500).json({ message: "Failed to fetch expiring qualifications" });
+    }
+  });
+
   // ICC Power Law Distribution Analytics - Performance curves by time in role
   app.get("/api/analytics/icc-power-law", requireInstructor, async (req: AuthenticatedRequest, res) => {
     try {

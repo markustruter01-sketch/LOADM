@@ -397,7 +397,7 @@ export default function WorkforceAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
-  const [historyRange, setHistoryRange] = useState<30 | 60 | 90>(30);
+  const [historyRange, setHistoryRange] = useState<30 | 180 | 365>(365);
   const [flightRange, setFlightRange] = useState<30 | 90 | 180 | 365>(365);
   
   const [flightData, setFlightData] = useState<any>(null);
@@ -419,6 +419,10 @@ export default function WorkforceAnalytics() {
   const [safetyPage, setSafetyPage] = useState(1);
   const [viewingRecord, setViewingRecord] = useState<any>(null);
   const SAFETY_PAGE_SIZE = 10;
+
+  const [expiringQualsList, setExpiringQualsList] = useState<any[]>([]);
+  const [expiringQualsOpen, setExpiringQualsOpen] = useState(false);
+  const [expiringQualsLoading, setExpiringQualsLoading] = useState(false);
 
   const fetchAllData = async () => {
     setIsLoading(true);
@@ -479,6 +483,20 @@ export default function WorkforceAnalytics() {
       }
     } catch (err) {
       console.error("Error fetching users:", err);
+    }
+  };
+
+  const openExpiringQualsModal = async () => {
+    setExpiringQualsOpen(true);
+    setExpiringQualsLoading(true);
+    try {
+      const squadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "";
+      const res = await fetch(`/api/analytics/expiring-qualifications?months=6&${squadronParam}`, { credentials: 'include' });
+      if (res.ok) setExpiringQualsList(await res.json());
+    } catch (err) {
+      console.error("Error fetching expiring qualifications:", err);
+    } finally {
+      setExpiringQualsLoading(false);
     }
   };
 
@@ -1432,18 +1450,17 @@ export default function WorkforceAnalytics() {
             <LineChart className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Historical Trends</h2>
             <div className="flex items-center gap-1 ml-auto mr-4">
-              {[30, 60, 90].map((days) => (
+              {([365, 180, 30] as const).map((days) => (
                 <button
                   key={days}
-                  onClick={() => setHistoryRange(days as 30 | 60 | 90)}
-                  data-testid={`button-history-${days}d`}
+                  onClick={() => setHistoryRange(days)}
                   className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                     historyRange === days
                       ? 'bg-orange-500 text-white'
                       : 'bg-[#333333] text-gray-400 hover:bg-[#444444] hover:text-gray-300'
                   }`}
                 >
-                  {days}D
+                  {days === 365 ? '1Y' : days === 180 ? '6M' : '1M'}
                 </button>
               ))}
             </div>
@@ -1637,12 +1654,18 @@ export default function WorkforceAnalytics() {
                 <CardDescription className="text-gray-400">Next 6 months outlook</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 bg-gradient-to-r from-orange-900/30 to-[#1a1a1a] border border-orange-500/30 rounded-lg">
+                <button
+                  onClick={openExpiringQualsModal}
+                  className="w-full text-left p-4 bg-gradient-to-r from-orange-900/30 to-[#1a1a1a] border border-orange-500/30 rounded-lg hover:border-orange-400/60 hover:from-orange-900/40 transition-all group"
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-gray-400">Total Expiring</div>
+                      <div className="text-sm text-gray-400 group-hover:text-orange-300 transition-colors flex items-center gap-1">
+                        Total Expiring
+                        <span className="text-xs text-orange-500/60 ml-1">↗ click to view</span>
+                      </div>
                       <div className="text-3xl font-bold text-orange-500">{forecastData?.summary?.totalExpiringQuals || 0}</div>
-                      <div className="text-xs text-gray-500">qualifications</div>
+                      <div className="text-xs text-gray-500">qualifications in next 6 months</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-gray-400">Personnel Affected</div>
@@ -1650,7 +1673,7 @@ export default function WorkforceAnalytics() {
                       <div className="text-xs text-gray-500">unique individuals</div>
                     </div>
                   </div>
-                </div>
+                </button>
 
                 <div className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-lg">
                   <span className="text-gray-300 text-sm">Avg per Month</span>
@@ -1776,6 +1799,104 @@ export default function WorkforceAnalytics() {
           Workforce Health Analytics Dashboard • Data refreshed at {lastRefresh.toLocaleString()}
         </div>
       </div>
+
+      {/* Expiring Qualifications Modal */}
+      <Dialog open={expiringQualsOpen} onOpenChange={setExpiringQualsOpen}>
+        <DialogContent className="bg-[#1e1e1e] border-[#333] text-white max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-orange-400 text-xl flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Expiring Qualifications — Next 6 Months
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Personnel sorted by most urgent expiry. Click a name to view their profile.
+            </DialogDescription>
+          </DialogHeader>
+
+          {expiringQualsLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-orange-400" />
+              <span className="ml-3 text-gray-400">Loading expiring qualifications...</span>
+            </div>
+          ) : expiringQualsList.length === 0 ? (
+            <div className="text-center py-12">
+              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
+              <p className="text-white font-medium text-lg">No qualifications expiring</p>
+              <p className="text-gray-500 text-sm mt-1">All qualifications are current beyond 6 months</p>
+            </div>
+          ) : (
+            <div className="space-y-3 pt-1">
+              {/* Legend */}
+              <div className="flex items-center gap-4 px-1 pb-1 border-b border-[#333] text-xs text-gray-500">
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />Critical (≤30 days)</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />High (31–60 days)</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500 inline-block" />Medium (61–90 days)</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />Low (91+ days)</div>
+              </div>
+
+              <div className="space-y-2">
+                {expiringQualsList.map((item: any, idx: number) => {
+                  const urgencyColour =
+                    item.urgency === 'critical' ? 'border-l-red-500 bg-red-900/10' :
+                    item.urgency === 'high' ? 'border-l-orange-500 bg-orange-900/10' :
+                    item.urgency === 'medium' ? 'border-l-yellow-500 bg-yellow-900/10' :
+                    'border-l-blue-500 bg-blue-900/10';
+                  const dotColour =
+                    item.urgency === 'critical' ? 'bg-red-500' :
+                    item.urgency === 'high' ? 'bg-orange-500' :
+                    item.urgency === 'medium' ? 'bg-yellow-500' :
+                    'bg-blue-500';
+                  const daysText = item.daysUntilExpiry === 1 ? '1 day' : `${item.daysUntilExpiry} days`;
+
+                  return (
+                    <div key={`${item.userId}-${item.qualId}`} className={`flex items-center gap-4 p-3 rounded-lg border-l-4 ${urgencyColour}`}>
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        {item.profilePhotoUrl ? (
+                          <img src={item.profilePhotoUrl} alt={item.userName} className="w-9 h-9 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-[#333] flex items-center justify-center text-gray-400 text-sm font-medium">
+                            {(item.firstName?.[0] || '') + (item.lastName?.[0] || '')}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Name + qual */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-medium text-sm">{item.userName}</span>
+                          {item.squadron && <span className="text-xs text-gray-500 bg-[#2a2a2a] px-1.5 py-0.5 rounded">{item.squadron}</span>}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-0.5 truncate">{item.qualName}</div>
+                      </div>
+
+                      {/* Expiry info */}
+                      <div className="flex-shrink-0 text-right">
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <span className={`w-2 h-2 rounded-full ${dotColour}`} />
+                          <span className={`text-sm font-semibold ${
+                            item.urgency === 'critical' ? 'text-red-400' :
+                            item.urgency === 'high' ? 'text-orange-400' :
+                            item.urgency === 'medium' ? 'text-yellow-400' :
+                            'text-blue-400'
+                          }`}>{daysText}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {new Date(item.expiryDate).toLocaleDateString('en-AU', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="text-center text-xs text-gray-600 pt-2 border-t border-[#333]">
+                {expiringQualsList.length} qualification{expiringQualsList.length !== 1 ? 's' : ''} expiring in the next 6 months
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Read-Only Safety Record Viewer */}
       <Dialog open={!!viewingRecord} onOpenChange={open => !open && setViewingRecord(null)}>
