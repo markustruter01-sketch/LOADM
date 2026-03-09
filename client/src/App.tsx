@@ -31,7 +31,6 @@ import ToolsPage from "@/pages/tools-page";
 import TrainingModulesPage from "@/pages/training-modules";
 import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
 import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
-import AdminDashboard from "@/pages/admin/admin-dashboard";
 import DocumentManagement from "@/pages/admin/document-management";
 import ScenarioManagement from "@/pages/admin/scenario-management";
 import UserManagement from "@/pages/admin/user-management";
@@ -141,8 +140,6 @@ function AuthenticatedApp() {
             <AuthenticatedRoute path="/tools/checklists/:id" component={ChecklistDetailPage} />
             <Route path="/training-modules" component={TrainingModulesPage} />
             <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
-            <ProtectedRoute path="/admin" component={AdminDashboard} />
-            <ProtectedRoute path="/admin/admin-dashboard" component={AdminDashboard} />
             <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
             <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
             <ProtectedRoute path="/admin/users" component={UserManagement} />
