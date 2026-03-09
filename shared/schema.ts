@@ -178,6 +178,8 @@ export const scenarioSubmissions = pgTable("scenario_submissions", {
   submissionType: text("submission_type").default("assessment").notNull(), // "training" or "assessment"
   reviewedBy: text("reviewed_by"),
   reviewedAt: timestamp("reviewed_at"),
+  questionFeedback: json("question_feedback").$type<Record<string, string>>(),
+  notificationSeen: boolean("notification_seen").default(true).notNull(),
 });
 
 export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions, {

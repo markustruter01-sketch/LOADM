@@ -8,17 +8,57 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload, BookOpen } from "lucide-react";
+import { ArrowLeft, User, Award, Plane, Calendar, Plus, Trash2, Edit2, Save, X, AlertCircle, CheckCircle2, RefreshCw, Camera, Upload, BookOpen, ChevronLeft, ChevronRight, MessageSquare, ClipboardCheck } from "lucide-react";
 
 export default function UserProfile() {
   const { user } = useIsolatedAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // ── Assessment Review Notifications ──────────────────────────────────────
+  const [notifDismissed, setNotifDismissed] = useState(false);
+  const [notifIndex, setNotifIndex] = useState(0);
+
+  const { data: reviewNotifications = [] } = useQuery<Array<{ submission: any; scenario: any }>>({
+    queryKey: ['/api/user/review-notifications'],
+    staleTime: 0,
+  });
+
+  const dismissNotificationsMutation = useMutation({
+    mutationFn: async (submissionIds: number[]) => {
+      return apiRequest({
+        url: '/api/user/dismiss-all-review-notifications',
+        method: 'POST',
+        body: { submissionIds },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/review-notifications'] });
+      setNotifDismissed(true);
+    },
+    onError: () => {
+      toast({
+        title: "Failed to acknowledge",
+        description: "Could not save your acknowledgement. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const hasNotifications = reviewNotifications.length > 0 && !notifDismissed;
+  const currentNotif = reviewNotifications[notifIndex];
+  const isLastNotif = notifIndex === reviewNotifications.length - 1;
+
+  const handleAcknowledgeAll = () => {
+    const ids = reviewNotifications.map((n) => n.submission.id);
+    dismissNotificationsMutation.mutate(ids);
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   // State for adding qualifications
   const [showAddQualification, setShowAddQualification] = useState(false);
@@ -1837,6 +1877,185 @@ export default function UserProfile() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ── Assessment Review Notification Pop-up ─────────────────────────── */}
+      {hasNotifications && currentNotif && (
+        <Dialog open={true} onOpenChange={() => {}}>
+          <DialogContent
+            className="bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] border-[#333333] text-white max-w-2xl w-full"
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
+            <DialogHeader>
+              <div className="flex items-center gap-2 mb-1">
+                <ClipboardCheck className="h-5 w-5 text-primary" />
+                <DialogTitle className="text-white text-lg">Assessment Review</DialogTitle>
+                {reviewNotifications.length > 1 && (
+                  <span className="ml-auto text-sm text-gray-400">
+                    Review {notifIndex + 1} of {reviewNotifications.length}
+                  </span>
+                )}
+              </div>
+              <DialogDescription className="text-gray-400 text-sm">
+                {currentNotif.scenario?.title || "Scenario Assessment"} — your instructor has reviewed your submission
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Scrollable content area */}
+            <div className="overflow-y-auto max-h-[60vh] pr-1 space-y-4 mt-2">
+
+              {/* Questions */}
+              {(() => {
+                const questions: any[] = (() => {
+                  const raw = currentNotif.scenario?.questions;
+                  if (!raw) return [];
+                  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch { return []; } }
+                  if (Array.isArray(raw)) return raw;
+                  return [];
+                })();
+
+                const answers: any[] = (() => {
+                  const raw = currentNotif.submission?.answers;
+                  if (!raw) return [];
+                  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch { return []; } }
+                  if (Array.isArray(raw)) return raw;
+                  return [];
+                })();
+
+                const markedAnswers: Record<string, boolean> = (() => {
+                  const raw = currentNotif.submission?.markedAnswers;
+                  if (!raw) return {};
+                  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch { return {}; } }
+                  return raw || {};
+                })();
+
+                const questionFeedback: Record<string, string> = (() => {
+                  const raw = currentNotif.submission?.questionFeedback;
+                  if (!raw) return {};
+                  if (typeof raw === 'string') { try { return JSON.parse(raw); } catch { return {}; } }
+                  return raw || {};
+                })();
+
+                if (questions.length === 0) {
+                  return <p className="text-gray-400 text-sm italic">No question details available.</p>;
+                }
+
+                return questions.map((q: any, i: number) => {
+                  const answer = answers.find((a: any) => a.questionId === q.id);
+                  const isCorrect = markedAnswers[q.id];
+                  const comment = questionFeedback[q.id];
+
+                  return (
+                    <div key={q.id} className="border border-[#333333] rounded-md overflow-hidden">
+                      {/* Question header */}
+                      <div className="flex items-start justify-between gap-3 p-3 bg-[#1e1e1e]">
+                        <div className="flex items-start gap-2 flex-1">
+                          <span className={`mt-0.5 shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                            {i + 1}
+                          </span>
+                          <p className="text-sm font-medium text-white">{q.question}</p>
+                        </div>
+                        <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                          isCorrect
+                            ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                            : 'bg-red-500/20 text-red-400 border-red-500/30'
+                        }`}>
+                          {isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                        </span>
+                      </div>
+
+                      {/* Student answer + instructor comment */}
+                      <div className="p-3 space-y-2 bg-[#171717]">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Your Answer:</p>
+                          <p className="text-sm text-gray-300 bg-[#222] rounded px-2 py-1.5">
+                            {answer?.answer || <span className="italic text-gray-500">No answer recorded</span>}
+                          </p>
+                        </div>
+                        {comment && (
+                          <div>
+                            <div className="flex items-center gap-1 mb-1">
+                              <MessageSquare className="h-3 w-3 text-primary" />
+                              <p className="text-xs text-gray-500">Instructor Comment:</p>
+                            </div>
+                            <p className="text-sm text-gray-200 bg-primary/10 border border-primary/20 rounded px-2 py-1.5">
+                              {comment}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+
+              {/* Overall feedback */}
+              {currentNotif.submission?.instructorFeedback && (
+                <div className="border border-[#333333] rounded-md p-3 bg-[#1e1e1e]">
+                  <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Overall Instructor Feedback</p>
+                  <p className="text-sm text-gray-200 whitespace-pre-wrap">{currentNotif.submission.instructorFeedback}</p>
+                </div>
+              )}
+
+              {/* Final grade */}
+              <div className="border border-[#333333] rounded-md p-4 bg-[#1e1e1e] flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Final Grade</p>
+                  <p className="text-2xl font-bold text-white">{currentNotif.submission?.score ?? 0}%</p>
+                </div>
+                <span className={`text-lg font-bold px-5 py-2 rounded-md border ${
+                  currentNotif.submission?.passed
+                    ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                    : 'bg-red-500/20 text-red-400 border-red-500/30'
+                }`}>
+                  {currentNotif.submission?.passed ? 'PASSED' : 'FAILED'}
+                </span>
+              </div>
+            </div>
+
+            {/* Navigation + Acknowledge footer */}
+            <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t border-[#333333]">
+              {reviewNotifications.length > 1 && (
+                <div className="flex items-center gap-2 mr-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[#444] text-gray-300"
+                    disabled={notifIndex === 0}
+                    onClick={() => setNotifIndex(i => i - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[#444] text-gray-300"
+                    disabled={isLastNotif}
+                    onClick={() => setNotifIndex(i => i + 1)}
+                  >
+                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              )}
+              {isLastNotif && (
+                <Button
+                  className="bg-primary hover:bg-primary/90 text-white"
+                  disabled={dismissNotificationsMutation.isPending}
+                  onClick={handleAcknowledgeAll}
+                >
+                  {dismissNotificationsMutation.isPending ? 'Saving...' : 'Acknowledge & Close'}
+                </Button>
+              )}
+              {!isLastNotif && (
+                <p className="text-xs text-gray-500 self-center">
+                  Read all {reviewNotifications.length} reviews to acknowledge
+                </p>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {/* ─────────────────────────────────────────────────────────────────── */}
     </div>
   );
 }

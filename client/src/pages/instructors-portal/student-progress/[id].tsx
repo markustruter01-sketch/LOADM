@@ -53,6 +53,7 @@ export default function SubmissionReview() {
   const submissionId = parseInt(id);
   const [instructorFeedback, setInstructorFeedback] = useState("");
   const [markedAnswers, setMarkedAnswers] = useState<Record<string, boolean>>({});
+  const [questionFeedback, setQuestionFeedback] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [manualPassFail, setManualPassFail] = useState<boolean | null>(null);
   
@@ -87,6 +88,21 @@ export default function SubmissionReview() {
       }
     } else {
       setMarkedAnswers({});
+    }
+
+    // Pre-populate per-question feedback from existing review data
+    if ((submission as any).questionFeedback) {
+      try {
+        const raw = (submission as any).questionFeedback;
+        const qf: Record<string, string> = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (qf && typeof qf === 'object') {
+          setQuestionFeedback(qf);
+        }
+      } catch (e) {
+        setQuestionFeedback({});
+      }
+    } else {
+      setQuestionFeedback({});
     }
   }, [submission?.id]);
   
@@ -216,7 +232,8 @@ export default function SubmissionReview() {
       
       const payload = {
         instructorFeedback,
-        markedAnswers: markedAnswers, // The server will handle JSON stringification if needed
+        markedAnswers: markedAnswers,
+        questionFeedback,
         status: "reviewed",
         score,
         passed,
@@ -518,6 +535,23 @@ export default function SubmissionReview() {
                                         </div>
                                       </div>
                                     )}
+
+                                    {/* Per-question instructor comment */}
+                                    <div>
+                                      <h5 className="text-sm font-medium text-muted-foreground mb-2">Instructor Comment <span className="font-normal italic">(optional)</span></h5>
+                                      <Textarea
+                                        placeholder="Leave a comment on this specific question for the student..."
+                                        rows={2}
+                                        value={questionFeedback[answer.questionId] || ""}
+                                        onChange={(e) =>
+                                          setQuestionFeedback(prev => ({
+                                            ...prev,
+                                            [answer.questionId]: e.target.value,
+                                          }))
+                                        }
+                                        className="bg-background border-border text-foreground text-sm resize-none"
+                                      />
+                                    </div>
                                   </div>
                                 </div>
                               </div>

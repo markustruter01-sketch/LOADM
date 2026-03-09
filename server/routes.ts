@@ -1921,7 +1921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate required fields for review
-      const { instructorFeedback, markedAnswers, status, score, passed } = req.body;
+      const { instructorFeedback, markedAnswers, status, score, passed, questionFeedback } = req.body;
       
       if (status !== 'reviewed' && status !== 'pending' && status !== 'submitted') {
         return res.status(400).json({ message: "Invalid status value" });
@@ -1941,16 +1941,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Build reviewer name from user info
       const reviewerName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ') || req.user?.email || 'Instructor';
 
+      // Build update object conditionally to avoid overwriting fields not included in this request
+      const updateData: Record<string, any> = {
+        instructorFeedback: instructorFeedback || '',
+        markedAnswers: markedAnswers,
+        status,
+        score,
+        passed,
+        reviewedBy: reviewerName,
+        reviewedAt: new Date(),
+      };
+
+      // Only update questionFeedback if it was explicitly provided in the request
+      if (questionFeedback !== undefined) {
+        updateData.questionFeedback = questionFeedback;
+      }
+
+      // When finalising a review, trigger the student notification
+      if (status === 'reviewed') {
+        updateData.notificationSeen = false;
+      }
+
       const [updatedSubmission] = await db.update(scenarioSubmissions)
-        .set({
-          instructorFeedback: instructorFeedback || '',
-          markedAnswers: markedAnswers,
-          status,
-          score,
-          passed,
-          reviewedBy: reviewerName,
-          reviewedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(scenarioSubmissions.id, submissionId))
         .returning();
 
@@ -1968,6 +1981,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+
+  // GET review notifications for the current student (unread reviewed assessments)
+  app.get("/api/user/review-notifications", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+      // Fetch all unread reviewed assessment submissions for this user
+      const pendingSubmissions = await db
+        .select()
+        .from(scenarioSubmissions)
+        .where(
+          and(
+            eq(scenarioSubmissions.userId, userId),
+            eq(scenarioSubmissions.status, 'reviewed'),
+            eq(scenarioSubmissions.notificationSeen, false),
+            eq(scenarioSubmissions.submissionType, 'assessment')
+          )
+        );
+
+      if (pendingSubmissions.length === 0) {
+        return res.json([]);
+      }
+
+      // For each submission, fetch the related scenario (title + questions)
+      const scenarioIds = [...new Set(pendingSubmissions.map(s => s.scenarioId))];
+      const relatedScenarios = await db
+        .select({ id: scenarios.id, title: scenarios.title, questions: scenarios.questions, passingThreshold: scenarios.passingThreshold })
+        .from(scenarios)
+        .where(inArray(scenarios.id, scenarioIds));
+
+      const scenarioMap = new Map(relatedScenarios.map(s => [s.id, s]));
+
+      const notifications = pendingSubmissions.map(sub => ({
+        submission: sub,
+        scenario: scenarioMap.get(sub.scenarioId) || null,
+      }));
+
+      res.json(notifications);
+    } catch (error) {
+      console.error('❌ Failed to fetch review notifications:', error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  // POST batch dismiss all review notifications for the current student
+  app.post("/api/user/dismiss-all-review-notifications", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+      const { submissionIds } = req.body;
+      if (!Array.isArray(submissionIds) || submissionIds.length === 0) {
+        return res.status(400).json({ message: "submissionIds must be a non-empty array" });
+      }
+
+      // Validate all IDs are numbers
+      const ids = submissionIds.map((id: any) => parseInt(id)).filter((id: number) => !isNaN(id));
+
+      // Security check: only dismiss submissions belonging to this user
+      await db.update(scenarioSubmissions)
+        .set({ notificationSeen: true })
+        .where(
+          and(
+            inArray(scenarioSubmissions.id, ids),
+            eq(scenarioSubmissions.userId, userId)
+          )
+        );
+
+      res.json({ success: true, dismissed: ids.length });
+    } catch (error) {
+      console.error('❌ Failed to dismiss review notifications:', error);
+      res.status(500).json({ message: "Failed to dismiss notifications" });
+    }
+  });
 
   // Training Module Video Upload endpoints
   app.post("/api/training-modules/:moduleId/videos", requireInstructor, uploadVideo.array('videos', 3), async (req: AuthenticatedRequest, res) => {
