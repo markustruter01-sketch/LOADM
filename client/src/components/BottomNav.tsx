@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, ClipboardList, Plane, FolderOpen, Wrench, GraduationCap, User } from "lucide-react";
+import { Home, ClipboardList, Plane, FolderOpen, Wrench, GraduationCap, User, LayoutDashboard } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import { cn } from "@/lib/utils";
 import { ForwardRefExoticComponent, RefAttributes, useState } from "react";
@@ -62,7 +62,16 @@ export default function BottomNav() {
     }
   ];
 
-  const allNavItems = [...navItems];
+  const isAdminUser = user?.role === 'superadmin' || user?.role === 'instructor';
+
+  const adminNavItem: NavItem = {
+    href: "/admin",
+    label: "Admin",
+    icon: LayoutDashboard,
+    active: location.startsWith("/admin") || location.startsWith("/superadmin-dashboard"),
+  };
+
+  const allNavItems = isAdminUser ? [...navItems, adminNavItem] : [...navItems];
 
   const handleNavClick = (href: string) => {
     setLocation(href);
