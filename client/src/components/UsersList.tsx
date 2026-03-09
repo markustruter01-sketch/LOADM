@@ -10,7 +10,7 @@ import { Search, UserPlus, Shield, User, Crown, Eye, EyeOff, Briefcase } from "l
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { filterForInstructorView, LicenseType } from "@/lib/permissions";
 
 interface User {
@@ -36,11 +36,11 @@ export default function UsersList() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [showPasswords, setShowPasswords] = useState<{[key: number]: boolean}>({});
   const { toast } = useToast();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser } = useIsolatedAuth();
   
   // Get current user's license type to determine what they can see
-  const currentUserLicenseType = (currentUser as any)?.licenseType || (currentUser as any)?.userRole || 'loadmaster';
-  const isSuperAdmin = currentUserLicenseType === 'superadmin' || (currentUser as any)?.isSuperAdmin;
+  const currentUserLicenseType = (currentUser as any)?.licenseType || (currentUser as any)?.role || 'loadmaster';
+  const isSuperAdmin = currentUserLicenseType === 'superadmin' || currentUser?.role === 'superadmin';
 
   // Fetch users from licensing system
   const { data: licensesData = [], isLoading, refetch } = useQuery<any[]>({
@@ -51,9 +51,10 @@ export default function UsersList() {
   // Mutation to update license type
   const updateRoleMutation = useMutation({
     mutationFn: async ({ licenseId, licenseType }: { licenseId: number; licenseType: string }) => {
-      return apiRequest(`/api/licensing/licenses/${licenseId}/role`, {
+      return apiRequest({
+        url: `/api/licensing/licenses/${licenseId}/role`,
         method: 'PATCH',
-        body: JSON.stringify({ licenseType }),
+        body: { licenseType },
       });
     },
     onSuccess: () => {

@@ -51,6 +51,44 @@ The platform is built with a React 18 frontend using TypeScript, Shadcn/ui, Tail
 4. Configure SENDGRID_VERIFIED_SENDER for email notifications
 5. Review license expiry settings and readiness snapshot schedules
 
+## Recent Changes (March 9, 2026) — Admin Portal Overhaul
+
+### Admin Dashboard (`/admin`) — Full Redesign
+- Replaced bare-bones 4-card layout with comprehensive platform overview
+- **6 live stat cards**: Active Personnel (with instructor/loadmaster sub-count), Pending Reviews (orange alert when >0), Scenarios, Pop Quizzes, Training Modules, Checklists
+- **8 Management tiles**: User Management, Document Templates, Scenario Management, Quiz Management, Training Modules, Checklist Management, Student Progress, Advanced Analytics
+- Pending reviews alert banner with direct link to `/instructors-portal/student-progress`
+- Super Admin Panel shortcut for superadmin users
+- Removed red "User Management Console" banner
+
+### User Management (`/admin/users`) — Full Rewrite
+- Complete rewrite replacing delete-only table
+- Role badges per user (Super Admin/purple, Leadership/amber, Instructor/blue, Loadmaster/green)
+- Inline role toggle switches (loadmaster ↔ instructor ↔ leadership) for superadmin users
+- Stats row: counts by role type
+- Delete confirmation dialog; superadmin accounts are protected from deletion
+- Password reveal toggle (show/hide) per row
+
+### Superadmin Analytics Tab (`/superadmin-dashboard`) — Real Data
+- Replaced "features will be available here" placeholder with live analytics:
+  - **4 stat cards**: Total Licenses, Overall Readiness %, Scenario Submissions, Training Content totals
+  - **Squadron Readiness section**: per-squadron progress bars (colour-coded green/yellow/red by threshold)
+  - **Pending Reviews alert**: orange banner with "Review Now" button when assessments need attention
+  - **License Utilisation grid**: active/expired/expiring/utilisation rate
+- System Status badges now dynamically derived from actual API data (not hardcoded)
+
+### Backend — New Endpoint
+- `PATCH /api/licensing/licenses/:id/role` (requireSuperAdmin): updates both `licenses.licenseType` and syncs `users.userRole`/`isAdmin`/`isSuperAdmin`
+
+### Auth Fixes
+- `UsersList.tsx`: fixed import from `use-auth` → `useIsolatedAuth`; fixed `apiRequest` call signature
+- `user-management.tsx`: fully rewritten with `useIsolatedAuth` and correct `apiRequest` object syntax
+
+### Cleanup (T005)
+- Deleted dead files: `admin-dashboard-new.tsx`, `admin-dashboard-old.tsx`, `auth-page.tsx`, `[id]-broken.tsx`
+- Fixed `fetchPriority` → `fetchpriority` (lowercase) on img elements in `home-page.tsx` and `instructors-portal/index.tsx`
+- Verbose session logs in `auth-core.ts` wrapped in `NODE_ENV === 'development'` guard
+
 ## Recent Changes (March 6, 2026) — Edit Training Module Redesign
 - **Edit Training Module Dialog Rebuilt** (`client/src/pages/instructors-portal/training-modules/index.tsx`):
   - Overview tab cleaned up: removed orphaned `prerequisites` and `resources` fields (not in DB schema); added helpful tip section

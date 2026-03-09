@@ -46,14 +46,15 @@ export function getIsolatedSession(sessionId: string) {
   }
   
   const session = ISOLATED_SESSIONS.get(sessionId);
-  if (!session) {
-    console.log('🔧 SESSION: Session not found in store. Active sessions:', ISOLATED_SESSIONS.size);
-    console.log('🔧 SESSION: Looking for:', sessionId.substring(0, 20) + '...');
-    // List first few session IDs for debugging
-    const sessionIds = Array.from(ISOLATED_SESSIONS.keys()).slice(0, 3);
-    console.log('🔧 SESSION: Available sessions:', sessionIds.map(id => id.substring(0, 20) + '...'));
-  } else {
-    console.log('🔧 SESSION: Found session for:', session.email);
+  if (process.env.NODE_ENV === 'development') {
+    if (!session) {
+      console.log('🔧 SESSION: Session not found in store. Active sessions:', ISOLATED_SESSIONS.size);
+      console.log('🔧 SESSION: Looking for:', sessionId.substring(0, 20) + '...');
+      const sessionIds = Array.from(ISOLATED_SESSIONS.keys()).slice(0, 3);
+      console.log('🔧 SESSION: Available sessions:', sessionIds.map(id => id.substring(0, 20) + '...'));
+    } else {
+      console.log('🔧 SESSION: Found session for:', session.email);
+    }
   }
   
   return session || null;

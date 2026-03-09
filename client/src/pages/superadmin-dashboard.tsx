@@ -22,7 +22,9 @@ import {
   MessageCircle,
   Trash2,
   ClipboardList,
-  RefreshCw
+  RefreshCw,
+  AlertOctagon,
+  BookOpen,
 } from "lucide-react";
 
 interface ActivityLogEntry {
@@ -61,6 +63,32 @@ export default function SuperAdminDashboard() {
   const { data: activityLogs = [], isLoading: logsLoading, refetch: refetchLogs } = useQuery<ActivityLogEntry[]>({
     queryKey: ['/api/activity-log'],
   });
+
+  // Analytics queries
+  const { data: squadronReadinessData } = useQuery<any>({
+    queryKey: ['/api/analytics/squadron-readiness'],
+  });
+  const { data: scenarioSubmissions = [] } = useQuery<any[]>({
+    queryKey: ['/api/scenario-submissions'],
+  });
+  const { data: trainingModules = [] } = useQuery<any[]>({
+    queryKey: ['/api/training-modules'],
+  });
+  const { data: checklists = [] } = useQuery<any[]>({
+    queryKey: ['/api/checklists'],
+  });
+  const { data: quizzes = [] } = useQuery<any[]>({
+    queryKey: ['/api/quizzes'],
+  });
+
+  const squadronList: any[] = squadronReadinessData?.bySquadron ?? [];
+  const readinessSummary = squadronReadinessData?.summary ?? { total: 0, ready: 0, notReady: 0, readyPercent: 0 };
+  const overallReadinessRate: number = readinessSummary.readyPercent;
+  const totalReadyMembers: number = readinessSummary.ready;
+  const totalMembers: number = readinessSummary.total;
+  const pendingReviews = (scenarioSubmissions as any[]).filter(
+    (s: any) => s.status === 'pending' && s.submissionType === 'assessment'
+  ).length;
 
   // Chat reset mutation
   const resetChatMutation = useMutation({
@@ -347,10 +375,12 @@ export default function SuperAdminDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      {stats ? <CheckCircle className="w-4 h-4 text-green-400" /> : <AlertTriangle className="w-4 h-4 text-yellow-400" />}
                       <span className="text-white font-medium">Database</span>
                     </div>
-                    <Badge variant="default" className="bg-green-500">Healthy</Badge>
+                    <Badge variant="default" className={stats ? "bg-green-500" : "bg-yellow-600"}>
+                      {stats ? "Healthy" : "Checking..."}
+                    </Badge>
                   </div>
                   <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
@@ -361,10 +391,12 @@ export default function SuperAdminDashboard() {
                   </div>
                   <div className="bg-slate-700 p-4 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      {(stats?.activeLicenses ?? 0) > 0 ? <CheckCircle className="w-4 h-4 text-green-400" /> : <AlertTriangle className="w-4 h-4 text-yellow-400" />}
                       <span className="text-white font-medium">Licensing</span>
                     </div>
-                    <Badge variant="default" className="bg-green-500">Active</Badge>
+                    <Badge variant="default" className={(stats?.activeLicenses ?? 0) > 0 ? "bg-green-500" : "bg-yellow-600"}>
+                      {(stats?.activeLicenses ?? 0) > 0 ? `Active (${stats?.activeLicenses})` : "No Active Licenses"}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -372,19 +404,114 @@ export default function SuperAdminDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
+            {/* Platform Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Total Licenses", value: stats?.totalLicenses ?? 0, sub: `${stats?.activeLicenses ?? 0} active`, icon: <Key className="w-4 h-4 text-blue-400" />, color: "text-blue-400" },
+                { label: "Overall Readiness", value: `${overallReadinessRate}%`, sub: `${totalReadyMembers} / ${totalMembers} members`, icon: <Activity className="w-4 h-4 text-green-400" />, color: overallReadinessRate >= 80 ? "text-green-400" : overallReadinessRate >= 60 ? "text-yellow-400" : "text-red-400" },
+                { label: "Scenario Submissions", value: (scenarioSubmissions as any[]).length, sub: `${pendingReviews} pending review`, icon: <ClipboardList className="w-4 h-4 text-purple-400" />, color: "text-purple-400" },
+                { label: "Training Content", value: quizzes.length + trainingModules.length + checklists.length, sub: `${quizzes.length} quizzes · ${trainingModules.length} modules · ${checklists.length} checklists`, icon: <BookOpen className="w-4 h-4 text-cyan-400" />, color: "text-cyan-400" },
+              ].map(({ label, value, sub, icon, color }) => (
+                <Card key={label} className="bg-slate-800 border-slate-700">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      {icon}
+                    </div>
+                    <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                    <p className="text-xs font-medium text-slate-300 mt-0.5">{label}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 leading-tight">{sub}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Squadron Readiness Breakdown */}
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-purple-400" />
-                  System Analytics
+                  Squadron Readiness
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Personnel readiness by squadron
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {squadronList.length === 0 ? (
+                  <p className="text-slate-400 text-sm py-4">No squadron data available.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {squadronList.map((sq: any) => {
+                      const rate = sq.readyPercent ?? (sq.total > 0 ? Math.round((sq.ready / sq.total) * 100) : 0);
+                      return (
+                        <div key={sq.squadron} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-300 font-medium">{sq.squadron}</span>
+                            <span className={`font-bold ${rate >= 80 ? 'text-green-400' : rate >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+                              {rate}% ({sq.ready}/{sq.total})
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-700 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all ${rate >= 80 ? 'bg-green-500' : rate >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                              style={{ width: `${rate}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Pending Reviews Alert */}
+            {pendingReviews > 0 && (
+              <Card className="bg-orange-950/30 border-orange-500/40">
+                <CardContent className="p-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <AlertOctagon className="w-5 h-5 text-orange-400 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-orange-300">
+                        {pendingReviews} assessment{pendingReviews > 1 ? "s" : ""} awaiting instructor review
+                      </p>
+                      <p className="text-sm text-orange-400/70">
+                        Students are waiting for feedback on their submitted assessments.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-700 text-white shrink-0"
+                    onClick={() => setLocation("/instructors-portal/student-progress")}
+                  >
+                    Review Now
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* License Utilisation */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-400" />
+                  License Utilisation
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-slate-300">
-                  <p>Detailed analytics and reporting features will be available here.</p>
-                  <p className="text-sm text-slate-400 mt-2">
-                    Track license usage, user engagement, and system performance over time.
-                  </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { label: "Active", value: stats?.activeLicenses ?? 0, color: "text-green-400" },
+                    { label: "Expired", value: stats?.expiredLicenses ?? 0, color: "text-red-400" },
+                    { label: "Expiring Soon", value: stats?.expiringLicenses ?? 0, color: "text-yellow-400" },
+                    { label: "Utilisation Rate", value: `${stats?.utilizationRate ?? 0}%`, color: "text-blue-400" },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="bg-slate-700/50 p-3 rounded-lg text-center">
+                      <p className={`text-xl font-bold ${color}`}>{value}</p>
+                      <p className="text-xs text-slate-400 mt-1">{label}</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

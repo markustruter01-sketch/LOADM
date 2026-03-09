@@ -643,6 +643,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update license role/type
+  app.patch("/api/licensing/licenses/:id/role", requireSuperAdmin, async (req: AuthenticatedRequest, res) => {
+    try {
+      const licenseId = parseInt(req.params.id);
+      const { licenseType } = req.body;
+
+      if (!licenseId || isNaN(licenseId)) {
+        return res.status(400).json({ message: "Invalid license ID" });
+      }
+
+      const validTypes = ['loadmaster', 'instructor', 'leadership', 'superadmin', 'readonly'];
+      if (!licenseType || !validTypes.includes(licenseType)) {
+        return res.status(400).json({ message: "Invalid license type" });
+      }
+
+      await db.update(licenses)
+        .set({ licenseType, updatedAt: new Date() })
+        .where(eq(licenses.id, licenseId));
+
+      await db.update(users)
+        .set({
+          userRole: licenseType,
+          isAdmin: licenseType === 'instructor' || licenseType === 'superadmin',
+          isSuperAdmin: licenseType === 'superadmin',
+        })
+        .where(eq(users.licenseId, licenseId));
+
+      res.json({ success: true, message: "Role updated successfully" });
+    } catch (error) {
+      console.error('Error updating license role:', error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
   // License dashboard stats
   app.get("/api/licensing/dashboard-stats", requireSuperAdmin, async (req, res) => {
     try {

@@ -172,7 +172,7 @@ export default function InstructorsPortal() {
             decoding="async"
             width={1920}
             height={1080}
-            fetchPriority="high"
+            fetchpriority="high"
           />
           <div className="gradient-overlay flex items-end">
             <div className="p-8">
