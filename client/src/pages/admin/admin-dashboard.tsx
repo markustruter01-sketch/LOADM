@@ -201,6 +201,26 @@ export default function AdminDashboard() {
           )}
         </div>
 
+        {/* Super Admin redirect banner */}
+        {isSuperAdmin && (
+          <div className="mb-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5 text-purple-400 shrink-0" />
+              <div>
+                <p className="font-semibold text-purple-300">You have Super Admin access</p>
+                <p className="text-sm text-purple-400/70">The Super Admin Dashboard gives you full platform control — licensing, analytics, deletion log, and settings.</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white shrink-0"
+              onClick={() => setLocation("/superadmin-dashboard")}
+            >
+              Super Admin Panel <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+            </Button>
+          </div>
+        )}
+
         {/* Pending Review Alert */}
         {pendingReviews > 0 && (
           <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg flex items-center justify-between gap-4">

@@ -6,14 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Shield, 
-  Users, 
-  Key, 
-  Settings, 
-  BarChart3, 
-  AlertTriangle, 
-  CheckCircle, 
+import {
+  Shield,
+  Users,
+  Key,
+  Settings,
+  BarChart3,
+  AlertTriangle,
+  CheckCircle,
   Clock,
   Database,
   UserCheck,
@@ -25,6 +25,16 @@ import {
   RefreshCw,
   AlertOctagon,
   BookOpen,
+  FileText,
+  CheckSquare,
+  HelpCircle,
+  GraduationCap,
+  ClipboardCheck,
+  ArrowRight,
+  ChevronRight,
+  UserCog,
+  LayoutGrid,
+  AlertCircle,
 } from "lucide-react";
 
 interface ActivityLogEntry {
@@ -49,27 +59,32 @@ interface DashboardStats {
   utilizationRate: number;
 }
 
+interface InstructorUser { userId: number; licenseType: string; }
+
 export default function SuperAdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch dashboard stats
   const { data: stats, isLoading } = useQuery<DashboardStats>({
-    queryKey: ['/api/licensing/dashboard-stats']
+    queryKey: ['/api/licensing/dashboard-stats'],
   });
 
-  // Fetch activity log
   const { data: activityLogs = [], isLoading: logsLoading, refetch: refetchLogs } = useQuery<ActivityLogEntry[]>({
     queryKey: ['/api/activity-log'],
   });
 
-  // Analytics queries
   const { data: squadronReadinessData } = useQuery<any>({
     queryKey: ['/api/analytics/squadron-readiness'],
   });
   const { data: scenarioSubmissions = [] } = useQuery<any[]>({
     queryKey: ['/api/scenario-submissions'],
+  });
+  const { data: scenarios = [] } = useQuery<any[]>({
+    queryKey: ['/api/scenarios'],
+  });
+  const { data: documents = [] } = useQuery<any[]>({
+    queryKey: ['/api/documents'],
   });
   const { data: trainingModules = [] } = useQuery<any[]>({
     queryKey: ['/api/training-modules'],
@@ -80,6 +95,9 @@ export default function SuperAdminDashboard() {
   const { data: quizzes = [] } = useQuery<any[]>({
     queryKey: ['/api/quizzes'],
   });
+  const { data: instructorUsers = [] } = useQuery<InstructorUser[]>({
+    queryKey: ['/api/instructor/users'],
+  });
 
   const squadronList: any[] = squadronReadinessData?.bySquadron ?? [];
   const readinessSummary = squadronReadinessData?.summary ?? { total: 0, ready: 0, notReady: 0, readyPercent: 0 };
@@ -89,50 +107,116 @@ export default function SuperAdminDashboard() {
   const pendingReviews = (scenarioSubmissions as any[]).filter(
     (s: any) => s.status === 'pending' && s.submissionType === 'assessment'
   ).length;
+  const instructorCount = instructorUsers.filter((u) => u.licenseType === 'instructor').length;
+  const loadmasterCount = instructorUsers.filter((u) => u.licenseType === 'loadmaster').length;
+  const totalActiveUsers = instructorUsers.length;
 
-  // Chat reset mutation
   const resetChatMutation = useMutation({
     mutationFn: async () => {
-      console.log("Starting chat reset request...");
-      
       const response = await fetch('/api/chat-messages/reset', {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
-      
-      console.log("Reset response status:", response.status);
-      console.log("Reset response ok:", response.ok);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Reset request failed:", errorText);
         throw new Error(`Failed to reset chat logs: ${response.status} ${errorText}`);
       }
-      
-      const result = await response.json();
-      console.log("Reset successful:", result);
-      return result;
+      return response.json();
     },
-    onSuccess: (data) => {
-      console.log("Reset mutation success:", data);
-      toast({
-        title: "Chat Reset Complete",
-        description: "All chat messages have been permanently deleted.",
-      });
-      // Invalidate chat messages cache
+    onSuccess: () => {
+      toast({ title: "Chat Reset Complete", description: "All chat messages have been permanently deleted." });
       queryClient.invalidateQueries({ queryKey: ["/api/chat-messages"] });
     },
     onError: (error) => {
-      console.error("Reset mutation error:", error);
-      toast({
-        title: "Reset Failed",
-        description: `Failed to reset chat logs: ${error.message}`,
-        variant: "destructive",
-      });
+      toast({ title: "Reset Failed", description: `Failed to reset chat logs: ${error.message}`, variant: "destructive" });
     },
   });
+
+  const managementTiles = [
+    {
+      title: "User Management",
+      desc: "Manage accounts, roles, and permissions",
+      icon: <UserCog className="h-6 w-6 text-blue-400" />,
+      href: "/admin/users",
+      badge: "Super Admin",
+      badgeColor: "bg-purple-600",
+      urgent: false,
+    },
+    {
+      title: "Document Templates",
+      desc: "Create and manage form templates",
+      icon: <FileText className="h-6 w-6 text-slate-400" />,
+      href: "/admin/documents",
+      badge: `${documents.length} templates`,
+      badgeColor: "bg-slate-600",
+      urgent: false,
+    },
+    {
+      title: "Scenario Management",
+      desc: "Build and manage training scenarios",
+      icon: <ClipboardList className="h-6 w-6 text-purple-400" />,
+      href: "/instructors-portal/scenarios",
+      badge: `${scenarios.length} scenarios`,
+      badgeColor: "bg-purple-700",
+      urgent: false,
+    },
+    {
+      title: "Quiz Management",
+      desc: "Create and manage pop quizzes",
+      icon: <HelpCircle className="h-6 w-6 text-cyan-400" />,
+      href: "/instructors-portal/quizzes",
+      badge: `${quizzes.length} quizzes`,
+      badgeColor: "bg-cyan-700",
+      urgent: false,
+    },
+    {
+      title: "Training Modules",
+      desc: "Manage aircraft training content",
+      icon: <BookOpen className="h-6 w-6 text-emerald-400" />,
+      href: "/instructors-portal/training-modules",
+      badge: `${trainingModules.length} modules`,
+      badgeColor: "bg-emerald-700",
+      urgent: false,
+    },
+    {
+      title: "Checklist Management",
+      desc: "Build and manage operational checklists",
+      icon: <CheckSquare className="h-6 w-6 text-rose-400" />,
+      href: "/instructors-portal/checklist-management",
+      badge: `${checklists.length} checklists`,
+      badgeColor: "bg-rose-700",
+      urgent: false,
+    },
+    {
+      title: "Student Progress",
+      desc: "Review assessment submissions",
+      icon: <ClipboardCheck className="h-6 w-6 text-orange-400" />,
+      href: "/instructors-portal/student-progress",
+      badge: pendingReviews > 0 ? `${pendingReviews} pending` : null,
+      badgeColor: "bg-orange-600",
+      urgent: pendingReviews > 0,
+    },
+    {
+      title: "Advanced Analytics",
+      desc: "Platform-wide performance insights",
+      icon: <BarChart3 className="h-6 w-6 text-indigo-400" />,
+      href: "/instructors-portal/analytics",
+      badge: null,
+      badgeColor: "",
+      urgent: false,
+    },
+  ];
+
+  const topStats = [
+    { label: "Total Licenses", value: isLoading ? "…" : (stats?.totalLicenses ?? 0), sub: `${stats?.activeLicenses ?? 0} active`, icon: <Key className="w-5 h-5 text-blue-400" />, color: "text-blue-400" },
+    { label: "Active Sessions", value: isLoading ? "…" : (stats?.activeSessions ?? 0), sub: "Currently logged in", icon: <Activity className="w-5 h-5 text-green-400" />, color: "text-green-400" },
+    { label: "Expiring Soon", value: isLoading ? "…" : (stats?.expiringLicenses ?? 0), sub: "Within 7 days", icon: <AlertTriangle className="w-5 h-5 text-orange-400" />, color: (stats?.expiringLicenses ?? 0) > 0 ? "text-orange-400" : "text-slate-400", urgent: (stats?.expiringLicenses ?? 0) > 0 },
+    { label: "Utilisation", value: isLoading ? "…" : `${stats?.utilizationRate ?? 0}%`, sub: "License usage rate", icon: <TrendingUp className="w-5 h-5 text-purple-400" />, color: "text-purple-400" },
+    { label: "Active Personnel", value: totalActiveUsers, sub: `${instructorCount} instructors · ${loadmasterCount} loadmasters`, icon: <Users className="w-5 h-5 text-cyan-400" />, color: "text-cyan-400" },
+    { label: "Pending Reviews", value: pendingReviews, sub: "Assessments awaiting review", icon: <ClipboardCheck className="w-5 h-5 text-orange-400" />, color: pendingReviews > 0 ? "text-orange-400" : "text-slate-400", urgent: pendingReviews > 0 },
+    { label: "Scenarios", value: scenarios.length, sub: `${scenarioSubmissions.length} total submissions`, icon: <GraduationCap className="w-5 h-5 text-pink-400" />, color: "text-pink-400" },
+    { label: "Training Content", value: quizzes.length + trainingModules.length + checklists.length, sub: `${quizzes.length} quizzes · ${trainingModules.length} modules · ${checklists.length} checklists`, icon: <BookOpen className="w-5 h-5 text-emerald-400" />, color: "text-emerald-400" },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -146,17 +230,13 @@ export default function SuperAdminDashboard() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Super Admin Dashboard</h1>
-                <p className="text-slate-400">System Management & Control</p>
+                <p className="text-slate-400">System Management &amp; Control</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
-                // Proper logout that clears session and redirects
-                fetch('/api/logout', { method: 'POST' })
-                  .then(() => {
-                    window.location.href = '/auth';
-                  });
+                fetch('/api/logout', { method: 'POST' }).then(() => { window.location.href = '/auth'; });
               }}
               className="border-slate-600 text-slate-300 hover:bg-slate-800"
             >
@@ -167,86 +247,77 @@ export default function SuperAdminDashboard() {
       </div>
 
       <div className="container mx-auto p-6 space-y-6">
-        {/* Quick Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Total Licenses</p>
-                  <p className="text-3xl font-bold text-white">
-                    {isLoading ? "..." : stats?.totalLicenses || 0}
-                  </p>
+
+        {/* 8-card stats row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+          {topStats.map(({ label, value, sub, icon, color, urgent }) => (
+            <Card
+              key={label}
+              className={`border ${urgent ? "border-orange-500/40 bg-orange-500/5" : "bg-slate-800 border-slate-700"}`}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  {icon}
+                  {urgent && <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />}
                 </div>
-                <Key className="w-8 h-8 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Active Sessions</p>
-                  <p className="text-3xl font-bold text-green-400">
-                    {isLoading ? "..." : stats?.activeSessions || 0}
-                  </p>
-                </div>
-                <Activity className="w-8 h-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Expiring Soon</p>
-                  <p className="text-3xl font-bold text-orange-400">
-                    {isLoading ? "..." : stats?.expiringLicenses || 0}
-                  </p>
-                </div>
-                <AlertTriangle className="w-8 h-8 text-orange-400" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-400">Utilization</p>
-                  <p className="text-3xl font-bold text-purple-400">
-                    {isLoading ? "..." : `${stats?.utilizationRate || 0}%`}
-                  </p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-purple-400" />
-              </div>
-            </CardContent>
-          </Card>
+                <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                <p className="text-xs font-medium text-slate-300 mt-0.5 leading-tight">{label}</p>
+                <p className="text-xs text-slate-500 mt-0.5 leading-tight">{sub}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Main Management Interface */}
+        {/* Pending Reviews Alert — persistent, above tabs */}
+        {pendingReviews > 0 && (
+          <div className="p-4 bg-orange-950/40 border border-orange-500/40 rounded-lg flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <AlertOctagon className="w-5 h-5 text-orange-400 shrink-0" />
+              <div>
+                <p className="font-semibold text-orange-300">
+                  {pendingReviews} assessment{pendingReviews > 1 ? "s" : ""} awaiting instructor review
+                </p>
+                <p className="text-sm text-orange-400/70">
+                  Students are waiting for feedback on their submitted assessments.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              className="bg-orange-600 hover:bg-orange-700 text-white shrink-0"
+              onClick={() => setLocation("/instructors-portal/student-progress")}
+            >
+              Review Now <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+            </Button>
+          </div>
+        )}
+
+        {/* Main Tabs */}
         <Tabs defaultValue="licensing" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
-            <TabsTrigger value="licensing" className="data-[state=active]:bg-purple-600">
+          <TabsList className="grid w-full grid-cols-6 bg-slate-800 border border-slate-700">
+            <TabsTrigger value="licensing" className="data-[state=active]:bg-purple-600 text-xs">
               License Management
             </TabsTrigger>
-            <TabsTrigger value="system" className="data-[state=active]:bg-purple-600">
+            <TabsTrigger value="content" className="data-[state=active]:bg-purple-600 text-xs flex items-center gap-1">
+              <LayoutGrid className="w-3.5 h-3.5" />
+              Content
+            </TabsTrigger>
+            <TabsTrigger value="system" className="data-[state=active]:bg-purple-600 text-xs">
               System Overview
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600">
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600 text-xs">
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="deletion-log" className="data-[state=active]:bg-orange-600">
-              <ClipboardList className="w-4 h-4 mr-1.5" />
+            <TabsTrigger value="deletion-log" className="data-[state=active]:bg-orange-600 text-xs flex items-center gap-1">
+              <ClipboardList className="w-3.5 h-3.5" />
               Deletion Log
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600">
+            <TabsTrigger value="settings" className="data-[state=active]:bg-purple-600 text-xs">
               Settings
             </TabsTrigger>
           </TabsList>
 
+          {/* ── LICENSE MANAGEMENT TAB ── */}
           <TabsContent value="licensing" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-slate-800 border-slate-700">
@@ -255,28 +326,19 @@ export default function SuperAdminDashboard() {
                     <Key className="w-5 h-5 text-blue-400" />
                     License Management
                   </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Create, manage, and monitor user licenses
-                  </CardDescription>
+                  <CardDescription className="text-slate-400">Create, manage, and monitor user licenses</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => setLocation('/licensing-management')}
-                    className="w-full bg-purple-600 hover:bg-purple-700"
-                  >
+                  <Button onClick={() => setLocation('/licensing-management')} className="w-full bg-purple-600 hover:bg-purple-700">
                     Open License Manager
                   </Button>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="bg-slate-700 p-3 rounded-lg">
-                      <div className="text-green-400 font-semibold">
-                        {stats?.activeLicenses || 0}
-                      </div>
+                      <div className="text-green-400 font-semibold text-lg">{stats?.activeLicenses ?? 0}</div>
                       <div className="text-slate-400">Active</div>
                     </div>
                     <div className="bg-slate-700 p-3 rounded-lg">
-                      <div className="text-red-400 font-semibold">
-                        {stats?.expiredLicenses || 0}
-                      </div>
+                      <div className="text-red-400 font-semibold text-lg">{stats?.expiredLicenses ?? 0}</div>
                       <div className="text-slate-400">Expired</div>
                     </div>
                   </div>
@@ -287,21 +349,16 @@ export default function SuperAdminDashboard() {
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
                     <Shield className="w-5 h-5 text-blue-400" />
-                    Permission Management
+                    User Management
                   </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Manage user roles and access permissions
-                  </CardDescription>
+                  <CardDescription className="text-slate-400">Manage user roles and access permissions</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => setLocation('/permissions-dashboard')}
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                  >
-                    Open Permissions Dashboard
+                  <Button onClick={() => setLocation('/admin/users')} className="w-full bg-blue-600 hover:bg-blue-700">
+                    Open User Management
                   </Button>
                   <div className="text-sm text-slate-400">
-                    View and modify user roles, permissions, and access levels across the platform
+                    Assign roles (Loadmaster, Instructor, Leadership, Super Admin), delete accounts, view passwords
                   </div>
                 </CardContent>
               </Card>
@@ -312,27 +369,20 @@ export default function SuperAdminDashboard() {
                     <Users className="w-5 h-5 text-green-400" />
                     User Registration
                   </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Manage the license registration process
-                  </CardDescription>
+                  <CardDescription className="text-slate-400">Manage the license registration process</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => setLocation('/license-registration')}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                  >
+                  <Button onClick={() => setLocation('/license-registration')} className="w-full bg-green-600 hover:bg-green-700">
                     View Registration Portal
                   </Button>
-                  <div className="bg-slate-700 p-3 rounded-lg">
-                    <div className="text-slate-300 text-sm">
-                      Users can register with valid license keys
-                    </div>
+                  <div className="bg-slate-700 p-3 rounded-lg text-sm text-slate-300">
+                    Users can register with valid license keys
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Recent Activity */}
+            {/* Live Recent Activity */}
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
@@ -342,27 +392,80 @@ export default function SuperAdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span className="text-slate-300">System operational - All services running</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
-                    <Clock className="w-4 h-4 text-orange-400" />
-                    <span className="text-slate-300">
-                      {stats?.expiringLicenses || 0} licenses expiring within 7 days
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
-                    <UserCheck className="w-4 h-4 text-blue-400" />
-                    <span className="text-slate-300">
-                      {stats?.activeSessions || 0} active user sessions
-                    </span>
-                  </div>
+                  {activityLogs.length === 0 ? (
+                    <>
+                      <div className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span className="text-slate-300">System operational — All services running</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
+                        <Clock className="w-4 h-4 text-orange-400" />
+                        <span className="text-slate-300">{stats?.expiringLicenses ?? 0} licenses expiring within 7 days</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
+                        <UserCheck className="w-4 h-4 text-blue-400" />
+                        <span className="text-slate-300">{stats?.activeSessions ?? 0} active user sessions</span>
+                      </div>
+                    </>
+                  ) : (
+                    activityLogs.slice(0, 5).map((entry) => (
+                      <div key={entry.id} className="flex items-start gap-3 p-3 bg-slate-700 rounded-lg">
+                        <Trash2 className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-slate-300 text-sm">
+                            <span className="font-medium text-white">{entry.userName}</span>
+                            {" deleted "}
+                            <span className="text-red-400 font-medium">{entry.resourceName}</span>
+                            <span className="text-slate-500"> ({entry.resourceType})</span>
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {new Date(entry.performedAt).toLocaleString("en-AU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* ── CONTENT MANAGEMENT TAB ── */}
+          <TabsContent value="content" className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-1">Platform Content Management</h2>
+              <p className="text-slate-400 text-sm mb-5">Manage all training content, assessments, and user oversight from one place.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {managementTiles.map(({ title, desc, icon, href, badge, badgeColor, urgent }) => (
+                  <button
+                    key={title}
+                    onClick={() => setLocation(href)}
+                    className={`group text-left p-4 rounded-lg border transition-all hover:shadow-lg ${
+                      urgent
+                        ? "border-orange-500/40 bg-orange-500/5 hover:border-orange-500/70"
+                        : "border-slate-700 bg-slate-800 hover:border-purple-500/50 hover:bg-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="p-2 rounded-md bg-slate-700 group-hover:bg-slate-600 transition-colors">
+                        {icon}
+                      </div>
+                      {badge && (
+                        <Badge className={`${badgeColor} text-white text-xs`}>{badge}</Badge>
+                      )}
+                    </div>
+                    <p className="font-semibold text-sm text-white">{title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 leading-snug">{desc}</p>
+                    <div className="flex items-center gap-1 mt-3 text-xs text-slate-500 group-hover:text-purple-400 transition-colors">
+                      Open <ChevronRight className="h-3 w-3" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ── SYSTEM OVERVIEW TAB ── */}
           <TabsContent value="system" className="space-y-6">
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
@@ -403,8 +506,8 @@ export default function SuperAdminDashboard() {
             </Card>
           </TabsContent>
 
+          {/* ── ANALYTICS TAB ── */}
           <TabsContent value="analytics" className="space-y-6">
-            {/* Platform Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: "Total Licenses", value: stats?.totalLicenses ?? 0, sub: `${stats?.activeLicenses ?? 0} active`, icon: <Key className="w-4 h-4 text-blue-400" />, color: "text-blue-400" },
@@ -414,9 +517,7 @@ export default function SuperAdminDashboard() {
               ].map(({ label, value, sub, icon, color }) => (
                 <Card key={label} className="bg-slate-800 border-slate-700">
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      {icon}
-                    </div>
+                    <div className="mb-2">{icon}</div>
                     <p className={`text-2xl font-bold ${color}`}>{value}</p>
                     <p className="text-xs font-medium text-slate-300 mt-0.5">{label}</p>
                     <p className="text-xs text-slate-400 mt-0.5 leading-tight">{sub}</p>
@@ -425,16 +526,13 @@ export default function SuperAdminDashboard() {
               ))}
             </div>
 
-            {/* Squadron Readiness Breakdown */}
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-purple-400" />
                   Squadron Readiness
                 </CardTitle>
-                <CardDescription className="text-slate-400">
-                  Personnel readiness by squadron
-                </CardDescription>
+                <CardDescription className="text-slate-400">Personnel readiness by squadron</CardDescription>
               </CardHeader>
               <CardContent>
                 {squadronList.length === 0 ? (
@@ -465,33 +563,6 @@ export default function SuperAdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Pending Reviews Alert */}
-            {pendingReviews > 0 && (
-              <Card className="bg-orange-950/30 border-orange-500/40">
-                <CardContent className="p-4 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <AlertOctagon className="w-5 h-5 text-orange-400 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-orange-300">
-                        {pendingReviews} assessment{pendingReviews > 1 ? "s" : ""} awaiting instructor review
-                      </p>
-                      <p className="text-sm text-orange-400/70">
-                        Students are waiting for feedback on their submitted assessments.
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-orange-600 hover:bg-orange-700 text-white shrink-0"
-                    onClick={() => setLocation("/instructors-portal/student-progress")}
-                  >
-                    Review Now
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* License Utilisation */}
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
@@ -517,6 +588,7 @@ export default function SuperAdminDashboard() {
             </Card>
           </TabsContent>
 
+          {/* ── DELETION LOG TAB ── */}
           <TabsContent value="deletion-log" className="space-y-6">
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
@@ -567,13 +639,7 @@ export default function SuperAdminDashboard() {
                         {activityLogs.map((entry) => (
                           <tr key={entry.id} className="border-b border-slate-700/50 hover:bg-slate-700/30">
                             <td className="py-3 px-4 text-slate-400 whitespace-nowrap">
-                              {new Date(entry.performedAt).toLocaleString("en-AU", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {new Date(entry.performedAt).toLocaleString("en-AU", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                             </td>
                             <td className="py-3 px-4">
                               <div className="text-white font-medium">{entry.userName}</div>
@@ -596,15 +662,14 @@ export default function SuperAdminDashboard() {
                         ))}
                       </tbody>
                     </table>
-                    <p className="text-xs text-slate-500 mt-3 px-4">
-                      Showing {activityLogs.length} most recent entries
-                    </p>
+                    <p className="text-xs text-slate-500 mt-3 px-4">Showing {activityLogs.length} most recent entries</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* ── SETTINGS TAB ── */}
           <TabsContent value="settings" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-slate-800 border-slate-700">
@@ -615,12 +680,8 @@ export default function SuperAdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-slate-300">
-                    <p>System configuration and administrative settings.</p>
-                    <p className="text-sm text-slate-400 mt-2">
-                      Configure system defaults, security settings, and maintenance options.
-                    </p>
-                  </div>
+                  <p className="text-slate-300">System configuration and administrative settings.</p>
+                  <p className="text-sm text-slate-400 mt-2">Configure system defaults, security settings, and maintenance options.</p>
                 </CardContent>
               </Card>
 
@@ -630,9 +691,7 @@ export default function SuperAdminDashboard() {
                     <MessageCircle className="w-5 h-5 text-blue-400" />
                     Chat Management
                   </CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Manage chat system and message history
-                  </CardDescription>
+                  <CardDescription className="text-slate-400">Manage chat system and message history</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="bg-slate-700 p-4 rounded-lg">
@@ -642,16 +701,8 @@ export default function SuperAdminDashboard() {
                         This will permanently delete all chat messages and implement the 7-day cleanup cycle.
                       </p>
                     </div>
-                    <Button 
-                      onClick={() => {
-                        console.log("Reset button clicked!");
-                        console.log("Mutation state:", {
-                          isPending: resetChatMutation.isPending,
-                          isError: resetChatMutation.isError,
-                          error: resetChatMutation.error
-                        });
-                        resetChatMutation.mutate();
-                      }}
+                    <Button
+                      onClick={() => resetChatMutation.mutate()}
                       disabled={resetChatMutation.isPending}
                       variant="destructive"
                       className="w-full flex items-center gap-2"
@@ -660,9 +711,7 @@ export default function SuperAdminDashboard() {
                       {resetChatMutation.isPending ? "Resetting..." : "Reset Chat Logs"}
                     </Button>
                   </div>
-                  <div className="text-xs text-slate-400">
-                    Warning: This action cannot be undone. All chat history will be permanently lost.
-                  </div>
+                  <p className="text-xs text-slate-400">Warning: This action cannot be undone. All chat history will be permanently lost.</p>
                 </CardContent>
               </Card>
             </div>
