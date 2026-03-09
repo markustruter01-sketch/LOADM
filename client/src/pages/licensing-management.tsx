@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw, Play, Pause } from "lucide-react";
+import { Plus, Shield, Users, Clock, AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Eye, RotateCcw, Play, Pause, ArrowLeft, Key } from "lucide-react";
+import { useLocation } from "wouter";
 import { format } from "date-fns";
 
 interface License {
@@ -45,6 +46,7 @@ interface DashboardStats {
 }
 
 export default function LicensingManagement() {
+  const [, setLocation] = useLocation();
   const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRenewDialog, setShowRenewDialog] = useState(false);
@@ -604,84 +606,103 @@ export default function LicensingManagement() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="w-8 h-8 text-blue-600" />
-            License Management
-          </h1>
-          <p className="text-gray-600 mt-1">Manage user licenses and access control</p>
+    <div className="min-h-screen bg-gray-900">
+      {/* Dark page header */}
+      <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation("/superadmin-dashboard")}
+                className="text-slate-300 hover:text-white hover:bg-slate-800 mr-1"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Super Admin
+              </Button>
+              <div className="h-5 w-px bg-slate-700" />
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <Key className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">License Management</h1>
+                <p className="text-slate-400 text-xs">Manage user licenses and access control</p>
+              </div>
+            </div>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4" />
+                  Create License
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create New License</DialogTitle>
+                  <DialogDescription>
+                    Generate a new license for a user with specific permissions and duration.
+                  </DialogDescription>
+                </DialogHeader>
+                <CreateLicenseForm />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Create License
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New License</DialogTitle>
-              <DialogDescription>
-                Generate a new license for a user with specific permissions and duration.
-              </DialogDescription>
-            </DialogHeader>
-            <CreateLicenseForm />
-          </DialogContent>
-        </Dialog>
       </div>
+
+      <div className="container mx-auto p-6 space-y-6">
 
       {/* License Renewal Dialog */}
       <RenewLicenseDialog />
 
       {/* Dashboard Statistics */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Licenses</p>
-                  <p className="text-2xl font-bold">{stats.totalLicenses}</p>
+                  <p className="text-sm font-medium text-slate-400">Total Licenses</p>
+                  <p className="text-2xl font-bold text-white">{stats.totalLicenses}</p>
                 </div>
-                <Shield className="w-8 h-8 text-blue-500" />
+                <Shield className="w-8 h-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Licenses</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.activeLicenses}</p>
+                  <p className="text-sm font-medium text-slate-400">Active Licenses</p>
+                  <p className="text-2xl font-bold text-green-400">{stats.activeLicenses}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-500" />
+                <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Sessions</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.activeSessions}</p>
+                  <p className="text-sm font-medium text-slate-400">Active Sessions</p>
+                  <p className="text-2xl font-bold text-blue-400">{stats.activeSessions}</p>
                 </div>
-                <Users className="w-8 h-8 text-blue-500" />
+                <Users className="w-8 h-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.expiringLicenses}</p>
+                  <p className="text-sm font-medium text-slate-400">Expiring Soon</p>
+                  <p className="text-2xl font-bold text-orange-400">{stats.expiringLicenses}</p>
                 </div>
-                <AlertTriangle className="w-8 h-8 text-orange-500" />
+                <AlertTriangle className="w-8 h-8 text-orange-400" />
               </div>
             </CardContent>
           </Card>
@@ -689,25 +710,26 @@ export default function LicensingManagement() {
       )}
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-slate-800 border-slate-700">
         <CardContent className="p-6">
           <div className="flex gap-4 items-center">
             <div className="flex-1">
-              <Label htmlFor="search">Search Licenses</Label>
+              <Label htmlFor="search" className="text-slate-300">Search Licenses</Label>
               <Input
                 id="search"
                 placeholder="Search by email, username, or license key..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="status">Status Filter</Label>
+              <Label htmlFor="status" className="text-slate-300">Status Filter</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 bg-slate-700 border-slate-600 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-slate-800 border-slate-700">
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="suspended">Suspended</SelectItem>
@@ -721,43 +743,43 @@ export default function LicensingManagement() {
       </Card>
 
       {/* Licenses Table */}
-      <Card>
+      <Card className="bg-slate-800 border-slate-700">
         <CardHeader>
-          <CardTitle>Licenses ({filteredLicenses.length})</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-white">Licenses ({filteredLicenses.length})</CardTitle>
+          <CardDescription className="text-slate-400">
             Manage and monitor all user licenses
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading licenses...</div>
+            <div className="text-center py-8 text-slate-400">Loading licenses...</div>
           ) : filteredLicenses.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-400">
               No licenses found matching your criteria.
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>License Key</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Expiry Date</TableHead>
-                  <TableHead>Sessions</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="border-slate-700">
+                  <TableHead className="text-slate-300">User</TableHead>
+                  <TableHead className="text-slate-300">License Key</TableHead>
+                  <TableHead className="text-slate-300">Status</TableHead>
+                  <TableHead className="text-slate-300">Expiry Date</TableHead>
+                  <TableHead className="text-slate-300">Sessions</TableHead>
+                  <TableHead className="text-slate-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLicenses.map((license) => (
-                  <TableRow key={license.id}>
+                  <TableRow key={license.id} className="border-slate-700 hover:bg-slate-700/50">
                     <TableCell>
                       <div>
-                        <div className="font-medium">{license.username}</div>
-                        <div className="text-sm text-gray-500">{license.email}</div>
+                        <div className="font-medium text-white">{license.username}</div>
+                        <div className="text-sm text-slate-400">{license.email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono text-black">
+                      <code className="text-xs bg-slate-700 px-2 py-1 rounded font-mono text-slate-200">
                         {license.licenseKey}
                       </code>
                     </TableCell>
@@ -877,6 +899,7 @@ export default function LicensingManagement() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

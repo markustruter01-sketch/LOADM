@@ -38,8 +38,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, Edit, FilePlus, Loader2, Plus, Save, Trash2 } from "lucide-react";
-import { Link } from "wouter";
+import { ArrowLeft, Edit, FilePlus, Loader2, Plus, Save, Trash2, FileText } from "lucide-react";
+import { useLocation } from "wouter";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,6 +88,7 @@ const fieldTypes = [
 
 export default function DocumentManagement() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isCreating, setIsCreating] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -273,25 +274,49 @@ export default function DocumentManagement() {
         <meta name="description" content="Manage document templates for LOADMdocs - create, edit, and delete documents." />
       </Helmet>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
-            <Link href="/admin">
-              <a className="text-primary hover:text-primary/80 mr-4">
-                <ArrowLeft className="h-5 w-5" />
-              </a>
-            </Link>
-            <h2 className="text-2xl font-bold">Document Management</h2>
-          </div>
-          <Dialog open={isCreating} onOpenChange={(open) => {
-            setIsCreating(open);
-            if (!open) handleDialogClose();
-          }}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90 text-white">
+      <div className="min-h-screen bg-gray-900">
+        {/* Dark page header */}
+        <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/superadmin-dashboard")}
+                  className="text-slate-300 hover:text-white hover:bg-slate-800 mr-1"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Super Admin
+                </Button>
+                <div className="h-5 w-px bg-slate-700" />
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Document Management</h2>
+                  <p className="text-slate-400 text-xs">Create and manage form document templates</p>
+                </div>
+              </div>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => setIsCreating(true)}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Create Document
               </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-6 py-6">
+        <Dialog open={isCreating} onOpenChange={(open) => {
+          setIsCreating(open);
+          if (!open) handleDialogClose();
+        }}>
+            <DialogTrigger asChild>
+              <span />
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -780,21 +805,22 @@ export default function DocumentManagement() {
         </div>
 
         {/* Documents Table */}
+        <div className="container mx-auto px-6 pb-8">
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
         ) : (
-          <div className="bg-card rounded-lg shadow-lg overflow-hidden">
+          <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Number of Fields</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="border-slate-700">
+                  <TableHead className="text-slate-300">Title</TableHead>
+                  <TableHead className="text-slate-300">Type</TableHead>
+                  <TableHead className="text-slate-300">Description</TableHead>
+                  <TableHead className="text-slate-300">Number of Fields</TableHead>
+                  <TableHead className="text-slate-300">Last Updated</TableHead>
+                  <TableHead className="text-right text-slate-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -879,6 +905,7 @@ export default function DocumentManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </>
   );
 }

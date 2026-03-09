@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Key, User, Mail, Lock, CheckCircle } from "lucide-react";
+import { Shield, Key, User, Mail, Lock, CheckCircle, ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function LicenseRegistration() {
@@ -115,15 +115,41 @@ export default function LicenseRegistration() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-900">
+      {/* Dark header */}
+      <div className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/superadmin-dashboard")}
+              className="text-slate-300 hover:text-white hover:bg-slate-800"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Super Admin
+            </Button>
+            <div className="h-5 w-px bg-slate-700" />
+            <div className="p-2 bg-blue-600 rounded-lg">
+              <Key className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">License Registration</h1>
+              <p className="text-slate-400 text-xs">Register a new user with a valid license key</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center p-4 pt-12">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">License Registration</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl font-bold text-white">License Registration</h1>
+          <p className="text-slate-400 mt-2">
             {step === 'license' ? 'Enter your license details to get started' : 'Create your account to complete setup'}
           </p>
         </div>
@@ -138,10 +164,10 @@ export default function LicenseRegistration() {
             </div>
             <span className="text-sm font-medium">License</span>
           </div>
-          <div className={`h-px w-8 ${step === 'account' ? 'bg-green-600' : 'bg-gray-300'}`} />
-          <div className={`flex items-center space-x-2 ${step === 'account' ? 'text-blue-600' : 'text-gray-400'}`}>
+          <div className={`h-px w-8 ${step === 'account' ? 'bg-green-500' : 'bg-slate-600'}`} />
+          <div className={`flex items-center space-x-2 ${step === 'account' ? 'text-blue-400' : 'text-slate-500'}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              step === 'account' ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
+              step === 'account' ? 'bg-blue-600 text-white' : 'bg-slate-600 text-slate-300'
             }`}>
               <User className="w-4 h-4" />
             </div>
@@ -301,7 +327,7 @@ export default function LicenseRegistration() {
         )}
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-400">
             Already have an account?{" "}
             <button
               onClick={() => setLocation('/login')}
@@ -311,6 +337,7 @@ export default function LicenseRegistration() {
             </button>
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
