@@ -1105,7 +1105,7 @@ export default function UserProfile() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       {WORKBOOKS.map((wb) => {
-                        const passed = wb.id === 'kc30a' ? wb.total : (workbookData?.[wb.id] ?? 0);
+                        const passed = workbookData?.[wb.id] ?? 0;
                         const pct = Math.min(Math.round((passed / wb.total) * 100), 100);
                         const complete = pct >= 100;
                         const started = passed > 0;
