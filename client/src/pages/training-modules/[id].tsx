@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, CheckCircle2, PlayCircle, Download, GraduationCap, Clock, Users, Star, Plane, BookOpen, Target, Award, FileText, FileCheck, AlertCircle, Check, X } from "lucide-react"
+import { downloadModulePDF } from "@/lib/pdf-download"
 import { useToast } from "@/hooks/use-toast"
 import { useQuery } from '@tanstack/react-query'
 import { useIsolatedAuth } from "@/auth-isolated/auth-context"
@@ -1207,6 +1208,30 @@ export default function ModuleDetailPage() {
               {getAircraftName(module.id)} • {module.difficulty} Level
             </p>
           </div>
+
+          <Button
+            variant="outline"
+            className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 shrink-0"
+            onClick={() => downloadModulePDF({
+              title: module.title,
+              description: module.description,
+              aircraft: module.id,
+              difficulty: module.difficulty,
+              duration: module.duration,
+              topics: module.topics,
+              objectives: module.objectives,
+              content: content.map(c => ({
+                title: c.title,
+                type: c.type,
+                duration: c.duration,
+                description: c.description,
+                content: c.content,
+              })),
+            })}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download Module
+          </Button>
         </div>
 
         {/* Progress Card */}

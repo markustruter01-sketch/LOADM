@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
 import { Scenario } from "@shared/schema";
-import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Book, FileCheck, HelpCircle, Download } from "lucide-react";
+import { downloadScenariosPDF } from "@/lib/pdf-download";
 import ScenarioCard from "@/components/ScenarioCard";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -37,17 +38,42 @@ export default function ScenariosPage() {
 
       <div className="container mx-auto px-4 py-8 mb-16">
         <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mb-6"
-            onClick={handleBackClick}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
-          
+          {/* Back Button + Download */}
+          <div className="flex items-center justify-between mb-6">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleBackClick}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+              disabled={isLoading || quizzesLoading}
+              onClick={() => downloadScenariosPDF(
+                (scenarios ?? []).map(s => ({
+                  title: s.title,
+                  description: s.description ?? undefined,
+                  numberOfQuestions: s.numberOfQuestions ?? undefined,
+                  passingThreshold: s.passingThreshold ?? undefined,
+                })),
+                (quizzes ?? []).map((q: any) => ({
+                  title: q.title,
+                  description: q.description ?? undefined,
+                  questionCount: q.questionCount ?? q.question_count ?? undefined,
+                  passingThreshold: q.passingThreshold ?? q.passing_threshold ?? undefined,
+                  expiresAt: q.expiresAt ?? q.expires_at ?? undefined,
+                }))
+              )}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download All
+            </Button>
+          </div>
+
           {/* Header Section */}
           <section className="mb-10">
             <h2 className="text-3xl font-bold mb-4 text-foreground">

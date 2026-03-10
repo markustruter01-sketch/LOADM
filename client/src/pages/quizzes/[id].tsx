@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
-import { ArrowLeft, HelpCircle, AlertCircle, Check, X } from "lucide-react";
+import { ArrowLeft, HelpCircle, AlertCircle, Check, X, Download } from "lucide-react";
+import { downloadQuizPDF } from "@/lib/pdf-download";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -231,13 +232,24 @@ export default function QuizPage() {
         <meta name="description" content={`Take the ${quiz.title} quiz to test your knowledge`} />
       </Helmet>
       
-      <Button 
-        variant="outline" 
-        className="mb-6" 
-        onClick={() => setLocation('/scenarios')}
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Scenarios
-      </Button>
+      <div className="flex items-center justify-between mb-6">
+        <Button
+          variant="outline"
+          onClick={() => setLocation('/scenarios')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Scenarios
+        </Button>
+        {questions && questions.length > 0 && (
+          <Button
+            variant="outline"
+            className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+            onClick={() => downloadQuizPDF(quiz, questions, squadron)}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download Quiz
+          </Button>
+        )}
+      </div>
       
       <Card className="mb-8 border-gray-800">
         <CardHeader className="bg-orange-500/10 border-b border-gray-800">
