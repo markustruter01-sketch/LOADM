@@ -5,7 +5,8 @@ import { Scenario, ScenarioQuestion } from "@shared/schema";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Check, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check, Loader2, ChevronDown, ChevronRight, Download } from "lucide-react";
+import { downloadScenarioPDF } from "@/lib/pdf-download";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -406,19 +407,36 @@ export default function ModernScenarioPage() {
 
       <div className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setLocation("/scenarios")}
-              className="mr-4"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">{scenario.title}</h1>
-              <p className="text-muted-foreground mt-2">{scenario.description}</p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation("/scenarios")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">{scenario.title}</h1>
+                <p className="text-muted-foreground mt-2">{scenario.description}</p>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 shrink-0"
+              onClick={() => downloadScenarioPDF(
+                {
+                  title: scenario.title,
+                  description: scenario.description,
+                  numberOfQuestions: scenario.numberOfQuestions,
+                  passingThreshold: scenario.passingThreshold,
+                },
+                questions
+              )}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Assessment
+            </Button>
           </div>
 
           <Card className="mb-6">

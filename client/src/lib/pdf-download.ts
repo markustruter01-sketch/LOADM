@@ -489,3 +489,112 @@ export function downloadScenariosPDF(
 
   doc.save("training_assessments_reference.pdf");
 }
+
+export function downloadScenarioPDF(
+  scenario: {
+    title: string;
+    description?: string | null;
+    numberOfQuestions?: number | null;
+    passingThreshold?: number | null;
+  },
+  questions: Array<{
+    id: string;
+    question: string;
+    questionType: "multiple-choice" | "free-text";
+    options?: string[];
+    correctAnswer?: string;
+  }>
+) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const w = doc.internal.pageSize.getWidth();
+  const sub = scenario.description ? scenario.description.slice(0, 100) : undefined;
+
+  addHeader(doc, scenario.title, sub);
+
+  let y = 38;
+
+  const bw2 = (w - 24 - 3) / 2;
+  addMetaBadge(doc, "Questions", String(scenario.numberOfQuestions ?? questions.length), 12, y, bw2);
+  addMetaBadge(doc, "Passing Score", `${scenario.passingThreshold ?? 70}%`, 12 + bw2 + 3, y, bw2);
+  y += 15;
+
+  y = addSectionTitle(doc, "Assessment Questions", y);
+
+  questions.forEach((q, idx) => {
+    const isChoice = q.questionType === "multiple-choice" && q.options && q.options.length > 0;
+    const qText = `${idx + 1}.  ${q.question}`;
+    const qLines = doc.splitTextToSize(qText, w - 24);
+
+    const optLineGroups = isChoice
+      ? q.options!.map((opt) => doc.splitTextToSize(opt, w - 40))
+      : [];
+    const freeTextH = isChoice ? 0 : 22;
+    const blockH =
+      qLines.length * 5 +
+      optLineGroups.reduce((s, l) => s + l.length * 4.5 + 3, 0) +
+      freeTextH +
+      14;
+
+    y = ensurePage(doc, y, blockH, scenario.title, sub);
+
+    if (idx > 0) {
+      doc.setDrawColor(...MID_GREY);
+      doc.setLineDashPattern([1.5, 1.5], 0);
+      doc.line(12, y - 4, w - 12, y - 4);
+      doc.setLineDashPattern([], 0);
+    }
+
+    const typeLabel = isChoice ? "MULTIPLE CHOICE" : "FREE TEXT";
+    const typeColor = isChoice ? NAVY : ([60, 140, 80] as const);
+    const typeW = doc.getTextWidth(typeLabel) + 7;
+    doc.setFillColor(typeColor[0], typeColor[1], typeColor[2]);
+    doc.roundedRect(w - 12 - typeW, y - 3.5, typeW, 5.5, 1, 1, "F");
+    doc.setFontSize(6);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...WHITE);
+    doc.text(typeLabel, w - 12 - typeW + 3.5, y + 0.5);
+
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...TEXT_DARK);
+    doc.text(qLines, 12, y);
+    y += qLines.length * 5 + 2;
+
+    if (isChoice) {
+      optLineGroups.forEach((lines, i) => {
+        const optH = lines.length * 4.5 + 3;
+        doc.setFillColor(...LIGHT_GREY);
+        doc.setDrawColor(...MID_GREY);
+        doc.roundedRect(14, y - 0.5, w - 28, optH, 1, 1, "FD");
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...ORANGE);
+        doc.text(String.fromCharCode(65 + i), 19, y + lines.length * 2.2 + 0.5);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...TEXT_DARK);
+        doc.setFontSize(8.5);
+        doc.text(lines, 28, y + 3);
+        y += optH + 2;
+      });
+    } else {
+      doc.setFillColor(250, 251, 252);
+      doc.setDrawColor(...MID_GREY);
+      doc.roundedRect(14, y, w - 28, 18, 1.5, 1.5, "FD");
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(180, 185, 195);
+      doc.text("Write your answer here...", 18, y + 6);
+      y += 22;
+    }
+
+    y += 5;
+  });
+
+  const total = doc.getNumberOfPages();
+  for (let p = 1; p <= total; p++) {
+    doc.setPage(p);
+    addFooter(doc, p, total);
+  }
+
+  doc.save(`${scenario.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf`);
+}
