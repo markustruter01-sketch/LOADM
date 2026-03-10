@@ -220,8 +220,9 @@ export function downloadModulePDF(module: {
     c27j: "C-27J Spartan",
     all: "All Aircraft",
   };
-  const aircraftLabel = module.aircraft
-    ? aircraftMap[module.aircraft.toLowerCase()] ?? module.aircraft.toUpperCase()
+  const aircraftStr = module.aircraft != null ? String(module.aircraft) : "";
+  const aircraftLabel = aircraftStr
+    ? aircraftMap[aircraftStr.toLowerCase()] ?? aircraftStr.toUpperCase()
     : "General";
 
   addHeader(doc, module.title, aircraftLabel);

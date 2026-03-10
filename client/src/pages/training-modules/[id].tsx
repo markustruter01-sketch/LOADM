@@ -1215,7 +1215,7 @@ export default function ModuleDetailPage() {
             onClick={() => downloadModulePDF({
               title: module.title,
               description: module.description,
-              aircraft: module.id,
+              aircraft: module.aircraft || module.id,
               difficulty: module.difficulty,
               duration: module.duration,
               topics: module.topics,
