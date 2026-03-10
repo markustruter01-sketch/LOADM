@@ -6,6 +6,24 @@ const router = Router();
 // Apply unified auth middleware to all quiz routes
 router.use(unifiedAuthMiddleware);
 
+// Normalize DB row to include both snake_case (backward compat) and camelCase fields
+function normalizeQuiz(quiz: any) {
+  const now = new Date();
+  const isExpired = quiz.expires_at ? new Date(quiz.expires_at) < now : false;
+  return {
+    ...quiz,
+    // camelCase aliases for all snake_case fields the frontend uses
+    isActive: quiz.is_active,
+    expiresAt: quiz.expires_at ?? null,
+    questionCount: quiz.question_count,
+    createdAt: quiz.created_at,
+    createdById: quiz.created_by_id,
+    timeLimit: quiz.time_limit ?? null,
+    passingThreshold: quiz.passing_threshold ?? 70,
+    isExpired
+  };
+}
+
 // Get all quizzes
 router.get('/', async (req: any, res: any) => {
   try {
@@ -32,13 +50,7 @@ router.get('/', async (req: any, res: any) => {
       `;
     }
     
-    // Add isActive for backwards compatibility
-    const formattedQuizzes = quizzes.map(quiz => ({
-      ...quiz,
-      isActive: quiz.is_active
-    }));
-    
-    res.json(formattedQuizzes);
+    res.json(quizzes.map(normalizeQuiz));
   } catch (error) {
     console.error('Error fetching quizzes:', error);
     res.status(500).json({ error: 'Failed to fetch quizzes' });
@@ -63,17 +75,7 @@ router.get('/:id', async (req: any, res: any) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    const now = new Date();
-    const isExpired = quiz[0].expires_at && new Date(quiz[0].expires_at) < now;
-
-    // Add isActive and isExpired for client-side handling
-    const formattedQuiz = {
-      ...quiz[0],
-      isActive: quiz[0].is_active,
-      isExpired: !!isExpired
-    };
-    
-    res.json(formattedQuiz);
+    res.json(normalizeQuiz(quiz[0]));
   } catch (error) {
     console.error(`Error fetching quiz ${req.params.id}:`, error);
     res.status(500).json({ error: 'Failed to fetch quiz' });
@@ -138,7 +140,7 @@ router.post('/', requireInstructor, async (req: any, res: any) => {
     `;
     
     console.log('✅ UNIFIED QUIZ CREATE: Quiz created successfully with ID:', quiz[0].id);
-    res.json({ ...quiz[0], isActive: quiz[0].is_active });
+    res.json(normalizeQuiz(quiz[0]));
     
   } catch (error) {
     console.error('✅ UNIFIED QUIZ CREATE: Error creating quiz:', error);
@@ -193,7 +195,7 @@ router.put('/:id', requireInstructor, async (req: any, res: any) => {
     `;
     
     console.log('✅ UNIFIED QUIZ UPDATE: Quiz updated successfully with ID:', updatedQuiz[0].id);
-    res.json({ ...updatedQuiz[0], isActive: updatedQuiz[0].is_active });
+    res.json(normalizeQuiz(updatedQuiz[0]));
     
   } catch (error) {
     console.error('✅ UNIFIED QUIZ UPDATE: Error updating quiz:', error);
