@@ -209,6 +209,12 @@ export function downloadModulePDF(module: {
     description?: string;
     content?: string;
   }>;
+  readingContent?: Array<{
+    lessonTitle: string;
+    sections: Array<{ heading: string; body: string }>;
+  }>;
+  quizQuestions?: Array<{ question: string; options: string[]; correct: number }>;
+  assessmentQuestions?: Array<{ question: string; options: string[]; correct: number }>;
 }) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
@@ -342,6 +348,93 @@ export function downloadModulePDF(module: {
 
       y += 5;
     });
+  }
+
+  // ── Reading Material ──────────────────────────────────────────────────────
+  if (module.readingContent && module.readingContent.length > 0) {
+    module.readingContent.forEach((reading) => {
+      y = ensurePage(doc, y, 30, module.title, aircraftLabel);
+      y = addSectionTitle(doc, `Reading: ${reading.lessonTitle}`, y);
+
+      reading.sections.forEach((section) => {
+        const headingLines = doc.splitTextToSize(section.heading, w - 24);
+        const bodyLines = doc.splitTextToSize(section.body, w - 28);
+        const blockH = headingLines.length * 5 + bodyLines.length * 4.8 + 10;
+        y = ensurePage(doc, y, blockH, module.title, aircraftLabel);
+
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...NAVY);
+        doc.text(headingLines, 12, y);
+        y += headingLines.length * 5 + 1;
+
+        doc.setFontSize(8.3);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...TEXT_DARK);
+        doc.text(bodyLines, 14, y);
+        y += bodyLines.length * 4.8 + 7;
+      });
+    });
+  }
+
+  // ── Helper to render a question block ────────────────────────────────────
+  const renderQBlock = (
+    q: { question: string; options: string[]; correct: number },
+    idx: number,
+    sectionTitle: string,
+    sub: string | undefined
+  ) => {
+    const qText = `${idx + 1}.  ${q.question}`;
+    const qLines = doc.splitTextToSize(qText, w - 24);
+    const optLineGroups = q.options.map((opt) => doc.splitTextToSize(opt, w - 40));
+    const blockH = qLines.length * 5 + optLineGroups.reduce((s, l) => s + l.length * 4.5 + 3, 0) + 14;
+
+    y = ensurePage(doc, y, blockH, sectionTitle, sub);
+
+    if (idx > 0) {
+      doc.setDrawColor(...MID_GREY);
+      doc.setLineDashPattern([1.5, 1.5], 0);
+      doc.line(12, y - 4, w - 12, y - 4);
+      doc.setLineDashPattern([], 0);
+    }
+
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...TEXT_DARK);
+    doc.text(qLines, 12, y);
+    y += qLines.length * 5 + 1;
+
+    optLineGroups.forEach((lines, i) => {
+      const optH = lines.length * 4.5 + 3;
+      doc.setFillColor(...LIGHT_GREY);
+      doc.setDrawColor(...MID_GREY);
+      doc.roundedRect(14, y - 0.5, w - 28, optH, 1, 1, "FD");
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...ORANGE);
+      doc.text(String.fromCharCode(65 + i), 19, y + lines.length * 2.2 + 0.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...TEXT_DARK);
+      doc.setFontSize(8.5);
+      doc.text(lines, 28, y + 3);
+      y += optH + 2;
+    });
+
+    y += 5;
+  };
+
+  // ── Module Quiz ───────────────────────────────────────────────────────────
+  if (module.quizQuestions && module.quizQuestions.length > 0) {
+    y = ensurePage(doc, y, 22, module.title, aircraftLabel);
+    y = addSectionTitle(doc, "Module Quiz", y);
+    module.quizQuestions.forEach((q, idx) => renderQBlock(q, idx, module.title, aircraftLabel));
+  }
+
+  // ── Final Assessment ──────────────────────────────────────────────────────
+  if (module.assessmentQuestions && module.assessmentQuestions.length > 0) {
+    y = ensurePage(doc, y, 22, module.title, aircraftLabel);
+    y = addSectionTitle(doc, "Final Assessment  (80% Pass Threshold)", y);
+    module.assessmentQuestions.forEach((q, idx) => renderQBlock(q, idx, module.title, aircraftLabel));
   }
 
   const total = doc.getNumberOfPages();

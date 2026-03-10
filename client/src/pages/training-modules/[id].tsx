@@ -236,6 +236,144 @@ const readingContentMap: Record<string, () => JSX.Element> = {
   "c27j-basics-2": C27JOperations,
 }
 
+// Plain-text reading data for PDF export (mirrors reading content files)
+const readingPdfData: Record<string, Array<{ heading: string; body: string }>> = {
+  "c17-cargo-bay-layout": [
+    {
+      heading: "Overview",
+      body: "The C-17 Globemaster III provides strategic airlift capability for the RAAF and allied nations. Understanding its cargo compartment layout is essential for loadmasters to properly plan and execute load operations."
+    },
+    {
+      heading: "Cargo Compartment Dimensions",
+      body: "Length: 88 feet (26.82 m)   |   Width: 18 feet (5.49 m)   |   Height: 12 ft 4 in (3.76 m)\nVolume: 20,900 cu ft (592 m³)   |   Usable floor area: 1,740 sq ft (162 m²)"
+    },
+    {
+      heading: "Cargo Loading System (463L)",
+      body: "The C-17 employs the 463L cargo handling system, including:\n• Dual Rail System — two parallel rows of roller conveyors along the cargo floor.\n• Logistics Rail System — tracks embedded in the floor for securing cargo via tie-down rings.\n• Locking Mechanisms — spring-loaded detents at 40-inch intervals to secure pallets.\n• Pallet Positions — 18 standard positions for 463L pallets in a 2×9 grid."
+    },
+    {
+      heading: "Pallet Position Identification",
+      body: "Each pallet position uses a letter-number combination: A/B (left/right row when facing forward) and 1–9 (front to back).\nExamples: A1 = forward-most left   |   B5 = middle right   |   A9 = aft-most left"
+    },
+    {
+      heading: "Cargo Floor Weight Limitations",
+      body: "Roller Conveyor: 13,000 lb per linear foot (19,340 kg/m)\nCenter Section: 3,500 lb per square foot (17,090 kg/m²)\nRamp (in flight): 4,500 lb per linear foot (6,700 kg/m)"
+    },
+    {
+      heading: "Special Loading Areas",
+      body: "• Ramp Section — 20 ft (6.1 m) long rear ramp; can support equipment during flight.\n• Troop Compartment — left side wall; up to 54 passengers in mixed config.\n• Airdrop Zone — reinforced central section for heavy equipment airdrop.\n• Forward Section — additional restraint provisions immediately aft of the flight deck."
+    },
+  ],
+  "c17-basics-4": [
+    {
+      heading: "Introduction",
+      body: "Weight and balance is one of the most critical responsibilities of a C-17 loadmaster. An improperly balanced aircraft can become uncontrollable in flight even when total weight is within limits. Every load plan must be calculated and verified before departure — the loadmaster is personally accountable for the accuracy of that data."
+    },
+    {
+      heading: "Key Definitions",
+      body: "Operating Weight (OW) — aircraft weight including crew and fixed items, excluding fuel and payload.\nZero Fuel Weight (ZFW) — OW plus payload (before fuel is added).\nGross Weight (GW) — total weight including fuel, cargo, passengers, and crew.\nMax Gross Weight — 585,000 lbs (265,350 kg) for takeoff.   Max Payload — 170,900 lbs (77,519 kg).\nCentre of Gravity (CG) — expressed as % Mean Aerodynamic Chord (%MAC).\nDatum — fixed reference point (typically the nose) from which all arm distances are measured.\nMoment — Weight × Arm; determines how much each item influences CG."
+    },
+    {
+      heading: "The Centre of Gravity Envelope",
+      body: "The CG envelope defines the forward and aft limits the CG must remain within throughout all phases of flight. Operating outside these limits can cause the aircraft to become uncontrollable or structurally overstressed.\nC-17 CG limits (in %MAC):\n• Forward limit: approximately 12% MAC (varies with gross weight)\n• Aft limit: approximately 40% MAC (varies with gross weight)\nLimits change with gross weight — use the approved CG chart for actual weight at each phase: take-off, cruise, and landing."
+    },
+    {
+      heading: "Calculating the CG — 6-Step Process",
+      body: "1. Determine the weight of each item (cargo, passengers, fuel, crew, basic operating weight).\n2. Determine the arm of each item — its distance from the datum in inches.\n3. Calculate each item's moment — Weight × Arm (expressed in in-lb × 1000).\n4. Sum all weights and sum all moments separately.\n5. Divide total moments by total weight to get CG position in inches from datum.\n6. Convert to %MAC using the approved conversion table."
+    },
+    {
+      heading: "Pallet Position Arms & Fuel Considerations",
+      body: "Approximate arm values: A1/B1 (forward) ≈ 480 in   |   A5/B5 (mid) ≈ 640 in   |   A9/B9 (aft) ≈ 800 in   |   Ramp ≈ 850–900 in\nFuel: C-17 carries up to 181,054 lbs (82,130 kg) in six wing tanks and two centre wing box tanks. Fuel burns shift both gross weight and CG simultaneously. Always calculate W&B at the most critical expected fuel state — heaviest takeoff and lightest landing."
+    },
+    {
+      heading: "Documentation Requirements",
+      body: "• DD Form 365-4 (W&B Clearance Form F — Transport) — primary W&B document signed by loadmaster.\n• Load Plan (AFTO Form 781) — graphical representation of cargo placement.\n• Dangerous Goods Declaration — required whenever hazardous materials are aboard.\n• Shipper's Declaration for DG — provided by cargo shipper and verified by loadmaster.\n• Troop/Passenger Manifest — complete personnel list including weights."
+    },
+    {
+      heading: "Common W&B Errors to Avoid",
+      body: "• Using estimated instead of actual cargo weights without authorisation.\n• Forgetting to include crew baggage and equipment.\n• Failing to recheck CG after last-minute cargo changes.\n• Using an incorrect operating weight from an outdated aircraft forms extract.\n• Not accounting for the CG shift when the cargo ramp is lowered.\n• Neglecting to verify CG at multiple fuel states for long-duration missions."
+    },
+  ],
+  "c130-basics-2": [
+    {
+      heading: "Overview",
+      body: "The C-130 Hercules is one of the most versatile tactical airlift platforms in military aviation history. With over 60 years of service, the C-130 can be configured for numerous mission profiles, requiring loadmasters to have thorough knowledge of its cargo handling systems."
+    },
+    {
+      heading: "Cargo Compartment Specifications",
+      body: "Length: 40 feet (12.19 m)   |   Width: 10 ft 3 in (3.12 m)   |   Height: 9 ft 1 in (2.77 m)\nUsable Volume: approximately 4,500 cu ft (127.4 m³)   |   Cargo Floor Area: approximately 420 sq ft (39 m²)"
+    },
+    {
+      heading: "Pallet Configuration",
+      body: "Total Capacity: 8 standard 463L pallets   |   Configuration: 2×4 arrangement\nIndividual Pallet Size: 108\" × 88\" (274 × 224 cm)   |   Max Pallet Height: 96\" (244 cm)\nMax Weight Per Pallet Position: 10,000 lbs (4,536 kg)"
+    },
+    {
+      heading: "Restraint System",
+      body: "• Dual Rail Locks — positioned along cargo floor to secure pallets at specific intervals.\n• Tie-down Rings — floor rings: 25,000 lbs (11,340 kg)   |   sidewall rings: 10,000 lbs (4,536 kg).\n• Restraint G-force Requirements — Forward: 3G   |   Aft: 1.5G   |   Lateral: 1.5G   |   Vertical: 2G"
+    },
+    {
+      heading: "Unique Capabilities",
+      body: "Combat Offload — rapid cargo unloading without ground handling equipment; aircraft brakes applied momentarily to slide pallets from rear.\nAirdrop Operations — CDS (up to 2,200 lb containers), Heavy Equipment Drop (up to 42,000 lbs), Personnel Airdrop (64 paratroopers), LAPES (very low altitude parachute extraction).\nTactical Ground Operations — operates from unpaved/grass runways, minimum runway as short as 3,000 ft; self-contained winch (4,536 kg capacity)."
+    },
+    {
+      heading: "Configuration Variations",
+      body: "• Full Cargo — 8 standard pallets or up to 42,000 lbs of rolling stock.\n• Passenger Transport — up to 92 ground troops using sidewall seats.\n• Medical Evacuation — up to 74 litter patients plus attendants.\n• Mixed Configuration — combination of pallets and passengers (typically 4 pallets + 40–50 PAX).\n• Specialized — includes AC-130 gunship, EC-130 electronic warfare, MC-130 special operations variants."
+    },
+    {
+      heading: "Weight & Balance Key Limits",
+      body: "Maximum Payload: approximately 42,000 lbs (varies with mission profile and range).\nFloor Loading: maximum 50 PSI on cargo floor.\nRamp Limitations: 4,000 lbs maximum during flight; 10,000 lbs for ground operations.\nCG must remain within prescribed forward and aft limits for each phase of flight."
+    },
+  ],
+  "kc30a-basics-2": [
+    {
+      heading: "Overview",
+      body: "The KC30-A MRTT (Airbus A330 MRTT) combines air-to-air refuelling capability with significant cargo and passenger transport capacity. Its cargo systems differ substantially from dedicated military transports like the C-17 and C-130."
+    },
+    {
+      heading: "LD3 Container System (Lower Deck)",
+      body: "Primary cargo system of the KC30-A:\n• LD3 Container Dimensions: 153 × 156 × 163 cm (60.4 × 61.5 × 64 in)\n• Container Capacity: up to 14 LD3 containers\n• Weight Capacity: up to 1,588 kg (3,500 lbs) per LD3 position\n• Volume: each LD3 provides approximately 4.5 m³ (159 cu ft)\nContainer variants: LD3 Standard (1,512 kg net)   |   LD3-45 (1,500 kg net)   |   LD3-45W heavy duty (1,910 kg net)"
+    },
+    {
+      heading: "Alternative Pallet Configuration (Main Deck)",
+      body: "• Pallet Dimensions: 224 × 318 cm (88 × 125 in)\n• Weight Capacity: up to 6,800 kg (15,000 lbs) per pallet position\n• Configuration: single row of 8 pallets in main cargo deck\n• Pallet Tare Weight: 136 kg (300 lbs) each"
+    },
+    {
+      heading: "Cargo Loading Systems",
+      body: "• Lower Deck Loader — specifically designed to handle LD3 containers.\n• Power Drive Units (PDUs) — motorised rollers for movement within the cargo hold.\n• Locking Mechanisms — automatic locks securing containers in flight.\n• Load Control System — electronic monitoring of container positions and locking status."
+    },
+    {
+      heading: "Weight & Balance Considerations",
+      body: "• Fuel Load Interaction — cargo loads must be balanced with variable fuel loads throughout the mission; CG affected by fuel offloaded to receiver aircraft.\n• Unit of Measurement — KC30-A uses kilograms as its standard weight unit.\n• Fuel Transfer — aircraft can transfer fuel between tanks to adjust CG during flight.\n• Dual-Role Missions — balance requirements for both air-to-air refuelling and cargo transport simultaneously."
+    },
+  ],
+  "c27j-basics-2": [
+    {
+      heading: "Overview",
+      body: "The C-27J Spartan is a twin-engine tactical transport designed to fulfil the 'last tactical mile' role in the airlift mission. It bridges the gap between helicopters and larger transports like the C-130, providing crucial tactical airlift to forward operating locations with limited infrastructure."
+    },
+    {
+      heading: "Key Specifications",
+      body: "Manufacturer: Leonardo (formerly Alenia Aermacchi)   |   Engines: Two Rolls-Royce AE2100-D2A turboprops (4,650 shp each)\nMax Speed: 325 KTAS (602 km/h)   |   Range: 1,080 nm with 10,000 lbs payload   |   Max Takeoff Weight: 70,107 lbs (31,800 kg)"
+    },
+    {
+      heading: "Cargo Compartment Dimensions & Payload",
+      body: "Length: 9.1 m (29.8 ft)   |   Width: 2.45 m (8 ft)   |   Height: 2.6 m (8.5 ft)\nFloor Area: 22.3 m² (240 sq ft)   |   Volume: 58 m³ (2,050 cu ft)\nMaximum Payload: 11,300 kg (24,910 lbs)   |   Pallet Capacity: 6 standard 463L pallets (2×3 arrangement)\nTroop Transport: up to 60 troops   |   Paratroopers: up to 46   |   Medical Evacuation: 36 litters + 6 attendants"
+    },
+    {
+      heading: "Tactical Capabilities",
+      body: "Short Field Performance — Takeoff: 580 m (1,900 ft) at MTOW   |   Landing: 340 m (1,115 ft) at typical landing weight. Capable of operating from dirt, gravel, and grass surfaces.\nCargo Delivery Methods — Air Land, Low Velocity Airdrop, Container Delivery System (CDS), Personnel Airdrop, Engine Running Offload/Onload.\nLoading Systems — Integrated cargo handling roller system; 2,700 kg (5,952 lbs) winch for self-loading; 463L-compatible dual rails; hydraulically actuated rear ramp."
+    },
+    {
+      heading: "Weight & Balance — Restraint Requirements",
+      body: "Forward: 3G   |   Aft: 1.5G   |   Lateral: 1.5G   |   Vertical: 2G (upward) / 3G (downward)\nMax per pallet position: 10,000 lbs to maintain cargo handling system integrity.\nCG must remain within prescribed forward and aft limits for all phases of flight. Distribute cargo to maintain lateral balance and avoid exceeding local floor loading limits."
+    },
+    {
+      heading: "Mission Profiles",
+      body: "• Tactical Airlift — delivery of cargo and personnel to forward operating bases.\n• Medical Evacuation — rapid aeromedical evacuation from forward locations.\n• Humanitarian Assistance — disaster relief in areas with damaged infrastructure.\n• Special Operations Support — precise delivery of personnel and equipment.\n• Interoperability — compatible with 463L pallets for seamless cargo transfer between platforms."
+    },
+  ],
+}
+
 // Sample quiz questions per airframe
 const moduleQuizData: Record<string, { questions: { id: string; question: string; options: string[]; correct: number }[] }> = {
   "c17-basics": {
@@ -1212,22 +1350,38 @@ export default function ModuleDetailPage() {
           <Button
             variant="outline"
             className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 shrink-0"
-            onClick={() => downloadModulePDF({
-              title: module.title,
-              description: module.description,
-              aircraft: module.aircraft || module.id,
-              difficulty: module.difficulty,
-              duration: module.duration,
-              topics: module.topics,
-              objectives: module.objectives,
-              content: content.map(c => ({
-                title: c.title,
-                type: c.type,
-                duration: c.duration,
-                description: c.description,
-                content: c.content,
-              })),
-            })}
+            onClick={() => {
+              const quizQs = dbQuizQuestions.length > 0
+                ? dbQuizQuestions.map(q => ({ question: q.question, options: q.options, correct: q.correct }))
+                : (moduleQuizData[contentKey]?.questions || []).map(q => ({ question: q.question, options: q.options, correct: q.correct }));
+              const assessQs = dbAssessmentQuestions.length > 0
+                ? dbAssessmentQuestions.map(q => ({ question: q.question, options: q.options, correct: q.correct }))
+                : (getAssessmentData(module, contentKey)?.questions || []).map(q => ({ question: q.question, options: q.options, correct: q.correct }));
+              const readingLessons = content.filter(c => c.type === 'reading');
+              const readingContent = readingLessons.map(lesson => ({
+                lessonTitle: lesson.title,
+                sections: readingPdfData[lesson.id] || (lesson.description ? [{ heading: 'Overview', body: lesson.description }] : []),
+              })).filter(r => r.sections.length > 0);
+              downloadModulePDF({
+                title: module.title,
+                description: module.description,
+                aircraft: module.aircraft || module.id,
+                difficulty: module.difficulty,
+                duration: module.duration,
+                topics: module.topics,
+                objectives: module.objectives,
+                content: content.map(c => ({
+                  title: c.title,
+                  type: c.type,
+                  duration: c.duration,
+                  description: c.description,
+                  content: c.content,
+                })),
+                readingContent,
+                quizQuestions: quizQs,
+                assessmentQuestions: assessQs,
+              });
+            }}
           >
             <Download className="h-4 w-4 mr-2" />
             Download Module
