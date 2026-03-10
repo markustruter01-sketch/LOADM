@@ -15,8 +15,8 @@ export default function ScenariosPage() {
   });
   
   const { data: quizzes, isLoading: quizzesLoading } = useQuery({
-    queryKey: ["/api/quizzes"],
-    queryFn: ({ queryKey, signal }) => fetch(queryKey[0], { signal })
+    queryKey: ["/api/quizzes", "activeOnly"],
+    queryFn: ({ signal }) => fetch('/api/quizzes?activeOnly=true', { signal, credentials: 'include' })
       .then(res => res.ok ? res.json() : [])
       .catch(() => [])
   });

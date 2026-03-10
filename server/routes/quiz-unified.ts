@@ -63,10 +63,14 @@ router.get('/:id', async (req: any, res: any) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
     
-    // Add isActive for backwards compatibility
+    const now = new Date();
+    const isExpired = quiz[0].expires_at && new Date(quiz[0].expires_at) < now;
+
+    // Add isActive and isExpired for client-side handling
     const formattedQuiz = {
       ...quiz[0],
-      isActive: quiz[0].is_active
+      isActive: quiz[0].is_active,
+      isExpired: !!isExpired
     };
     
     res.json(formattedQuiz);

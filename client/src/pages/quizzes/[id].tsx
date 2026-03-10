@@ -30,36 +30,37 @@ export default function QuizPage() {
   const [submissionQuestions, setSubmissionQuestions] = useState<any[]>([]);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const { data: quiz, isLoading } = useQuery({
+  const { data: quiz, isLoading, isError: quizError } = useQuery({
     queryKey: [`/api/quizzes/${quizId}`],
     queryFn: ({ queryKey, signal }) => fetch(queryKey[0], { 
       signal,
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+      headers: { 'Content-Type': 'application/json' }
     }).then(res => {
       if (!res.ok) throw new Error('Failed to fetch quiz');
       return res.json();
     }),
-    enabled: !!quizId
+    enabled: !!quizId,
+    retry: false
   });
 
-  const { data: questionsData, isLoading: questionsLoading } = useQuery({
+  const { data: questionsData, isLoading: questionsLoading, isError: questionsError } = useQuery({
     queryKey: [`/api/quizzes/${quizId}/questions`],
     queryFn: ({ queryKey, signal }) => 
       fetch(queryKey[0], { 
         signal,
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
+        headers: { 'Content-Type': 'application/json' }
+      }).then(async res => {
+        if (res.status === 403) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || 'Quiz has expired');
         }
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch quiz questions');
-          return res.json();
-        }),
-    enabled: !!quizId
+        if (!res.ok) throw new Error('Failed to fetch quiz questions');
+        return res.json();
+      }),
+    enabled: !!quizId && !!quiz && !quiz.isExpired,
+    retry: false
   });
 
   // Auto-load squadron from the user's license — squadron is never user-editable on submissions
@@ -74,8 +75,8 @@ export default function QuizPage() {
   // Extract questions array from the response
   const questions = questionsData?.questions || [];
 
-  // Add loading check
-  if (isLoading || questionsLoading) {
+  // Loading state
+  if (isLoading || (questionsLoading && !quiz?.isExpired)) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center">
@@ -86,35 +87,57 @@ export default function QuizPage() {
     );
   }
 
-  // Add error check
-  if (!quiz || !questionsData) {
+  // Quiz not found
+  if (quizError || !quiz) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center">
-          <p className="text-lg text-red-500">Failed to load quiz. Please try again.</p>
-          <Button 
-            className="mt-4" 
-            onClick={() => setLocation('/scenarios')}
-          >
-            Back to Scenarios
-          </Button>
+        <div className="bg-card border border-gray-800 rounded-lg p-8 text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+          <h2 className="text-xl font-semibold mb-2">Quiz not found</h2>
+          <p className="text-muted-foreground mb-6">This quiz doesn't exist or has been removed.</p>
+          <Button onClick={() => setLocation('/scenarios')}>Back to Scenarios</Button>
         </div>
       </div>
     );
   }
 
-  // Add empty questions check
+  // Quiz expired
+  if (quiz.isExpired) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="bg-card border border-gray-800 rounded-lg p-8 text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
+          <h2 className="text-xl font-semibold mb-2">Quiz has expired</h2>
+          <p className="text-muted-foreground mb-6">This quiz is no longer available. Contact your instructor for a new quiz.</p>
+          <Button onClick={() => setLocation('/scenarios')}>Back to Scenarios</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Questions failed to load
+  if (questionsError || !questionsData) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="bg-card border border-gray-800 rounded-lg p-8 text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
+          <h2 className="text-xl font-semibold mb-2">Unable to load questions</h2>
+          <p className="text-muted-foreground mb-6">There was a problem loading the quiz questions. Please try again.</p>
+          <Button onClick={() => setLocation('/scenarios')}>Back to Scenarios</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // No questions available
   if (questions.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center">
-          <p className="text-lg text-yellow-500">No questions available for this quiz.</p>
-          <Button 
-            className="mt-4" 
-            onClick={() => setLocation('/scenarios')}
-          >
-            Back to Scenarios
-          </Button>
+        <div className="bg-card border border-gray-800 rounded-lg p-8 text-center">
+          <HelpCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
+          <h2 className="text-xl font-semibold mb-2">No questions available</h2>
+          <p className="text-muted-foreground mb-6">This quiz has no questions yet. Check back later.</p>
+          <Button onClick={() => setLocation('/scenarios')}>Back to Scenarios</Button>
         </div>
       </div>
     );
@@ -200,43 +223,6 @@ export default function QuizPage() {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoading || questionsLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!quiz || !questions) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-card border border-gray-800 rounded-lg p-6 text-center">
-          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
-          <h2 className="text-xl font-semibold mb-2">Quiz not found</h2>
-          <p className="text-muted-foreground mb-6">This quiz doesn't exist or has been removed.</p>
-          <Button onClick={() => setLocation('/')}>Return to Home</Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!quiz.is_active) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-card border border-gray-800 rounded-lg p-6 text-center">
-          <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
-          <h2 className="text-xl font-semibold mb-2">Quiz unavailable</h2>
-          <p className="text-muted-foreground mb-6">This quiz is currently not active. Please check back later or contact your instructor.</p>
-          <Button onClick={() => setLocation('/')}>Return to Home</Button>
-        </div>
-      </div>
-    );
-  }
-
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
