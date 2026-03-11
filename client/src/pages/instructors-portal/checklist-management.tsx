@@ -594,14 +594,16 @@ export default function ChecklistManagement() {
               <CheckSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No Checklists Created</h3>
               <p className="text-muted-foreground mb-6">
-                Create your first checklist to get started with digital aircraft procedures.
+                {isReadOnly ? "No checklists have been created yet." : "Create your first checklist to get started with digital aircraft procedures."}
               </p>
+              {!isReadOnly && (
               <Button 
                 onClick={() => setIsCreateDialogOpen(true)}
                 className="bg-orange-500 hover:bg-orange-600"
               >
                 Create Your First Checklist
               </Button>
+              )}
             </div>
           )}
         </div>

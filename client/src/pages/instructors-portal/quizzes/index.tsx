@@ -255,8 +255,9 @@ export default function InstructorQuizzes() {
               <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-xl font-medium mb-2">No Quizzes Found</h3>
               <p className="text-muted-foreground text-center mb-6 max-w-md">
-                You haven't created any pop quizzes yet. Create your first quiz to test students on their loadmaster knowledge.
+                {isReadOnly ? "No pop quizzes have been created yet." : "You haven't created any pop quizzes yet. Create your first quiz to test students on their loadmaster knowledge."}
               </p>
+              {!isReadOnly && (
               <Button 
                 onClick={() => setLocation('/instructors-portal/quizzes/create')}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -264,6 +265,7 @@ export default function InstructorQuizzes() {
                 <Plus className="mr-2 h-4 w-4" />
                 Create Pop Quiz
               </Button>
+              )}
             </CardContent>
           </Card>
         )}

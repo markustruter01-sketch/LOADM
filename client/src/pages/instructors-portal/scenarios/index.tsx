@@ -238,11 +238,13 @@ export default function ScenarioManagement() {
                                 <p className="text-muted-foreground">
                                   {searchTerm ? "No training scenarios match your search" : "No training scenarios found"}
                                 </p>
+                                {!isReadOnly && (
                                 <Link href="/instructors-portal/scenarios/create">
                                   <Button className="mt-4 bg-primary hover:bg-primary/90 text-white">
                                     Create Training Scenario
                                   </Button>
                                 </Link>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -310,11 +312,13 @@ export default function ScenarioManagement() {
                                 <p className="text-muted-foreground">
                                   {searchTerm ? "No assessment scenarios match your search" : "No assessment scenarios found"}
                                 </p>
+                                {!isReadOnly && (
                                 <Link href="/instructors-portal/scenarios/create">
                                   <Button className="mt-4 bg-primary hover:bg-primary/90 text-white">
                                     Create Assessment Scenario
                                   </Button>
                                 </Link>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>

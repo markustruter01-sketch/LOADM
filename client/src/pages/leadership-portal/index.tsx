@@ -139,18 +139,25 @@ export default function LeadershipPortal() {
     let scenarioPassRate = 0;
     if (submissionsData) {
       const allSubs = Array.isArray(submissionsData) ? submissionsData : (submissionsData.submissions || []);
-      const quizSubs = allSubs.filter((s: any) => s.score !== null && s.score !== undefined);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
+      const filteredSubs = allSubs.filter((s: any) => {
+        const subDate = s.submissionDate || s.createdAt || s.date;
+        if (!subDate) return true;
+        return new Date(subDate) >= cutoff;
+      });
+      const quizSubs = filteredSubs.filter((s: any) => s.score !== null && s.score !== undefined);
       if (quizSubs.length > 0) {
         quizPassRate = Math.round((quizSubs.filter((s: any) => s.score >= 70).length / quizSubs.length) * 100);
       }
-      const scenSubs = allSubs.filter((s: any) => s.type === "scenario" && s.passed !== undefined);
+      const scenSubs = filteredSubs.filter((s: any) => s.type === "scenario" && s.passed !== undefined);
       if (scenSubs.length > 0) {
         scenarioPassRate = Math.round((scenSubs.filter((s: any) => s.passed).length / scenSubs.length) * 100);
       }
     }
 
-    const priorReadyPct = historyData?.snapshots?.length > 1
-      ? historyData.snapshots[historyData.snapshots.length - 1]?.readyPercent ?? null
+    const priorReadyPct = historyData?.dataPoints?.length > 1
+      ? historyData.dataPoints[historyData.dataPoints.length - 2]?.readyPercent ?? null
       : null;
 
     return {
@@ -163,13 +170,13 @@ export default function LeadershipPortal() {
       highRiskCount,
       priorReadyPct,
     };
-  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, historyData]);
+  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, historyData, dateRange]);
 
   const alerts = useMemo(() => {
     const items: { text: string; severity: "critical" | "high" | "medium" }[] = [];
 
-    if (readinessData?.squadrons) {
-      readinessData.squadrons.forEach((sq: any) => {
+    if (readinessData?.bySquadron) {
+      readinessData.bySquadron.forEach((sq: any) => {
         if (sq.squadron !== "AMG" && sq.readyPercent < 70) {
           items.push({ text: `${sq.squadron}SQN readiness ${sq.readyPercent}% — below target`, severity: "critical" });
         } else if (sq.squadron !== "AMG" && sq.readyPercent < 85) {
@@ -185,11 +192,13 @@ export default function LeadershipPortal() {
       items.push({ text: `${kpis.expiring30} quals expiring within 30 days`, severity: "high" });
     }
 
-    if (safetyData?.incidents) {
-      const openMajor = safetyData.incidents.filter((i: any) => i.status === "open" && i.severity === "major");
+    if (safetyData?.openItems) {
+      const openMajor = safetyData.openItems.filter((i: any) => i.severity === "major");
       if (openMajor.length > 0) {
         items.push({ text: `${openMajor.length} open major incident${openMajor.length > 1 ? "s" : ""}`, severity: "critical" });
       }
+    } else if (safetyData?.bySeverity?.major > 0 && safetyData?.byStatus?.open > 0) {
+      items.push({ text: `${safetyData.bySeverity.major} major safety incident${safetyData.bySeverity.major > 1 ? "s" : ""} on record`, severity: "critical" });
     }
 
     if (kpis.highRiskCount > 0) {
@@ -410,7 +419,7 @@ function KpiCard({ label, value, icon, color, trend }: { label: string; value: a
 }
 
 function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRiskData: any }) {
-  const squadrons = (readinessData?.squadrons || []).filter((s: any) => s.squadron !== "AMG");
+  const squadrons = (readinessData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
 
   return (
     <>
@@ -437,15 +446,15 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader><CardTitle className="text-white text-lg">Non-Readiness Breakdown</CardTitle></CardHeader>
         <CardContent>
-          {readinessData?.nonReadinessReasons?.length > 0 ? (
+          {readinessData?.reasonBreakdown?.length > 0 ? (
             <div className="space-y-3">
-              {readinessData.nonReadinessReasons.map((r: any, i: number) => (
+              {readinessData.reasonBreakdown.map((r: any, i: number) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-40 text-sm text-gray-300 truncate">{r.reason}</div>
                   <div className="flex-1">
-                    <Progress value={r.percentage} className="h-3" />
+                    <Progress value={r.percent} className="h-3" />
                   </div>
-                  <div className="w-16 text-right text-sm text-gray-400">{r.count} ({r.percentage}%)</div>
+                  <div className="w-16 text-right text-sm text-gray-400">{r.count} ({r.percent}%)</div>
                 </div>
               ))}
             </div>
@@ -518,8 +527,8 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
 
 function QualificationsTab({ currencyData, forecastData, readinessData }: { currencyData: any; forecastData: any; readinessData: any }) {
   const summary = currencyData?.summary;
-  const squadrons = (readinessData?.squadrons || []).filter((s: any) => s.squadron !== "AMG");
-  const perSquadronCurrency = currencyData?.perSquadron?.filter((s: any) => s.squadron !== "AMG") || [];
+  const squadrons = (readinessData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
+  const perSquadronCurrency = (currencyData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
 
   const totalQuals = summary ? (summary.current + summary.expiring30Days + summary.expiring60Days + summary.expiring90Days + summary.expired) : 0;
   const currencyBars = totalQuals > 0 ? [
@@ -530,7 +539,11 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
     { label: "Current", count: summary?.current || 0, pct: Math.round(((summary?.current || 0) / totalQuals) * 100), color: "bg-green-500" },
   ] : [];
 
-  const monthlyForecast = forecastData?.monthlyForecast || [];
+  const monthlyForecast = (forecastData?.forecast || []).map((f: any) => ({
+    month: f.monthLabel || f.month,
+    count: f.expiringThisMonth || 0,
+    personnelAffected: f.personnelAffected || 0,
+  }));
   const peakMonth = monthlyForecast.reduce((max: any, m: any) => (m.count > (max?.count || 0) ? m : max), null);
 
   return (
@@ -568,16 +581,14 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
           <CardContent>
             <div className="space-y-4">
               {perSquadronCurrency.map((sq: any) => {
-                const sqTotal = (sq.current || 0) + (sq.expiring30 || 0) + (sq.expiring60 || 0) + (sq.expiring90 || 0) + (sq.expired || 0);
+                const sqTotal = sq.total || ((sq.current || 0) + (sq.expiring || 0) + (sq.expired || 0));
                 if (sqTotal === 0) return null;
                 return (
                   <div key={sq.squadron}>
                     <div className="text-sm text-gray-300 mb-1">{sq.squadron}SQN</div>
                     <div className="flex w-full h-5 rounded overflow-hidden">
                       {sq.expired > 0 && <div className="bg-red-500 flex items-center justify-center text-[10px] text-white" style={{ width: `${(sq.expired / sqTotal) * 100}%` }}>{sq.expired}</div>}
-                      {sq.expiring30 > 0 && <div className="bg-orange-500 flex items-center justify-center text-[10px] text-white" style={{ width: `${(sq.expiring30 / sqTotal) * 100}%` }}>{sq.expiring30}</div>}
-                      {sq.expiring60 > 0 && <div className="bg-amber-500 flex items-center justify-center text-[10px] text-white" style={{ width: `${(sq.expiring60 / sqTotal) * 100}%` }}>{sq.expiring60}</div>}
-                      {sq.expiring90 > 0 && <div className="bg-yellow-500 flex items-center justify-center text-[10px] text-white" style={{ width: `${(sq.expiring90 / sqTotal) * 100}%` }}>{sq.expiring90}</div>}
+                      {sq.expiring > 0 && <div className="bg-orange-500 flex items-center justify-center text-[10px] text-white" style={{ width: `${(sq.expiring / sqTotal) * 100}%` }}>{sq.expiring}</div>}
                       {sq.current > 0 && <div className="bg-green-500 flex items-center justify-center text-[10px] text-white" style={{ width: `${(sq.current / sqTotal) * 100}%` }}>{sq.current}</div>}
                     </div>
                   </div>
@@ -635,10 +646,19 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
 
 function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopic, kpis }: any) {
   const squadronAvgs = useMemo(() => {
-    if (!squadronPerfData?.squadrons) return [];
-    return squadronPerfData.squadrons
-      .filter((s: any) => s.squadron !== "AMG")
-      .map((s: any) => ({ name: `${s.squadron}SQN`, avg: s.avgScore }));
+    if (!squadronPerfData || !Array.isArray(squadronPerfData)) return [];
+    const sqMap: Record<string, { total: number; count: number }> = {};
+    squadronPerfData.forEach((s: any) => {
+      const sq = s.squadron;
+      if (!sq || sq === "AMG") return;
+      if (!sqMap[sq]) sqMap[sq] = { total: 0, count: 0 };
+      sqMap[sq].total += (s.studentAverage || 0);
+      sqMap[sq].count += 1;
+    });
+    return Object.entries(sqMap).map(([sq, v]) => ({
+      name: sq.includes("SQN") ? sq : `${sq}SQN`,
+      avg: v.count > 0 ? Math.round(v.total / v.count) : 0,
+    }));
   }, [squadronPerfData]);
 
   const overallAvg = squadronAvgs.length > 0
@@ -718,9 +738,8 @@ function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopi
 
 function SafetyTab({ safetyData }: { safetyData: any }) {
   const safetyScore = safetyData?.safetyScore ?? 0;
-  const incidents = safetyData?.incidents || [];
-  const openIncidents = incidents.filter((i: any) => i.status === "open" && (i.severity === "major" || i.severity === "moderate"));
-  const monthlySummary = safetyData?.monthlySummary || [];
+  const openIncidents = (safetyData?.openItems || []).filter((i: any) => i.severity === "major" || i.severity === "moderate");
+  const monthlySummary = safetyData?.monthlyTrend || [];
   const bySquadron = safetyData?.bySquadron?.filter((s: any) => s.squadron !== "AMG") || [];
 
   const gaugeAngle = (safetyScore / 100) * 180;
@@ -818,14 +837,14 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
           <CardContent>
             <div className="space-y-2">
               {bySquadron.map((sq: any) => {
-                const maxInc = Math.max(...bySquadron.map((s: any) => s.incidentCount || 0), 1);
+                const maxInc = Math.max(...bySquadron.map((s: any) => s.incidents || 0), 1);
                 return (
                   <div key={sq.squadron} className="flex items-center gap-3">
                     <div className="w-16 text-sm text-gray-300">{sq.squadron}SQN</div>
                     <div className="flex-1">
-                      <div className="bg-red-500/60 h-5 rounded" style={{ width: `${((sq.incidentCount || 0) / maxInc) * 100}%`, minWidth: sq.incidentCount > 0 ? "20px" : "0" }}></div>
+                      <div className="bg-red-500/60 h-5 rounded" style={{ width: `${((sq.incidents || 0) / maxInc) * 100}%`, minWidth: sq.incidents > 0 ? "20px" : "0" }}></div>
                     </div>
-                    <div className="w-8 text-right text-sm text-gray-400">{sq.incidentCount || 0}</div>
+                    <div className="w-8 text-right text-sm text-gray-400">{sq.incidents || 0}</div>
                   </div>
                 );
               })}
