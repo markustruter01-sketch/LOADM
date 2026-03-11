@@ -62,6 +62,26 @@ export function requireInstructor(req: AuthenticatedRequest, res: Response, next
   });
 }
 
+export function requireLeadership(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  requireAuth(req, res, () => {
+    if (req.user && (req.user.role === 'leadership' || req.user.role === 'superadmin')) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Leadership access required' });
+    }
+  });
+}
+
+export function requireInstructorOrLeadership(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  requireAuth(req, res, () => {
+    if (req.user && (req.user.role === 'instructor' || req.user.role === 'leadership' || req.user.role === 'superadmin')) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Instructor or leadership access required' });
+    }
+  });
+}
+
 // Super admin access middleware
 export function requireSuperAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   requireAuth(req, res, () => {

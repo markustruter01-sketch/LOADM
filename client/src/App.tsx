@@ -72,10 +72,10 @@ import QuizQuestionsManagement from "@/pages/instructors-portal/quiz-questions";
 import TrainingModulesManagement from "@/pages/instructors-portal/training-modules";
 import ChecklistDetailPage from "@/pages/tools/checklists/[id]";
 import ChecklistManagement from "@/pages/instructors-portal/checklist-management";
-
+import LeadershipPortal from "@/pages/leadership-portal";
 
 // Import route protection components (we'll adapt these)
-import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute } from "./lib/auth-routes";
+import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute, LeadershipRoute } from "./lib/auth-routes";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 import { ChatSystem } from "@/components/chat-system";
@@ -157,6 +157,7 @@ function AuthenticatedApp() {
             <InstructorRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
             <InstructorRoute path="/instructors-portal/workforce" component={WorkforcePage} />
             <InstructorRoute path="/instructors-portal/workforce-analytics" component={WorkforceAnalytics} />
+            <LeadershipRoute path="/leadership-portal" component={LeadershipPortal} />
             <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
             <SuperAdminRoute path="/licensing" component={LicensingManagement} />
             <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />

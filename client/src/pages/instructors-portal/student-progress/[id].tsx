@@ -49,6 +49,7 @@ export default function SubmissionReview() {
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useIsolatedAuth();
+  const isReadOnly = user?.role === 'leadership';
   
   const submissionId = parseInt(id);
   const [instructorFeedback, setInstructorFeedback] = useState("");
@@ -689,6 +690,7 @@ export default function SubmissionReview() {
               >
                 Back to Submissions
               </Button>
+              {!isReadOnly && (
               <Button
                 onClick={handleSaveReview}
                 className="bg-primary hover:bg-primary/90"
@@ -703,6 +705,7 @@ export default function SubmissionReview() {
                   <>Save Review</>
                 )}
               </Button>
+              )}
             </div>
 
             {/* Review Log — shown only for already-reviewed submissions */}

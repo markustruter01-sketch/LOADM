@@ -22,7 +22,7 @@ import { eq, and, gt, desc, lt, sql, inArray, notInArray } from "drizzle-orm";
 import { db } from "./db";
 
 import { sendLicenseWelcomeEmail } from "./services/email-service";
-import { requireAuth, requireInstructor, requireSuperAdmin } from "./middleware/auth";
+import { requireAuth, requireInstructor, requireInstructorOrLeadership, requireSuperAdmin } from "./middleware/auth";
 import multer from "multer";
 import path from "path";
 import fs from "fs/promises";
@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quiz submissions endpoint for instructors
-  app.get("/api/instructor/quiz-submissions", requireInstructor, async (req, res) => {
+  app.get("/api/instructor/quiz-submissions", requireInstructorOrLeadership, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
@@ -913,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Quiz questions management endpoint
-  app.get("/api/quiz-questions", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/quiz-questions", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const category = req.query.category as string;
       
@@ -1101,7 +1101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Advanced Analytics Endpoints
   
   // Topic Mastery Matrix - Performance by quiz category
-  app.get("/api/analytics/topic-mastery", requireInstructor, async (req, res) => {
+  app.get("/api/analytics/topic-mastery", requireInstructorOrLeadership, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
@@ -1164,7 +1164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Question Difficulty Analysis - Identify hardest questions
-  app.get("/api/analytics/question-difficulty", requireInstructor, async (req, res) => {
+  app.get("/api/analytics/question-difficulty", requireInstructorOrLeadership, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
@@ -1296,7 +1296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Student vs Squadron Average
-  app.get("/api/analytics/student-vs-squadron", requireInstructor, async (req, res) => {
+  app.get("/api/analytics/student-vs-squadron", requireInstructorOrLeadership, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
@@ -1386,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Training Module Completion Progress
-  app.get("/api/analytics/module-completion", requireInstructor, async (req, res) => {
+  app.get("/api/analytics/module-completion", requireInstructorOrLeadership, async (req, res) => {
     try {
       // For now, return simulated data since training modules are frontend-only
       // In a real implementation, this would track user progress through modules
@@ -1407,7 +1407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Certification Readiness Score
-  app.get("/api/analytics/certification-readiness", requireInstructor, async (req, res) => {
+  app.get("/api/analytics/certification-readiness", requireInstructorOrLeadership, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
@@ -1522,7 +1522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // At-Risk Students Alert Table
-  app.get("/api/analytics/at-risk-students", requireInstructor, async (req, res) => {
+  app.get("/api/analytics/at-risk-students", requireInstructorOrLeadership, async (req, res) => {
     try {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
@@ -3305,7 +3305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Get all checklists for instructor management
-  app.get("/api/instructor/checklists", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/instructor/checklists", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const instructorChecklists = await db.query.checklists.findMany({
         with: {
@@ -3671,7 +3671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== SAFETY RECORDS ENDPOINTS ====================
   
   // Get all safety records (instructor only)
-  app.get("/api/safety-records", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/safety-records", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron, recordType, status } = req.query;
       
@@ -3801,7 +3801,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== ANALYTICS ENDPOINTS ====================
 
   // Flight Hours Analytics
-  app.get("/api/analytics/flight-hours", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/flight-hours", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron, startDate, endDate } = req.query;
       
@@ -3976,7 +3976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Currency Status Analytics
-  app.get("/api/analytics/currency-status", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/currency-status", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron } = req.query;
 
@@ -4109,7 +4109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Squadron Readiness Analytics
-  app.get("/api/analytics/squadron-readiness", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/squadron-readiness", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       // Get all users with their readiness status
       const allUsers = await db.select({
@@ -4220,7 +4220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Safety Summary Analytics
-  app.get("/api/analytics/safety-summary", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/safety-summary", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron, startDate, endDate } = req.query;
 
@@ -4367,7 +4367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Readiness History Analytics - Historical trends over time
-  app.get("/api/analytics/readiness-history", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/readiness-history", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron = "ALL", startDate, endDate, limit = "90" } = req.query;
 
@@ -4552,7 +4552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Qualification Forecast Analytics - Predict future expirations
-  app.get("/api/analytics/qualification-forecast", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/qualification-forecast", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron = "all", months = "6" } = req.query;
       const numMonths = parseInt(months as string);
@@ -4698,7 +4698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Expiring qualifications detail — for clickable forecast modal
-  app.get("/api/analytics/expiring-qualifications", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/expiring-qualifications", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron = "all", months = "6" } = req.query;
       const numMonths = parseInt(months as string);
@@ -4763,7 +4763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ICC Power Law Distribution Analytics - Performance curves by time in role
-  app.get("/api/analytics/icc-power-law", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/analytics/icc-power-law", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { metric = "assessmentsPassed", squadron = "all" } = req.query;
       
@@ -5048,7 +5048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== USER REPORT ENDPOINT ====================
   
   // Get users list filtered by squadron (for report generation)
-  app.get("/api/instructor/users", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/instructor/users", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const { squadron } = req.query;
       
@@ -5086,7 +5086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Comprehensive User Report - aggregates all user data
-  app.get("/api/instructor/user-report/:userId", requireInstructor, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/instructor/user-report/:userId", requireInstructorOrLeadership, async (req: AuthenticatedRequest, res) => {
     try {
       const userId = parseInt(req.params.userId);
       if (isNaN(userId)) {

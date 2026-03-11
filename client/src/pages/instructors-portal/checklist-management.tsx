@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Plus, Edit, Trash2, CheckSquare, Plane, Clock, Users, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,6 +66,8 @@ interface Checklist {
 }
 
 export default function ChecklistManagement() {
+  const { user } = useIsolatedAuth();
+  const isReadOnly = user?.role === 'leadership';
   const [editingChecklist, setEditingChecklist] = useState<Checklist | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -459,6 +462,7 @@ export default function ChecklistManagement() {
               </div>
             </div>
             
+            {!isReadOnly && (
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-orange-500 hover:bg-orange-600">
@@ -476,6 +480,7 @@ export default function ChecklistManagement() {
                 {renderChecklistForm(createForm, createFields, appendCreate, removeCreate, handleCreate, createMutation.isPending, "Create Checklist")}
               </DialogContent>
             </Dialog>
+            )}
           </div>
 
           {isLoading ? (
@@ -511,6 +516,7 @@ export default function ChecklistManagement() {
                             {checklist.category.charAt(0).toUpperCase() + checklist.category.slice(1)}
                           </Badge>
                         </div>
+                        {!isReadOnly && (
                         <div className="flex space-x-1">
                           <Button
                             variant="ghost"
@@ -528,6 +534,7 @@ export default function ChecklistManagement() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
+                        )}
                       </div>
                       <CardTitle className="text-lg">
                         {checklist.title}

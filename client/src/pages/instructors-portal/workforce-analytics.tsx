@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "wouter";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import RecommendationButton from "@/components/RecommendationButton";
 import {
   recommendWorkforceReadiness,
@@ -400,6 +401,8 @@ const EMPTY_SAFETY_FORM = {
 };
 
 export default function WorkforceAnalytics() {
+  const { user } = useIsolatedAuth();
+  const isReadOnly = user?.role === 'leadership';
   const { toast } = useToast();
   const [selectedSquadron, setSelectedSquadron] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -1311,6 +1314,7 @@ export default function WorkforceAnalytics() {
                     </CardDescription>
                   </div>
                 </div>
+                {!isReadOnly && (
                 <Button
                   size="sm"
                   onClick={e => { e.stopPropagation(); openCreateDialog(); }}
@@ -1318,6 +1322,7 @@ export default function WorkforceAnalytics() {
                 >
                   <Plus className="h-3 w-3 mr-1" /> New Occurrence
                 </Button>
+                )}
               </div>
             </CardHeader>
 
@@ -1393,6 +1398,7 @@ export default function WorkforceAnalytics() {
                                     {record.status}
                                   </Badge>
                                 </td>
+                                {!isReadOnly && (
                                 <td className="px-4 py-3">
                                   <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                                     <Button size="sm" variant="ghost" onClick={() => openEditDialog(record)} className="h-7 w-7 p-0 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10">
@@ -1403,6 +1409,7 @@ export default function WorkforceAnalytics() {
                                     </Button>
                                   </div>
                                 </td>
+                                )}
                               </tr>
                             ))}
                           </tbody>
@@ -2031,6 +2038,7 @@ export default function WorkforceAnalytics() {
                 <div className="flex items-center justify-between pt-2 border-t border-[#333]">
                   <span className="text-xs text-gray-600">Record #{viewingRecord.id} • Read-only view</span>
                   <div className="flex gap-2">
+                    {!isReadOnly && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -2039,6 +2047,7 @@ export default function WorkforceAnalytics() {
                     >
                       <Pencil className="h-3 w-3 mr-1" /> Edit Record
                     </Button>
+                    )}
                     <Button size="sm" onClick={() => setViewingRecord(null)} className="bg-[#333] hover:bg-[#444] text-white text-xs">
                       Close
                     </Button>

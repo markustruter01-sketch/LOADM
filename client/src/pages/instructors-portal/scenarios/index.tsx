@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Scenario, ScenarioQuestion } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -37,6 +38,8 @@ import { ArrowLeft, ClipboardList, Edit, Loader2, Plus, Search, Trash2, FileChec
 import { format } from "date-fns";
 
 export default function ScenarioManagement() {
+  const { user } = useIsolatedAuth();
+  const isReadOnly = user?.role === 'leadership';
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -123,12 +126,14 @@ export default function ScenarioManagement() {
             </Link>
             <h2 className="text-2xl font-bold text-foreground">Scenario Management</h2>
           </div>
-          <Link href="/instructors-portal/scenarios/create">
-            <Button className="bg-primary hover:bg-primary/90 text-white">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Scenario
-            </Button>
-          </Link>
+          {!isReadOnly && (
+            <Link href="/instructors-portal/scenarios/create">
+              <Button className="bg-primary hover:bg-primary/90 text-white">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Scenario
+              </Button>
+            </Link>
+          )}
         </div>
         
         <Card className="mb-6">
@@ -200,6 +205,7 @@ export default function ScenarioManagement() {
                                   {scenario.numberOfQuestions} questions
                                 </Badge>
                               </TableCell>
+                              {!isReadOnly && (
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
                                   <Button
@@ -221,6 +227,7 @@ export default function ScenarioManagement() {
                                   </Button>
                                 </div>
                               </TableCell>
+                              )}
                             </TableRow>
                           ))
                         ) : (
@@ -270,6 +277,7 @@ export default function ScenarioManagement() {
                                   {scenario.numberOfQuestions} questions
                                 </Badge>
                               </TableCell>
+                              {!isReadOnly && (
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
                                   <Button
@@ -291,6 +299,7 @@ export default function ScenarioManagement() {
                                   </Button>
                                 </div>
                               </TableCell>
+                              )}
                             </TableRow>
                           ))
                         ) : (

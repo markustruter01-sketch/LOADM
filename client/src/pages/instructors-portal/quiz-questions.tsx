@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet';
 import { Link } from 'wouter';
+import { useIsolatedAuth } from '@/auth-isolated/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -143,6 +144,8 @@ function QuestionForm({ initialData, onSubmit, onCancel, isLoading }: QuestionFo
 }
 
 export default function QuizQuestionsPage() {
+  const { user } = useIsolatedAuth();
+  const isReadOnly = user?.role === 'leadership';
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -302,6 +305,8 @@ export default function QuizQuestionsPage() {
               <p className="text-gray-300">Review and manage quiz questions by category</p>
             </div>
           </div>
+          {!isReadOnly && (
+          <>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -321,7 +326,6 @@ export default function QuizQuestionsPage() {
             </DialogContent>
           </Dialog>
 
-          {/* Edit Dialog */}
           <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -337,6 +341,8 @@ export default function QuizQuestionsPage() {
               )}
             </DialogContent>
           </Dialog>
+          </>
+          )}
         </div>
 
         {/* Filter Section */}
@@ -413,6 +419,8 @@ export default function QuizQuestionsPage() {
                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                 {question.category}
                               </span>
+                              {!isReadOnly && (
+                              <>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -435,6 +443,8 @@ export default function QuizQuestionsPage() {
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
+                              </>
+                              )}
                             </div>
                           </div>
                         </div>

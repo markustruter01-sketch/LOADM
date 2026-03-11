@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Route, useLocation } from "wouter";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 
 /**
  * ProtectedRoute - Route that requires admin privileges
@@ -194,13 +194,56 @@ function InstructorCheck({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Superadmins should have access to everything, including instructor portal
-  if (!user || (user.role !== 'instructor' && user.role !== 'superadmin')) {
+  if (!user || (user.role !== 'instructor' && user.role !== 'leadership' && user.role !== 'superadmin')) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
           <p className="text-muted-foreground">You need instructor privileges to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+export function LeadershipRoute({
+  path,
+  component: Component,
+}: {
+  path: string;
+  component: React.ComponentType;
+}) {
+  return (
+    <Route path={path}>
+      {(params) => (
+        <LeadershipCheck>
+          <Component {...params} />
+        </LeadershipCheck>
+      )}
+    </Route>
+  );
+}
+
+function LeadershipCheck({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useIsolatedAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || (user.role !== 'leadership' && user.role !== 'superadmin')) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center p-8 max-w-md">
+          <ShieldAlert className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">Leadership clearance required to access the Force Readiness Command Dashboard.</p>
         </div>
       </div>
     );

@@ -104,8 +104,15 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
-                {/* Show different menu options based on user role */}
-                {(user.role === 'instructor' || user.role === 'superadmin') && (
+                {(user.role === 'leadership' || user.role === 'superadmin') && (
+                  <DropdownMenuItem asChild>
+                    <div className="w-full cursor-pointer" onClick={() => setLocation("/leadership-portal")}>
+                      Force Readiness Dashboard
+                    </div>
+                  </DropdownMenuItem>
+                )}
+
+                {(user.role === 'instructor' || user.role === 'leadership' || user.role === 'superadmin') && (
                   <DropdownMenuItem asChild>
                     <div className="w-full cursor-pointer" onClick={() => setLocation("/instructors-portal")}>
                       Instructors Portal

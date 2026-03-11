@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { Plus, BookOpen, Trash2, Edit, RefreshCw, ArrowLeft } from "lucide-react";
+import { useIsolatedAuth } from "@/auth-isolated/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function InstructorQuizzes() {
+  const { user } = useIsolatedAuth();
+  const isReadOnly = user?.role === 'leadership';
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
@@ -131,13 +134,15 @@ export default function InstructorQuizzes() {
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
-            <Button 
-              onClick={() => setLocation('/instructors-portal/quizzes/create')}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Pop Quiz
-            </Button>
+            {!isReadOnly && (
+              <Button 
+                onClick={() => setLocation('/instructors-portal/quizzes/create')}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Pop Quiz
+              </Button>
+            )}
           </div>
         </div>
 
@@ -198,15 +203,18 @@ export default function InstructorQuizzes() {
                       <BookOpen className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setLocation(`/instructors-portal/quizzes/edit/${quiz.id}`)}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
+                    {!isReadOnly && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setLocation(`/instructors-portal/quizzes/edit/${quiz.id}`)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
                   </div>
+                  {!isReadOnly && (
                   <AlertDialog open={quizToDelete === quiz.id} onOpenChange={(open) => !open && setQuizToDelete(null)}>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -236,6 +244,7 @@ export default function InstructorQuizzes() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
+                  )}
                 </CardFooter>
               </Card>
             ))}
