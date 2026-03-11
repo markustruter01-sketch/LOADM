@@ -438,11 +438,12 @@ export default function WorkforceAnalytics() {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      // Trigger snapshot capture first (silently, doesn't block the rest)
-      fetch('/api/analytics/capture-snapshot', { 
-        method: 'POST', 
-        credentials: 'include' 
-      }).catch(() => {}); // Silent failure is OK
+      if (!isReadOnly) {
+        fetch('/api/analytics/capture-snapshot', { 
+          method: 'POST', 
+          credentials: 'include' 
+        }).catch(() => {});
+      }
 
       const squadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "";
       const historySquadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "squadron=ALL";
@@ -1156,10 +1157,12 @@ export default function WorkforceAnalytics() {
             <h2 className="text-xl font-semibold text-white">Safety & Compliance</h2>
             <div className="ml-auto flex items-center gap-2 mr-2">
               <span className="text-xs text-gray-500">All-time records</span>
+              {!isReadOnly && (
               <Button size="sm" onClick={openCreateDialog} className="bg-orange-500 hover:bg-orange-600 text-white h-7 text-xs px-3">
                 <Plus className="h-3 w-3 mr-1" />
                 Report Occurrence
               </Button>
+              )}
             </div>
             {safetyData && <RecommendationButton recommendations={recommendSafetyCompliance(safetyData)} context="Safety Compliance" />}
             <HelpButton helpKey="safetyCompliance" onClick={setActiveHelp} />

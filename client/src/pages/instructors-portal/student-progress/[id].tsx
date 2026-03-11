@@ -507,6 +507,7 @@ export default function SubmissionReview() {
                                       id={`mark-${answer.questionId}`}
                                       checked={isCorrect}
                                       onCheckedChange={() => toggleCorrectness(answer.questionId)}
+                                      disabled={isReadOnly}
                                     />
                                   </div>
                                 </div>
@@ -541,7 +542,7 @@ export default function SubmissionReview() {
                                     <div>
                                       <h5 className="text-sm font-medium text-muted-foreground mb-2">Instructor Comment <span className="font-normal italic">(optional)</span></h5>
                                       <Textarea
-                                        placeholder="Leave a comment on this specific question for the student..."
+                                        placeholder={isReadOnly ? "" : "Leave a comment on this specific question for the student..."}
                                         rows={2}
                                         value={questionFeedback[answer.questionId] || ""}
                                         onChange={(e) =>
@@ -551,6 +552,8 @@ export default function SubmissionReview() {
                                           }))
                                         }
                                         className="bg-background border-border text-foreground text-sm resize-none"
+                                        readOnly={isReadOnly}
+                                        disabled={isReadOnly}
                                       />
                                     </div>
                                   </div>
@@ -623,13 +626,16 @@ export default function SubmissionReview() {
                       </Label>
                       <Textarea
                         id="instructorFeedback"
-                        placeholder="Provide detailed feedback for the student..."
+                        placeholder={isReadOnly ? "" : "Provide detailed feedback for the student..."}
                         rows={8}
                         value={instructorFeedback}
                         onChange={(e) => setInstructorFeedback(e.target.value)}
                         className="bg-background border-border text-foreground mb-6"
+                        readOnly={isReadOnly}
+                        disabled={isReadOnly}
                       />
                       
+                      {!isReadOnly && (
                       <div className="bg-muted p-4 rounded-md">
                         <h4 className="font-semibold text-lg mb-3">Final Assessment Decision</h4>
                         <p className="text-muted-foreground mb-4">
@@ -678,6 +684,7 @@ export default function SubmissionReview() {
                           </div>
                         </div>
                       </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
