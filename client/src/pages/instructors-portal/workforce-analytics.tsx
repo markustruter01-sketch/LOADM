@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "wouter";
+import RecommendationButton from "@/components/RecommendationButton";
+import {
+  recommendWorkforceReadiness,
+  recommendSquadronReadiness,
+  recommendFlightOperations,
+  recommendSafetyCompliance,
+  recommendQualificationForecast,
+} from "@/lib/recommendations";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -716,7 +724,8 @@ export default function WorkforceAnalytics() {
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <Users className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Workforce Readiness</h2>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-1.5">
+              {readinessData && currencyData && <RecommendationButton recommendations={recommendWorkforceReadiness(readinessData, currencyData)} context="Workforce Readiness" />}
               <HelpButton helpKey="workforceReadiness" onClick={setActiveHelp} />
             </div>
           </div>
@@ -811,7 +820,10 @@ export default function WorkforceAnalytics() {
           {/* Squadron Comparison */}
           <Card className="bg-[#2a2a2a] border-[#333333]">
             <CardHeader>
-              <CardTitle className="text-white text-lg">Squadron Readiness Comparison</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white text-lg">Squadron Readiness Comparison</CardTitle>
+                {readinessData && <RecommendationButton recommendations={recommendSquadronReadiness(readinessData)} context="Squadron Readiness" />}
+              </div>
               <CardDescription className="text-gray-400">Readiness rates across all squadrons • Target: 85%</CardDescription>
             </CardHeader>
             <CardContent>
@@ -867,6 +879,7 @@ export default function WorkforceAnalytics() {
                 </button>
               ))}
             </div>
+            {flightData && readinessData && <RecommendationButton recommendations={recommendFlightOperations(flightData, readinessData.summary?.total || 0)} context="Flight Operations" />}
             <HelpButton helpKey="flightOperations" onClick={setActiveHelp} />
           </div>
 
@@ -1145,6 +1158,7 @@ export default function WorkforceAnalytics() {
                 Report Occurrence
               </Button>
             </div>
+            {safetyData && <RecommendationButton recommendations={recommendSafetyCompliance(safetyData)} context="Safety Compliance" />}
             <HelpButton helpKey="safetyCompliance" onClick={setActiveHelp} />
           </div>
 
@@ -1643,6 +1657,7 @@ export default function WorkforceAnalytics() {
             <BarChart3 className="h-5 w-5 text-orange-500" />
             <h2 className="text-xl font-semibold text-white">Qualification Renewal Forecast</h2>
             <span className="text-xs text-gray-500 ml-auto mr-2">6-month projection • If no action taken</span>
+            {forecastData && currencyData && readinessData && <RecommendationButton recommendations={recommendQualificationForecast(forecastData, currencyData, readinessData)} context="Qualification Forecast" />}
             <HelpButton helpKey="qualificationForecast" onClick={setActiveHelp} />
           </div>
 

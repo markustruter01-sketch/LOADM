@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import { ArrowLeft, Clock, Calendar, Users, User, CheckCircle2 } from "lucide-react";
+import RecommendationButton from "@/components/RecommendationButton";
+import type { Recommendation } from "@/lib/recommendations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +89,65 @@ export default function QuizDetails() {
     acc[squadron].push(sub);
     return acc;
   }, {}) || {};
+
+  const squadronRecommendations = useMemo((): Recommendation[] => {
+    const entries = Object.entries(submissionsBySquadron) as [string, any[]][];
+    if (entries.length < 2) return [];
+    const results: Recommendation[] = [];
+    const squadronAvgs = entries.map(([sq, subs]) => ({
+      squadron: sq,
+      avg: Math.round(subs.reduce((a: number, s: any) => a + s.score, 0) / subs.length),
+      count: subs.length
+    }));
+    const best = Math.max(...squadronAvgs.map(s => s.avg));
+    const worst = squadronAvgs.reduce((a, b) => a.avg < b.avg ? a : b);
+    if (best - worst.avg > 15) {
+      results.push({ priority: 'high', category: 'performance', title: `${worst.squadron} trailing by ${best - worst.avg} points`, body: `${worst.squadron} averages ${worst.avg}% on this quiz compared to the best squadron at ${best}%. Consider targeted revision for ${worst.squadron}.`, action: `Schedule a review session for ${worst.squadron} on this quiz's topics.` });
+    }
+    for (const sq of squadronAvgs) {
+      if (sq.avg < 70) {
+        results.push({ priority: sq.avg < 50 ? 'critical' : 'high', category: 'performance', title: `${sq.squadron} below passing threshold (${sq.avg}%)`, body: `${sq.squadron} averages ${sq.avg}% across ${sq.count} attempts on this quiz.`, action: `Provide additional training resources on this quiz's categories for ${sq.squadron}.` });
+      }
+    }
+    return results;
+  }, [submissionsBySquadron]);
+
+  const questionRecommendations = useMemo((): Recommendation[] => {
+    if (!submissions || submissions.length === 0) return [];
+    const questionStats: Record<string, { correct: number; total: number; text: string }> = {};
+    for (const sub of submissions) {
+      if (!sub.answers) continue;
+      const answers = typeof sub.answers === 'string' ? JSON.parse(sub.answers) : sub.answers;
+      if (!Array.isArray(answers)) continue;
+      for (const ans of answers) {
+        const key = ans.questionText || ans.question;
+        if (!key) continue;
+        if (!questionStats[key]) questionStats[key] = { correct: 0, total: 0, text: key };
+        questionStats[key].total++;
+        if (ans.isCorrect || ans.correct) questionStats[key].correct++;
+      }
+    }
+    const results: Recommendation[] = [];
+    const entries = Object.values(questionStats).filter(q => q.total >= 3);
+    const failing = entries.filter(q => (q.correct / q.total) < 0.5);
+    if (failing.length === 0) return [];
+    const veryHard = failing.filter(q => (q.correct / q.total) < 0.25);
+    for (const q of veryHard) {
+      const pct = Math.round((q.correct / q.total) * 100);
+      const truncated = q.text.length > 80 ? q.text.substring(0, 80) + '...' : q.text;
+      results.push({ priority: 'critical', category: 'question', title: `Question failing nearly all students (${pct}% success)`, body: `"${truncated}" — only ${pct}% of ${q.total} attempts are correct. Review for clarity or incorrect answer key.`, action: 'Verify the correct answer and check if this topic is adequately covered in training materials.' });
+    }
+    const moderate = failing.filter(q => (q.correct / q.total) >= 0.25);
+    if (moderate.length > 0) {
+      const list = moderate.slice(0, 3).map(q => {
+        const pct = Math.round((q.correct / q.total) * 100);
+        const t = q.text.length > 60 ? q.text.substring(0, 60) + '...' : q.text;
+        return `• "${t}" (${pct}% success, ${q.total} attempts)`;
+      }).join('\n');
+      results.push({ priority: 'high', category: 'question', title: `${moderate.length} question${moderate.length > 1 ? 's' : ''} with <50% success`, body: `The following questions have low success rates:\n${list}`, action: 'Consider rewording these questions or providing more training on the associated topics.' });
+    }
+    return results;
+  }, [submissions]);
 
   if (quizLoading) {
     return (
@@ -251,7 +312,10 @@ export default function QuizDetails() {
             {Object.keys(submissionsBySquadron).length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Squadron Performance</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Squadron Performance</CardTitle>
+                    <RecommendationButton recommendations={squadronRecommendations} context="Quiz Squadron Performance" />
+                  </div>
                   <CardDescription>Average scores by squadron</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -336,7 +400,10 @@ export default function QuizDetails() {
           <TabsContent value="questions">
             <Card>
               <CardHeader>
-                <CardTitle>Quiz Questions</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Quiz Questions</CardTitle>
+                  <RecommendationButton recommendations={questionRecommendations} context="Quiz Questions" />
+                </div>
                 <CardDescription>
                   This quiz contains {quiz.questionCount} randomly selected questions from the following categories
                 </CardDescription>

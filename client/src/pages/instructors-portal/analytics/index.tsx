@@ -1,6 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { useQuery } from "@tanstack/react-query";
+import RecommendationButton from "@/components/RecommendationButton";
+import {
+  recommendScoreDistribution,
+  recommendSquadronPerformance,
+  recommendPerformanceTrends,
+  recommendAssessmentTypes,
+  recommendTopicMastery,
+  recommendQuestionDifficulty,
+  recommendAtRiskStudents,
+} from "@/lib/recommendations";
 import { 
   Scenario, 
   ScenarioSubmission, 
@@ -1581,7 +1591,10 @@ export default function AdvancedAnalytics() {
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">Score Distribution</CardTitle>
-                      <HelpButton helpKey="scoreDistribution" onClick={setActiveHelp} />
+                      <div className="flex items-center gap-1.5">
+                        <RecommendationButton recommendations={recommendScoreDistribution(performanceData.scoreDistribution)} context="Score Distribution" />
+                        <HelpButton helpKey="scoreDistribution" onClick={setActiveHelp} />
+                      </div>
                     </div>
                     <CardDescription>Student performance across score ranges</CardDescription>
                   </CardHeader>
@@ -1700,7 +1713,10 @@ export default function AdvancedAnalytics() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Squadron Performance Comparison</CardTitle>
-                    <HelpButton helpKey="squadronPerformance" onClick={setActiveHelp} />
+                    <div className="flex items-center gap-1.5">
+                      <RecommendationButton recommendations={recommendSquadronPerformance(performanceData.squadronPerformance)} context="Squadron Performance" />
+                      <HelpButton helpKey="squadronPerformance" onClick={setActiveHelp} />
+                    </div>
                   </div>
                   <CardDescription>Detailed analysis of performance metrics by squadron</CardDescription>
                 </CardHeader>
@@ -1762,7 +1778,10 @@ export default function AdvancedAnalytics() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Performance Trends</CardTitle>
-                    <HelpButton helpKey="performanceTrends" onClick={setActiveHelp} />
+                    <div className="flex items-center gap-1.5">
+                      <RecommendationButton recommendations={recommendPerformanceTrends(performanceData.trendOverTime)} context="Performance Trends" />
+                      <HelpButton helpKey="performanceTrends" onClick={setActiveHelp} />
+                    </div>
                   </div>
                   <CardDescription>Analysis of student performance over time</CardDescription>
                 </CardHeader>
@@ -1812,7 +1831,10 @@ export default function AdvancedAnalytics() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Assessment Type Performance</CardTitle>
-                    <HelpButton helpKey="assessmentType" onClick={setActiveHelp} />
+                    <div className="flex items-center gap-1.5">
+                      <RecommendationButton recommendations={recommendAssessmentTypes(performanceData.assessmentTypePerformance)} context="Assessment Type Performance" />
+                      <HelpButton helpKey="assessmentType" onClick={setActiveHelp} />
+                    </div>
                   </div>
                   <CardDescription>Comparison of student performance across different assessment types</CardDescription>
                 </CardHeader>
@@ -1934,7 +1956,10 @@ export default function AdvancedAnalytics() {
                         <Layers className="h-5 w-5" />
                         Topic Mastery Matrix
                       </CardTitle>
-                      <HelpButton helpKey="topicMastery" onClick={setActiveHelp} />
+                      <div className="flex items-center gap-1.5">
+                        <RecommendationButton recommendations={recommendTopicMastery(topicMastery || [])} context="Topic Mastery" />
+                        <HelpButton helpKey="topicMastery" onClick={setActiveHelp} />
+                      </div>
                     </div>
                     <CardDescription>Performance breakdown by quiz category</CardDescription>
                   </CardHeader>
@@ -1969,7 +1994,10 @@ export default function AdvancedAnalytics() {
                         <BarChart3 className="h-5 w-5" />
                         Question Pass Rate
                       </CardTitle>
-                      <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
+                      <div className="flex items-center gap-1.5">
+                        <RecommendationButton recommendations={recommendQuestionDifficulty(questionDifficulty || [])} context="Question Pass Rate" />
+                        <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
+                      </div>
                     </div>
                     <CardDescription>Top 10 most challenging questions</CardDescription>
                   </CardHeader>
@@ -2095,7 +2123,10 @@ export default function AdvancedAnalytics() {
                         <Medal className="h-5 w-5" />
                         Certification Readiness Score
                       </CardTitle>
-                      <HelpButton helpKey="certificationReadiness" onClick={setActiveHelp} />
+                      <div className="flex items-center gap-1.5">
+                        <RecommendationButton recommendations={recommendAtRiskStudents(atRiskStudents || [], certificationReadiness || [])} context="At-Risk & Certification Readiness" />
+                        <HelpButton helpKey="certificationReadiness" onClick={setActiveHelp} />
+                      </div>
                     </div>
                     <CardDescription>Students ranked by overall readiness</CardDescription>
                   </CardHeader>
