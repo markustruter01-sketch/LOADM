@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Users, Shield, Award, AlertTriangle, CheckCircle2, RefreshCw, Printer,
   TrendingUp, TrendingDown, Minus, Activity, Target, Plane, GraduationCap,
-  AlertCircle, Loader2, ChevronRight
+  AlertCircle, Loader2, ChevronRight, Lightbulb, BarChart3
 } from "lucide-react";
 
 const SQUADRONS = ["ALL", "33SQN", "35SQN", "36SQN", "37SQN"];
@@ -899,13 +899,100 @@ function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopi
   );
 }
 
+function buildSafetyRecommendations(data: any, periodMonths: number): { priority: 'critical' | 'high' | 'medium' | 'low'; title: string; body: string; action: string }[] {
+  if (!data) return [];
+  const recs: { priority: 'critical' | 'high' | 'medium' | 'low'; title: string; body: string; action: string }[] = [];
+
+  const totalIncidents = data.byType?.incident ?? 0;
+  const major = data.bySeverity?.major ?? 0;
+  const moderate = data.bySeverity?.moderate ?? 0;
+  const trainFail = data.byType?.training_failure ?? 0;
+  const openCount = data.byStatus?.open ?? 0;
+  const factors: any[] = data.topContributingFactors || [];
+  const squadrons: any[] = (data.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
+
+  if (major > 0) {
+    recs.push({ priority: 'critical', title: `${major} Major Incident${major > 1 ? 's' : ''} in Period`, body: `${major} major safety incident${major > 1 ? 's were' : ' was'} recorded in the last ${periodMonths} months. Major incidents indicate potential for significant harm or mission impact and require senior leadership attention.`, action: 'Conduct safety stand-down. Ensure all major incidents have formal investigation reports and corrective actions assigned.' });
+  }
+
+  if (openCount > 0) {
+    recs.push({ priority: major > 0 ? 'high' : 'medium', title: `${openCount} Open Safety Report${openCount > 1 ? 's' : ''} Unresolved`, body: `${openCount} safety report${openCount > 1 ? 's remain' : ' remains'} in open status for this period. Open items represent unresolved safety risks.`, action: 'Review all open items and assign responsible officers with target closure dates.' });
+  }
+
+  if (moderate >= 2) {
+    recs.push({ priority: 'high', title: `Elevated Moderate Incident Rate`, body: `${moderate} moderate-severity incident${moderate > 1 ? 's' : ''} occurred in the last ${periodMonths} months. Moderate incidents often precede more serious events if systemic causes are not addressed.`, action: 'Review each moderate incident for common root causes and update relevant procedures or training.' });
+  }
+
+  if (factors.length > 0 && factors[0].incidents > 0) {
+    const top = factors[0];
+    recs.push({ priority: top.incidents >= 3 ? 'high' : 'medium', title: `Primary Safety Factor: ${top.factor}`, body: `"${top.factor}" is the most frequently cited contributing factor this period, appearing in ${top.incidents} incident${top.incidents > 1 ? 's' : ''}, ${top.observations} observation${top.observations > 1 ? 's' : ''}, and ${top.trainingFailures} training failure${top.trainingFailures > 1 ? 's' : ''} (${top.total} total reports).`, action: `Prioritise a dedicated review of ${top.factor.toLowerCase()} procedures. Consider a targeted refresher briefing for all loadmasters.` });
+  }
+
+  if (factors.length > 1 && factors[1].incidents > 0) {
+    const second = factors[1];
+    recs.push({ priority: second.incidents >= 2 ? 'medium' : 'low', title: `Secondary Safety Factor: ${second.factor}`, body: `"${second.factor}" is the second most common factor, with ${second.total} total reports including ${second.incidents} incident${second.incidents > 1 ? 's' : ''} this period.`, action: `Schedule ${second.factor.toLowerCase()} awareness review at the next safety brief.` });
+  }
+
+  if (squadrons.length > 0) {
+    const topSqn = [...squadrons].sort((a, b) => (b.incidents || 0) - (a.incidents || 0))[0];
+    const avgInc = squadrons.reduce((s, sq) => s + (sq.incidents || 0), 0) / squadrons.length;
+    if (topSqn.incidents > avgInc * 1.5 && topSqn.incidents >= 2) {
+      recs.push({ priority: 'medium', title: `${topSqn.squadron}SQN — Elevated Incident Rate`, body: `${topSqn.squadron}SQN recorded ${topSqn.incidents} incident${topSqn.incidents > 1 ? 's' : ''} this period — ${Math.round(((topSqn.incidents - avgInc) / avgInc) * 100)}% above the squadron average of ${avgInc.toFixed(1)}. Targeted attention is recommended.`, action: `Engage ${topSqn.squadron}SQN flight safety rep for a focused debrief. Review any common crew or mission type patterns.` });
+    }
+  }
+
+  if (trainFail >= 3) {
+    recs.push({ priority: 'medium', title: `Training Compliance Failures`, body: `${trainFail} training failure${trainFail > 1 ? 's' : ''} recorded this period. Repeated training failures indicate gaps between current training content and operational requirements.`, action: 'Review training material currency and scheduling compliance. Identify if failures share a common topic or squadron.' });
+  }
+
+  const nightFactor = factors.find((f: any) => f.factor === 'Night Operations');
+  if (nightFactor && nightFactor.incidents >= 2) {
+    recs.push({ priority: 'medium', title: 'Night Operations Safety Pattern', body: `Night operations have been cited as a contributing factor in ${nightFactor.incidents} incidents and ${nightFactor.observations} observations this period. Low-visibility operations consistently carry elevated risk.`, action: 'Review night operations SOPs and ensure all loadmasters have current night currency. Consider additional simulator training.' });
+  }
+
+  const fatigueFactor = factors.find((f: any) => f.factor === 'Crew Fatigue');
+  if (fatigueFactor && fatigueFactor.total >= 2) {
+    recs.push({ priority: 'medium', title: 'Crew Fatigue Risk Pattern', body: `Crew fatigue appears as a contributing factor in ${fatigueFactor.total} reports this period (${fatigueFactor.incidents} incident${fatigueFactor.incidents > 1 ? 's' : ''}, ${fatigueFactor.observations} observation${fatigueFactor.observations > 1 ? 's' : ''}). Fatigue is a leading contributor to loadmaster errors.`, action: 'Audit scheduling practices for duty period compliance. Ensure fatigue risk assessments are completed before night or extended operations.' });
+  }
+
+  if (totalIncidents === 0 && trainFail === 0) {
+    recs.push({ priority: 'low', title: 'Strong Safety Performance This Period', body: `No incidents or training failures recorded in the last ${periodMonths} months. Continued proactive reporting culture is evident.`, action: 'Maintain current safety culture. Consider recognising individual commendation contributors.' });
+  }
+
+  const order = { critical: 0, high: 1, medium: 2, low: 3 };
+  return recs.sort((a, b) => order[a.priority] - order[b.priority]);
+}
+
 function SafetyTab({ safetyData }: { safetyData: any }) {
   const safetyScore = safetyData?.safetyScore ?? 0;
   const openIncidents = (safetyData?.openItems || []).filter((i: any) => i.severity === "major" || i.severity === "moderate");
   const monthlySummary = safetyData?.monthlyTrend || [];
   const bySquadron = safetyData?.bySquadron?.filter((s: any) => s.squadron !== "AMG") || [];
 
+  const [recPeriod, setRecPeriod] = useState<'3' | '6' | '12'>('6');
+  const [periodData, setPeriodData] = useState<any>(null);
+  const [periodLoading, setPeriodLoading] = useState(false);
+
+  useEffect(() => {
+    setPeriodLoading(true);
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - parseInt(recPeriod), now.getDate());
+    fetch(`/api/analytics/safety-summary?startDate=${start.toISOString()}`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(d => { setPeriodData(d); setPeriodLoading(false); })
+      .catch(() => setPeriodLoading(false));
+  }, [recPeriod]);
+
+  const recommendations = useMemo(() => buildSafetyRecommendations(periodData, parseInt(recPeriod)), [periodData, recPeriod]);
+
   const gaugeAngle = (safetyScore / 100) * 180;
+
+  const priorityConfig = {
+    critical: { color: 'text-red-400', border: 'border-red-500/40', bg: 'bg-red-950/20', badge: 'bg-red-500/20 text-red-400 border-red-500/40' },
+    high: { color: 'text-orange-400', border: 'border-orange-500/40', bg: 'bg-orange-950/20', badge: 'bg-orange-500/20 text-orange-400 border-orange-500/40' },
+    medium: { color: 'text-amber-400', border: 'border-amber-500/40', bg: 'bg-amber-950/10', badge: 'bg-amber-500/20 text-amber-400 border-amber-500/40' },
+    low: { color: 'text-blue-400', border: 'border-blue-500/40', bg: 'bg-blue-950/10', badge: 'bg-blue-500/20 text-blue-400 border-blue-500/40' },
+  };
 
   return (
     <>
@@ -926,7 +1013,79 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
               <text x="100" y="85" textAnchor="middle" className="text-3xl font-bold" fill="white" fontSize="28">{safetyScore}</text>
               <text x="100" y="105" textAnchor="middle" fill="#999" fontSize="11">{getSafetyLabel(safetyScore)}</text>
             </svg>
+            <p className="text-xs text-gray-500 mt-1">All-time force-wide composite score</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-[#1a1a1a] border-[#333]">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <CardTitle className="text-white text-lg flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-amber-400" />
+              Safety Issue Recommendations
+            </CardTitle>
+            <Select value={recPeriod} onValueChange={(v: any) => setRecPeriod(v)}>
+              <SelectTrigger className="w-36 bg-[#222] border-[#444] text-gray-200 text-sm h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#222] border-[#444]">
+                <SelectItem value="3" className="text-gray-200">Last 3 months</SelectItem>
+                <SelectItem value="6" className="text-gray-200">Last 6 months</SelectItem>
+                <SelectItem value="12" className="text-gray-200">Last 12 months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Rule-based analysis of safety data for the selected period. No AI involved.</p>
+        </CardHeader>
+        <CardContent>
+          {periodLoading ? (
+            <div className="flex items-center justify-center py-8 gap-2 text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Analysing period data...</span>
+            </div>
+          ) : recommendations.length === 0 ? (
+            <div className="flex items-center gap-3 py-4">
+              <CheckCircle2 className="h-8 w-8 text-green-400 flex-shrink-0" />
+              <div>
+                <p className="text-green-400 font-medium text-sm">No Safety Issues Identified</p>
+                <p className="text-gray-500 text-xs mt-0.5">All metrics are within acceptable thresholds for the last {recPeriod} months.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recommendations.map((rec, i) => {
+                const cfg = priorityConfig[rec.priority];
+                return (
+                  <div key={i} className={`rounded-lg border ${cfg.border} ${cfg.bg} overflow-hidden`}>
+                    <div className="px-4 py-3">
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-0.5 flex-shrink-0 ${cfg.color}`}>
+                          {rec.priority === 'critical' || rec.priority === 'high' ? <AlertTriangle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className={`text-sm font-semibold ${cfg.color}`}>{rec.title}</span>
+                            <Badge variant="outline" className={`text-xs px-1.5 py-0 border ${cfg.badge}`}>{rec.priority.toUpperCase()}</Badge>
+                          </div>
+                          <p className="text-sm text-gray-300 leading-snug">{rec.body}</p>
+                          {rec.action && (
+                            <p className="text-xs text-gray-400 italic mt-1.5 border-t border-white/5 pt-1.5">
+                              <span className="text-gray-500 not-italic font-medium">Recommended action: </span>{rec.action}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <p className="text-xs text-gray-600 pt-1 flex items-center gap-1.5">
+                <BarChart3 className="h-3 w-3" />
+                {(periodData?.summary?.total ?? 0)} total records analysed for the last {recPeriod}-month period
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -996,18 +1155,30 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
 
       {bySquadron.length > 0 && (
         <Card className="bg-[#1a1a1a] border-[#333]">
-          <CardHeader><CardTitle className="text-white text-lg">Incidents by Squadron</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Incidents by Squadron</CardTitle>
+            <p className="text-xs text-gray-500 mt-0.5">All-time incident counts per squadron</p>
+          </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {bySquadron.map((sq: any) => {
                 const maxInc = Math.max(...bySquadron.map((s: any) => s.incidents || 0), 1);
+                const total = (sq.incidents || 0) + (sq.observations || 0) + (sq.commendations || 0);
                 return (
-                  <div key={sq.squadron} className="flex items-center gap-3">
-                    <div className="w-16 text-sm text-gray-300">{sq.squadron}SQN</div>
-                    <div className="flex-1">
-                      <div className="bg-red-500/60 h-5 rounded" style={{ width: `${((sq.incidents || 0) / maxInc) * 100}%`, minWidth: sq.incidents > 0 ? "20px" : "0" }}></div>
+                  <div key={sq.squadron} className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 text-sm text-gray-300">{sq.squadron}SQN</div>
+                      <div className="flex-1 relative h-6">
+                        <div className="w-full bg-[#222] rounded h-6"></div>
+                        <div className="absolute top-0 left-0 bg-red-500/60 h-6 rounded" style={{ width: `${((sq.incidents || 0) / maxInc) * 100}%`, minWidth: sq.incidents > 0 ? "4px" : "0" }}></div>
+                      </div>
+                      <div className="w-8 text-right text-sm text-gray-400">{sq.incidents || 0}</div>
                     </div>
-                    <div className="w-8 text-right text-sm text-gray-400">{sq.incidents || 0}</div>
+                    <div className="flex gap-3 pl-20 text-xs text-gray-600">
+                      <span>{sq.observations || 0} observations</span>
+                      <span className="text-green-700">{sq.commendations || 0} commendations</span>
+                      <span>{sq.trainingFailures || 0} training failures</span>
+                    </div>
                   </div>
                 );
               })}

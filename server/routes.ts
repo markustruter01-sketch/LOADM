@@ -4235,6 +4235,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         safetyLevel: safetyRecords.safetyLevel,
         location: safetyRecords.location,
         aircraftType: safetyRecords.aircraftType,
+        contributingFactors: safetyRecords.contributingFactors,
+        flightPhase: safetyRecords.flightPhase,
       })
       .from(safetyRecords)
       .orderBy(desc(safetyRecords.date));
@@ -4343,6 +4345,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         negligible: filteredRecords.filter(r => r.safetyLevel?.includes('Level 4')).length,
       };
 
+      // Contributing factor analysis
+      const factorMap = new Map<string, { incidents: number; observations: number; trainingFailures: number; total: number }>();
+      filteredRecords.forEach(r => {
+        const raw = r.contributingFactors?.trim();
+        if (!raw) return;
+        const factor = raw.split(' - ')[0].split(',')[0].trim();
+        if (!factor) return;
+        const existing = factorMap.get(factor) || { incidents: 0, observations: 0, trainingFailures: 0, total: 0 };
+        if (r.recordType === 'incident') existing.incidents++;
+        else if (r.recordType === 'observation') existing.observations++;
+        else if (r.recordType === 'training_failure') existing.trainingFailures++;
+        existing.total++;
+        factorMap.set(factor, existing);
+      });
+      const topContributingFactors = Array.from(factorMap.entries())
+        .map(([factor, counts]) => ({ factor, ...counts }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 8);
+
+      // Flight phase analysis (incidents only)
+      const flightPhaseMap = new Map<string, number>();
+      incidents.forEach(r => {
+        if (r.flightPhase) {
+          flightPhaseMap.set(r.flightPhase, (flightPhaseMap.get(r.flightPhase) || 0) + 1);
+        }
+      });
+      const byFlightPhase = Array.from(flightPhaseMap.entries())
+        .map(([phase, count]) => ({ phase, count }))
+        .sort((a, b) => b.count - a.count);
+
       res.json({
         summary: {
           total: filteredRecords.length,
@@ -4359,6 +4391,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .slice(0, 10),
         safetyScore,
         safetyScoreLabel,
+        topContributingFactors,
+        byFlightPhase,
       });
     } catch (error) {
       console.error("Error fetching safety summary analytics:", error);
