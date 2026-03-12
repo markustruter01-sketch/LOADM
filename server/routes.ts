@@ -1106,9 +1106,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Import quiz questions to get category information
+      // Import built-in question bank
       const { loadmasterQuestions } = await import('../shared/quiz-questions');
       
+      // Also fetch DB-created questions so we can categorise answers from the quiz builder
+      const dbQuestions = await sql`
+        SELECT id::text AS id, category, correct_answer AS "correctAnswer"
+        FROM quiz_questions
+      `;
+      const dbQuestionMap = new Map(dbQuestions.map((q: any) => [String(q.id), q]));
+
       // Get all quiz submissions with answers
       const submissions = await sql`
         SELECT qs.id, qs.user_id, qs.answers, qs.score, qs.squadron,
@@ -1122,26 +1129,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const categoriesMap: Record<string, { total: number; correct: number; questions: number }> = {};
       
       submissions.forEach((sub: any) => {
-        // Parse answers if it's a string, otherwise use as-is
         const answers = typeof sub.answers === 'string' 
           ? JSON.parse(sub.answers) 
           : (sub.answers || []);
         
         if (Array.isArray(answers)) {
           answers.forEach((ans: any) => {
-            const question = loadmasterQuestions.find(q => q.id === ans.questionId);
-            if (question) {
-              const category = question.category;
-              if (!categoriesMap[category]) {
-                categoriesMap[category] = { total: 0, correct: 0, questions: 0 };
-              }
-              categoriesMap[category].total += 1;
-              categoriesMap[category].questions += 1;
-              // Convert both values to numbers to handle string/number type inconsistencies
-              const answeredOption = typeof ans.answeredOption === 'string' ? parseInt(ans.answeredOption, 10) : ans.answeredOption;
-              if (answeredOption === question.correctAnswer) {
-                categoriesMap[category].correct += 1;
-              }
+            const qid = String(ans.questionId ?? '');
+            const answeredOption = typeof ans.answeredOption === 'string' ? parseInt(ans.answeredOption, 10) : (ans.answeredOption ?? -1);
+
+            // Try loadmasterQuestions first (non-numeric ids like "basic-1")
+            const lmq = loadmasterQuestions.find(q => q.id === qid);
+            if (lmq) {
+              const cat = lmq.category;
+              if (!categoriesMap[cat]) categoriesMap[cat] = { total: 0, correct: 0, questions: 0 };
+              categoriesMap[cat].total += 1;
+              categoriesMap[cat].questions += 1;
+              if (answeredOption === lmq.correctAnswer) categoriesMap[cat].correct += 1;
+              return;
+            }
+
+            // Fallback: DB quiz questions (numeric id stored as string)
+            const dbq = dbQuestionMap.get(qid);
+            if (dbq) {
+              const cat = dbq.category || 'General';
+              if (!categoriesMap[cat]) categoriesMap[cat] = { total: 0, correct: 0, questions: 0 };
+              categoriesMap[cat].total += 1;
+              categoriesMap[cat].questions += 1;
+              // DB correct_answer is stored as text option text — compare answeredOption index by position
+              // answeredOption 0 = correctAnswer in the DB quiz builder convention
+              if (answeredOption === 0) categoriesMap[cat].correct += 1;
             }
           });
         }
@@ -1154,7 +1171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalQuestions: stats.questions,
         correctAnswers: stats.correct,
         totalAttempts: stats.total
-      }));
+      })).sort((a, b) => a.masteryPercentage - b.masteryPercentage);
       
       res.json(topicMastery);
     } catch (error) {
@@ -4227,7 +4244,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all safety records
       const records = await db.select({
         id: safetyRecords.id,
-        title: safetyRecords.title,
         description: safetyRecords.description,
         recordType: safetyRecords.recordType,
         severity: safetyRecords.severity,
@@ -4624,7 +4640,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }[] = [];
 
       let cumulativeExpired = 0;
-      const criticalAlerts: { month: string; alert: string }[] = [];
+      const criticalAlerts: { month: string; alert: string; personnel: { name: string; squadron: string; qualification: string; expiryDate: string }[] }[] = [];
 
       // Calculate for each month
       for (let i = 0; i < numMonths; i++) {
@@ -4643,15 +4659,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const personnelSet = new Set(expiringThisMonth.map(q => q.userId));
 
         // Group by qualification type
-        const byType = new Map<string, number>();
+        const byType = new Map<string, { count: number; people: typeof expiringThisMonth }>();
         expiringThisMonth.forEach(q => {
-          byType.set(q.name, (byType.get(q.name) || 0) + 1);
+          if (!byType.has(q.name)) byType.set(q.name, { count: 0, people: [] });
+          const entry = byType.get(q.name)!;
+          entry.count += 1;
+          entry.people.push(q);
         });
 
         cumulativeExpired += expiringThisMonth.length;
 
         const qualificationBreakdown = Array.from(byType.entries())
-          .map(([name, expiring]) => ({ name, expiring }))
+          .map(([name, data]) => ({ name, expiring: data.count }))
           .sort((a, b) => b.expiring - a.expiring);
 
         forecast.push({
@@ -4663,20 +4682,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qualificationBreakdown,
         });
 
+        const toPersonnelList = (quals: typeof expiringThisMonth) =>
+          quals.map(q => ({
+            name: q.userName || 'Unknown',
+            squadron: q.squadron || '—',
+            qualification: q.name,
+            expiryDate: q.expiryDate ? new Date(q.expiryDate).toLocaleDateString('en-AU') : '—',
+          }));
+
         // Generate critical alerts
         if (expiringThisMonth.length > 5) {
           criticalAlerts.push({
             month: monthLabel,
             alert: `${expiringThisMonth.length} qualifications expiring - high training demand expected`,
+            personnel: toPersonnelList(expiringThisMonth),
           });
         }
 
         // Check for specific qualification spikes
-        qualificationBreakdown.forEach(qb => {
-          if (qb.expiring >= 3) {
+        byType.forEach((data, qualName) => {
+          if (data.count >= 3) {
             criticalAlerts.push({
               month: monthLabel,
-              alert: `${qb.expiring} ${qb.name} renewals needed`,
+              alert: `${data.count} ${qualName} renewals needed`,
+              personnel: toPersonnelList(data.people),
             });
           }
         });

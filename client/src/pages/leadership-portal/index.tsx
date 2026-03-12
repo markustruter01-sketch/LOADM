@@ -8,6 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import c17aImg from "../../assets/c17a.png";
+import kc30aImg from "../../assets/kc30a.png";
+import c130jImg from "../../assets/c130j.png";
+import c27jImg from "../../assets/c27j.png";
 import {
   Users, Shield, Award, AlertTriangle, CheckCircle2, RefreshCw, Printer,
   TrendingUp, TrendingDown, Minus, Activity, Target, Plane, GraduationCap,
@@ -114,7 +118,7 @@ function AlertDetailDialog({ alert, onClose }: { alert: any; onClose: () => void
 
   const renderContent = () => {
     if (alert.type === "expired-quals") {
-      const items: any[] = alert.payload || [];
+      const items: any[] = [...(alert.payload || [])].sort((a, b) => (b.daysOverdue || 0) - (a.daysOverdue || 0));
       return (
         <div className="space-y-3">
           <p className="text-sm text-gray-400">{items.length} qualification{items.length > 1 ? "s" : ""} have passed their expiry date and require immediate renewal action.</p>
@@ -357,7 +361,7 @@ export default function LeadershipPortal() {
     const readyPercent = readinessData?.summary?.readyPercent ?? 0;
     const safetyScore = safetyData?.safetyScore ?? 0;
     const expiring30 = currencyData?.summary?.expiring30Days ?? 0;
-    const highRiskCount = (atRiskData?.students || []).filter((s: any) => s.riskLevel === "high").length;
+    const highRiskCount = (Array.isArray(atRiskData) ? atRiskData : []).filter((s: any) => s.riskLevel === "high").length;
 
     const days = parseInt(dateRange);
     const cutoff = new Date();
@@ -447,7 +451,7 @@ export default function LeadershipPortal() {
     }
 
     if (kpis.highRiskCount > 0) {
-      const highRiskStudents = (atRiskData?.students || []).filter((s: any) => s.riskLevel === "high");
+      const highRiskStudents = (Array.isArray(atRiskData) ? atRiskData : []).filter((s: any) => s.riskLevel === "high");
       items.push({ text: `${kpis.highRiskCount} high-risk personnel identified`, severity: "high", type: "high-risk", payload: highRiskStudents });
     }
 
@@ -682,20 +686,45 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader><CardTitle className="text-white text-lg">Squadron Battle-Board</CardTitle></CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {squadrons.map((sq: any) => (
-              <div
-                key={sq.squadron}
-                className={`rounded-xl p-4 border-2 ring-2 ${getReadinessBg(sq.readyPercent)} ${getReadinessRing(sq.readyPercent)}`}
-              >
-                <div className="text-center">
-                  <div className="text-sm font-medium text-gray-300 mb-1">{sq.squadron}SQN</div>
-                  <div className={`text-3xl font-bold ${getReadinessColor(sq.readyPercent)}`}>{sq.readyPercent}%</div>
-                  <div className="text-xs text-gray-400 mt-1">{sq.ready} / {sq.total} ready</div>
-                </div>
+          {(() => {
+            const AIRCRAFT_MAP: Record<string, { img: string; type: string }> = {
+              "33SQN": { img: c27jImg, type: "C-27J Spartan" },
+              "35SQN": { img: kc30aImg, type: "KC-30A MRTT" },
+              "36SQN": { img: c17aImg, type: "C-17A Globemaster" },
+              "37SQN": { img: c130jImg, type: "C-130J Hercules" },
+            };
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {squadrons.map((sq: any) => {
+                  const sqKey = sq.squadron.includes("SQN") ? sq.squadron : `${sq.squadron}SQN`;
+                  const aircraft = AIRCRAFT_MAP[sqKey];
+                  return (
+                    <div key={sq.squadron} className="flex flex-col gap-2">
+                      {aircraft && (
+                        <div className="w-full h-24 flex items-center justify-center bg-[#111] rounded-xl overflow-hidden border border-[#2a2a2a]">
+                          <img
+                            src={aircraft.img}
+                            alt={aircraft.type}
+                            className="h-full w-full object-contain p-1 drop-shadow-lg"
+                          />
+                        </div>
+                      )}
+                      <div
+                        className={`rounded-xl p-4 border-2 ring-2 ${getReadinessBg(sq.readyPercent)} ${getReadinessRing(sq.readyPercent)}`}
+                      >
+                        <div className="text-center">
+                          <div className="text-xs text-gray-500 mb-0.5">{aircraft?.type || ""}</div>
+                          <div className="text-sm font-medium text-gray-300 mb-1">{sqKey}</div>
+                          <div className={`text-3xl font-bold ${getReadinessColor(sq.readyPercent)}`}>{sq.readyPercent}%</div>
+                          <div className="text-xs text-gray-400 mt-1">{sq.ready} / {sq.total} ready</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
@@ -743,7 +772,7 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader><CardTitle className="text-white text-lg">At-Risk Personnel</CardTitle></CardHeader>
         <CardContent>
-          {(atRiskData?.students?.length > 0) ? (
+          {(Array.isArray(atRiskData) && atRiskData.length > 0) ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -755,7 +784,7 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
                   </tr>
                 </thead>
                 <tbody>
-                  {atRiskData.students.map((s: any, i: number) => (
+                  {atRiskData.map((s: any, i: number) => (
                     <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
                       <td className="py-2 px-2 text-white">{s.name || s.email}</td>
                       <td className="py-2 px-2 text-gray-300">{s.squadron || "—"}</td>
@@ -782,6 +811,7 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
 }
 
 function QualificationsTab({ currencyData, forecastData, readinessData }: { currencyData: any; forecastData: any; readinessData: any }) {
+  const [selectedCriticalAlert, setSelectedCriticalAlert] = useState<any>(null);
   const summary = currencyData?.summary;
   const squadrons = (readinessData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
   const perSquadronCurrency = (currencyData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
@@ -882,37 +912,101 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
       </Card>
 
       {forecastData?.criticalAlerts?.length > 0 && (
-        <Card className="bg-[#1a1a1a] border-[#333] border-red-500/30">
-          <CardHeader><CardTitle className="text-red-400 text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Critical Alerts</CardTitle></CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {forecastData.criticalAlerts.map((rawAlert: any, i: number) => {
-                let parsed = rawAlert;
-                if (typeof rawAlert === 'string') {
-                  try { parsed = JSON.parse(rawAlert); } catch { parsed = { alert: rawAlert }; }
-                } else if (typeof rawAlert?.alert === 'string' && rawAlert.alert.trim().startsWith('{')) {
-                  try { parsed = JSON.parse(rawAlert.alert); } catch {}
-                }
-                const month: string = parsed?.month || rawAlert?.month || '';
-                const alertText: string = parsed?.alert || rawAlert?.alert || rawAlert?.message || rawAlert?.text || String(rawAlert);
-                return (
-                  <div key={i} className="rounded-lg border border-red-500/25 bg-red-950/20 overflow-hidden">
-                    {month && (
-                      <div className="px-3 py-1.5 bg-red-900/30 border-b border-red-500/20 flex items-center gap-2">
-                        <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0" />
-                        <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">{month}</span>
+        <>
+          <Card className="bg-[#1a1a1a] border-[#333] border-red-500/30">
+            <CardHeader><CardTitle className="text-red-400 text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Critical Alerts</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {forecastData.criticalAlerts.map((rawAlert: any, i: number) => {
+                  let parsed = rawAlert;
+                  if (typeof rawAlert === 'string') {
+                    try { parsed = JSON.parse(rawAlert); } catch { parsed = { alert: rawAlert }; }
+                  } else if (typeof rawAlert?.alert === 'string' && rawAlert.alert.trim().startsWith('{')) {
+                    try { parsed = JSON.parse(rawAlert.alert); } catch {}
+                  }
+                  const month: string = parsed?.month || rawAlert?.month || '';
+                  const alertText: string = parsed?.alert || rawAlert?.alert || rawAlert?.message || rawAlert?.text || String(rawAlert);
+                  const personnel: any[] = parsed?.personnel || rawAlert?.personnel || [];
+                  const hasPersonnel = personnel.length > 0;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => hasPersonnel ? setSelectedCriticalAlert({ month, text: alertText, personnel }) : undefined}
+                      className={`w-full text-left rounded-lg border border-red-500/25 bg-red-950/20 overflow-hidden ${hasPersonnel ? "cursor-pointer hover:bg-red-950/40 transition-colors" : "cursor-default"}`}
+                    >
+                      {month && (
+                        <div className="px-3 py-1.5 bg-red-900/30 border-b border-red-500/20 flex items-center gap-2">
+                          <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0" />
+                          <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">{month}</span>
+                        </div>
+                      )}
+                      <div className="px-3 py-2.5 flex items-center justify-between gap-2">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-gray-200 leading-snug">{alertText}</span>
+                        </div>
+                        {hasPersonnel && <ChevronRight className="h-4 w-4 text-gray-500 flex-shrink-0" />}
                       </div>
-                    )}
-                    <div className="px-3 py-2.5 flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-200 leading-snug">{alertText}</span>
-                    </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {selectedCriticalAlert && (
+            <Dialog open={!!selectedCriticalAlert} onOpenChange={() => setSelectedCriticalAlert(null)}>
+              <DialogContent className="bg-[#1a1a1a] border-[#333] text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-red-400 text-base font-semibold">{selectedCriticalAlert.text}</DialogTitle>
+                  <DialogDescription className="text-gray-500 text-xs">
+                    <span className="text-orange-400 uppercase font-medium">CRITICAL</span> — {selectedCriticalAlert.month} · {selectedCriticalAlert.personnel.length} qualification{selectedCriticalAlert.personnel.length !== 1 ? "s" : ""} affected
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="mt-2">
+                  <div className="rounded border border-[#333] overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-[#222] text-gray-400 text-xs">
+                          <th className="text-left px-3 py-2">Personnel</th>
+                          <th className="text-left px-3 py-2">Squadron</th>
+                          <th className="text-left px-3 py-2">Qualification</th>
+                          <th className="text-right px-3 py-2">Expires</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedCriticalAlert.personnel.map((p: any, idx: number) => (
+                          <tr key={idx} className="border-t border-[#2a2a2a] hover:bg-[#1e1e1e]">
+                            <td className="px-3 py-2 text-white font-medium">{p.name || "—"}</td>
+                            <td className="px-3 py-2 text-gray-400">{p.squadron ? (p.squadron.includes("SQN") ? p.squadron : `${p.squadron}SQN`) : "—"}</td>
+                            <td className="px-3 py-2 text-gray-300">{p.qualification || "—"}</td>
+                            <td className="px-3 py-2 text-right text-orange-400">{p.expiryDate || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-[#333]">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    let txt = `CRITICAL ALERT DETAIL\n${"=".repeat(60)}\n`;
+                    txt += `Alert: ${selectedCriticalAlert.text}\nMonth: ${selectedCriticalAlert.month}\nGenerated: ${new Date().toLocaleString("en-AU")}\n\n`;
+                    txt += `PERSONNEL AFFECTED (${selectedCriticalAlert.personnel.length})\n${"-".repeat(40)}\n`;
+                    selectedCriticalAlert.personnel.forEach((p: any, i: number) => {
+                      txt += `${i + 1}. ${p.name} — ${p.squadron} | ${p.qualification} | Expires: ${p.expiryDate}\n`;
+                    });
+                    downloadText(txt, `critical-alert-${new Date().toISOString().slice(0, 10)}.txt`);
+                  }} className="border-[#444] text-gray-300 hover:bg-[#2a2a2a]">
+                    <Download className="h-4 w-4 mr-1.5" /> Download
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => window.print()} className="border-[#444] text-gray-300 hover:bg-[#2a2a2a]">
+                    <Printer className="h-4 w-4 mr-1.5" /> Print
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </>
       )}
     </>
   );
