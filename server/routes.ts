@@ -4227,6 +4227,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all safety records
       const records = await db.select({
         id: safetyRecords.id,
+        title: safetyRecords.title,
+        description: safetyRecords.description,
         recordType: safetyRecords.recordType,
         severity: safetyRecords.severity,
         date: safetyRecords.date,
@@ -4290,10 +4292,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         squadronMap.set(sqn, existing);
       });
 
-      // Monthly trend (last 6 months)
+      // Monthly trend (last 12 months)
       const monthlyTrend: { month: string; incidents: number; observations: number; commendations: number }[] = [];
       const now = new Date();
-      for (let i = 5; i >= 0; i--) {
+      for (let i = 11; i >= 0; i--) {
         const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
         const monthKey = month.toLocaleString('default', { month: 'short', year: '2-digit' });

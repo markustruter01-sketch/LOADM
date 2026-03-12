@@ -7,10 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Users, Shield, Award, AlertTriangle, CheckCircle2, RefreshCw, Printer,
   TrendingUp, TrendingDown, Minus, Activity, Target, Plane, GraduationCap,
-  AlertCircle, Loader2, ChevronRight, Lightbulb, BarChart3
+  AlertCircle, Loader2, ChevronRight, Lightbulb, BarChart3, Download, X,
+  FileWarning, Clock, UserX, Building2, Info
 } from "lucide-react";
 
 const SQUADRONS = ["ALL", "33SQN", "35SQN", "36SQN", "37SQN"];
@@ -61,6 +63,223 @@ function TrendDelta({ current, prior }: { current: number; prior: number | null 
   return <span className="text-red-400 text-xs flex items-center gap-0.5"><TrendingDown className="h-3 w-3" /> {delta.toFixed(1)}%</span>;
 }
 
+function downloadText(content: string, filename: string) {
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function AlertDetailDialog({ alert, onClose }: { alert: any; onClose: () => void }) {
+  if (!alert) return null;
+
+  const severityColor = alert.severity === "critical" ? "text-red-400 border-red-500/30" : alert.severity === "high" ? "text-orange-400 border-orange-500/30" : "text-amber-400 border-amber-500/30";
+
+  const handleDownload = () => {
+    let content = `ALERT DETAIL REPORT\n${"=".repeat(60)}\n`;
+    content += `Alert: ${alert.text}\nSeverity: ${alert.severity.toUpperCase()}\nGenerated: ${new Date().toLocaleString("en-AU")}\n\n`;
+
+    if (alert.type === "expired-quals" || alert.type === "expiring-quals") {
+      content += `QUALIFICATION DETAILS\n${"-".repeat(40)}\n`;
+      (alert.payload || []).forEach((q: any, i: number) => {
+        content += `${i + 1}. ${q.userName || q.userEmail || "Unknown"} — ${q.name || "Qualification"}\n`;
+        content += `   Squadron: ${q.squadron || "N/A"} | Expiry: ${q.expiryDate ? new Date(q.expiryDate).toLocaleDateString("en-AU") : "N/A"}`;
+        if (q.daysOverdue) content += ` | ${q.daysOverdue} days overdue`;
+        if (q.daysRemaining !== undefined) content += ` | ${q.daysRemaining} days remaining`;
+        content += "\n";
+      });
+    } else if (alert.type === "major-incident") {
+      content += `INCIDENT DETAILS\n${"-".repeat(40)}\n`;
+      (alert.payload || []).forEach((inc: any, i: number) => {
+        content += `${i + 1}. ${inc.title || "Incident"} — ${inc.squadron || "N/A"} (${inc.date ? new Date(inc.date).toLocaleDateString("en-AU") : "N/A"})\n`;
+        if (inc.description) content += `   ${inc.description}\n`;
+        content += `   Location: ${inc.location || "N/A"} | Aircraft: ${inc.aircraftType || "N/A"} | Status: ${inc.status || "N/A"}\n`;
+      });
+    } else if (alert.type === "high-risk") {
+      content += `HIGH-RISK PERSONNEL\n${"-".repeat(40)}\n`;
+      (alert.payload || []).forEach((s: any, i: number) => {
+        content += `${i + 1}. ${s.name || s.userName || "Unknown"} — ${s.squadron || "N/A"}\n`;
+        if (s.reasons?.length) content += `   Risk factors: ${s.reasons.join(", ")}\n`;
+      });
+    } else if (alert.type === "squadron-readiness") {
+      const sq = alert.payload;
+      content += `SQUADRON DETAILS\n${"-".repeat(40)}\n`;
+      content += `Squadron: ${sq.squadron}SQN\nReadiness: ${sq.readyPercent}%\nTotal Personnel: ${sq.total}\nFlight Ready: ${sq.ready}\nNot Ready: ${sq.notReady}\n`;
+    }
+    downloadText(content, `alert-report-${new Date().toISOString().slice(0, 10)}.txt`);
+  };
+
+  const renderContent = () => {
+    if (alert.type === "expired-quals") {
+      const items: any[] = alert.payload || [];
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-400">{items.length} qualification{items.length > 1 ? "s" : ""} have passed their expiry date and require immediate renewal action.</p>
+          <div className="rounded border border-[#333] overflow-hidden">
+            <table className="w-full text-sm">
+              <thead><tr className="bg-[#222] text-gray-400 text-xs"><th className="text-left px-3 py-2">Personnel</th><th className="text-left px-3 py-2">Squadron</th><th className="text-left px-3 py-2">Qualification</th><th className="text-left px-3 py-2">Expired</th><th className="text-right px-3 py-2">Overdue</th></tr></thead>
+              <tbody>
+                {items.map((q: any, i: number) => (
+                  <tr key={i} className="border-t border-[#2a2a2a] hover:bg-[#1e1e1e]">
+                    <td className="px-3 py-2 text-white font-medium">{q.userName || q.userEmail || "—"}</td>
+                    <td className="px-3 py-2 text-gray-400">{q.squadron ? `${q.squadron}SQN` : "—"}</td>
+                    <td className="px-3 py-2 text-gray-300">{q.name || "—"}</td>
+                    <td className="px-3 py-2 text-red-400">{q.expiryDate ? new Date(q.expiryDate).toLocaleDateString("en-AU") : "—"}</td>
+                    <td className="px-3 py-2 text-right text-red-400">{q.daysOverdue ? `${q.daysOverdue}d` : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (alert.type === "expiring-quals") {
+      const items: any[] = alert.payload || [];
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-400">{items.length} qualification{items.length > 1 ? "s" : ""} will expire within 30 days. Schedule renewals now to maintain readiness.</p>
+          <div className="rounded border border-[#333] overflow-hidden">
+            <table className="w-full text-sm">
+              <thead><tr className="bg-[#222] text-gray-400 text-xs"><th className="text-left px-3 py-2">Personnel</th><th className="text-left px-3 py-2">Squadron</th><th className="text-left px-3 py-2">Qualification</th><th className="text-left px-3 py-2">Expires</th><th className="text-right px-3 py-2">Remaining</th></tr></thead>
+              <tbody>
+                {items.map((q: any, i: number) => (
+                  <tr key={i} className="border-t border-[#2a2a2a] hover:bg-[#1e1e1e]">
+                    <td className="px-3 py-2 text-white font-medium">{q.userName || q.userEmail || "—"}</td>
+                    <td className="px-3 py-2 text-gray-400">{q.squadron ? `${q.squadron}SQN` : "—"}</td>
+                    <td className="px-3 py-2 text-gray-300">{q.name || "—"}</td>
+                    <td className="px-3 py-2 text-orange-400">{q.expiryDate ? new Date(q.expiryDate).toLocaleDateString("en-AU") : "—"}</td>
+                    <td className="px-3 py-2 text-right text-orange-400">{q.daysRemaining !== undefined ? `${q.daysRemaining}d` : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (alert.type === "major-incident") {
+      const items: any[] = alert.payload || [];
+      if (items.length === 0) return <p className="text-sm text-gray-400">No detailed data available for this incident alert.</p>;
+      return (
+        <div className="space-y-4">
+          {items.map((inc: any, i: number) => (
+            <div key={i} className="border border-red-500/30 bg-red-950/10 rounded-lg p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="text-white font-semibold text-sm">{inc.title || "Safety Incident"}</h4>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Badge variant="outline" className="border-red-500 text-red-400 text-xs">{inc.severity}</Badge>
+                  <Badge variant="outline" className="border-amber-500 text-amber-400 text-xs">{inc.status}</Badge>
+                </div>
+              </div>
+              {inc.description && <p className="text-sm text-gray-300">{inc.description}</p>}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div><span className="text-gray-500">Date: </span><span className="text-gray-300">{inc.date ? new Date(inc.date).toLocaleDateString("en-AU") : "—"}</span></div>
+                <div><span className="text-gray-500">Squadron: </span><span className="text-gray-300">{inc.squadron || "—"}</span></div>
+                <div><span className="text-gray-500">Location: </span><span className="text-gray-300">{inc.location || "—"}</span></div>
+                <div><span className="text-gray-500">Aircraft: </span><span className="text-gray-300">{inc.aircraftType || "—"}</span></div>
+                {inc.flightPhase && <div><span className="text-gray-500">Flight Phase: </span><span className="text-gray-300">{inc.flightPhase}</span></div>}
+                {inc.safetyLevel && <div><span className="text-gray-500">Safety Level: </span><span className="text-gray-300">{inc.safetyLevel}</span></div>}
+              </div>
+              {inc.contributingFactors && <p className="text-xs"><span className="text-gray-500">Contributing Factors: </span><span className="text-gray-300">{inc.contributingFactors}</span></p>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (alert.type === "high-risk") {
+      const students: any[] = alert.payload || [];
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-400">{students.length} personnel have been flagged as high-risk based on performance, attendance, or qualification currency.</p>
+          <div className="space-y-2">
+            {students.map((s: any, i: number) => (
+              <div key={i} className="border border-[#333] bg-[#1e1e1e] rounded-lg p-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white font-medium text-sm">{s.name || s.userName || `Student ${i + 1}`}</span>
+                  <span className="text-xs text-gray-400">{s.squadron || "—"}</span>
+                </div>
+                {s.avgScore !== undefined && <p className="text-xs text-gray-400">Avg Score: <span className="text-amber-400">{s.avgScore}%</span></p>}
+                {s.reasons?.length > 0 && <p className="text-xs text-gray-500 mt-1">{s.reasons.join(" • ")}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (alert.type === "squadron-readiness") {
+      const sq = alert.payload;
+      const notReadyReasons: [string, number][] = sq.reasonBreakdown ? Object.entries(sq.reasonBreakdown) : [];
+      return (
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Total Personnel", value: sq.total, color: "text-white" },
+              { label: "Flight Ready", value: sq.ready, color: "text-green-400" },
+              { label: "Not Ready", value: sq.notReady, color: "text-red-400" },
+            ].map(k => (
+              <div key={k.label} className="bg-[#1e1e1e] border border-[#333] rounded-lg p-3 text-center">
+                <p className={`text-2xl font-bold ${k.color}`}>{k.value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{k.label}</p>
+              </div>
+            ))}
+          </div>
+          <Progress value={sq.readyPercent} className="h-3" />
+          <p className="text-sm text-gray-400 text-center">{sq.readyPercent}% flight ready — target is 85%</p>
+          {notReadyReasons.length > 0 && (
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 font-medium">Non-Readiness Reasons</p>
+              <div className="space-y-1.5">
+                {notReadyReasons.sort((a, b) => Number(b[1]) - Number(a[1])).map(([reason, count]) => (
+                  <div key={reason} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-300">{reason}</span>
+                    <span className="text-red-400 font-medium">{count as number}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="text-sm text-gray-400">No additional details available.</p>;
+  };
+
+  return (
+    <Dialog open={!!alert} onOpenChange={onClose}>
+      <DialogContent className="bg-[#1a1a1a] border-[#333] text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <DialogTitle className={`text-base font-semibold ${severityColor.split(" ")[0]}`}>{alert.text}</DialogTitle>
+              <DialogDescription className="text-gray-500 text-xs mt-1">
+                <span className={`uppercase font-medium ${severityColor.split(" ")[0]}`}>{alert.severity}</span> alert — click Download to save a copy
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+        <div className="mt-2">{renderContent()}</div>
+        <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-[#333]">
+          <Button variant="outline" size="sm" onClick={handleDownload} className="border-[#444] text-gray-300 hover:bg-[#2a2a2a]">
+            <Download className="h-4 w-4 mr-1.5" /> Download Report
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="border-[#444] text-gray-300 hover:bg-[#2a2a2a]">
+            <Printer className="h-4 w-4 mr-1.5" /> Print
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function LeadershipPortal() {
   const { user } = useIsolatedAuth();
   const [squadron, setSquadron] = useState("ALL");
@@ -79,6 +298,7 @@ export default function LeadershipPortal() {
   const [topicData, setTopicData] = useState<any>(null);
   const [squadronPerfData, setSquadronPerfData] = useState<any>(null);
   const [scenarioSubsData, setScenarioSubsData] = useState<any>(null);
+  const [selectedAlert, setSelectedAlert] = useState<any>(null);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -198,36 +418,37 @@ export default function LeadershipPortal() {
   }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, scenarioSubsData, historyData, dateRange]);
 
   const alerts = useMemo(() => {
-    const items: { text: string; severity: "critical" | "high" | "medium" }[] = [];
+    const items: { text: string; severity: "critical" | "high" | "medium"; type: string; payload: any }[] = [];
 
     if (readinessData?.bySquadron) {
       readinessData.bySquadron.forEach((sq: any) => {
         if (sq.squadron !== "AMG" && sq.readyPercent < 70) {
-          items.push({ text: `${sq.squadron}SQN readiness ${sq.readyPercent}% — below target`, severity: "critical" });
+          items.push({ text: `${sq.squadron}SQN readiness ${sq.readyPercent}% — below target`, severity: "critical", type: "squadron-readiness", payload: sq });
         } else if (sq.squadron !== "AMG" && sq.readyPercent < 85) {
-          items.push({ text: `${sq.squadron}SQN readiness ${sq.readyPercent}% — approaching target`, severity: "medium" });
+          items.push({ text: `${sq.squadron}SQN readiness ${sq.readyPercent}% — approaching target`, severity: "medium", type: "squadron-readiness", payload: sq });
         }
       });
     }
 
     if (currencyData?.summary?.expired > 0) {
-      items.push({ text: `${currencyData.summary.expired} expired qualification${currencyData.summary.expired > 1 ? "s" : ""} across force`, severity: "critical" });
+      items.push({ text: `${currencyData.summary.expired} expired qualification${currencyData.summary.expired > 1 ? "s" : ""} across force`, severity: "critical", type: "expired-quals", payload: currencyData.expired || [] });
     }
     if (kpis.expiring30 >= 5) {
-      items.push({ text: `${kpis.expiring30} quals expiring within 30 days`, severity: "high" });
+      items.push({ text: `${kpis.expiring30} quals expiring within 30 days`, severity: "high", type: "expiring-quals", payload: currencyData?.expiring30 || [] });
     }
 
     if (safetyData?.openItems) {
       const openMajor = safetyData.openItems.filter((i: any) => i.severity === "major");
       if (openMajor.length > 0) {
-        items.push({ text: `${openMajor.length} open major incident${openMajor.length > 1 ? "s" : ""}`, severity: "critical" });
+        items.push({ text: `${openMajor.length} open major incident${openMajor.length > 1 ? "s" : ""}`, severity: "critical", type: "major-incident", payload: openMajor });
       }
     } else if (safetyData?.bySeverity?.major > 0 && safetyData?.byStatus?.open > 0) {
-      items.push({ text: `${safetyData.bySeverity.major} major safety incident${safetyData.bySeverity.major > 1 ? "s" : ""} on record`, severity: "critical" });
+      items.push({ text: `${safetyData.bySeverity.major} major safety incident${safetyData.bySeverity.major > 1 ? "s" : ""} on record`, severity: "critical", type: "major-incident", payload: [] });
     }
 
     if (kpis.highRiskCount > 0) {
-      items.push({ text: `${kpis.highRiskCount} high-risk personnel identified`, severity: "high" });
+      const highRiskStudents = (atRiskData?.students || []).filter((s: any) => s.riskLevel === "high");
+      items.push({ text: `${kpis.highRiskCount} high-risk personnel identified`, severity: "high", type: "high-risk", payload: highRiskStudents });
     }
 
     items.sort((a, b) => {
@@ -236,7 +457,7 @@ export default function LeadershipPortal() {
     });
 
     return items;
-  }, [readinessData, currencyData, safetyData, kpis]);
+  }, [readinessData, currencyData, safetyData, atRiskData, kpis]);
 
   const weakestTopic = useMemo(() => {
     const categories = Array.isArray(topicData) ? topicData : topicData?.categories;
@@ -378,9 +599,10 @@ export default function LeadershipPortal() {
                 </div>
               ) : (
                 alerts.map((alert, i) => (
-                  <div
+                  <button
                     key={i}
-                    className={`alert-chip flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap border ${
+                    onClick={() => setSelectedAlert(alert)}
+                    className={`alert-chip flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap border cursor-pointer transition-opacity hover:opacity-80 ${
                       alert.severity === "critical"
                         ? "bg-red-500/10 border-red-500/30 text-red-400"
                         : alert.severity === "high"
@@ -390,11 +612,14 @@ export default function LeadershipPortal() {
                   >
                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     {alert.text}
-                  </div>
+                    <ChevronRight className="h-3 w-3 ml-1 flex-shrink-0 opacity-60" />
+                  </button>
                 ))
               )}
             </div>
           </div>
+
+          <AlertDetailDialog alert={selectedAlert} onClose={() => setSelectedAlert(null)} />
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="print-expand">
             <TabsList className="bg-[#1a1a1a] border border-[#333] mb-4 no-print">
@@ -970,6 +1195,7 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
   const bySquadron = safetyData?.bySquadron?.filter((s: any) => s.squadron !== "AMG") || [];
 
   const [recPeriod, setRecPeriod] = useState<'3' | '6' | '12'>('6');
+  const [selectedIncident, setSelectedIncident] = useState<any>(null);
   const [periodData, setPeriodData] = useState<any>(null);
   const [periodLoading, setPeriodLoading] = useState(false);
 
@@ -1089,8 +1315,91 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
         </CardContent>
       </Card>
 
+      <Dialog open={!!selectedIncident} onOpenChange={() => setSelectedIncident(null)}>
+        <DialogContent className="bg-[#1a1a1a] border-[#333] text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-red-400">{selectedIncident?.title || "Safety Incident"}</DialogTitle>
+            <DialogDescription className="text-gray-500 text-xs">
+              ID #{selectedIncident?.id} — {selectedIncident?.date ? new Date(selectedIncident.date).toLocaleDateString("en-AU", { day: "2-digit", month: "long", year: "numeric" }) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedIncident && (
+            <div className="space-y-4 mt-2">
+              {selectedIncident.description && (
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">Description</p>
+                  <p className="text-sm text-gray-200 leading-relaxed">{selectedIncident.description}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Severity</p>
+                  <Badge variant="outline" className={selectedIncident.severity === "major" ? "border-red-500 text-red-400" : "border-orange-500 text-orange-400"}>{selectedIncident.severity}</Badge>
+                </div>
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Status</p>
+                  <Badge variant="outline" className="border-amber-500 text-amber-400">{selectedIncident.status}</Badge>
+                </div>
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Squadron</p>
+                  <p className="text-gray-200">{selectedIncident.squadron || "—"}</p>
+                </div>
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Location</p>
+                  <p className="text-gray-200">{selectedIncident.location || "—"}</p>
+                </div>
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Aircraft Type</p>
+                  <p className="text-gray-200">{selectedIncident.aircraftType || "—"}</p>
+                </div>
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-0.5">Flight Phase</p>
+                  <p className="text-gray-200">{selectedIncident.flightPhase || "—"}</p>
+                </div>
+                {selectedIncident.safetyLevel && (
+                  <div className="bg-[#222] rounded-lg p-3 col-span-2">
+                    <p className="text-xs text-gray-500 mb-0.5">Safety Risk Level</p>
+                    <p className="text-gray-200">{selectedIncident.safetyLevel}</p>
+                  </div>
+                )}
+              </div>
+              {selectedIncident.contributingFactors && (
+                <div className="bg-[#222] rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1 font-medium uppercase tracking-wide">Contributing Factors</p>
+                  <p className="text-sm text-gray-200">{selectedIncident.contributingFactors}</p>
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-[#333]">
+            <Button variant="outline" size="sm" onClick={() => {
+              if (!selectedIncident) return;
+              let content = `SAFETY INCIDENT REPORT\n${"=".repeat(60)}\n`;
+              content += `Title: ${selectedIncident.title || "Incident"}\n`;
+              content += `Date: ${selectedIncident.date ? new Date(selectedIncident.date).toLocaleDateString("en-AU") : "N/A"}\n`;
+              content += `Severity: ${selectedIncident.severity || "N/A"}\nStatus: ${selectedIncident.status || "N/A"}\n`;
+              content += `Squadron: ${selectedIncident.squadron || "N/A"}\nLocation: ${selectedIncident.location || "N/A"}\n`;
+              content += `Aircraft: ${selectedIncident.aircraftType || "N/A"}\nFlight Phase: ${selectedIncident.flightPhase || "N/A"}\n`;
+              if (selectedIncident.safetyLevel) content += `Safety Level: ${selectedIncident.safetyLevel}\n`;
+              if (selectedIncident.description) content += `\nDescription:\n${selectedIncident.description}\n`;
+              if (selectedIncident.contributingFactors) content += `\nContributing Factors:\n${selectedIncident.contributingFactors}\n`;
+              content += `\nReport generated: ${new Date().toLocaleString("en-AU")}\n`;
+              downloadText(content, `incident-report-${selectedIncident.id}-${new Date().toISOString().slice(0, 10)}.txt`);
+            }} className="border-[#444] text-gray-300 hover:bg-[#2a2a2a]">
+              <Download className="h-4 w-4 mr-1.5" /> Download
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="border-[#444] text-gray-300 hover:bg-[#2a2a2a]">
+              <Printer className="h-4 w-4 mr-1.5" /> Print
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Card className="bg-[#1a1a1a] border-[#333]">
-        <CardHeader><CardTitle className="text-white text-lg">Open Incidents (Major & Moderate)</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-white text-lg">Open Incidents (Major & Moderate)</CardTitle>
+          {openIncidents.length > 0 && <p className="text-xs text-gray-500 mt-0.5">Click a row to view full details</p>}
+        </CardHeader>
         <CardContent>
           {openIncidents.length > 0 ? (
             <div className="overflow-x-auto">
@@ -1098,15 +1407,18 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
                 <thead>
                   <tr className="border-b border-[#333] text-gray-400">
                     <th className="text-left py-2 px-2">Date</th>
+                    <th className="text-left py-2 px-2">Title</th>
                     <th className="text-left py-2 px-2">Squadron</th>
                     <th className="text-left py-2 px-2">Severity</th>
                     <th className="text-left py-2 px-2">Status</th>
+                    <th className="py-2 px-2"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {openIncidents.map((inc: any, i: number) => (
-                    <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
-                      <td className="py-2 px-2 text-gray-300">{inc.date ? new Date(inc.date).toLocaleDateString() : "—"}</td>
+                    <tr key={i} onClick={() => setSelectedIncident(inc)} className="border-b border-[#222] hover:bg-[#222] cursor-pointer">
+                      <td className="py-2 px-2 text-gray-300 whitespace-nowrap">{inc.date ? new Date(inc.date).toLocaleDateString("en-AU") : "—"}</td>
+                      <td className="py-2 px-2 text-gray-200 max-w-[200px] truncate">{inc.title || "—"}</td>
                       <td className="py-2 px-2 text-gray-300">{inc.squadron || "—"}</td>
                       <td className="py-2 px-2">
                         <Badge variant="outline" className={inc.severity === "major" ? "border-red-500 text-red-400" : "border-orange-500 text-orange-400"}>
@@ -1116,6 +1428,7 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
                       <td className="py-2 px-2">
                         <Badge variant="outline" className="border-amber-500 text-amber-400">{inc.status}</Badge>
                       </td>
+                      <td className="py-2 px-2 text-gray-600"><ChevronRight className="h-4 w-4" /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -1132,17 +1445,25 @@ function SafetyTab({ safetyData }: { safetyData: any }) {
           <CardHeader><CardTitle className="text-white text-lg">Monthly Safety Trend</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {monthlySummary.slice(-6).map((m: any, i: number) => (
-                <div key={i} className="flex items-center gap-3 text-sm">
-                  <div className="w-16 text-gray-400">{m.month}</div>
-                  <div className="flex-1 flex gap-1">
-                    <div className="bg-red-500/70 h-4 rounded" style={{ width: `${(m.incidents || 0) * 20}px` }} title={`${m.incidents || 0} incidents`}></div>
-                    <div className="bg-amber-500/70 h-4 rounded" style={{ width: `${(m.observations || 0) * 10}px` }} title={`${m.observations || 0} observations`}></div>
-                    <div className="bg-green-500/70 h-4 rounded" style={{ width: `${(m.commendations || 0) * 10}px` }} title={`${m.commendations || 0} commendations`}></div>
+              {(() => {
+                const maxVal = Math.max(...monthlySummary.map((m: any) => Math.max(m.incidents || 0, m.observations || 0, m.commendations || 0)), 1);
+                return monthlySummary.map((m: any, i: number) => (
+                  <div key={i} className="flex items-center gap-3 text-sm">
+                    <div className="w-14 text-gray-400 text-xs">{m.month}</div>
+                    <div className="flex-1 relative h-5">
+                      <div className="absolute inset-0 flex">
+                        {(m.incidents || 0) > 0 && <div className="bg-red-500/70 h-full rounded-l" style={{ width: `${((m.incidents || 0) / maxVal) * 100}%` }} title={`${m.incidents} incidents`}></div>}
+                        {(m.observations || 0) > 0 && <div className="bg-amber-500/70 h-full" style={{ width: `${((m.observations || 0) / maxVal) * 100}%` }} title={`${m.observations} observations`}></div>}
+                        {(m.commendations || 0) > 0 && <div className="bg-green-500/70 h-full rounded-r" style={{ width: `${((m.commendations || 0) / maxVal) * 100}%` }} title={`${m.commendations} commendations`}></div>}
+                        {(m.incidents || 0) === 0 && (m.observations || 0) === 0 && (m.commendations || 0) === 0 && (
+                          <div className="flex items-center h-full text-xs text-gray-700 italic">no activity</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="w-28 text-xs text-gray-500 text-right">{m.incidents || 0}i / {m.observations || 0}o / {m.commendations || 0}c</div>
                   </div>
-                  <div className="w-32 text-xs text-gray-500">{m.incidents || 0}i / {m.observations || 0}o / {m.commendations || 0}c</div>
-                </div>
-              ))}
+                ));
+              })()}
               <div className="flex gap-4 text-xs text-gray-500 mt-2">
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-500/70"></span> Incidents</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-amber-500/70"></span> Observations</span>
