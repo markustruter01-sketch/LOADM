@@ -419,6 +419,8 @@ export default function LeadershipPortal() {
                 topicData={topicData}
                 weakestTopic={weakestTopic}
                 kpis={kpis}
+                currencyData={currencyData}
+                readinessData={readinessData}
               />
             </TabsContent>
 
@@ -629,7 +631,7 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
       )}
 
       <Card className="bg-[#1a1a1a] border-[#333]">
-        <CardHeader><CardTitle className="text-white text-lg">6-Month Renewal Forecast</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-white text-lg">Upcoming Currency Renewals</CardTitle></CardHeader>
         <CardContent>
           {monthlyForecast.length > 0 ? (
             <div className="space-y-2">
@@ -659,12 +661,30 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
           <CardHeader><CardTitle className="text-red-400 text-lg flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Critical Alerts</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {forecastData.criticalAlerts.map((alert: any, i: number) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-300">{typeof alert === "string" ? alert : alert.message || alert.text || JSON.stringify(alert)}</span>
-                </div>
-              ))}
+              {forecastData.criticalAlerts.map((rawAlert: any, i: number) => {
+                let parsed = rawAlert;
+                if (typeof rawAlert === 'string') {
+                  try { parsed = JSON.parse(rawAlert); } catch { parsed = { alert: rawAlert }; }
+                } else if (typeof rawAlert?.alert === 'string' && rawAlert.alert.trim().startsWith('{')) {
+                  try { parsed = JSON.parse(rawAlert.alert); } catch {}
+                }
+                const month: string = parsed?.month || rawAlert?.month || '';
+                const alertText: string = parsed?.alert || rawAlert?.alert || rawAlert?.message || rawAlert?.text || String(rawAlert);
+                return (
+                  <div key={i} className="rounded-lg border border-red-500/25 bg-red-950/20 overflow-hidden">
+                    {month && (
+                      <div className="px-3 py-1.5 bg-red-900/30 border-b border-red-500/20 flex items-center gap-2">
+                        <AlertTriangle className="h-3 w-3 text-red-400 flex-shrink-0" />
+                        <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">{month}</span>
+                      </div>
+                    )}
+                    <div className="px-3 py-2.5 flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-gray-200 leading-snug">{alertText}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -673,7 +693,7 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
   );
 }
 
-function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopic, kpis }: any) {
+function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopic, kpis, currencyData, readinessData }: any) {
   const squadronAvgs = useMemo(() => {
     if (!squadronPerfData || !Array.isArray(squadronPerfData)) return [];
     const sqMap: Record<string, { total: number; count: number }> = {};
@@ -686,6 +706,7 @@ function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopi
     });
     return Object.entries(sqMap).map(([sq, v]) => ({
       name: sq.includes("SQN") ? sq : `${sq}SQN`,
+      rawName: sq,
       avg: v.count > 0 ? Math.round(v.total / v.count) : 0,
     }));
   }, [squadronPerfData]);
@@ -695,6 +716,73 @@ function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopi
     : 0;
 
   const maxScore = Math.max(...squadronAvgs.map((s: any) => s.avg), 100);
+
+  const belowAvgSquadrons = squadronAvgs.filter((sq: any) => sq.avg < overallAvg);
+
+  const getSquadronFactors = (sq: any) => {
+    const factors: { label: string; value: string; concern: boolean }[] = [];
+    const sqKey = sq.rawName;
+
+    factors.push({
+      label: "Training Score",
+      value: `${sq.avg}% (avg: ${overallAvg}%, gap: ${overallAvg - sq.avg}pp)`,
+      concern: true,
+    });
+
+    const readinessSq = (readinessData?.bySquadron || []).find(
+      (r: any) => r.squadron === sqKey || r.squadron === sq.name || `${r.squadron}SQN` === sq.name
+    );
+    if (readinessSq) {
+      const rPct = readinessSq.readyPercent ?? 0;
+      factors.push({
+        label: "Operational Readiness",
+        value: `${rPct}% flight-ready (${readinessSq.ready ?? '?'}/${readinessSq.total ?? '?'} personnel)`,
+        concern: rPct < 85,
+      });
+    }
+
+    const currencySq = (currencyData?.bySquadron || []).find(
+      (c: any) => c.squadron === sqKey || c.squadron === sq.name || `${c.squadron}SQN` === sq.name
+    );
+    if (currencySq) {
+      const expiredCount = currencySq.expired ?? 0;
+      const expiring30 = currencySq.expiring30Days ?? 0;
+      const total = currencySq.total ?? 1;
+      const currentPct = total > 0 ? Math.round(((currencySq.current ?? 0) / total) * 100) : 0;
+      factors.push({
+        label: "Qualification Currency",
+        value: `${currentPct}% current${expiredCount > 0 ? ` — ${expiredCount} expired` : ''}${expiring30 > 0 ? `, ${expiring30} expiring within 30 days` : ''}`,
+        concern: expiredCount > 0 || expiring30 > 2,
+      });
+    }
+
+    const sqSubmissions = (submissionsData || []).filter(
+      (s: any) => s.squadron === sqKey || s.squadron === sq.name || `${s.squadron}SQN` === sq.name
+    );
+    if (sqSubmissions.length > 0) {
+      const totalSubs = sqSubmissions.length;
+      const reviewed = sqSubmissions.filter((s: any) => s.status === 'reviewed').length;
+      const pending = totalSubs - reviewed;
+      if (pending > 0) {
+        factors.push({
+          label: "Unreviewed Submissions",
+          value: `${pending} submission${pending > 1 ? 's' : ''} awaiting instructor review`,
+          concern: pending > 2,
+        });
+      }
+    }
+
+    if (weakestTopic) {
+      const mastery = weakestTopic.masteryPercentage ?? weakestTopic.avgScore ?? 0;
+      factors.push({
+        label: "Weakest Training Topic",
+        value: `${weakestTopic.category} — ${Math.round(mastery)}% mastery (force-wide)`,
+        concern: mastery < 60,
+      });
+    }
+
+    return factors;
+  };
 
   return (
     <>
@@ -728,6 +816,52 @@ function TrainingTab({ squadronPerfData, submissionsData, topicData, weakestTopi
           )}
         </CardContent>
       </Card>
+
+      {belowAvgSquadrons.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-orange-400" />
+            <h3 className="text-sm font-semibold text-orange-400 uppercase tracking-wide">Below-Average Squadron Analysis</h3>
+          </div>
+          {belowAvgSquadrons.map((sq: any) => {
+            const factors = getSquadronFactors(sq);
+            return (
+              <Card key={sq.name} className="bg-[#1a1a1a] border-orange-500/40">
+                <CardHeader className="pb-2 pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="h-4 w-4 text-orange-400" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-orange-400 text-base">{sq.name} — Contributing Factors</CardTitle>
+                      <p className="text-xs text-gray-500 mt-0.5">Performing {overallAvg - sq.avg}pp below squadron average. Factors that may be contributing:</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0 pb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {factors.map((f, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-lg px-3 py-2.5 border ${
+                          f.concern
+                            ? 'bg-red-950/20 border-red-500/25'
+                            : 'bg-[#222] border-[#333]'
+                        }`}
+                      >
+                        <div className={`text-xs font-semibold uppercase tracking-wide mb-0.5 ${f.concern ? 'text-red-400' : 'text-gray-400'}`}>
+                          {f.label}
+                        </div>
+                        <div className="text-sm text-gray-200">{f.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-[#1a1a1a] border-[#333]">
