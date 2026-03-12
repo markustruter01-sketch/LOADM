@@ -78,12 +78,13 @@ export default function LeadershipPortal() {
   const [submissionsData, setSubmissionsData] = useState<any>(null);
   const [topicData, setTopicData] = useState<any>(null);
   const [squadronPerfData, setSquadronPerfData] = useState<any>(null);
+  const [scenarioSubsData, setScenarioSubsData] = useState<any>(null);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
       const sqParam = squadron === "ALL" ? "" : `squadron=${squadron.replace("SQN", "")}`;
-      const [readinessRes, currencyRes, safetyRes, historyRes, forecastRes, atRiskRes, subsRes, topicRes, sqPerfRes] = await Promise.all([
+      const [readinessRes, currencyRes, safetyRes, historyRes, forecastRes, atRiskRes, subsRes, topicRes, sqPerfRes, scenSubsRes] = await Promise.all([
         fetch(`/api/analytics/squadron-readiness?${sqParam}`, { credentials: "include" }),
         fetch(`/api/analytics/currency-status?${sqParam}`, { credentials: "include" }),
         fetch(`/api/analytics/safety-summary?${sqParam}`, { credentials: "include" }),
@@ -93,9 +94,10 @@ export default function LeadershipPortal() {
         fetch(`/api/instructor/quiz-submissions`, { credentials: "include" }),
         fetch(`/api/analytics/topic-mastery`, { credentials: "include" }),
         fetch(`/api/analytics/student-vs-squadron`, { credentials: "include" }),
+        fetch(`/api/scenario-submissions`, { credentials: "include" }),
       ]);
 
-      const [readiness, currency, safety, history, forecast, atRisk, subs, topic, sqPerf] = await Promise.all([
+      const [readiness, currency, safety, history, forecast, atRisk, subs, topic, sqPerf, scenSubs] = await Promise.all([
         readinessRes.ok ? readinessRes.json() : null,
         currencyRes.ok ? currencyRes.json() : null,
         safetyRes.ok ? safetyRes.json() : null,
@@ -105,6 +107,7 @@ export default function LeadershipPortal() {
         subsRes.ok ? subsRes.json() : null,
         topicRes.ok ? topicRes.json() : null,
         sqPerfRes.ok ? sqPerfRes.json() : null,
+        scenSubsRes.ok ? scenSubsRes.json() : null,
       ]);
 
       setReadinessData(readiness);
@@ -116,6 +119,7 @@ export default function LeadershipPortal() {
       setSubmissionsData(subs);
       setTopicData(topic);
       setSquadronPerfData(sqPerf);
+      setScenarioSubsData(scenSubs);
       setLastUpdated(new Date());
     } catch (err) {
       console.error("Error fetching leadership data:", err);
@@ -135,24 +139,43 @@ export default function LeadershipPortal() {
     const expiring30 = currencyData?.summary?.expiring30Days ?? 0;
     const highRiskCount = (atRiskData?.students || []).filter((s: any) => s.riskLevel === "high").length;
 
+    const days = parseInt(dateRange);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const priorCutoff = new Date();
+    priorCutoff.setDate(priorCutoff.getDate() - days * 2);
+
     let quizPassRate = 0;
-    let scenarioPassRate = 0;
+    let priorQuizPassRate: number | null = null;
     if (submissionsData) {
       const allSubs = Array.isArray(submissionsData) ? submissionsData : (submissionsData.submissions || []);
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
-      const filteredSubs = allSubs.filter((s: any) => {
-        const subDate = s.submissionDate || s.createdAt || s.date;
-        if (!subDate) return true;
-        return new Date(subDate) >= cutoff;
-      });
-      const quizSubs = filteredSubs.filter((s: any) => s.score !== null && s.score !== undefined);
+      const getDate = (s: any) => new Date(s.submissionDate || s.createdAt || s.date || 0);
+      const currentSubs = allSubs.filter((s: any) => getDate(s) >= cutoff);
+      const priorSubs = allSubs.filter((s: any) => { const d = getDate(s); return d >= priorCutoff && d < cutoff; });
+      const quizSubs = currentSubs.filter((s: any) => s.score !== null && s.score !== undefined);
       if (quizSubs.length > 0) {
         quizPassRate = Math.round((quizSubs.filter((s: any) => s.score >= 70).length / quizSubs.length) * 100);
       }
-      const scenSubs = filteredSubs.filter((s: any) => s.type === "scenario" && s.passed !== undefined);
-      if (scenSubs.length > 0) {
-        scenarioPassRate = Math.round((scenSubs.filter((s: any) => s.passed).length / scenSubs.length) * 100);
+      const priorQuizSubs = priorSubs.filter((s: any) => s.score !== null && s.score !== undefined);
+      if (priorQuizSubs.length > 0) {
+        priorQuizPassRate = Math.round((priorQuizSubs.filter((s: any) => s.score >= 70).length / priorQuizSubs.length) * 100);
+      }
+    }
+
+    let scenarioPassRate = 0;
+    let priorScenarioPassRate: number | null = null;
+    if (scenarioSubsData) {
+      const allScenSubs = Array.isArray(scenarioSubsData) ? scenarioSubsData : [];
+      const getDate = (s: any) => new Date(s.submissionDate || s.createdAt || s.date || 0);
+      const currentScenSubs = allScenSubs.filter((s: any) => getDate(s) >= cutoff);
+      const priorScenSubs = allScenSubs.filter((s: any) => { const d = getDate(s); return d >= priorCutoff && d < cutoff; });
+      const graded = currentScenSubs.filter((s: any) => s.passed !== undefined && s.passed !== null);
+      if (graded.length > 0) {
+        scenarioPassRate = Math.round((graded.filter((s: any) => s.passed).length / graded.length) * 100);
+      }
+      const priorGraded = priorScenSubs.filter((s: any) => s.passed !== undefined && s.passed !== null);
+      if (priorGraded.length > 0) {
+        priorScenarioPassRate = Math.round((priorGraded.filter((s: any) => s.passed).length / priorGraded.length) * 100);
       }
     }
 
@@ -169,8 +192,10 @@ export default function LeadershipPortal() {
       expiring30,
       highRiskCount,
       priorReadyPct,
+      priorQuizPassRate,
+      priorScenarioPassRate,
     };
-  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, historyData, dateRange]);
+  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, scenarioSubsData, historyData, dateRange]);
 
   const alerts = useMemo(() => {
     const items: { text: string; severity: "critical" | "high" | "medium" }[] = [];
@@ -214,9 +239,11 @@ export default function LeadershipPortal() {
   }, [readinessData, currencyData, safetyData, kpis]);
 
   const weakestTopic = useMemo(() => {
-    if (!topicData?.categories?.length) return null;
-    const sorted = [...topicData.categories].sort((a: any, b: any) => a.avgScore - b.avgScore);
-    return sorted[0];
+    const categories = Array.isArray(topicData) ? topicData : topicData?.categories;
+    if (!categories?.length) return null;
+    const sorted = [...categories].sort((a: any, b: any) => (a.masteryPercentage ?? a.avgScore ?? 0) - (b.masteryPercentage ?? b.avgScore ?? 0));
+    const w = sorted[0];
+    return { category: w.category, avgScore: w.masteryPercentage ?? w.avgScore ?? 0 };
   }, [topicData]);
 
   const handlePrint = () => {
@@ -314,12 +341,14 @@ export default function LeadershipPortal() {
               value={`${kpis.quizPassRate}%`}
               icon={<GraduationCap className="h-5 w-5 text-purple-400" />}
               color={kpis.quizPassRate >= 70 ? "text-green-400" : "text-red-400"}
+              trend={<TrendDelta current={kpis.quizPassRate} prior={kpis.priorQuizPassRate} />}
             />
             <KpiCard
               label="Scenario Pass Rate"
               value={`${kpis.scenarioPassRate}%`}
               icon={<Target className="h-5 w-5 text-cyan-400" />}
               color={kpis.scenarioPassRate >= 70 ? "text-green-400" : "text-red-400"}
+              trend={<TrendDelta current={kpis.scenarioPassRate} prior={kpis.priorScenarioPassRate} />}
             />
             <KpiCard
               label="Safety Score"

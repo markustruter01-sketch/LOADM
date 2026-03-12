@@ -1825,7 +1825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const scenarioId = req.query.scenarioId ? parseInt(req.query.scenarioId as string) : undefined;
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
-      const isInstructor = req.user?.role === 'instructor' || req.user?.role === 'superadmin';
+      const isInstructor = req.user?.role === 'instructor' || req.user?.role === 'superadmin' || req.user?.role === 'leadership';
       
       // Permission check: non-instructors can only see their own submissions
       if (!isInstructor && userId !== undefined && userId !== req.user?.id) {

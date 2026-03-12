@@ -24,7 +24,7 @@ export default function InstructorsPortal() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  // Remove the automatic redirect - superadmins should be able to access instructor portal
+  const isReadOnly = user?.role === 'leadership';
   const [selectedSquadron, setSelectedSquadron] = useState<string>("ALL");
   const [isMottoModalOpen, setIsMottoModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -375,6 +375,7 @@ export default function InstructorsPortal() {
         {/* Management Tools */}
         <h3 className="text-xl font-semibold mb-4 text-foreground">Management Tools</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          {!isReadOnly && (
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -396,7 +397,9 @@ export default function InstructorsPortal() {
               </Link>
             </CardFooter>
           </Card>
+          )}
           
+          {!isReadOnly && (
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -418,6 +421,7 @@ export default function InstructorsPortal() {
               </Link>
             </CardFooter>
           </Card>
+          )}
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
@@ -441,6 +445,8 @@ export default function InstructorsPortal() {
             </CardFooter>
           </Card>
           
+          {!isReadOnly && (
+          <>
           {/* Checklist Management Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader>
@@ -532,6 +538,8 @@ export default function InstructorsPortal() {
               </Link>
             </CardFooter>
           </Card>
+          </>
+          )}
 
           {/* Workforce Management Card */}
           <Card className="bg-card hover:bg-card/90 transition-colors">
