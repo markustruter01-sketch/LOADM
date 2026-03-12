@@ -243,7 +243,7 @@ function LeadershipCheck({ children }: { children: React.ReactNode }) {
         <div className="text-center p-8 max-w-md">
           <ShieldAlert className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">Leadership clearance required to access the Force Readiness Command Dashboard.</p>
+          <p className="text-muted-foreground">Leadership clearance required to access the Command Dashboard.</p>
         </div>
       </div>
     );

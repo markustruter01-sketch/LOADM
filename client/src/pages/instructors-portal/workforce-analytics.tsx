@@ -420,6 +420,7 @@ export default function WorkforceAnalytics() {
   // Safety occurrence management state
   const [safetyRecordsList, setSafetyRecordsList] = useState<any[]>([]);
   const [safetyDialogOpen, setSafetyDialogOpen] = useState(false);
+  const [safetyScoreInfoOpen, setSafetyScoreInfoOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [safetyFormData, setSafetyFormData] = useState<any>(EMPTY_SAFETY_FORM);
@@ -1166,7 +1167,19 @@ export default function WorkforceAnalytics() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Safety Score */}
             <Card className="bg-[#2a2a2a] border-[#333333]">
-              <CardContent className="pt-6">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-gray-400">Overall Safety Score</CardTitle>
+                  <button
+                    onClick={() => setSafetyScoreInfoOpen(true)}
+                    className="text-gray-500 hover:text-gray-300 transition-colors rounded-full p-0.5"
+                    title="How is this calculated?"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2 pb-6">
                 <div className="text-center">
                   <div className={`text-5xl font-bold mb-2 ${
                     (safetyData?.safetyScore || 0) >= 80 ? 'text-green-500' : 
@@ -1174,25 +1187,13 @@ export default function WorkforceAnalytics() {
                   }`}>
                     {safetyData?.safetyScore || 0}%
                   </div>
-                  <div className="text-sm text-gray-400">Overall Safety Score</div>
                   <div className="text-xs text-gray-500 mt-1">Based on all recorded events</div>
-                  <Badge className={`mt-2 ${
+                  <Badge className={`mt-3 ${
                     (safetyData?.safetyScore || 0) >= 80 ? 'bg-green-900/50 text-green-400' : 
                     (safetyData?.safetyScore || 0) >= 60 ? 'bg-yellow-900/50 text-yellow-400' : 'bg-red-900/50 text-red-400'
                   }`}>
                     {safetyData?.safetyScoreLabel || 'N/A'}
                   </Badge>
-                  <div className="mt-4 pt-3 border-t border-[#333] text-left">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">Score Calculation:</p>
-                    <ul className="text-xs text-gray-500 space-y-1">
-                      <li>• Base: 100 points</li>
-                      <li>• Minor incidents: -0.5 pts each</li>
-                      <li>• Moderate incidents: -2 pts each</li>
-                      <li>• Major incidents: -4.5 pts each</li>
-                      <li>• Commendations: +0.5 pts (max 20)</li>
-                      <li>• Observations: +0.3 pts (max 10)</li>
-                    </ul>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -1656,8 +1657,8 @@ export default function WorkforceAnalytics() {
         <section className="space-y-4">
           <div className="flex items-center gap-2 border-b border-orange-500/30 pb-2">
             <BarChart3 className="h-5 w-5 text-orange-500" />
-            <h2 className="text-xl font-semibold text-white">Qualification Renewal Forecast</h2>
-            <span className="text-xs text-gray-500 ml-auto mr-2">6-month projection • If no action taken</span>
+            <h2 className="text-xl font-semibold text-white">Upcoming Currency Renewals</h2>
+            <span className="text-xs text-gray-500 ml-auto mr-2">6-month projection • renewals required if no action taken</span>
             {forecastData && currencyData && readinessData && <RecommendationButton recommendations={recommendQualificationForecast(forecastData, currencyData, readinessData)} context="Qualification Forecast" />}
             <HelpButton helpKey="qualificationForecast" onClick={setActiveHelp} />
           </div>
@@ -1714,8 +1715,8 @@ export default function WorkforceAnalytics() {
             {/* Monthly Forecast Chart */}
             <Card className="bg-[#2a2a2a] border-[#333333] lg:col-span-2">
               <CardHeader className="pb-2">
-                <CardTitle className="text-white text-lg">Monthly Expiration Forecast</CardTitle>
-                <CardDescription className="text-gray-400">Qualifications expiring each month</CardDescription>
+                <CardTitle className="text-white text-lg">Upcoming Currency Renewals</CardTitle>
+                <CardDescription className="text-gray-400">Number of currency renewals required each month</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -1761,15 +1762,30 @@ export default function WorkforceAnalytics() {
               <CardContent>
                 {forecastData?.criticalAlerts && forecastData.criticalAlerts.length > 0 ? (
                   <div className="space-y-2">
-                    {forecastData.criticalAlerts.map((alert: any, idx: number) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-                        <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <div className="text-sm text-yellow-400 font-medium">{alert.month}</div>
-                          <div className="text-xs text-gray-400">{alert.alert}</div>
+                    {forecastData.criticalAlerts.map((rawAlert: any, idx: number) => {
+                      let parsed = rawAlert;
+                      if (typeof rawAlert === 'string') {
+                        try { parsed = JSON.parse(rawAlert); } catch { parsed = { alert: rawAlert }; }
+                      } else if (typeof rawAlert?.alert === 'string' && rawAlert.alert.trim().startsWith('{')) {
+                        try { parsed = JSON.parse(rawAlert.alert); } catch {}
+                      }
+                      const month: string = parsed?.month || rawAlert?.month || '';
+                      const alertText: string = parsed?.alert || rawAlert?.alert || String(rawAlert);
+                      return (
+                        <div key={idx} className="rounded-lg border border-red-500/25 bg-red-950/20 overflow-hidden">
+                          {month && (
+                            <div className="px-3 py-1.5 bg-red-900/30 border-b border-red-500/20 flex items-center gap-2">
+                              <Calendar className="h-3 w-3 text-red-400 flex-shrink-0" />
+                              <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">{month}</span>
+                            </div>
+                          )}
+                          <div className="px-3 py-2.5 flex items-start gap-2.5">
+                            <AlertTriangle className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-gray-200 leading-snug">{alertText}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-6 text-gray-500">
@@ -2053,6 +2069,62 @@ export default function WorkforceAnalytics() {
 
       {/* Help Modal */}
       <HelpModal helpKey={activeHelp} onClose={() => setActiveHelp(null)} />
+
+      {/* Safety Score Info Dialog */}
+      <Dialog open={safetyScoreInfoOpen} onOpenChange={setSafetyScoreInfoOpen}>
+        <DialogContent className="bg-[#1e1e1e] border-[#333] text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Shield className="h-5 w-5 text-orange-400" />
+              How is the Safety Score calculated?
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              The safety score reflects the overall safety culture of the force based on recorded events.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="bg-[#2a2a2a] rounded-lg p-4 space-y-3">
+              <p className="text-sm text-gray-300 font-medium">Starting value: <span className="text-white">100 points</span></p>
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Deductions (incidents)</p>
+                <div className="space-y-1.5 pl-2 border-l-2 border-red-500/40">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Minor incident</span>
+                    <span className="text-red-400 font-mono">−0.5 pts</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Moderate incident</span>
+                    <span className="text-red-400 font-mono">−2.0 pts</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Major incident</span>
+                    <span className="text-red-400 font-mono">−4.5 pts</span>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Additions (positive events)</p>
+                <div className="space-y-1.5 pl-2 border-l-2 border-green-500/40">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Commendation</span>
+                    <span className="text-green-400 font-mono">+0.5 pts <span className="text-gray-500 text-xs">(max +20)</span></span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Safety observation</span>
+                    <span className="text-green-400 font-mono">+0.3 pts <span className="text-gray-500 text-xs">(max +10)</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-[#444] p-3 space-y-1.5">
+              <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Score bands</p>
+              <div className="flex items-center gap-2 text-sm"><span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" /><span className="text-gray-300">80–100 — Good</span></div>
+              <div className="flex items-center gap-2 text-sm"><span className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0" /><span className="text-gray-300">60–79 — Needs Attention</span></div>
+              <div className="flex items-center gap-2 text-sm"><span className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0" /><span className="text-gray-300">&lt;60 — Critical</span></div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Safety Occurrence Dialog */}
       <Dialog open={safetyDialogOpen} onOpenChange={setSafetyDialogOpen}>

@@ -107,7 +107,7 @@ export default function Header() {
                 {(user.role === 'leadership' || user.role === 'superadmin') && (
                   <DropdownMenuItem asChild>
                     <div className="w-full cursor-pointer" onClick={() => setLocation("/leadership-portal")}>
-                      Force Readiness Dashboard
+                      Command Dashboard
                     </div>
                   </DropdownMenuItem>
                 )}

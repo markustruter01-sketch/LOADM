@@ -264,7 +264,7 @@ export default function LeadershipPortal() {
   return (
     <>
       <Helmet>
-        <title>Force Readiness Command Dashboard | LOADMworkflow</title>
+        <title>Command Dashboard | LOADMworkflow</title>
         <meta name="description" content="Executive leadership dashboard for monitoring force readiness, qualifications, training performance, and safety across all squadrons." />
       </Helmet>
 
@@ -284,7 +284,7 @@ export default function LeadershipPortal() {
         <div className="max-w-7xl mx-auto px-4 pt-4">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Force Readiness Command Dashboard</h1>
+              <h1 className="text-2xl font-bold text-white">Command Dashboard</h1>
               <p className="text-gray-400 text-sm mt-1">
                 {user?.name || user?.email} &mdash;{" "}
                 {lastUpdated
