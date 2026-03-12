@@ -402,7 +402,6 @@ const EMPTY_SAFETY_FORM = {
 
 export default function WorkforceAnalytics() {
   const { user } = useIsolatedAuth();
-  const isReadOnly = user?.role === 'leadership';
   const { toast } = useToast();
   const [selectedSquadron, setSelectedSquadron] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -438,12 +437,10 @@ export default function WorkforceAnalytics() {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      if (!isReadOnly) {
-        fetch('/api/analytics/capture-snapshot', { 
-          method: 'POST', 
-          credentials: 'include' 
-        }).catch(() => {});
-      }
+      fetch('/api/analytics/capture-snapshot', { 
+        method: 'POST', 
+        credentials: 'include' 
+      }).catch(() => {});
 
       const squadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "";
       const historySquadronParam = selectedSquadron !== "all" ? `squadron=${selectedSquadron}` : "squadron=ALL";
@@ -1157,12 +1154,10 @@ export default function WorkforceAnalytics() {
             <h2 className="text-xl font-semibold text-white">Safety & Compliance</h2>
             <div className="ml-auto flex items-center gap-2 mr-2">
               <span className="text-xs text-gray-500">All-time records</span>
-              {!isReadOnly && (
               <Button size="sm" onClick={openCreateDialog} className="bg-orange-500 hover:bg-orange-600 text-white h-7 text-xs px-3">
                 <Plus className="h-3 w-3 mr-1" />
                 Report Occurrence
               </Button>
-              )}
             </div>
             {safetyData && <RecommendationButton recommendations={recommendSafetyCompliance(safetyData)} context="Safety Compliance" />}
             <HelpButton helpKey="safetyCompliance" onClick={setActiveHelp} />
@@ -1317,7 +1312,6 @@ export default function WorkforceAnalytics() {
                     </CardDescription>
                   </div>
                 </div>
-                {!isReadOnly && (
                 <Button
                   size="sm"
                   onClick={e => { e.stopPropagation(); openCreateDialog(); }}
@@ -1325,7 +1319,6 @@ export default function WorkforceAnalytics() {
                 >
                   <Plus className="h-3 w-3 mr-1" /> New Occurrence
                 </Button>
-                )}
               </div>
             </CardHeader>
 
@@ -1401,7 +1394,6 @@ export default function WorkforceAnalytics() {
                                     {record.status}
                                   </Badge>
                                 </td>
-                                {!isReadOnly && (
                                 <td className="px-4 py-3">
                                   <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                                     <Button size="sm" variant="ghost" onClick={() => openEditDialog(record)} className="h-7 w-7 p-0 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10">
@@ -1412,7 +1404,6 @@ export default function WorkforceAnalytics() {
                                     </Button>
                                   </div>
                                 </td>
-                                )}
                               </tr>
                             ))}
                           </tbody>
@@ -2041,7 +2032,6 @@ export default function WorkforceAnalytics() {
                 <div className="flex items-center justify-between pt-2 border-t border-[#333]">
                   <span className="text-xs text-gray-600">Record #{viewingRecord.id} • Read-only view</span>
                   <div className="flex gap-2">
-                    {!isReadOnly && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -2050,7 +2040,6 @@ export default function WorkforceAnalytics() {
                     >
                       <Pencil className="h-3 w-3 mr-1" /> Edit Record
                     </Button>
-                    )}
                     <Button size="sm" onClick={() => setViewingRecord(null)} className="bg-[#333] hover:bg-[#444] text-white text-xs">
                       Close
                     </Button>

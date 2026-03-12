@@ -23,7 +23,6 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function InstructorQuizzes() {
   const { user } = useIsolatedAuth();
-  const isReadOnly = user?.role === 'leadership';
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
@@ -134,15 +133,13 @@ export default function InstructorQuizzes() {
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
-            {!isReadOnly && (
-              <Button 
-                onClick={() => setLocation('/instructors-portal/quizzes/create')}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Pop Quiz
-              </Button>
-            )}
+            <Button 
+              onClick={() => setLocation('/instructors-portal/quizzes/create')}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create Pop Quiz
+            </Button>
           </div>
         </div>
 
@@ -203,18 +200,15 @@ export default function InstructorQuizzes() {
                       <BookOpen className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    {!isReadOnly && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setLocation(`/instructors-portal/quizzes/edit/${quiz.id}`)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLocation(`/instructors-portal/quizzes/edit/${quiz.id}`)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
                   </div>
-                  {!isReadOnly && (
                   <AlertDialog open={quizToDelete === quiz.id} onOpenChange={(open) => !open && setQuizToDelete(null)}>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -244,7 +238,6 @@ export default function InstructorQuizzes() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -255,9 +248,8 @@ export default function InstructorQuizzes() {
               <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-xl font-medium mb-2">No Quizzes Found</h3>
               <p className="text-muted-foreground text-center mb-6 max-w-md">
-                {isReadOnly ? "No pop quizzes have been created yet." : "You haven't created any pop quizzes yet. Create your first quiz to test students on their loadmaster knowledge."}
+                You haven't created any pop quizzes yet. Create your first quiz to test students on their loadmaster knowledge.
               </p>
-              {!isReadOnly && (
               <Button 
                 onClick={() => setLocation('/instructors-portal/quizzes/create')}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -265,7 +257,6 @@ export default function InstructorQuizzes() {
                 <Plus className="mr-2 h-4 w-4" />
                 Create Pop Quiz
               </Button>
-              )}
             </CardContent>
           </Card>
         )}

@@ -67,7 +67,6 @@ interface Checklist {
 
 export default function ChecklistManagement() {
   const { user } = useIsolatedAuth();
-  const isReadOnly = user?.role === 'leadership';
   const [editingChecklist, setEditingChecklist] = useState<Checklist | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -462,7 +461,6 @@ export default function ChecklistManagement() {
               </div>
             </div>
             
-            {!isReadOnly && (
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-orange-500 hover:bg-orange-600">
@@ -480,7 +478,6 @@ export default function ChecklistManagement() {
                 {renderChecklistForm(createForm, createFields, appendCreate, removeCreate, handleCreate, createMutation.isPending, "Create Checklist")}
               </DialogContent>
             </Dialog>
-            )}
           </div>
 
           {isLoading ? (
@@ -516,7 +513,6 @@ export default function ChecklistManagement() {
                             {checklist.category.charAt(0).toUpperCase() + checklist.category.slice(1)}
                           </Badge>
                         </div>
-                        {!isReadOnly && (
                         <div className="flex space-x-1">
                           <Button
                             variant="ghost"
@@ -534,7 +530,6 @@ export default function ChecklistManagement() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        )}
                       </div>
                       <CardTitle className="text-lg">
                         {checklist.title}
@@ -594,16 +589,14 @@ export default function ChecklistManagement() {
               <CheckSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No Checklists Created</h3>
               <p className="text-muted-foreground mb-6">
-                {isReadOnly ? "No checklists have been created yet." : "Create your first checklist to get started with digital aircraft procedures."}
+                Create your first checklist to get started with digital aircraft procedures.
               </p>
-              {!isReadOnly && (
               <Button 
                 onClick={() => setIsCreateDialogOpen(true)}
                 className="bg-orange-500 hover:bg-orange-600"
               >
                 Create Your First Checklist
               </Button>
-              )}
             </div>
           )}
         </div>

@@ -496,7 +496,6 @@ const difficultyStars: Record<DifficultyLevel, number> = {
 
 export default function TrainingModulesManagement() {
   const { user } = useIsolatedAuth();
-  const isReadOnly = user?.role === 'leadership';
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1056,7 +1055,6 @@ export default function TrainingModulesManagement() {
                 </p>
               </div>
               
-              {!isReadOnly && (
               <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary/90 text-white">
@@ -1184,7 +1182,6 @@ export default function TrainingModulesManagement() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              )}
             </div>
           </section>
 
@@ -1312,8 +1309,6 @@ export default function TrainingModulesManagement() {
                     <Eye className="h-4 w-4 mr-1" />
                     View
                   </Button>
-                  {!isReadOnly && (
-                  <>
                   <Button
                     variant="outline"
                     size="sm"
@@ -1335,8 +1330,6 @@ export default function TrainingModulesManagement() {
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                  </>
-                  )}
                 </CardFooter>
               </Card>
             ))}

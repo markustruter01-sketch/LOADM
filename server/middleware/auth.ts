@@ -52,7 +52,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 // Instructor access middleware
 export function requireInstructor(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   requireAuth(req, res, () => {
-    if (req.user && (req.user.role === 'instructor' || req.user.role === 'superadmin')) {
+    if (req.user && (req.user.role === 'instructor' || req.user.role === 'leadership' || req.user.role === 'superadmin')) {
       console.log('🔧 AUTH MIDDLEWARE: Instructor access granted for user:', req.user.email);
       next();
     } else {

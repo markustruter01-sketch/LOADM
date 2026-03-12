@@ -39,7 +39,6 @@ import { format } from "date-fns";
 
 export default function ScenarioManagement() {
   const { user } = useIsolatedAuth();
-  const isReadOnly = user?.role === 'leadership';
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -126,14 +125,12 @@ export default function ScenarioManagement() {
             </Link>
             <h2 className="text-2xl font-bold text-foreground">Scenario Management</h2>
           </div>
-          {!isReadOnly && (
-            <Link href="/instructors-portal/scenarios/create">
-              <Button className="bg-primary hover:bg-primary/90 text-white">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Scenario
-              </Button>
-            </Link>
-          )}
+          <Link href="/instructors-portal/scenarios/create">
+            <Button className="bg-primary hover:bg-primary/90 text-white">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Scenario
+            </Button>
+          </Link>
         </div>
         
         <Card className="mb-6">
@@ -205,7 +202,6 @@ export default function ScenarioManagement() {
                                   {scenario.numberOfQuestions} questions
                                 </Badge>
                               </TableCell>
-                              {!isReadOnly && (
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
                                   <Button
@@ -227,7 +223,6 @@ export default function ScenarioManagement() {
                                   </Button>
                                 </div>
                               </TableCell>
-                              )}
                             </TableRow>
                           ))
                         ) : (
@@ -238,13 +233,11 @@ export default function ScenarioManagement() {
                                 <p className="text-muted-foreground">
                                   {searchTerm ? "No training scenarios match your search" : "No training scenarios found"}
                                 </p>
-                                {!isReadOnly && (
                                 <Link href="/instructors-portal/scenarios/create">
                                   <Button className="mt-4 bg-primary hover:bg-primary/90 text-white">
                                     Create Training Scenario
                                   </Button>
                                 </Link>
-                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -279,7 +272,6 @@ export default function ScenarioManagement() {
                                   {scenario.numberOfQuestions} questions
                                 </Badge>
                               </TableCell>
-                              {!isReadOnly && (
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
                                   <Button
@@ -301,7 +293,6 @@ export default function ScenarioManagement() {
                                   </Button>
                                 </div>
                               </TableCell>
-                              )}
                             </TableRow>
                           ))
                         ) : (
@@ -312,13 +303,11 @@ export default function ScenarioManagement() {
                                 <p className="text-muted-foreground">
                                   {searchTerm ? "No assessment scenarios match your search" : "No assessment scenarios found"}
                                 </p>
-                                {!isReadOnly && (
                                 <Link href="/instructors-portal/scenarios/create">
                                   <Button className="mt-4 bg-primary hover:bg-primary/90 text-white">
                                     Create Assessment Scenario
                                   </Button>
                                 </Link>
-                                )}
                               </div>
                             </TableCell>
                           </TableRow>

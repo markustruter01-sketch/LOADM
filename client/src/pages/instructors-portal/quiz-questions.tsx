@@ -145,7 +145,6 @@ function QuestionForm({ initialData, onSubmit, onCancel, isLoading }: QuestionFo
 
 export default function QuizQuestionsPage() {
   const { user } = useIsolatedAuth();
-  const isReadOnly = user?.role === 'leadership';
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -305,8 +304,6 @@ export default function QuizQuestionsPage() {
               <p className="text-gray-300">Review and manage quiz questions by category</p>
             </div>
           </div>
-          {!isReadOnly && (
-          <>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -341,8 +338,6 @@ export default function QuizQuestionsPage() {
               )}
             </DialogContent>
           </Dialog>
-          </>
-          )}
         </div>
 
         {/* Filter Section */}
@@ -419,8 +414,6 @@ export default function QuizQuestionsPage() {
                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                 {question.category}
                               </span>
-                              {!isReadOnly && (
-                              <>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -443,8 +436,6 @@ export default function QuizQuestionsPage() {
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
-                              </>
-                              )}
                             </div>
                           </div>
                         </div>
