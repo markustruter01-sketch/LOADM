@@ -680,9 +680,51 @@ function KpiCard({ label, value, icon, color, trend }: { label: string; value: a
 
 function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRiskData: any }) {
   const squadrons = (readinessData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
+  const PAGE_SIZE = 15;
+  const [atRiskPage, setAtRiskPage] = useState(0);
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+
+  const atRiskList = Array.isArray(atRiskData) ? atRiskData : [];
+  const totalPages = Math.ceil(atRiskList.length / PAGE_SIZE);
+  const pagedAtRisk = atRiskList.slice(atRiskPage * PAGE_SIZE, (atRiskPage + 1) * PAGE_SIZE);
+
+  const notReadyMembers: any[] = readinessData?.notReadyMembers || [];
+  const reasonMembers = selectedReason
+    ? notReadyMembers.filter((m: any) => m.reason === selectedReason)
+    : [];
 
   return (
     <>
+      {selectedReason !== null && (
+        <Dialog open={true} onOpenChange={() => setSelectedReason(null)}>
+          <DialogContent className="bg-[#1a1a1a] border-[#333] text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white">Not Ready: {selectedReason}</DialogTitle>
+            </DialogHeader>
+            {reasonMembers.length === 0 ? (
+              <p className="text-gray-400 text-sm py-4">No personnel records found for this reason.</p>
+            ) : (
+              <table className="w-full text-sm mt-2">
+                <thead>
+                  <tr className="border-b border-[#333] text-gray-400 text-left">
+                    <th className="py-2 px-2">Name</th>
+                    <th className="py-2 px-2">Squadron</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reasonMembers.map((m: any, i: number) => (
+                    <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
+                      <td className="py-2 px-2 text-white">{m.name || m.email}</td>
+                      <td className="py-2 px-2 text-gray-300">{m.squadron || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
+
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader><CardTitle className="text-white text-lg">Squadron Battle-Board</CardTitle></CardHeader>
         <CardContent>
@@ -729,18 +771,28 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
       </Card>
 
       <Card className="bg-[#1a1a1a] border-[#333]">
-        <CardHeader><CardTitle className="text-white text-lg">Non-Readiness Breakdown</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-white text-lg">Non-Readiness Breakdown</CardTitle>
+          <p className="text-xs text-gray-500 mt-0.5">Click a bar to see who belongs to each category</p>
+        </CardHeader>
         <CardContent>
           {readinessData?.reasonBreakdown?.length > 0 ? (
             <div className="space-y-3">
               {readinessData.reasonBreakdown.map((r: any, i: number) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-40 text-sm text-gray-300 truncate">{r.reason}</div>
-                  <div className="flex-1">
-                    <Progress value={r.percent} className="h-3" />
+                <button
+                  key={i}
+                  onClick={() => setSelectedReason(r.reason)}
+                  className="w-full flex items-center gap-3 group text-left focus:outline-none"
+                >
+                  <div className="w-40 text-sm text-gray-300 truncate group-hover:text-white transition-colors">{r.reason}</div>
+                  <div className="flex-1 relative">
+                    <Progress value={r.percent} className="h-3 group-hover:opacity-80 transition-opacity" />
                   </div>
-                  <div className="w-16 text-right text-sm text-gray-400">{r.count} ({r.percent}%)</div>
-                </div>
+                  <div className="w-20 text-right text-sm text-gray-400 group-hover:text-gray-200 transition-colors whitespace-nowrap">
+                    {r.count} ({r.percent}%)
+                  </div>
+                  <div className="text-xs text-gray-600 group-hover:text-gray-400 transition-colors">▸</div>
+                </button>
               ))}
             </div>
           ) : (
@@ -770,37 +822,81 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
       </Card>
 
       <Card className="bg-[#1a1a1a] border-[#333]">
-        <CardHeader><CardTitle className="text-white text-lg">At-Risk Personnel</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white text-lg">At-Risk Personnel</CardTitle>
+            {atRiskList.length > 0 && (
+              <span className="text-xs text-gray-500">
+                {atRiskList.length} total — page {atRiskPage + 1} of {Math.max(1, totalPages)}
+              </span>
+            )}
+          </div>
+        </CardHeader>
         <CardContent>
-          {(Array.isArray(atRiskData) && atRiskData.length > 0) ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#333] text-gray-400">
-                    <th className="text-left py-2 px-2">Name</th>
-                    <th className="text-left py-2 px-2">Squadron</th>
-                    <th className="text-left py-2 px-2">Risk Level</th>
-                    <th className="text-left py-2 px-2">Top Risk Factor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {atRiskData.map((s: any, i: number) => (
-                    <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
-                      <td className="py-2 px-2 text-white">{s.name || s.email}</td>
-                      <td className="py-2 px-2 text-gray-300">{s.squadron || "—"}</td>
-                      <td className="py-2 px-2">
-                        <Badge variant="outline" className={
-                          s.riskLevel === "high" ? "border-red-500 text-red-400" :
-                          s.riskLevel === "medium" ? "border-amber-500 text-amber-400" :
-                          "border-yellow-500 text-yellow-400"
-                        }>{s.riskLevel}</Badge>
-                      </td>
-                      <td className="py-2 px-2 text-gray-400 text-xs">{s.topRiskFactor || s.riskFactors?.[0] || "—"}</td>
+          {atRiskList.length > 0 ? (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[#333] text-gray-400">
+                      <th className="text-left py-2 px-2">Name</th>
+                      <th className="text-left py-2 px-2">Squadron</th>
+                      <th className="text-left py-2 px-2">Risk Level</th>
+                      <th className="text-left py-2 px-2">Top Risk Factor</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {pagedAtRisk.map((s: any, i: number) => (
+                      <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
+                        <td className="py-2 px-2 text-white">{s.name || s.email}</td>
+                        <td className="py-2 px-2 text-gray-300">{s.squadron || "—"}</td>
+                        <td className="py-2 px-2">
+                          <Badge variant="outline" className={
+                            s.riskLevel === "high" ? "border-red-500 text-red-400" :
+                            s.riskLevel === "medium" ? "border-amber-500 text-amber-400" :
+                            "border-yellow-500 text-yellow-400"
+                          }>{s.riskLevel}</Badge>
+                        </td>
+                        <td className="py-2 px-2 text-gray-400 text-xs">{s.topRiskFactor || s.riskFactors?.[0] || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#333]">
+                  <button
+                    onClick={() => setAtRiskPage(p => Math.max(0, p - 1))}
+                    disabled={atRiskPage === 0}
+                    className="px-3 py-1 text-xs rounded border border-[#444] text-gray-400 hover:text-white hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    ← Previous
+                  </button>
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setAtRiskPage(i)}
+                        className={`w-6 h-6 text-xs rounded transition-colors ${
+                          i === atRiskPage
+                            ? "bg-orange-500 text-white"
+                            : "text-gray-500 hover:text-gray-300"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setAtRiskPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={atRiskPage === totalPages - 1}
+                    className="px-3 py-1 text-xs rounded border border-[#444] text-gray-400 hover:text-white hover:border-[#666] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <p className="text-gray-500 text-sm">No at-risk personnel identified.</p>
           )}
