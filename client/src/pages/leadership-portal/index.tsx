@@ -1,13 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
+import { useQuery } from "@tanstack/react-query";
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, ReferenceLine
+} from "recharts";
 import c17aImg from "../../assets/c17a.png";
 import kc30aImg from "../../assets/kc30a.png";
 import c130jImg from "../../assets/c130j.png";
@@ -16,7 +22,7 @@ import {
   Users, Shield, Award, AlertTriangle, CheckCircle2, RefreshCw, Printer,
   TrendingUp, TrendingDown, Minus, Activity, Target, Plane, GraduationCap,
   AlertCircle, Loader2, ChevronRight, Lightbulb, BarChart3, Download, X,
-  FileWarning, Clock, UserX, Building2, Info
+  FileWarning, Clock, UserX, Building2, Info, BookOpen, Calendar
 } from "lucide-react";
 
 const SQUADRONS = ["ALL", "33SQN", "35SQN", "36SQN", "37SQN"];
@@ -302,13 +308,14 @@ export default function LeadershipPortal() {
   const [topicData, setTopicData] = useState<any>(null);
   const [squadronPerfData, setSquadronPerfData] = useState<any>(null);
   const [scenarioSubsData, setScenarioSubsData] = useState<any>(null);
+  const [moduleCompletionData, setModuleCompletionData] = useState<any>(null);
   const [selectedAlert, setSelectedAlert] = useState<any>(null);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
       const sqParam = squadron === "ALL" ? "" : `squadron=${squadron.replace("SQN", "")}`;
-      const [readinessRes, currencyRes, safetyRes, historyRes, forecastRes, atRiskRes, subsRes, topicRes, sqPerfRes, scenSubsRes] = await Promise.all([
+      const [readinessRes, currencyRes, safetyRes, historyRes, forecastRes, atRiskRes, subsRes, topicRes, sqPerfRes, scenSubsRes, moduleRes] = await Promise.all([
         fetch(`/api/analytics/squadron-readiness?${sqParam}`, { credentials: "include" }),
         fetch(`/api/analytics/currency-status?${sqParam}`, { credentials: "include" }),
         fetch(`/api/analytics/safety-summary?${sqParam}`, { credentials: "include" }),
@@ -319,9 +326,10 @@ export default function LeadershipPortal() {
         fetch(`/api/analytics/topic-mastery`, { credentials: "include" }),
         fetch(`/api/analytics/student-vs-squadron`, { credentials: "include" }),
         fetch(`/api/scenario-submissions`, { credentials: "include" }),
+        fetch(`/api/analytics/module-completion`, { credentials: "include" }),
       ]);
 
-      const [readiness, currency, safety, history, forecast, atRisk, subs, topic, sqPerf, scenSubs] = await Promise.all([
+      const [readiness, currency, safety, history, forecast, atRisk, subs, topic, sqPerf, scenSubs, modulesData] = await Promise.all([
         readinessRes.ok ? readinessRes.json() : null,
         currencyRes.ok ? currencyRes.json() : null,
         safetyRes.ok ? safetyRes.json() : null,
@@ -332,6 +340,7 @@ export default function LeadershipPortal() {
         topicRes.ok ? topicRes.json() : null,
         sqPerfRes.ok ? sqPerfRes.json() : null,
         scenSubsRes.ok ? scenSubsRes.json() : null,
+        moduleRes.ok ? moduleRes.json() : null,
       ]);
 
       setReadinessData(readiness);
@@ -344,6 +353,7 @@ export default function LeadershipPortal() {
       setTopicData(topic);
       setSquadronPerfData(sqPerf);
       setScenarioSubsData(scenSubs);
+      setModuleCompletionData(modulesData);
       setLastUpdated(new Date());
     } catch (err) {
       console.error("Error fetching leadership data:", err);
@@ -407,6 +417,13 @@ export default function LeadershipPortal() {
       ? historyData.dataPoints[historyData.dataPoints.length - 2]?.readyPercent ?? null
       : null;
 
+    let trainingCompletionRate = 0;
+    if (Array.isArray(moduleCompletionData) && moduleCompletionData.length > 0) {
+      trainingCompletionRate = Math.round(
+        moduleCompletionData.reduce((sum: number, m: any) => sum + (m.completionRate || 0), 0) / moduleCompletionData.length
+      );
+    }
+
     return {
       totalPersonnel,
       readyPercent,
@@ -418,8 +435,72 @@ export default function LeadershipPortal() {
       priorReadyPct,
       priorQuizPassRate,
       priorScenarioPassRate,
+      trainingCompletionRate,
     };
-  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, scenarioSubsData, historyData, dateRange]);
+  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, scenarioSubsData, historyData, dateRange, moduleCompletionData]);
+
+  const wingState = useMemo(() => {
+    const readyPct = kpis.readyPercent;
+    const expiredQuals = currencyData?.summary?.expired ?? 0;
+    const openMajor = safetyData?.openItems?.filter((i: any) => i.severity === "major")?.length ?? (safetyData?.bySeverity?.major > 0 && safetyData?.byStatus?.open > 0 ? safetyData.bySeverity.major : 0);
+    const safetyScore = kpis.safetyScore;
+
+    let state: "READY" | "CAUTION" | "DEGRADED" = "READY";
+    const reasons: string[] = [];
+
+    if (readyPct < 70 || openMajor > 0 || safetyScore < 60) {
+      state = "DEGRADED";
+    } else if (readyPct < 85 || expiredQuals > 0 || safetyScore < 80) {
+      state = "CAUTION";
+    }
+
+    if (readyPct < 85) reasons.push(`Readiness ${readyPct}%`);
+    if (expiredQuals > 0) reasons.push(`${expiredQuals} expired qual${expiredQuals > 1 ? "s" : ""}`);
+    if (openMajor > 0) reasons.push(`${openMajor} open major incident${openMajor > 1 ? "s" : ""}`);
+    if (safetyScore < 80) reasons.push(`Safety score ${safetyScore}`);
+
+    const justification = reasons.length > 0
+      ? reasons.join(", ")
+      : "All metrics within acceptable thresholds";
+
+    return { state, justification, readyPct, expiredQuals, openMajor, safetyScore };
+  }, [kpis, currencyData, safetyData]);
+
+  const executiveSummary = useMemo(() => {
+    const sentences: string[] = [];
+    const readyPct = kpis.readyPercent;
+    const total = kpis.totalPersonnel;
+
+    if (readyPct >= 85) {
+      sentences.push(`The Wing is currently at ${readyPct}% operational readiness across ${total} personnel, meeting the 85% target.`);
+    } else {
+      sentences.push(`The Wing is at ${readyPct}% operational readiness across ${total} personnel, below the 85% target.`);
+    }
+
+    const topReason = readinessData?.reasonBreakdown?.[0];
+    if (topReason && readyPct < 85) {
+      sentences.push(`The primary readiness drag is "${topReason.reason}" affecting ${topReason.count} personnel (${topReason.percent}% of non-ready).`);
+    }
+
+    const safetyScore = kpis.safetyScore;
+    if (safetyScore >= 80) {
+      sentences.push(`Safety posture is ${getSafetyLabel(safetyScore).toLowerCase()} with a composite score of ${safetyScore}/100.`);
+    } else {
+      sentences.push(`Safety score of ${safetyScore}/100 requires attention — rated "${getSafetyLabel(safetyScore)}".`);
+    }
+
+    if (kpis.expiring30 > 0) {
+      sentences.push(`${kpis.expiring30} qualification${kpis.expiring30 > 1 ? "s" : ""} expiring within 30 days — schedule renewals promptly.`);
+    }
+
+    if (kpis.highRiskCount > 0) {
+      sentences.push(`${kpis.highRiskCount} high-risk personnel require immediate intervention.`);
+    } else if (sentences.length < 4) {
+      sentences.push(`No high-risk personnel currently identified.`);
+    }
+
+    return sentences.join(" ");
+  }, [kpis, readinessData]);
 
   const alerts = useMemo(() => {
     const items: { text: string; severity: "critical" | "high" | "medium"; type: string; payload: any }[] = [];
@@ -516,6 +597,19 @@ export default function LeadershipPortal() {
                   ? `Data as of ${lastUpdated.toLocaleTimeString()} ${lastUpdated.toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}`
                   : "Loading..."}
               </p>
+              <div className={`mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-semibold ${
+                wingState.state === "READY"
+                  ? "bg-green-500/10 border-green-500/40 text-green-400"
+                  : wingState.state === "CAUTION"
+                  ? "bg-amber-500/10 border-amber-500/40 text-amber-400"
+                  : "bg-red-500/10 border-red-500/40 text-red-400"
+              }`}>
+                {wingState.state === "READY" ? <CheckCircle2 className="h-4 w-4" /> :
+                 wingState.state === "CAUTION" ? <AlertTriangle className="h-4 w-4" /> :
+                 <AlertCircle className="h-4 w-4" />}
+                <span>{wingState.state}</span>
+                <span className="text-xs font-normal opacity-80">— {wingState.justification}</span>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 no-print">
               <Select value={squadron} onValueChange={setSquadron}>
@@ -547,7 +641,7 @@ export default function LeadershipPortal() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
             <KpiCard
               label="Total Personnel"
               value={kpis.totalPersonnel}
@@ -576,6 +670,12 @@ export default function LeadershipPortal() {
               trend={<TrendDelta current={kpis.scenarioPassRate} prior={kpis.priorScenarioPassRate} />}
             />
             <KpiCard
+              label="Training Completion"
+              value={`${kpis.trainingCompletionRate}%`}
+              icon={<BookOpen className="h-5 w-5 text-indigo-400" />}
+              color={kpis.trainingCompletionRate >= 70 ? "text-green-400" : kpis.trainingCompletionRate >= 50 ? "text-amber-400" : "text-red-400"}
+            />
+            <KpiCard
               label="Safety Score"
               value={kpis.safetyScore}
               icon={<Shield className={`h-5 w-5 ${getSafetyColor(kpis.safetyScore)}`} />}
@@ -594,6 +694,20 @@ export default function LeadershipPortal() {
               color={kpis.highRiskCount > 0 ? "text-red-400" : "text-green-400"}
             />
           </div>
+
+          {executiveSummary && (
+            <Card className="bg-[#1a1a1a]/60 border-[#333] mb-4">
+              <CardContent className="py-3 px-4">
+                <div className="flex items-start gap-3">
+                  <Info className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Executive Summary</p>
+                    <p className="text-sm text-gray-300 leading-relaxed">{executiveSummary}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="mb-4">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
@@ -634,7 +748,7 @@ export default function LeadershipPortal() {
             </TabsList>
 
             <TabsContent value="readiness" className="print-expand space-y-4">
-              <ReadinessTab readinessData={readinessData} atRiskData={atRiskData} />
+              <ReadinessTab readinessData={readinessData} atRiskData={atRiskData} historyData={historyData} />
             </TabsContent>
 
             <TabsContent value="qualifications" className="print-expand space-y-4">
@@ -678,11 +792,46 @@ function KpiCard({ label, value, icon, color, trend }: { label: string; value: a
   );
 }
 
-function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRiskData: any }) {
+function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessData: any; atRiskData: any; historyData: any }) {
   const squadrons = (readinessData?.bySquadron || []).filter((s: any) => s.squadron !== "AMG");
   const PAGE_SIZE = 15;
   const [atRiskPage, setAtRiskPage] = useState(0);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [iccMetric, setIccMetric] = useState<string>("assessmentsPassed");
+  const [showIccFormulaModal, setShowIccFormulaModal] = useState<boolean>(false);
+  const [iccSquadronToggles, setIccSquadronToggles] = useState<Record<string, boolean>>({
+    '33SQN': true, '35SQN': true, '36SQN': true, '37SQN': true
+  });
+
+  const { data: iccData, isLoading: isLoadingIcc } = useQuery<{
+    metric: string;
+    metricLabel: string;
+    curves: {
+      squadron: string;
+      color: string;
+      dataPoints: {
+        year: number;
+        yearLabel: string;
+        rawValue: number;
+        normalizedValue: number;
+        usersInBin: number;
+        cumulativeUsers: number;
+      }[];
+    }[];
+    insights: { type: string; title: string; description: string }[];
+    summary: {
+      totalUsers: number;
+      squadronsIncluded: number;
+      tenureRange: { min: number; max: number };
+    };
+  }>({
+    queryKey: [`/api/analytics/icc-power-law?metric=${iccMetric}`],
+  });
+
+  const historyPoints = historyData?.dataPoints || [];
+  const historyTrendDelta = historyPoints.length >= 2
+    ? historyPoints[historyPoints.length - 1]?.readyPercent - historyPoints[0]?.readyPercent
+    : 0;
 
   const atRiskList = Array.isArray(atRiskData) ? atRiskData : [];
   const totalPages = Math.ceil(atRiskList.length / PAGE_SIZE);
@@ -770,6 +919,318 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
         </CardContent>
       </Card>
 
+      {historyPoints.length > 0 && (
+        <Card className="bg-[#1a1a1a] border-[#333]">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-white text-lg flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-400" />
+                  Readiness History
+                </CardTitle>
+                <p className="text-xs text-gray-500 mt-1">
+                  Wing readiness % over time
+                  {historyTrendDelta !== 0 && (
+                    <span className={`ml-2 font-medium ${historyTrendDelta > 0 ? "text-green-400" : "text-red-400"}`}>
+                      ({historyTrendDelta > 0 ? "+" : ""}{historyTrendDelta.toFixed(1)}% overall)
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={historyPoints} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis
+                    dataKey="snapshotDate"
+                    stroke="#6B7280"
+                    tick={{ fontSize: 11, fill: "#9CA3AF" }}
+                    tickFormatter={(val: string) => {
+                      const d = new Date(val);
+                      return d.toLocaleDateString("en-AU", { day: "2-digit", month: "short" });
+                    }}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    stroke="#6B7280"
+                    tick={{ fontSize: 11, fill: "#9CA3AF" }}
+                    tickFormatter={(v: number) => `${v}%`}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "rgba(26,26,26,0.95)", border: "1px solid #333", borderRadius: "8px" }}
+                    labelFormatter={(label: string) => new Date(label).toLocaleDateString("en-AU", { day: "2-digit", month: "long", year: "numeric" })}
+                    formatter={(value: number) => [`${value}%`, "Readiness"]}
+                  />
+                  <ReferenceLine y={85} stroke="#f59e0b" strokeDasharray="6 3" label={{ value: "85% Target", fill: "#f59e0b", fontSize: 11, position: "right" }} />
+                  <Line type="monotone" dataKey="readyPercent" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, fill: "#3b82f6" }} activeDot={{ r: 5 }} name="Readiness %" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="bg-[#1a1a1a] border-[#333]">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white text-lg flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-blue-400" />
+                Item Characteristic Curves (ICC)
+              </CardTitle>
+              <CardDescription className="text-gray-500 mt-1">
+                Compare how different performance metrics develop across skill levels over time in role
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowIccFormulaModal(true)}
+                className="px-3 py-2 rounded-lg text-sm font-mono border border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
+              >
+                View Formula
+              </button>
+              <Select value={iccMetric} onValueChange={setIccMetric}>
+                <SelectTrigger className="w-[200px] bg-[#222] border-[#444] text-gray-200">
+                  <SelectValue placeholder="Select metric" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="assessmentsPassed">Assessments Passed</SelectItem>
+                  <SelectItem value="totalFlightHours">Total Flight Hours</SelectItem>
+                  <SelectItem value="activeQualifications">Active Qualifications</SelectItem>
+                  <SelectItem value="averageScore">Average Score</SelectItem>
+                  <SelectItem value="cargoWeight">Cargo Weight Handled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoadingIcc ? (
+            <div className="h-[400px] flex items-center justify-center">
+              <Skeleton className="h-full w-full" />
+            </div>
+          ) : iccData?.curves && iccData.curves.length > 0 ? (
+            <>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className="text-xs text-gray-500 font-medium mr-1">Show:</span>
+                {iccData.curves.map((curve) => {
+                  const isOn = iccSquadronToggles[curve.squadron] !== false;
+                  return (
+                    <button
+                      key={curve.squadron}
+                      onClick={() => {
+                        const activeCount = Object.values(iccSquadronToggles).filter(Boolean).length;
+                        if (isOn && activeCount <= 1) return;
+                        setIccSquadronToggles(prev => ({ ...prev, [curve.squadron]: !isOn }));
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
+                        isOn
+                          ? 'bg-gray-800 border-gray-600 text-gray-200'
+                          : 'bg-gray-900/60 border-gray-800 text-gray-600 line-through'
+                      }`}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: isOn ? curve.color : '#4B5563' }}
+                      />
+                      {curve.squadron}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="h-[400px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis
+                      dataKey="year"
+                      type="number"
+                      domain={[0, 12]}
+                      tickCount={13}
+                      label={{ value: 'Time in Role (Years)', position: 'insideBottom', offset: -10, fill: '#9CA3AF' }}
+                      stroke="#6B7280"
+                    />
+                    <YAxis
+                      domain={[0, 1]}
+                      tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                      label={{ value: iccData.metricLabel, angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
+                      stroke="#6B7280"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                        border: '1px solid #374151',
+                        borderRadius: '8px'
+                      }}
+                      formatter={(value: number, name: string) => [
+                        `${(value * 100).toFixed(1)}%`,
+                        name
+                      ]}
+                      labelFormatter={(label) => `Year ${label} in Role`}
+                    />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                    {iccData.curves.filter(curve => iccSquadronToggles[curve.squadron] !== false).map((curve) => (
+                      <Line
+                        key={curve.squadron}
+                        data={curve.dataPoints}
+                        type="monotone"
+                        dataKey="normalizedValue"
+                        name={curve.squadron}
+                        stroke={curve.color}
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: curve.color, strokeWidth: 1, stroke: '#fff' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                        animationDuration={1500}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <Card className="bg-[#222] border-[#333]">
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold text-sm mb-2 text-blue-400">Horizontal Axis: Time in Role</h4>
+                    <p className="text-xs text-gray-500">
+                      Left (0 years) to right (12+ years). Shows how personnel at different experience levels perform.
+                      Career progression stages visible from entry-level to senior loadmasters.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-[#222] border-[#333]">
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold text-sm mb-2 text-blue-400">Vertical Axis: {iccData.metricLabel}</h4>
+                    <p className="text-xs text-gray-500">
+                      0% = entry level, 100% = maximum expected performance.
+                      S-curve shape indicates power law learning distribution - steep growth mid-career, plateau at expertise.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {iccData.insights && iccData.insights.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-sm mb-3 flex items-center gap-2 text-white">
+                    <Target className="h-4 w-4 text-blue-400" />
+                    What These Curves Tell Us About Your Workforce
+                  </h4>
+                  <div className="space-y-2">
+                    {iccData.insights.map((insight, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex items-start gap-3 p-3 rounded-lg ${
+                          insight.type === 'strength'
+                            ? 'bg-green-500/10 border border-green-500/30'
+                            : insight.type === 'challenge'
+                            ? 'bg-orange-500/10 border border-orange-500/30'
+                            : 'bg-blue-500/10 border border-blue-500/30'
+                        }`}
+                      >
+                        <span className={`text-lg ${
+                          insight.type === 'strength' ? 'text-green-500' :
+                          insight.type === 'challenge' ? 'text-orange-500' : 'text-blue-500'
+                        }`}>●</span>
+                        <div>
+                          <p className="font-medium text-sm text-white">{insight.title}</p>
+                          <p className="text-xs text-gray-400">{insight.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-8 mt-4 pt-4 border-t border-[#333] text-xs text-gray-500">
+                <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
+                <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
+                <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
+              </div>
+            </>
+          ) : (
+            <p className="text-gray-500 text-sm">No ICC data available.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {showIccFormulaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowIccFormulaModal(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+          <div
+            className="relative bg-slate-900/60 border border-slate-700/50 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden"
+            style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(15, 23, 42, 0.6)', borderColor: 'rgba(71, 85, 105, 0.5)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-slate-700/50">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-2">ICC Power Law Distribution</h2>
+                  <p className="text-sm text-blue-300">
+                    This chart reveals hidden patterns in how your workforce develops skills over time, helping you predict performance trajectories and identify optimal training windows for each career stage.
+                  </p>
+                </div>
+                <button onClick={() => setShowIccFormulaModal(false)} className="text-slate-400 hover:text-white transition-colors">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-blue-400" /> What It Does
+                </h3>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  The ICC (Item Characteristic Curve) Power Law Distribution chart models how performance metrics evolve across your workforce as personnel gain experience. It combines actual performance data with a sigmoid (S-curve) function to create smooth, realistic learning trajectories.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-400" /> What It Shows
+                </h3>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Career Stage Performance:</strong> How different experience levels (0-12 years) perform on key metrics</span></li>
+                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Squadron Comparison:</strong> Color-coded lines for each squadron show comparative performance trajectories</span></li>
+                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Growth Periods:</strong> Steep curves indicate rapid skill acquisition; plateau regions show expertise stabilization</span></li>
+                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Selectable Metrics:</strong> Switch between Assessments Passed, Flight Hours, Qualifications, Scores, and Cargo Weight</span></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                  <Award className="h-5 w-5 text-blue-400" /> Why It's Useful
+                </h3>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Workforce Planning:</strong> Predict when personnel will reach peak performance and plan succession</span></li>
+                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Training Optimization:</strong> Identify the critical learning window (usually years 2-5) for targeted training investment</span></li>
+                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Squadron Benchmarking:</strong> Compare squadron trajectories to identify best practices and improvement areas</span></li>
+                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Performance Prediction:</strong> Estimate how new personnel will develop compared to historical patterns</span></li>
+                </ul>
+              </div>
+              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                <h4 className="text-sm font-semibold text-white mb-3">Mathematical Formula</h4>
+                <div className="space-y-2 font-mono text-xs text-slate-300">
+                  <div className="text-center text-blue-300">Y = 0.6 × (M/M<sub>max</sub>) + 0.4 × σ(t)</div>
+                  <div className="text-center text-blue-300">σ(t) = 1 / (1 + e<sup>-0.8(x-5)</sup>)</div>
+                  <div className="text-slate-400 text-[10px] mt-3 text-center leading-relaxed">
+                    Y = final curve value • M = actual metric value • M<sub>max</sub> = maximum expected value • σ(t) = logistic sigmoid function • k = 0.8 (steepness) • x₀ = 5 (midpoint in years)
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
+              <button
+                onClick={() => setShowIccFormulaModal(false)}
+                className="w-full py-2 px-4 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader>
           <CardTitle className="text-white text-lg">Non-Readiness Breakdown</CardTitle>
@@ -842,24 +1303,34 @@ function ReadinessTab({ readinessData, atRiskData }: { readinessData: any; atRis
                       <th className="text-left py-2 px-2">Name</th>
                       <th className="text-left py-2 px-2">Squadron</th>
                       <th className="text-left py-2 px-2">Risk Level</th>
+                      <th className="text-left py-2 px-2">Days Inactive</th>
                       <th className="text-left py-2 px-2">Top Risk Factor</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {pagedAtRisk.map((s: any, i: number) => (
-                      <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
-                        <td className="py-2 px-2 text-white">{s.name || s.email}</td>
-                        <td className="py-2 px-2 text-gray-300">{s.squadron || "—"}</td>
-                        <td className="py-2 px-2">
-                          <Badge variant="outline" className={
-                            s.riskLevel === "high" ? "border-red-500 text-red-400" :
-                            s.riskLevel === "medium" ? "border-amber-500 text-amber-400" :
-                            "border-yellow-500 text-yellow-400"
-                          }>{s.riskLevel}</Badge>
-                        </td>
-                        <td className="py-2 px-2 text-gray-400 text-xs">{s.topRiskFactor || s.riskFactors?.[0] || "—"}</td>
-                      </tr>
-                    ))}
+                    {pagedAtRisk.map((s: any, i: number) => {
+                      const daysInactive = s.daysSinceActivity ?? null;
+                      const daysColor = daysInactive === null ? "text-gray-500" :
+                        daysInactive > 14 ? "text-red-400" :
+                        daysInactive > 7 ? "text-amber-400" : "text-green-400";
+                      return (
+                        <tr key={i} className="border-b border-[#222] hover:bg-[#222]">
+                          <td className="py-2 px-2 text-white">{s.name || s.email}</td>
+                          <td className="py-2 px-2 text-gray-300">{s.squadron || "—"}</td>
+                          <td className="py-2 px-2">
+                            <Badge variant="outline" className={
+                              s.riskLevel === "high" ? "border-red-500 text-red-400" :
+                              s.riskLevel === "medium" ? "border-amber-500 text-amber-400" :
+                              "border-yellow-500 text-yellow-400"
+                            }>{s.riskLevel}</Badge>
+                          </td>
+                          <td className={`py-2 px-2 text-sm font-medium ${daysColor}`}>
+                            {daysInactive !== null ? `${daysInactive}d` : "—"}
+                          </td>
+                          <td className="py-2 px-2 text-gray-400 text-xs">{s.topRiskFactor || s.riskFactors?.[0] || "—"}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -980,6 +1451,45 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
           </CardContent>
         </Card>
       )}
+
+      {(() => {
+        if (!peakMonth || !peakMonth.month) return null;
+        const peakMonthStr = peakMonth.month;
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const now = new Date();
+        let peakDate: Date | null = null;
+        for (let offset = 0; offset < 12; offset++) {
+          const candidate = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+          const label = monthNames[candidate.getMonth()];
+          const labelFull = candidate.toLocaleDateString("en-AU", { month: "short" });
+          if (peakMonthStr.includes(label) || peakMonthStr.includes(labelFull) || peakMonthStr.includes(candidate.toLocaleDateString("en-AU", { month: "long" }))) {
+            peakDate = candidate;
+            break;
+          }
+        }
+        if (!peakDate) return null;
+        const daysUntilPeak = Math.floor((peakDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysUntilPeak > 60) return null;
+
+        return (
+          <Card className="bg-amber-500/10 border-amber-500/40">
+            <CardContent className="py-3 px-4">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-400">Peak Renewal Month Approaching</p>
+                  <p className="text-sm text-gray-300 mt-0.5">
+                    {peakMonthStr} has {peakMonth.count} qualification{peakMonth.count > 1 ? "s" : ""} due for renewal — the highest of any upcoming month.
+                    {daysUntilPeak <= 30
+                      ? " This is less than 30 days away. Initiate renewal scheduling immediately."
+                      : ` This is approximately ${daysUntilPeak} days away. Begin scheduling renewal training now to avoid readiness gaps.`}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader><CardTitle className="text-white text-lg">Upcoming Currency Renewals</CardTitle></CardHeader>
