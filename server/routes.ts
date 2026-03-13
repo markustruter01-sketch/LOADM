@@ -4140,6 +4140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isFlightReady: licenses.isFlightReady,
         notReadyReason: licenses.notReadyReason,
         readinessUpdatedAt: licenses.readinessUpdatedAt,
+        totalMissionsFlown: licenses.totalMissionsFlown,
       })
       .from(users)
       .leftJoin(licenses, eq(users.licenseId, licenses.id))
@@ -4147,6 +4148,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         eq(licenses.isActive, true),
         notInArray(licenses.licenseType, ['leadership', 'superadmin'])
       ));
+
+      // For any not-ready user with no reason, cross-reference qualifications to infer a reason
+      const notReadyNoReason = allUsers.filter(u => !u.isFlightReady && !u.notReadyReason);
+      if (notReadyNoReason.length > 0) {
+        const now = new Date();
+        const ninetyDays = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+        const userIds = notReadyNoReason.map(u => u.userId).filter(Boolean);
+        const quals = userIds.length > 0 ? await db.select({
+          userId: userQualifications.userId,
+          expiryDate: userQualifications.expiryDate,
+        }).from(userQualifications)
+          .where(sql`${userQualifications.userId} = ANY(ARRAY[${sql.raw(userIds.join(','))}]::int[])`) : [];
+
+        const expiredByUser = new Map<number, boolean>();
+        const expiringByUser = new Map<number, boolean>();
+        quals.forEach(q => {
+          if (!q.expiryDate) return;
+          const exp = new Date(q.expiryDate);
+          if (exp < now) expiredByUser.set(q.userId, true);
+          else if (exp <= ninetyDays) expiringByUser.set(q.userId, true);
+        });
+
+        // Patch the reason on the in-memory records so downstream logic uses real categories
+        allUsers.forEach(u => {
+          if (!u.isFlightReady && !u.notReadyReason) {
+            if (expiredByUser.get(u.userId)) {
+              u.notReadyReason = 'Currency Lapsed';
+            } else if (expiringByUser.get(u.userId)) {
+              u.notReadyReason = 'Currency Lapsed';
+            } else if ((u.totalMissionsFlown ?? 0) >= 50) {
+              u.notReadyReason = 'Currency Lapsed';
+            } else {
+              u.notReadyReason = 'Training Required';
+            }
+          }
+        });
+      }
 
       // Group by squadron
       type UserRecord = typeof allUsers[number];
@@ -4176,7 +4214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           existing.ready++;
         } else {
           existing.notReady++;
-          const reason = user.notReadyReason || 'Unspecified';
+          const reason = user.notReadyReason || 'Pending Review';
           existing.reasonBreakdown.set(reason, (existing.reasonBreakdown.get(reason) || 0) + 1);
         }
         existing.members.push(user);
@@ -4192,7 +4230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Reason breakdown across all squadrons
       const overallReasons = new Map<string, number>();
       allUsers.filter(u => !u.isFlightReady).forEach(u => {
-        const reason = u.notReadyReason || 'Unspecified';
+        const reason = u.notReadyReason || 'Pending Review';
         overallReasons.set(reason, (overallReasons.get(reason) || 0) + 1);
       });
 
