@@ -3588,6 +3588,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { totalMissionsFlown, totalCargoWeight, totalFlightHours, totalNightHours, totalDayHours, totalCargoCarried, totalPassengersCarried } = req.body;
 
+      const numFields = { totalMissionsFlown, totalCargoWeight, totalFlightHours, totalNightHours, totalDayHours, totalCargoCarried, totalPassengersCarried };
+      for (const [key, val] of Object.entries(numFields)) {
+        if (val !== undefined && val !== null) {
+          if (typeof val !== 'number' || isNaN(val) || val < 0) {
+            return res.status(400).json({ message: `Invalid value for ${key}: must be a non-negative number` });
+          }
+        }
+      }
+
       // Get user's license
       const [userRecord] = await db.select()
         .from(users)

@@ -469,22 +469,6 @@ export default function UserProfile() {
     });
   };
 
-  // Calculate flight statistics from flight records
-  const flightStats = flightRecords.reduce((acc, flight) => {
-    return {
-      totalFlightHours: acc.totalFlightHours + (flight.nightHours || 0) + (flight.dayHours || 0),
-      totalCargo: acc.totalCargo + (flight.cargoWeight || 0),
-      totalPassengers: acc.totalPassengers + (flight.passengersCarried || 0),
-      totalNightHours: acc.totalNightHours + (flight.nightHours || 0),
-      totalDayHours: acc.totalDayHours + (flight.dayHours || 0),
-    };
-  }, {
-    totalFlightHours: 0,
-    totalCargo: 0,
-    totalPassengers: 0,
-    totalNightHours: 0,
-    totalDayHours: 0,
-  });
 
   const isQualificationExpiringSoon = (expiryDate: string | null) => {
     if (!expiryDate) return false; // No end date means not expiring
