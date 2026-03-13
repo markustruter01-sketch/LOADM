@@ -1322,7 +1322,7 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
               <div key={sq.squadron} className="flex items-center gap-3">
                 <div className="w-20 text-sm text-gray-300">{sq.squadron}SQN</div>
                 <div className="flex-1 relative">
-                  <Progress value={sq.readyPercent} className="h-5" />
+                  <Progress value={sq.readyPercent} className={`h-5 ${sq.readyPercent >= 85 ? '[&>div]:bg-green-500' : '[&>div]:bg-orange-500'}`} />
                   <div className="absolute top-0 h-5 border-l-2 border-dashed border-white/50" style={{ left: "85%" }}>
                     <span className="absolute -top-5 -left-2 text-[10px] text-gray-400">85%</span>
                   </div>
