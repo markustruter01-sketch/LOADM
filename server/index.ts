@@ -345,7 +345,14 @@ app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
         l.first_name,
         l.last_name,
         l.license_type,
-        l.profile_photo_url
+        l.profile_photo_url,
+        l.total_missions_flown,
+        l.total_cargo_weight,
+        l.total_flight_hours,
+        l.total_night_hours,
+        l.total_day_hours,
+        l.total_cargo_carried,
+        l.total_passengers_carried
       FROM users u
       LEFT JOIN licenses l ON u.license_id = l.id
       WHERE u.id = ${req.user.id}
@@ -366,7 +373,14 @@ app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
         category: user.category,
         firstName: user.first_name,
         lastName: user.last_name,
-        profilePhotoUrl: user.profile_photo_url
+        profilePhotoUrl: user.profile_photo_url,
+        totalMissionsFlown: user.total_missions_flown ?? 0,
+        totalCargoWeight: user.total_cargo_weight ?? 0,
+        totalFlightHours: user.total_flight_hours ?? 0,
+        totalNightHours: user.total_night_hours ?? 0,
+        totalDayHours: user.total_day_hours ?? 0,
+        totalCargoCarried: user.total_cargo_carried ?? 0,
+        totalPassengersCarried: user.total_passengers_carried ?? 0,
       },
       stats: {
         totalSubmissions: 0,

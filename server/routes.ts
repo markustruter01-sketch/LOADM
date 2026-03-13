@@ -3586,7 +3586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const { totalMissionsFlown, totalCargoWeight } = req.body;
+      const { totalMissionsFlown, totalCargoWeight, totalFlightHours, totalNightHours, totalDayHours, totalCargoCarried, totalPassengersCarried } = req.body;
 
       // Get user's license
       const [userRecord] = await db.select()
@@ -3602,6 +3602,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({
           totalMissionsFlown: totalMissionsFlown ?? undefined,
           totalCargoWeight: totalCargoWeight ?? undefined,
+          totalFlightHours: totalFlightHours ?? undefined,
+          totalNightHours: totalNightHours ?? undefined,
+          totalDayHours: totalDayHours ?? undefined,
+          totalCargoCarried: totalCargoCarried ?? undefined,
+          totalPassengersCarried: totalPassengersCarried ?? undefined,
           updatedAt: new Date(),
         })
         .where(eq(licenses.id, userRecord.licenseId));
@@ -5210,6 +5215,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profilePhotoUrl: licenses.profilePhotoUrl,
         totalMissionsFlown: licenses.totalMissionsFlown,
         totalCargoWeight: licenses.totalCargoWeight,
+        totalFlightHours: licenses.totalFlightHours,
+        totalNightHours: licenses.totalNightHours,
+        totalDayHours: licenses.totalDayHours,
+        totalCargoCarried: licenses.totalCargoCarried,
+        totalPassengersCarried: licenses.totalPassengersCarried,
         licenseIssuedDate: licenses.issuedDate,
         lastLogin: users.lastLogin,
         createdAt: users.createdAt,
