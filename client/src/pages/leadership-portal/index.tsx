@@ -1505,7 +1505,7 @@ function QualificationsTab({ currencyData, forecastData, readinessData }: { curr
       )}
 
       {(() => {
-        if (!peakMonth || !peakMonth.month) return null;
+        if (!peakMonth || !peakMonth.month || peakMonth.count <= 0) return null;
         const peakMonthStr = peakMonth.month;
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const now = new Date();
