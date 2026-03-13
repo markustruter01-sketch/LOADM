@@ -973,15 +973,15 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
         </Card>
       )}
 
-      <Card className="bg-[#1a1a1a] border-[#333]">
+      <Card className="mb-6" data-testid="card-icc-power-law">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-400" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
                 Item Characteristic Curves (ICC)
               </CardTitle>
-              <CardDescription className="text-gray-500 mt-1">
+              <CardDescription className="mt-1">
                 Compare how different performance metrics develop across skill levels over time in role
               </CardDescription>
             </div>
@@ -989,11 +989,12 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
               <button
                 onClick={() => setShowIccFormulaModal(true)}
                 className="px-3 py-2 rounded-lg text-sm font-mono border border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
+                data-testid="button-icc-formula"
               >
                 View Formula
               </button>
               <Select value={iccMetric} onValueChange={setIccMetric}>
-                <SelectTrigger className="w-[200px] bg-[#222] border-[#444] text-gray-200">
+                <SelectTrigger className="w-[200px]" data-testid="select-icc-metric">
                   <SelectValue placeholder="Select metric" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1015,7 +1016,7 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
           ) : iccData?.curves && iccData.curves.length > 0 ? (
             <>
               <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="text-xs text-gray-500 font-medium mr-1">Show:</span>
+                <span className="text-xs text-muted-foreground font-medium mr-1">Show:</span>
                 {iccData.curves.map((curve) => {
                   const isOn = iccSquadronToggles[curve.squadron] !== false;
                   return (
@@ -1042,27 +1043,29 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
                 })}
               </div>
 
-              <div className="h-[400px] w-full">
+              <div className="h-[400px] w-full" data-testid="icc-chart-container">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <LineChart
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis
-                      dataKey="year"
+                    <XAxis 
+                      dataKey="year" 
                       type="number"
                       domain={[0, 12]}
                       tickCount={13}
                       label={{ value: 'Time in Role (Years)', position: 'insideBottom', offset: -10, fill: '#9CA3AF' }}
                       stroke="#6B7280"
                     />
-                    <YAxis
+                    <YAxis 
                       domain={[0, 1]}
                       tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
                       label={{ value: iccData.metricLabel, angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
                       stroke="#6B7280"
                     />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(31, 41, 55, 0.95)', 
                         border: '1px solid #374151',
                         borderRadius: '8px'
                       }}
@@ -1072,8 +1075,10 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
                       ]}
                       labelFormatter={(label) => `Year ${label} in Role`}
                     />
-                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    {iccData.curves.filter(curve => iccSquadronToggles[curve.squadron] !== false).map((curve) => (
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '20px' }}
+                    />
+                    {iccData.curves.filter(curve => iccSquadronToggles[curve.squadron] !== false).map((curve, index) => (
                       <Line
                         key={curve.squadron}
                         data={curve.dataPoints}
@@ -1092,20 +1097,20 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <Card className="bg-[#222] border-[#333]">
+                <Card className="bg-muted/30 border-muted">
                   <CardContent className="p-4">
-                    <h4 className="font-semibold text-sm mb-2 text-blue-400">Horizontal Axis: Time in Role</h4>
-                    <p className="text-xs text-gray-500">
-                      Left (0 years) to right (12+ years). Shows how personnel at different experience levels perform.
+                    <h4 className="font-semibold text-sm mb-2 text-primary">Horizontal Axis: Time in Role</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Left (0 years) to right (12+ years). Shows how personnel at different experience levels perform. 
                       Career progression stages visible from entry-level to senior loadmasters.
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="bg-[#222] border-[#333]">
+                <Card className="bg-muted/30 border-muted">
                   <CardContent className="p-4">
-                    <h4 className="font-semibold text-sm mb-2 text-blue-400">Vertical Axis: {iccData.metricLabel}</h4>
-                    <p className="text-xs text-gray-500">
-                      0% = entry level, 100% = maximum expected performance.
+                    <h4 className="font-semibold text-sm mb-2 text-primary">Vertical Axis: {iccData.metricLabel}</h4>
+                    <p className="text-xs text-muted-foreground">
+                      0% = entry level, 100% = maximum expected performance. 
                       S-curve shape indicates power law learning distribution - steep growth mid-career, plateau at expertise.
                     </p>
                   </CardContent>
@@ -1114,29 +1119,31 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
 
               {iccData.insights && iccData.insights.length > 0 && (
                 <div className="mt-6">
-                  <h4 className="font-semibold text-sm mb-3 flex items-center gap-2 text-white">
-                    <Target className="h-4 w-4 text-blue-400" />
+                  <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
                     What These Curves Tell Us About Your Workforce
                   </h4>
                   <div className="space-y-2">
                     {iccData.insights.map((insight, idx) => (
-                      <div
-                        key={idx}
+                      <div 
+                        key={idx} 
                         className={`flex items-start gap-3 p-3 rounded-lg ${
-                          insight.type === 'strength'
-                            ? 'bg-green-500/10 border border-green-500/30'
+                          insight.type === 'strength' 
+                            ? 'bg-green-500/10 border border-green-500/30' 
                             : insight.type === 'challenge'
                             ? 'bg-orange-500/10 border border-orange-500/30'
                             : 'bg-blue-500/10 border border-blue-500/30'
                         }`}
                       >
                         <span className={`text-lg ${
-                          insight.type === 'strength' ? 'text-green-500' :
+                          insight.type === 'strength' ? 'text-green-500' : 
                           insight.type === 'challenge' ? 'text-orange-500' : 'text-blue-500'
-                        }`}>●</span>
+                        }`}>
+                          {insight.type === 'strength' ? '●' : insight.type === 'challenge' ? '●' : '●'}
+                        </span>
                         <div>
-                          <p className="font-medium text-sm text-white">{insight.title}</p>
-                          <p className="text-xs text-gray-400">{insight.description}</p>
+                          <p className="font-medium text-sm">{insight.title}</p>
+                          <p className="text-xs text-muted-foreground">{insight.description}</p>
                         </div>
                       </div>
                     ))}
@@ -1144,92 +1151,137 @@ function ReadinessTab({ readinessData, atRiskData, historyData }: { readinessDat
                 </div>
               )}
 
-              <div className="flex items-center gap-8 mt-4 pt-4 border-t border-[#333] text-xs text-gray-500">
+              <div className="flex items-center gap-8 mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
                 <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
                 <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
                 <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
               </div>
+
+              {showIccFormulaModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowIccFormulaModal(false)}>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                  <div 
+                    className="relative bg-slate-900/60 border border-slate-700/50 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden"
+                    style={{
+                      backdropFilter: 'blur(10px)',
+                      backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                      borderColor: 'rgba(71, 85, 105, 0.5)'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="p-6 border-b border-slate-700/50">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h2 className="text-xl font-bold text-white mb-2">ICC Power Law Distribution</h2>
+                          <p className="text-sm text-blue-300">
+                            ✨ <strong>Why This Matters:</strong> This chart reveals hidden patterns in how your workforce develops skills over time, helping you predict performance trajectories and identify optimal training windows for each career stage.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowIccFormulaModal(false)}
+                          className="text-slate-400 hover:text-white transition-colors"
+                        >
+                          <X className="h-6 w-6" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                          <Target className="h-5 w-5 text-blue-400" />
+                          What It Does
+                        </h3>
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          The ICC (Item Characteristic Curve) Power Law Distribution chart models how performance metrics evolve across your workforce as personnel gain experience. It combines actual performance data with a sigmoid (S-curve) function to create smooth, realistic learning trajectories that match real-world skill development patterns.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-blue-400" />
+                          What It Shows
+                        </h3>
+                        <ul className="space-y-2 text-sm text-slate-300">
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-400 mt-1">•</span>
+                            <span><strong>Career Stage Performance:</strong> How different experience levels (0-12 years) perform on key metrics</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-400 mt-1">•</span>
+                            <span><strong>Squadron Comparison:</strong> Color-coded lines for each squadron show comparative performance trajectories</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-400 mt-1">•</span>
+                            <span><strong>Growth Periods:</strong> Steep curves indicate rapid skill acquisition; plateau regions show expertise stabilization</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-blue-400 mt-1">•</span>
+                            <span><strong>Selectible Metrics:</strong> Switch between Assessments Passed, Flight Hours, Qualifications, Scores, and Cargo Weight</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                          <Award className="h-5 w-5 text-blue-400" />
+                          Why It's Useful
+                        </h3>
+                        <ul className="space-y-2 text-sm text-slate-300">
+                          <li className="flex items-start gap-3">
+                            <span className="text-green-400 mt-1">✓</span>
+                            <span><strong>Workforce Planning:</strong> Predict when personnel will reach peak performance and plan succession</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-green-400 mt-1">✓</span>
+                            <span><strong>Training Optimization:</strong> Identify the critical learning window (usually years 2-5) for targeted training investment</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-green-400 mt-1">✓</span>
+                            <span><strong>Squadron Benchmarking:</strong> Compare squadron trajectories to identify best practices and improvement areas</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-green-400 mt-1">✓</span>
+                            <span><strong>Performance Prediction:</strong> Estimate how new personnel will develop compared to historical patterns</span>
+                          </li>
+                          <li className="flex items-start gap-3">
+                            <span className="text-green-400 mt-1">✓</span>
+                            <span><strong>Data-Driven Decisions:</strong> Base promotion, assignment, and retention decisions on statistically validated learning curves</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                        <h4 className="text-sm font-semibold text-white mb-3">Mathematical Formula</h4>
+                        <div className="space-y-2 font-mono text-xs text-slate-300">
+                          <div className="text-center text-blue-300">Y = 0.6 × (M/M<sub>max</sub>) + 0.4 × σ(t)</div>
+                          <div className="text-center text-blue-300">σ(t) = 1 / (1 + e<sup>-0.8(x-5)</sup>)</div>
+                          <div className="text-slate-400 text-[10px] mt-3 text-center leading-relaxed">
+                            Y = final curve value • M = actual metric value • M<sub>max</sub> = maximum expected value • σ(t) = logistic sigmoid function • k = 0.8 (steepness) • x₀ = 5 (midpoint in years)
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
+                      <button
+                        onClick={() => setShowIccFormulaModal(false)}
+                        className="w-full py-2 px-4 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
-            <p className="text-gray-500 text-sm">No ICC data available.</p>
+            <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+              <p>No ICC data available</p>
+            </div>
           )}
         </CardContent>
       </Card>
-
-      {showIccFormulaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowIccFormulaModal(false)}>
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-          <div
-            className="relative bg-slate-900/60 border border-slate-700/50 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden"
-            style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(15, 23, 42, 0.6)', borderColor: 'rgba(71, 85, 105, 0.5)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-slate-700/50">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl font-bold text-white mb-2">ICC Power Law Distribution</h2>
-                  <p className="text-sm text-blue-300">
-                    This chart reveals hidden patterns in how your workforce develops skills over time, helping you predict performance trajectories and identify optimal training windows for each career stage.
-                  </p>
-                </div>
-                <button onClick={() => setShowIccFormulaModal(false)} className="text-slate-400 hover:text-white transition-colors">
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <Target className="h-5 w-5 text-blue-400" /> What It Does
-                </h3>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  The ICC (Item Characteristic Curve) Power Law Distribution chart models how performance metrics evolve across your workforce as personnel gain experience. It combines actual performance data with a sigmoid (S-curve) function to create smooth, realistic learning trajectories.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-400" /> What It Shows
-                </h3>
-                <ul className="space-y-2 text-sm text-slate-300">
-                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Career Stage Performance:</strong> How different experience levels (0-12 years) perform on key metrics</span></li>
-                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Squadron Comparison:</strong> Color-coded lines for each squadron show comparative performance trajectories</span></li>
-                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Growth Periods:</strong> Steep curves indicate rapid skill acquisition; plateau regions show expertise stabilization</span></li>
-                  <li className="flex items-start gap-3"><span className="text-blue-400 mt-1">•</span><span><strong>Selectable Metrics:</strong> Switch between Assessments Passed, Flight Hours, Qualifications, Scores, and Cargo Weight</span></li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <Award className="h-5 w-5 text-blue-400" /> Why It's Useful
-                </h3>
-                <ul className="space-y-2 text-sm text-slate-300">
-                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Workforce Planning:</strong> Predict when personnel will reach peak performance and plan succession</span></li>
-                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Training Optimization:</strong> Identify the critical learning window (usually years 2-5) for targeted training investment</span></li>
-                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Squadron Benchmarking:</strong> Compare squadron trajectories to identify best practices and improvement areas</span></li>
-                  <li className="flex items-start gap-3"><span className="text-green-400 mt-1">✓</span><span><strong>Performance Prediction:</strong> Estimate how new personnel will develop compared to historical patterns</span></li>
-                </ul>
-              </div>
-              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                <h4 className="text-sm font-semibold text-white mb-3">Mathematical Formula</h4>
-                <div className="space-y-2 font-mono text-xs text-slate-300">
-                  <div className="text-center text-blue-300">Y = 0.6 × (M/M<sub>max</sub>) + 0.4 × σ(t)</div>
-                  <div className="text-center text-blue-300">σ(t) = 1 / (1 + e<sup>-0.8(x-5)</sup>)</div>
-                  <div className="text-slate-400 text-[10px] mt-3 text-center leading-relaxed">
-                    Y = final curve value • M = actual metric value • M<sub>max</sub> = maximum expected value • σ(t) = logistic sigmoid function • k = 0.8 (steepness) • x₀ = 5 (midpoint in years)
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
-              <button
-                onClick={() => setShowIccFormulaModal(false)}
-                className="w-full py-2 px-4 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Card className="bg-[#1a1a1a] border-[#333]">
         <CardHeader>
