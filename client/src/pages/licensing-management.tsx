@@ -33,6 +33,7 @@ interface License {
   totalSessionCount: number;
   isExpired: boolean;
   daysUntilExpiry: number;
+  lastLogin: string | null;
 }
 
 interface DashboardStats {
@@ -796,6 +797,11 @@ export default function LicensingManagement() {
                             ? `${license.daysUntilExpiry} days left`
                             : `Expired ${Math.abs(license.daysUntilExpiry)} days ago`
                           }
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          {license.lastLogin
+                            ? `Last login: ${format(new Date(license.lastLogin), "dd MMM yyyy, HH:mm")}`
+                            : "Never logged in"}
                         </div>
                       </div>
                     </TableCell>

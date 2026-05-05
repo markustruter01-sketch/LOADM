@@ -22,6 +22,15 @@ router.post('/login', async (req, res) => {
     }
     
     const sessionId = authCore.createIsolatedSession(user.id, user.email, user.role);
+
+    // Record login timestamp
+    try {
+      const { neon } = await import('@neondatabase/serverless');
+      const sql = neon(process.env.DATABASE_URL!);
+      await sql`UPDATE users SET last_login = NOW() WHERE id = ${user.id}`;
+    } catch (e) {
+      console.error('✅ ISOLATED: Failed to record last_login (non-fatal):', e);
+    }
     
     // Set cookie with better cross-device compatibility
     const cookieOptions = {

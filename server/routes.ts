@@ -394,7 +394,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: users.id,
         userEmail: users.email,
         isFirstLogin: users.isFirstLogin,
-        hasPassword: users.hashedPassword
+        hasPassword: users.hashedPassword,
+        lastLogin: users.lastLogin,
       })
       .from(licenses)
       .leftJoin(users, eq(licenses.id, users.licenseId))
@@ -440,7 +441,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: license.userId,
           userEmail: license.userEmail,
           isFirstLogin: license.isFirstLogin,
-          hasPassword: license.hasPassword
+          hasPassword: license.hasPassword,
+          lastLogin: license.lastLogin ?? null,
         };
       });
 
