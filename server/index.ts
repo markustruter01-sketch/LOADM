@@ -90,12 +90,6 @@ async function logActivity(params: {
   }
 }
 
-// Debug endpoint to check active sessions
-app.get("/api/debug-sessions", (req, res) => {
-  const sessions = authCore.getAllActiveSessions();
-  res.json({ activeSessions: sessions, count: sessions.length });
-});
-
 app.get("/api/phone-directory", async (req, res) => {
   try {
     console.log("NUCLEAR: Phone directory GET request received");
@@ -114,6 +108,10 @@ app.get("/api/phone-directory", async (req, res) => {
 
 app.delete("/api/phone-directory/:id", async (req: any, res) => {
   try {
+    const user = (req as any).user;
+    if (!user || (user.role !== 'instructor' && user.role !== 'superadmin')) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
     console.log("NUCLEAR: Phone directory DELETE request received");
     const id = parseInt(req.params.id);
     const [entry] = await db.select().from(phoneDirectory).where(eq(phoneDirectory.id, id)).limit(1);
@@ -151,6 +149,10 @@ app.get("/api/activity-log", async (req: any, res) => {
 // Chat message endpoints - bypassing auth middleware
 app.get("/api/chat-messages", async (req, res) => {
   try {
+    const user = (req as any).user;
+    if (!user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
     console.log("Chat messages GET request received");
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -170,6 +172,10 @@ app.get("/api/chat-messages", async (req, res) => {
 // Chat reset endpoint - delete all chat messages
 app.delete("/api/chat-messages/reset", async (req, res) => {
   try {
+    const user = (req as any).user;
+    if (!user || user.role !== 'superadmin') {
+      return res.status(403).json({ message: "Forbidden" });
+    }
     console.log("Chat reset request received");
     
     // Delete all chat messages
@@ -903,14 +909,22 @@ wss.on('connection', (ws, req) => {
       console.log('WebSocket message received:', message);
       
       if (message.type === 'auth') {
-        console.log('Processing auth message:', message);
-        // Store user info for this connection
+        const rawCookie = req.headers.cookie || '';
+        const match = rawCookie.match(/(?:^|;\s*)isolated_session=([^;]+)/);
+        const wsSessionId = match ? decodeURIComponent(match[1]) : null;
+        const wsSession = wsSessionId ? authCore.getIsolatedSession(wsSessionId) : null;
+
+        if (!wsSession) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Not authenticated' }));
+          ws.close();
+          return;
+        }
+
         connectedClients.set(ws, {
-          userId: message.userId,
-          userName: message.userName,
-          userRole: message.userRole
+          userId: wsSession.userId,
+          userName: wsSession.email,
+          userRole: wsSession.role
         });
-        console.log('User authenticated:', message.userName);
         ws.send(JSON.stringify({ type: 'auth_success' }));
         return;
       }

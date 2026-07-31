@@ -164,8 +164,11 @@ export async function authenticateUser(email: string, password: string) {
       category: squadronData?.category || 'D',
       isFirstLogin: user.is_first_login
     };
-  } catch (error) {
-    console.log(`✅ ISOLATED AUTH: Database error, falling back to superadmin-only mode`);
+  } catch (error: any) {
+    if (error?.message === 'LICENSE_EXPIRED' || error?.message === 'INVALID_LICENSE') {
+      throw error;
+    }
+    console.error('AUTH: Database error during authentication:', error);
     return null;
   }
 }

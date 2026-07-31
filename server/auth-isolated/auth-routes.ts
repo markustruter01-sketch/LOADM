@@ -326,15 +326,4 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-// ISOLATED CLEAR SESSIONS - For debugging
-router.post('/clear-sessions', (req, res) => {
-  try {
-    authCore.clearAllIsolatedSessions();
-    res.json({ success: true, message: 'All sessions cleared' });
-  } catch (error) {
-    console.error('✅ ISOLATED: Clear sessions error:', error);
-    res.status(500).json({ error: 'Failed to clear sessions' });
-  }
-});
-
 export default router;
