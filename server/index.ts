@@ -371,6 +371,46 @@ app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
+    const flightAgg = await sql`
+      SELECT
+        COALESCE(SUM(COALESCE(day_hours,0)), 0)          AS day_hours,
+        COALESCE(SUM(COALESCE(night_hours,0)), 0)        AS night_hours,
+        COALESCE(SUM(COALESCE(day_hours,0) + COALESCE(night_hours,0)), 0) AS total_hours,
+        COALESCE(SUM(COALESCE(cargo_weight,0)), 0)       AS cargo_weight,
+        COALESCE(SUM(COALESCE(passengers_carried,0)), 0) AS passengers,
+        COUNT(*)                                          AS flights
+      FROM flight_records
+      WHERE user_id = ${req.user.id}
+    `;
+    const fa = flightAgg[0] || {};
+
+    const subAgg = await sql`
+      SELECT
+        (SELECT COUNT(*) FROM quiz_submissions      WHERE user_id = ${req.user.id}) AS quiz_total,
+        (SELECT COUNT(*) FROM quiz_submissions      WHERE user_id = ${req.user.id} AND score >= 70) AS quiz_passed,
+        (SELECT COUNT(*) FROM scenario_submissions  WHERE user_id = ${req.user.id}) AS scen_total,
+        (SELECT COUNT(*) FROM scenario_submissions  WHERE user_id = ${req.user.id} AND passed IS TRUE) AS scen_passed,
+        (SELECT COUNT(*) FROM scenario_submissions  WHERE user_id = ${req.user.id} AND status = 'submitted') AS pending,
+        (SELECT COUNT(*) FROM document_submissions  WHERE user_id = ${req.user.id}) AS doc_total
+    `;
+    const sa = subAgg[0] || {};
+
+    const lastActivity = await sql`
+      SELECT MAX(d) AS last_date FROM (
+        SELECT MAX(submission_date) AS d FROM quiz_submissions     WHERE user_id = ${req.user.id}
+        UNION ALL
+        SELECT MAX(submission_date) AS d FROM scenario_submissions WHERE user_id = ${req.user.id}
+      ) x
+    `;
+
+    const totalSubs  = Number(sa.quiz_total||0) + Number(sa.scen_total||0) + Number(sa.doc_total||0);
+    const passedSubs = Number(sa.quiz_passed||0) + Number(sa.scen_passed||0);
+    const gradedSubs = Number(sa.quiz_total||0) + Number(sa.scen_total||0);
+    const lastDate   = lastActivity[0]?.last_date ? new Date(lastActivity[0].last_date) : null;
+    const weeksSince = lastDate
+      ? Math.floor((Date.now() - lastDate.getTime()) / (1000*60*60*24*7))
+      : 0;
+
     // Return basic profile structure
     res.json({
       user: {
@@ -382,23 +422,23 @@ app.get("/api/profile", unifiedAuthMiddleware, async (req: any, res) => {
         firstName: user.first_name,
         lastName: user.last_name,
         profilePhotoUrl: user.profile_photo_url,
-        totalMissionsFlown: user.total_missions_flown ?? 0,
-        totalCargoWeight: user.total_cargo_weight ?? 0,
-        totalFlightHours: user.total_flight_hours ?? 0,
-        totalNightHours: user.total_night_hours ?? 0,
-        totalDayHours: user.total_day_hours ?? 0,
-        totalCargoCarried: user.total_cargo_carried ?? 0,
-        totalPassengersCarried: user.total_passengers_carried ?? 0,
+        totalFlightHours:       Number(fa.total_hours)   || 0,
+        totalDayHours:          Number(fa.day_hours)     || 0,
+        totalNightHours:        Number(fa.night_hours)   || 0,
+        totalCargoWeight:       Number(fa.cargo_weight)  || 0,
+        totalCargoCarried:      Number(fa.cargo_weight)  || 0,
+        totalPassengersCarried: Number(fa.passengers)    || 0,
+        totalMissionsFlown:     Number(fa.flights)       || 0,
       },
       stats: {
-        totalSubmissions: 0,
-        passedSubmissions: 0,
-        failedSubmissions: 0,
-        pendingGrading: 0,
-        overallPassRate: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        weeksSinceLastActivity: 0
+        totalSubmissions:   totalSubs,
+        passedSubmissions:  passedSubs,
+        failedSubmissions:  Math.max(0, gradedSubs - passedSubs),
+        pendingGrading:     Number(sa.pending || 0),
+        overallPassRate:    gradedSubs > 0 ? Math.round((passedSubs / gradedSubs) * 100) : 0,
+        currentStreak:      0,
+        longestStreak:      0,
+        weeksSinceLastActivity: weeksSince
       },
       submissions: [],
       submissionsByType: { scenarios: [], quizzes: [], assessments: [] },

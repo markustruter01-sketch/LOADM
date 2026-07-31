@@ -1591,13 +1591,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           : 999;
         
         // Determine risk factors
-        const riskFactors = [];
-        if (avgQuizScore < 70) riskFactors.push('Low quiz scores');
-        if (avgScenarioScore < 70) riskFactors.push('Low scenario scores');
-        if (failedScenarios > 2) riskFactors.push('Multiple failed scenarios');
-        if (totalSubmissions < 3) riskFactors.push('Low engagement');
-        if (daysSinceActivity > 14) riskFactors.push('Inactive for 2+ weeks');
-        
+        const riskFactors: string[] = [];
+        let riskLevel: string;
+
+        if (totalSubmissions === 0) {
+          riskFactors.push('No training activity in last 30 days');
+          riskLevel = 'unknown';
+        } else {
+          if (userQuizzes.length > 0 && avgQuizScore < 70) riskFactors.push('Low quiz scores');
+          if (userScenarios.length > 0 && avgScenarioScore < 70) riskFactors.push('Low scenario scores');
+          if (failedScenarios > 2) riskFactors.push('Multiple failed scenarios');
+          if (totalSubmissions < 3) riskFactors.push('Low engagement');
+          if (daysSinceActivity > 14) riskFactors.push('Inactive for 2+ weeks');
+          riskLevel = riskFactors.length >= 3 ? 'high'
+                    : riskFactors.length >= 2 ? 'medium'
+                    : 'low';
+        }
+
         return {
           userId,
           name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown',
@@ -1609,7 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           failedScenarios,
           daysSinceActivity,
           riskFactors,
-          riskLevel: riskFactors.length >= 3 ? 'high' : riskFactors.length >= 2 ? 'medium' : 'low'
+          riskLevel
         };
       })
       .filter((student: any) => student.riskFactors.length > 0) // Only return at-risk students

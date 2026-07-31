@@ -701,34 +701,12 @@ export default function UserProfile() {
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Missions Flown</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={editedStats.totalMissionsFlown}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalMissionsFlown: parseInt(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                    />
-                  ) : (
-                    <p className="text-white font-medium">{(profileData as any)?.user?.totalMissionsFlown ?? 0}</p>
-                  )}
+                  <p className="text-white font-medium">{(profileData as any)?.user?.totalMissionsFlown ?? 0}</p>
                 </div>
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Cargo Weight (kg)</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={editedStats.totalCargoWeight}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalCargoWeight: parseInt(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                    />
-                  ) : (
-                    <p className="text-white font-medium">{((profileData as any)?.user?.totalCargoWeight ?? 0).toLocaleString()}</p>
-                  )}
+                  <p className="text-white font-medium">{((profileData as any)?.user?.totalCargoWeight ?? 0).toLocaleString()}</p>
                 </div>
 
                 <div className="border-t border-[#444444] my-4"></div>
@@ -740,83 +718,28 @@ export default function UserProfile() {
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Flight Hours</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={editedStats.totalFlightHours}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalFlightHours: parseFloat(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                    />
-                  ) : (
-                    <p className="text-white font-medium text-lg">{((profileData as any)?.user?.totalFlightHours ?? 0).toFixed(1)}</p>
-                  )}
+                  <p className="text-white font-medium text-lg">{((profileData as any)?.user?.totalFlightHours ?? 0).toFixed(1)}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-gray-400 text-sm">Night Hours</Label>
-                    {isEditingStats ? (
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={editedStats.totalNightHours}
-                        onChange={(e) => setEditedStats({ ...editedStats, totalNightHours: parseFloat(e.target.value) || 0 })}
-                        className="bg-[#1a1a1a] border-[#444444] text-white"
-                      />
-                    ) : (
                       <p className="text-white font-medium">{((profileData as any)?.user?.totalNightHours ?? 0).toFixed(1)}</p>
-                    )}
                   </div>
                   <div>
                     <Label className="text-gray-400 text-sm">Day Hours</Label>
-                    {isEditingStats ? (
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={editedStats.totalDayHours}
-                        onChange={(e) => setEditedStats({ ...editedStats, totalDayHours: parseFloat(e.target.value) || 0 })}
-                        className="bg-[#1a1a1a] border-[#444444] text-white"
-                      />
-                    ) : (
                       <p className="text-white font-medium">{((profileData as any)?.user?.totalDayHours ?? 0).toFixed(1)}</p>
-                    )}
                   </div>
                 </div>
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Cargo Carried (kg)</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={editedStats.totalCargoCarried}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalCargoCarried: parseInt(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                    />
-                  ) : (
-                    <p className="text-white font-medium">{((profileData as any)?.user?.totalCargoCarried ?? 0).toLocaleString()}</p>
-                  )}
+                  <p className="text-white font-medium">{((profileData as any)?.user?.totalCargoCarried ?? 0).toLocaleString()}</p>
                 </div>
 
                 <div>
                   <Label className="text-gray-400 text-sm">Total Passengers Carried</Label>
-                  {isEditingStats ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={editedStats.totalPassengersCarried}
-                      onChange={(e) => setEditedStats({ ...editedStats, totalPassengersCarried: parseInt(e.target.value) || 0 })}
-                      className="bg-[#1a1a1a] border-[#444444] text-white"
-                    />
-                  ) : (
-                    <p className="text-white font-medium">{((profileData as any)?.user?.totalPassengersCarried ?? 0).toLocaleString()}</p>
-                  )}
+                  <p className="text-white font-medium">{((profileData as any)?.user?.totalPassengersCarried ?? 0).toLocaleString()}</p>
                 </div>
 
                 <div className="border-t border-[#444444] my-4"></div>
