@@ -11,17 +11,36 @@ export interface BankQuestion {
   difficulty: string;
 }
 
+function seededShuffle<T>(arr: T[], seed: string): T[] {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    h = (Math.imul(h, 1103515245) + 12345) >>> 0;
+    const j = h % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 function fromDbRow(r: any): BankQuestion {
+  const raw = [
+    r.correctAnswer,
+    r.incorrectOption1,
+    r.incorrectOption2,
+    r.incorrectOption3,
+  ];
+  const options = seededShuffle(raw, `qid-${r.id}`);
+  let correctIndex = options.indexOf(r.correctAnswer);
+  if (correctIndex < 0) correctIndex = 0;
   return {
     id: `db-${r.id}`,
     question: r.questionText,
-    options: [
-      r.correctAnswer,
-      r.incorrectOption1,
-      r.incorrectOption2,
-      r.incorrectOption3,
-    ],
-    correctAnswer: 0,
+    options,
+    correctAnswer: correctIndex,
     category: r.category,
     difficulty: r.difficulty,
   };

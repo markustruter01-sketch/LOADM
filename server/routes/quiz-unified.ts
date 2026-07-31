@@ -269,11 +269,11 @@ router.get('/:id/questions', requireAuth, async (req: any, res: any) => {
       return res.status(403).json({ error: 'Quiz has expired' });
     }
     
-    // Import the quiz questions module
-    const { getQuestionsByCategories } = await import('../../shared/quiz-questions');
-    
-    // Get random questions based on categories and count
-    const questions = getQuestionsByCategories(quizData.categories, quizData.question_count);
+    const { getQuestionsByCategoriesDb } = await import('../quiz-bank');
+    let cats = quizData.categories;
+    if (typeof cats === 'string') { try { cats = JSON.parse(cats); } catch { cats = []; } }
+    if (!Array.isArray(cats)) cats = [];
+    const questions = await getQuestionsByCategoriesDb(cats, quizData.question_count);
     
     res.json({
       quizId: id,
@@ -321,42 +321,40 @@ router.post('/:id/submit', requireAuth, async (req: any, res: any) => {
       return res.status(403).json({ error: 'Quiz has expired' });
     }
     
-    // Calculate score
-    const { getQuestionsByCategories } = await import('../../shared/quiz-questions');
-    const questions = getQuestionsByCategories(quizData.categories, quizData.question_count);
-    
+    const { resolveQuestionById } = await import('../quiz-bank');
     let correctAnswers = 0;
-    const detailedResults = answers.map((answer: any, index: number) => {
-      const question = questions[index];
-      if (!question) {
+
+    const detailedResults = await Promise.all(
+      answers.map(async (answer: any, index: number) => {
+        const question = await resolveQuestionById(answer.questionId);
+        if (!question) {
+          return {
+            questionIndex: index,
+            questionId: answer.questionId ?? null,
+            questionText: "Question not found",
+            userAnswer: "No answer",
+            correctAnswer: "Not available",
+            isCorrect: false
+          };
+        }
+        const userAnswerIndex = parseInt(answer.answeredOption);
+        const isCorrect = userAnswerIndex === question.correctAnswer;
+        if (isCorrect) correctAnswers++;
         return {
           questionIndex: index,
-          questionId: null,
-          questionText: "Question not found",
-          userAnswer: "No answer",
-          correctAnswer: "Not available",
-          isCorrect: false
+          questionId: question.id,
+          questionText: question.question,
+          userAnswer: question.options[userAnswerIndex] || "Invalid option",
+          correctAnswer: question.options[question.correctAnswer] || "Not available",
+          isCorrect
         };
-      }
-      
-      // The frontend sends answeredOption as the selected option index
-      const userAnswerIndex = parseInt(answer.answeredOption);
-      const correctAnswerIndex = question.correctAnswer;
-      const isCorrect = userAnswerIndex === correctAnswerIndex;
-      
-      if (isCorrect) correctAnswers++;
-      
-      return {
-        questionIndex: index,
-        questionId: question.id,
-        questionText: question.question,
-        userAnswer: question.options[userAnswerIndex] || "Invalid option",
-        correctAnswer: question.options[correctAnswerIndex] || "Not available",
-        isCorrect
-      };
-    });
-    
-    const score = Math.round((correctAnswers / questions.length) * 100);
+      })
+    );
+
+    const answeredCount = answers.length;
+    const score = answeredCount > 0
+      ? Math.round((correctAnswers / answeredCount) * 100)
+      : 0;
     const passed = score >= (quizData.passing_threshold || 70);
     
     // Save submission
@@ -387,7 +385,7 @@ router.post('/:id/submit', requireAuth, async (req: any, res: any) => {
       score,
       passed,
       correctAnswers,
-      totalQuestions: questions.length,
+      totalQuestions: answeredCount,
       detailedResults
     });
   } catch (error) {

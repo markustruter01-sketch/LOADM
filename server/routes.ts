@@ -923,13 +923,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`✅ QUIZ QUESTIONS: User authenticated: ${req.user?.email}`);
       
       // Import the quiz questions from shared module
-      const { loadmasterQuestions } = await import('../shared/quiz-questions');
-      
-      // Filter by category if specified
-      let questions = loadmasterQuestions;
-      if (category && category !== 'all') {
-        questions = loadmasterQuestions.filter(q => q.category === category);
-      }
+      const { getActiveQuestions } = await import('./quiz-bank');
+      const all = await getActiveQuestions();
+      const questions = (category && category !== 'all')
+        ? all.filter(q => q.category === category)
+        : all;
       
       console.log(`✅ QUIZ QUESTIONS: Returning ${questions.length} questions for category: ${category || 'all'}`);
       res.json(questions);
