@@ -308,7 +308,7 @@ export default function LeadershipPortal() {
   const [topicData, setTopicData] = useState<any>(null);
   const [squadronPerfData, setSquadronPerfData] = useState<any>(null);
   const [scenarioSubsData, setScenarioSubsData] = useState<any>(null);
-  const [moduleCompletionData, setModuleCompletionData] = useState<any>(null);
+
   const [selectedAlert, setSelectedAlert] = useState<any>(null);
 
   const fetchAllData = async () => {
@@ -414,13 +414,6 @@ export default function LeadershipPortal() {
       ? historyData.dataPoints[historyData.dataPoints.length - 2]?.readyPercent ?? null
       : null;
 
-    let trainingCompletionRate = 0;
-    if (Array.isArray(moduleCompletionData) && moduleCompletionData.length > 0) {
-      trainingCompletionRate = Math.round(
-        moduleCompletionData.reduce((sum: number, m: any) => sum + (m.completionRate || 0), 0) / moduleCompletionData.length
-      );
-    }
-
     return {
       totalPersonnel,
       readyPercent,
@@ -432,9 +425,8 @@ export default function LeadershipPortal() {
       priorReadyPct,
       priorQuizPassRate,
       priorScenarioPassRate,
-      trainingCompletionRate,
     };
-  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, scenarioSubsData, historyData, dateRange, moduleCompletionData]);
+  }, [readinessData, currencyData, safetyData, atRiskData, submissionsData, scenarioSubsData, historyData, dateRange]);
 
   const wingState = useMemo(() => {
     const readyPct = kpis.readyPercent;
@@ -666,12 +658,7 @@ export default function LeadershipPortal() {
               color={kpis.scenarioPassRate >= 70 ? "text-green-400" : "text-red-400"}
               trend={<TrendDelta current={kpis.scenarioPassRate} prior={kpis.priorScenarioPassRate} />}
             />
-            <KpiCard
-              label="Training Completion"
-              value={`${kpis.trainingCompletionRate}%`}
-              icon={<BookOpen className="h-5 w-5 text-indigo-400" />}
-              color={kpis.trainingCompletionRate >= 70 ? "text-green-400" : kpis.trainingCompletionRate >= 50 ? "text-amber-400" : "text-red-400"}
-            />
+
             <KpiCard
               label="Safety Score"
               value={kpis.safetyScore}
