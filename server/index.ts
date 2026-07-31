@@ -17,7 +17,8 @@ const app = express();
 // PRESERVE SESSIONS ON RESTART - DO NOT CLEAR
 // authCore.clearAllIsolatedSessions();
 console.log('✅ ISOLATED AUTH: Sessions preserved on restart');
-await authCore.initSessionStore();
+authCore.initSessionStore().catch((e) =>
+  console.error('SESSION STORE: init failed:', e));
 
 // Start license expiry monitoring
 licenseExpiryService.startPeriodicCheck();

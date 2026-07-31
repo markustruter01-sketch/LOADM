@@ -110,7 +110,7 @@ export function NewLoginComponent() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
-                      placeholder="jasper.szemes@gmail.com"
+                      placeholder="name@example.com"
                       required
                     />
                   </div>
