@@ -8,7 +8,7 @@ import {
   recommendPerformanceTrends,
   recommendAssessmentTypes,
   recommendTopicMastery,
-  recommendQuestionDifficulty,
+
   recommendAtRiskStudents,
 } from "@/lib/recommendations";
 import { 
@@ -581,10 +581,7 @@ export default function AdvancedAnalytics() {
     queryKey: ["/api/analytics/topic-mastery"],
   });
   
-  const { data: questionDifficulty, isLoading: isLoadingDifficulty } = useQuery<any[]>({
-    queryKey: ["/api/analytics/question-difficulty"],
-  });
-  
+
   const { data: studentVsSquadron, isLoading: isLoadingComparison } = useQuery<any[]>({
     queryKey: ["/api/analytics/student-vs-squadron"],
   });
@@ -1626,50 +1623,7 @@ export default function AdvancedAnalytics() {
                   </CardContent>
                 </Card>
                 
-                {/* Question Pass Rate */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
-                        Question Pass Rate
-                      </CardTitle>
-                      <div className="flex items-center gap-1.5">
-                        <RecommendationButton recommendations={recommendQuestionDifficulty(questionDifficulty || [])} context="Question Pass Rate" />
-                        <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
-                      </div>
-                    </div>
-                    <CardDescription>Top 10 most challenging questions</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-[350px] overflow-y-auto">
-                      {(questionDifficulty || []).map((q: any, idx: number) => (
-                        <div key={q.questionId} className="p-3 rounded-lg bg-muted/50 border border-border">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-semibold text-muted-foreground">#{idx + 1}</span>
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                                  {q.category}
-                                </span>
-                              </div>
-                              <p className="text-sm line-clamp-2">{q.questionText}</p>
-                            </div>
-                            <div className="text-right">
-                              <div className={`text-lg font-bold ${
-                                q.successRate >= 70 ? 'text-success' : 
-                                q.successRate >= 50 ? 'text-warning' : 'text-danger'
-                              }`}>
-                                {q.successRate}%
-                              </div>
-                              <div className="text-xs text-muted-foreground">{q.attempts} attempts</div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+
               </div>
               
               {/* Row 2: Student vs Squadron Average & Training Module Completion */}
