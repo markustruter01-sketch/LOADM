@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "e7yvECe7Dh9zDTi39skbm"
+uri = "file://PLATFORM_OVERVIEW.md"
+type = "text"
+title = "Platform Overview — Full System Description"
