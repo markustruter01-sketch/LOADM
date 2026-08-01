@@ -763,39 +763,38 @@ export default function AdvancedAnalytics() {
   }
   
   function calculateOverviewStats(submissions: any[]) {
-    // Count total licensed students from users data (all active users except superadmins)
-    const totalLicensedStudents = users ? users.filter(user => 
-      user.isActive === true && user.licenseType !== 'superadmin' && user.licenseType !== 'leadership'
+    // Canonical: active loadmaster and instructor licences only
+    const totalLicensedStudents = users ? users.filter(user =>
+      user.isActive === true && (user.licenseType === 'loadmaster' || user.licenseType === 'instructor')
     ).length : 0;
-    
-    // Filter submissions with scores
-    const submissionsWithScores = submissions.filter(sub => 
-      (sub.calculatedScore !== undefined && sub.calculatedScore !== null) || 
+
+    // Exclude document submissions from all KPI calculations
+    const quizAndScenarioSubs = submissions.filter(sub => sub.type !== 'document');
+    const quizSubs = quizAndScenarioSubs.filter(sub => sub.type === 'quiz');
+    const scenSubs = quizAndScenarioSubs.filter(sub => sub.type === 'scenario');
+
+    // Average Score: weighted mean across quiz + scenario, excluding null scores
+    const submissionsWithScores = quizAndScenarioSubs.filter(sub =>
+      (sub.calculatedScore !== undefined && sub.calculatedScore !== null) ||
       (sub.score !== undefined && sub.score !== null)
     );
-    
-    // Calculate average score
-    const totalScore = submissionsWithScores.reduce((sum, sub) => 
-      sum + (sub.calculatedScore || sub.score || 0), 0);
-    const avgScore = submissionsWithScores.length > 0 
-      ? totalScore / submissionsWithScores.length 
+    const totalScore = submissionsWithScores.reduce((sum, sub) =>
+      sum + (sub.calculatedScore ?? sub.score ?? 0), 0);
+    const avgScore = submissionsWithScores.length > 0
+      ? totalScore / submissionsWithScores.length
       : 0;
-    
-    // Calculate pass rate (require that passed field is a boolean)
-    const scorableSubmissions = submissions.filter(sub => 
-      sub.passed !== undefined || 
-      (sub.calculatedScore !== undefined && sub.calculatedScore >= 70) ||
-      (sub.score !== undefined && sub.score >= 70)
-    );
-    
-    const passedSubmissions = scorableSubmissions.filter(sub => 
-      sub.passed === true || 
-      (sub.calculatedScore !== undefined && sub.calculatedScore >= 70) ||
-      (sub.score !== undefined && sub.score >= 70)
-    );
-    
-    const passRate = scorableSubmissions.length > 0 
-      ? (passedSubmissions.length / scorableSubmissions.length) * 100 
+
+    // Pass Rate: (quiz score>=70 + scenario passed=true) / (quiz total + scenario scored)
+    const quizPasses = quizSubs.filter(sub =>
+      (sub.calculatedScore ?? sub.score ?? 0) >= 70
+    ).length;
+    const scenPasses = scenSubs.filter(sub => sub.passed === true).length;
+    const scenScored = scenSubs.filter(sub =>
+      sub.calculatedScore !== null && sub.calculatedScore !== undefined
+    ).length;
+    const passRateDenom = quizSubs.length + scenScored;
+    const passRate = passRateDenom > 0
+      ? ((quizPasses + scenPasses) / passRateDenom) * 100
       : 0;
     
     // Get breakdown by squadron with normalized formatting
@@ -827,7 +826,7 @@ export default function AdvancedAnalytics() {
     
     setOverviewStats({
       totalStudents: totalLicensedStudents,
-      totalSubmissions: submissions.length,
+      totalSubmissions: quizAndScenarioSubs.length,
       avgScore: Math.round(avgScore * 10) / 10, // Round to 1 decimal place
       passRate: Math.round(passRate * 10) / 10, // Round to 1 decimal place
       completionRate: 0, // Placeholder
@@ -1081,7 +1080,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.totalStudents}</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Across {SQUADRONS.length} squadrons
+                  Active loadmasters and instructors
                 </p>
               </CardContent>
             </Card>
@@ -1096,7 +1095,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.totalSubmissions}</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  All assessment types combined
+                  Quiz and scenario attempts combined
                 </p>
               </CardContent>
             </Card>
@@ -1111,7 +1110,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.avgScore}%</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {overviewStats.avgScore >= 70 ? "Above" : "Below"} passing threshold
+                  Across quizzes and scenarios
                 </p>
               </CardContent>
             </Card>
@@ -1126,7 +1125,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.passRate}%</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Based on instructor evaluations
+                  Quiz and marked scenario attempts
                 </p>
               </CardContent>
             </Card>

@@ -224,7 +224,7 @@ export default function InstructorsPortal() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{scenarioSubmissions?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">Student attempts</p>
+              <p className="text-xs text-muted-foreground">Scenario attempts</p>
             </CardContent>
           </Card>
           
@@ -241,22 +241,25 @@ export default function InstructorsPortal() {
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Scenario Pass Rate</CardTitle>
               <Award className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {(scenarioSubmissions?.length || 0) > 0 
-                  ? Math.round(((scenarioSubmissions?.filter(sub => sub.passed === true).length || 0) / (scenarioSubmissions?.length || 1)) * 100)
-                  : 0}%
+                {(() => {
+                  const scored = scenarioSubmissions?.filter(sub => sub.score !== null && sub.score !== undefined) || [];
+                  return scored.length > 0
+                    ? Math.round((scored.filter(sub => sub.passed === true).length / scored.length) * 100)
+                    : 0;
+                })()}%
               </div>
-              <p className="text-xs text-muted-foreground">Student success rate</p>
+              <p className="text-xs text-muted-foreground">Marked scenarios that passed</p>
             </CardContent>
           </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+              <CardTitle className="text-sm font-medium">Avg Scenario Score</CardTitle>
               <BarChart2 className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -268,7 +271,7 @@ export default function InstructorsPortal() {
                     : 0;
                 })()}%
               </div>
-              <p className="text-xs text-muted-foreground">Overall performance</p>
+              <p className="text-xs text-muted-foreground">Scored scenario submissions</p>
             </CardContent>
           </Card>
         </div>
