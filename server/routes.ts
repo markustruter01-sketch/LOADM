@@ -1410,21 +1410,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
           : 999;
         
-        // Determine risk factors
         const riskFactors: string[] = [];
+        let riskScore = 0;
         let riskLevel: string;
 
         if (totalSubmissions === 0) {
           riskFactors.push('No training activity in last 30 days');
           riskLevel = 'unknown';
         } else {
-          if (userQuizzes.length > 0 && avgQuizScore < 70) riskFactors.push('Low quiz scores');
-          if (userScenarios.length > 0 && avgScenarioScore < 70) riskFactors.push('Low scenario scores');
-          if (failedScenarios > 2) riskFactors.push('Multiple failed scenarios');
-          if (totalSubmissions < 3) riskFactors.push('Low engagement');
-          if (daysSinceActivity > 14) riskFactors.push('Inactive for 2+ weeks');
-          riskLevel = riskFactors.length >= 3 ? 'high'
-                    : riskFactors.length >= 2 ? 'medium'
+          if (userQuizzes.length > 0) {
+            if (avgQuizScore < 50)      { riskFactors.push('Failing quiz scores');  riskScore += 45; }
+            else if (avgQuizScore < 70) { riskFactors.push('Low quiz scores');      riskScore += 25; }
+          }
+          if (userScenarios.length > 0) {
+            if (avgScenarioScore < 50)      { riskFactors.push('Failing scenario scores'); riskScore += 40; }
+            else if (avgScenarioScore < 70) { riskFactors.push('Low scenario scores');     riskScore += 20; }
+          }
+          if (failedScenarios > 2)   { riskFactors.push('Multiple failed scenarios'); riskScore += 20; }
+          if (totalSubmissions < 3)  { riskFactors.push('Low engagement');            riskScore += 15; }
+          if (daysSinceActivity > 14){ riskFactors.push('Inactive for 2+ weeks');     riskScore += 20; }
+
+          riskLevel = riskScore >= 45 ? 'high'
+                    : riskScore >= 20 ? 'medium'
                     : 'low';
         }
 
@@ -1439,6 +1446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           failedScenarios,
           daysSinceActivity,
           riskFactors,
+          riskScore,
           riskLevel
         };
       })
