@@ -8,7 +8,7 @@ import {
   recommendPerformanceTrends,
   recommendAssessmentTypes,
   recommendTopicMastery,
-
+  recommendQuestionDifficulty,
   recommendAtRiskStudents,
 } from "@/lib/recommendations";
 import { 
@@ -581,7 +581,10 @@ export default function AdvancedAnalytics() {
   const { data: topicMastery, isLoading: isLoadingTopic } = useQuery<any[]>({
     queryKey: ["/api/analytics/topic-mastery"],
   });
-  
+
+  const { data: questionDifficulty, isLoading: isLoadingDifficulty } = useQuery<any[]>({
+    queryKey: ["/api/analytics/question-difficulty"],
+  });
 
   const { data: studentVsSquadron, isLoading: isLoadingComparison } = useQuery<any[]>({
     queryKey: ["/api/analytics/student-vs-squadron"],
@@ -1742,7 +1745,53 @@ export default function AdvancedAnalytics() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
+                {/* Question Pass Rate */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" />
+                        Question Pass Rate
+                      </CardTitle>
+                      <div className="flex items-center gap-1.5">
+                        <RecommendationButton recommendations={recommendQuestionDifficulty(questionDifficulty || [])} context="Question Pass Rate" />
+                        <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
+                      </div>
+                    </div>
+                    <CardDescription>Top 10 most challenging questions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingDifficulty ? (
+                      <div className="space-y-2">
+                        {Array(5).fill(0).map((_, i) => (
+                          <Skeleton key={i} className="h-10 w-full" />
+                        ))}
+                      </div>
+                    ) : (questionDifficulty || []).length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No question difficulty data available
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                        {(questionDifficulty || []).map((q: any, idx: number) => (
+                          <div key={idx} className="flex items-start justify-between gap-3 p-2 rounded-lg hover:bg-muted/50">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium truncate">{q.questionText}</div>
+                              <div className="text-xs text-muted-foreground">{q.category} · {q.attempts} attempts</div>
+                            </div>
+                            <div className={`text-sm font-bold shrink-0 ${
+                              q.successRate >= 70 ? 'text-success' :
+                              q.successRate >= 50 ? 'text-warning' : 'text-danger'
+                            }`}>
+                              {q.successRate}%
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
               </div>
               
