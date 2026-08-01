@@ -546,6 +546,7 @@ export default function AdvancedAnalytics() {
   const [analyticsSquadronToggles, setAnalyticsSquadronToggles] = useState<Record<string, boolean>>({
     "33 Squadron": true, "35 Squadron": true, "36 Squadron": true, "37 Squadron": true
   });
+  const [iccMetric, setIccMetric] = useState<string>("assessmentsPassed");
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -592,6 +593,11 @@ export default function AdvancedAnalytics() {
   
   const { data: atRiskStudents, isLoading: isLoadingAtRisk } = useQuery<any[]>({
     queryKey: ["/api/analytics/at-risk-students"],
+  });
+
+  const { data: iccData, isLoading: isLoadingIcc } = useQuery<any>({
+    queryKey: ["/api/analytics/icc-power-law", iccMetric],
+    queryFn: () => fetch(`/api/analytics/icc-power-law?metric=${iccMetric}`).then(r => r.json()),
   });
   
   // Derived state for analytics
@@ -1778,7 +1784,120 @@ export default function AdvancedAnalytics() {
                   </CardContent>
                 </Card>
               </div>
-              
+
+              {/* ICC Power Law Distribution Chart */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Item Characteristic Curves (ICC)
+                      </CardTitle>
+                      <CardDescription className="mt-1">
+                        Workforce development curves — normalised performance by years in role
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select value={iccMetric} onValueChange={setIccMetric}>
+                        <SelectTrigger className="h-8 w-[220px]">
+                          <SelectValue placeholder="Select metric" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="assessmentsPassed">Assessments Passed</SelectItem>
+                          <SelectItem value="totalFlightHours">Total Flight Hours</SelectItem>
+                          <SelectItem value="activeQualifications">Active Qualifications</SelectItem>
+                          <SelectItem value="averageScore">Average Score</SelectItem>
+                          <SelectItem value="cargoWeight">Cargo Weight Handled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <HelpButton helpKey="iccPowerLaw" onClick={setActiveHelp} />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingIcc ? (
+                    <div className="h-[400px] flex items-center justify-center">
+                      <Skeleton className="h-[360px] w-full" />
+                    </div>
+                  ) : iccData?.curves ? (
+                    <>
+                      <div className="h-[400px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
+                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                            <XAxis
+                              dataKey="yearLabel"
+                              type="category"
+                              allowDuplicatedCategory={false}
+                              label={{ value: "Years in Role", position: "insideBottom", offset: -15 }}
+                            />
+                            <YAxis
+                              domain={[0, 1]}
+                              tickFormatter={(v: number) => `${Math.round(v * 100)}%`}
+                              label={{ value: "Normalised Performance", angle: -90, position: "insideLeft", offset: 10 }}
+                            />
+                            <Tooltip
+                              formatter={(value: number, name: string) => [`${(value * 100).toFixed(1)}%`, name]}
+                              labelFormatter={(label: string) => `Year ${label}`}
+                            />
+                            <Legend verticalAlign="top" />
+                            {iccData.curves.map((curve: any) => (
+                              <Line
+                                key={curve.squadron}
+                                data={curve.dataPoints}
+                                dataKey="normalizedValue"
+                                name={curve.squadron}
+                                stroke={curve.color}
+                                strokeWidth={2.5}
+                                dot={{ r: 3, fill: curve.color }}
+                                activeDot={{ r: 5 }}
+                                type="monotone"
+                              />
+                            ))}
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Insights */}
+                      {iccData.insights && iccData.insights.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Insights</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {iccData.insights.map((insight: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className={`p-3 rounded-lg border text-sm ${
+                                  insight.type === 'strength'
+                                    ? 'bg-success/5 border-success/30'
+                                    : 'bg-muted/40 border-border'
+                                }`}
+                              >
+                                <p className="font-medium">{insight.title}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{insight.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Summary row */}
+                      {iccData.summary && (
+                        <div className="mt-4 flex flex-wrap gap-6 text-xs text-muted-foreground border-t border-border pt-3">
+                          <span>Users in model: <strong className="text-foreground">{iccData.summary.totalUsers}</strong></span>
+                          <span>Squadrons: <strong className="text-foreground">{iccData.summary.squadronsIncluded}</strong></span>
+                          <span>Metric: <strong className="text-foreground">{iccData.metricLabel}</strong></span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                      No ICC data available
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
           </div>
         </>
       )}
