@@ -230,12 +230,12 @@ export default function InstructorsPortal() {
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Pop Quizzes</CardTitle>
+              <CardTitle className="text-sm font-medium">Scenarios Passed</CardTitle>
               <HelpCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{(scenarioSubmissions?.filter(sub => (sub.score || 0) >= 70).length || 0)}</div>
-              <p className="text-xs text-muted-foreground">Quiz assessments</p>
+              <p className="text-xs text-muted-foreground">Marked scenarios at or above 70%</p>
             </CardContent>
           </Card>
           
