@@ -773,28 +773,21 @@ export default function AdvancedAnalytics() {
     const quizSubs = quizAndScenarioSubs.filter(sub => sub.type === 'quiz');
     const scenSubs = quizAndScenarioSubs.filter(sub => sub.type === 'scenario');
 
-    // Average Score: weighted mean across quiz + scenario, excluding null scores
-    const submissionsWithScores = quizAndScenarioSubs.filter(sub =>
-      (sub.calculatedScore !== undefined && sub.calculatedScore !== null) ||
-      (sub.score !== undefined && sub.score !== null)
+    // Average Score: mean of scored scenario submissions only
+    const scenScoredSubs = scenSubs.filter(sub =>
+      sub.calculatedScore !== null && sub.calculatedScore !== undefined
     );
-    const totalScore = submissionsWithScores.reduce((sum, sub) =>
+    const totalScenScore = scenScoredSubs.reduce((sum, sub) =>
       sum + (sub.calculatedScore ?? sub.score ?? 0), 0);
-    const avgScore = submissionsWithScores.length > 0
-      ? totalScore / submissionsWithScores.length
+    const avgScore = scenScoredSubs.length > 0
+      ? totalScenScore / scenScoredSubs.length
       : 0;
 
-    // Pass Rate: (quiz score>=70 + scenario passed=true) / (quiz total + scenario scored)
-    const quizPasses = quizSubs.filter(sub =>
-      (sub.calculatedScore ?? sub.score ?? 0) >= 70
-    ).length;
+    // Pass Rate: scenario passed=true / scenario scored (score IS NOT NULL)
     const scenPasses = scenSubs.filter(sub => sub.passed === true).length;
-    const scenScored = scenSubs.filter(sub =>
-      sub.calculatedScore !== null && sub.calculatedScore !== undefined
-    ).length;
-    const passRateDenom = quizSubs.length + scenScored;
-    const passRate = passRateDenom > 0
-      ? ((quizPasses + scenPasses) / passRateDenom) * 100
+    const scenScored = scenScoredSubs.length;
+    const passRate = scenScored > 0
+      ? (scenPasses / scenScored) * 100
       : 0;
     
     // Get breakdown by squadron with normalized formatting
@@ -1102,7 +1095,7 @@ export default function AdvancedAnalytics() {
             
             <Card>
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Avg Scenario Score</CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex items-center">
@@ -1110,14 +1103,14 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.avgScore}%</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Across quizzes and scenarios
+                  Scored scenario submissions
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Pass Rate</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Scenario Pass Rate</CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex items-center">
@@ -1125,7 +1118,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.passRate}%</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Quiz and marked scenario attempts
+                  Marked scenarios that passed
                 </p>
               </CardContent>
             </Card>

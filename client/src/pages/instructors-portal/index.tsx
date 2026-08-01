@@ -302,9 +302,10 @@ export default function InstructorsPortal() {
                        userSquadron === `${squadronNumber}SQN` ||
                        userSquadron.startsWith(squadronNumber);
               }) || [];
-              const squadronPassed = squadronSubmissions.filter(sub => sub.passed === true).length;
-              const squadronPassRate = squadronSubmissions.length > 0
-                ? Math.round((squadronPassed / squadronSubmissions.length) * 100)
+              const squadronScored = squadronSubmissions.filter(sub => sub.score !== null && sub.score !== undefined);
+              const squadronPassed = squadronScored.filter(sub => sub.passed === true).length;
+              const squadronPassRate = squadronScored.length > 0
+                ? Math.round((squadronPassed / squadronScored.length) * 100)
                 : null;
 
               return (
