@@ -1014,15 +1014,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      // Import built-in question bank
-      const { loadmasterQuestions } = await import('../shared/quiz-questions');
-      
-      // Also fetch DB-created questions so we can categorise answers from the quiz builder
-      const dbQuestions = await sql`
-        SELECT id::text AS id, category, correct_answer AS "correctAnswer"
-        FROM quiz_questions
-      `;
-      const dbQuestionMap = new Map(dbQuestions.map((q: any) => [String(q.id), q]));
+      const { buildQuestionLookup } = await import('./quiz-bank');
+      const questionLookup = await buildQuestionLookup();
 
       // Get all quiz submissions with answers
       const submissions = await sql`
@@ -1044,30 +1037,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (Array.isArray(answers)) {
           answers.forEach((ans: any) => {
             const qid = String(ans.questionId ?? '');
-            const answeredOption = typeof ans.answeredOption === 'string' ? parseInt(ans.answeredOption, 10) : (ans.answeredOption ?? -1);
+            const answeredOption = typeof ans.answeredOption === 'string'
+              ? parseInt(ans.answeredOption, 10)
+              : (ans.answeredOption ?? -1);
 
-            // Try loadmasterQuestions first (non-numeric ids like "basic-1")
-            const lmq = loadmasterQuestions.find(q => q.id === qid);
-            if (lmq) {
-              const cat = lmq.category;
-              if (!categoriesMap[cat]) categoriesMap[cat] = { total: 0, correct: 0, questions: 0 };
-              categoriesMap[cat].total += 1;
-              categoriesMap[cat].questions += 1;
-              if (answeredOption === lmq.correctAnswer) categoriesMap[cat].correct += 1;
-              return;
-            }
+            const q = questionLookup.get(qid);
+            if (!q) return;
 
-            // Fallback: DB quiz questions (numeric id stored as string)
-            const dbq = dbQuestionMap.get(qid);
-            if (dbq) {
-              const cat = dbq.category || 'General';
-              if (!categoriesMap[cat]) categoriesMap[cat] = { total: 0, correct: 0, questions: 0 };
-              categoriesMap[cat].total += 1;
-              categoriesMap[cat].questions += 1;
-              // DB correct_answer is stored as text option text — compare answeredOption index by position
-              // answeredOption 0 = correctAnswer in the DB quiz builder convention
-              if (answeredOption === 0) categoriesMap[cat].correct += 1;
-            }
+            const cat = q.category || 'General';
+            if (!categoriesMap[cat]) categoriesMap[cat] = { total: 0, correct: 0, questions: 0 };
+            categoriesMap[cat].total += 1;
+            categoriesMap[cat].questions += 1;
+            if (answeredOption === q.correctAnswer) categoriesMap[cat].correct += 1;
           });
         }
       });
@@ -1094,8 +1075,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(process.env.DATABASE_URL!);
       
-      const { loadmasterQuestions } = await import('../shared/quiz-questions');
-      
+      const { buildQuestionLookup } = await import('./quiz-bank');
+      const questionLookup = await buildQuestionLookup();
+
       const submissions = await sql`
         SELECT answers FROM quiz_submissions
       `;
@@ -1112,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (Array.isArray(answers)) {
           answers.forEach((ans: any) => {
             const questionId = ans.questionId;
-            const question = loadmasterQuestions.find(q => q.id === questionId);
+            const question = questionLookup.get(String(questionId));
             
             if (question) {
               if (!questionStats[questionId]) {
@@ -1132,7 +1114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // No real per-question data available when questionStats is empty.
       const questionDifficulty = Object.entries(questionStats)
         .map(([questionId, stats]) => {
-          const question = loadmasterQuestions.find(q => q.id === questionId);
+          const question = questionLookup.get(String(questionId));
           return {
             questionId,
             questionText: question?.question || 'Unknown Question',

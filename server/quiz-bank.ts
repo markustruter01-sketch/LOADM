@@ -88,3 +88,25 @@ export async function resolveQuestionById(
   const legacy = loadmasterQuestions.find((q: any) => q.id === key);
   return legacy ? (legacy as BankQuestion) : null;
 }
+
+// Single lookup map covering both banks, keyed by every id format that
+// appears in quiz_submissions.answers. Build ONCE per request.
+// Includes INACTIVE database questions deliberately, so historical
+// submissions referencing a since-deactivated question still resolve.
+export async function buildQuestionLookup(): Promise<Map<string, BankQuestion>> {
+  const map = new Map<string, BankQuestion>();
+
+  const rows = await db.select().from(quizQuestions);
+  for (const r of rows) {
+    const q = fromDbRow(r);
+    map.set(q.id, q);                    // "db-11"
+    map.set(String((r as any).id), q);   // bare "11"
+  }
+
+  const { loadmasterQuestions } = await import('@shared/quiz-questions');
+  for (const q of loadmasterQuestions as any[]) {
+    if (!map.has(q.id)) map.set(q.id, q as BankQuestion);
+  }
+
+  return map;
+}
