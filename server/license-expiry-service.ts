@@ -50,8 +50,8 @@ export class LicenseExpiryService {
     try {
       const result = await this.sql`
         SELECT 
-          is_active::text as is_active_text,
-          EXTRACT(EPOCH FROM expiry_date) as expiry_epoch,
+          is_active,
+          expiry_date,
           license_type,
           CASE 
             WHEN expiry_date < NOW() THEN true
@@ -67,13 +67,10 @@ export class LicenseExpiryService {
       }
 
       const license = result[0];
-      // Use cast values — raw boolean/timestamp columns return incorrectly via the serverless driver
-      const isActive = license.is_active_text === 'true';
-      const expiryDate = license.expiry_epoch ? new Date(Number(license.expiry_epoch) * 1000) : null;
-      const isExpired = license.is_expired === true || (expiryDate !== null && expiryDate < new Date());
+      const isExpired = license.is_expired || new Date(license.expiry_date) < new Date();
       
       // If license is expired but still marked as active, update it
-      if (isExpired && isActive && license.license_type !== 'superadmin') {
+      if (isExpired && license.is_active && license.license_type !== 'superadmin') {
         await this.sql`
           UPDATE licenses 
           SET is_active = false, updated_at = NOW()
@@ -83,9 +80,9 @@ export class LicenseExpiryService {
       }
 
       return {
-        isValid: isActive && !isExpired,
+        isValid: license.is_active && !isExpired,
         isExpired: isExpired,
-        expiryDate: expiryDate ?? new Date(0),
+        expiryDate: new Date(license.expiry_date),
         licenseType: license.license_type
       };
     } catch (error) {
