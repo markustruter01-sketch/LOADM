@@ -58,8 +58,7 @@ export class LicenseExpiryService {
             ELSE false
           END as is_expired
         FROM licenses 
-        WHERE LOWER(email) = ${email.toLowerCase()}
-        LIMIT 1
+        WHERE email = ${email.toLowerCase()}
       `;
 
       if (!result[0]) {
@@ -74,7 +73,7 @@ export class LicenseExpiryService {
         await this.sql`
           UPDATE licenses 
           SET is_active = false, updated_at = NOW()
-          WHERE LOWER(email) = ${email.toLowerCase()}
+          WHERE email = ${email.toLowerCase()}
         `;
         console.log(`🕒 LICENSE EXPIRY: Auto-disabled expired license for ${email}`);
       }

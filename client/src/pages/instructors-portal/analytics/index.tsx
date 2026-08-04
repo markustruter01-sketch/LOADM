@@ -8,7 +8,7 @@ import {
   recommendPerformanceTrends,
   recommendAssessmentTypes,
   recommendTopicMastery,
-
+  recommendQuestionDifficulty,
   recommendAtRiskStudents,
 } from "@/lib/recommendations";
 import { 
@@ -543,10 +543,14 @@ export default function AdvancedAnalytics() {
   const [selectedAssessmentType, setSelectedAssessmentType] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
   const [activeHelp, setActiveHelp] = useState<string | null>(null);
+  const [iccMetric, setIccMetric] = useState<string>("assessmentsPassed");
+  const [showIccFormulaModal, setShowIccFormulaModal] = useState<boolean>(false);
+  const [iccSquadronToggles, setIccSquadronToggles] = useState<Record<string, boolean>>({
+    '33SQN': true, '35SQN': true, '36SQN': true, '37SQN': true
+  });
   const [analyticsSquadronToggles, setAnalyticsSquadronToggles] = useState<Record<string, boolean>>({
     "33 Squadron": true, "35 Squadron": true, "36 Squadron": true, "37 Squadron": true
   });
-  const [iccMetric, setIccMetric] = useState<string>("assessmentsPassed");
   
   // Fetch all data types we need for comprehensive analytics
   const { data: scenarios, isLoading: isLoadingScenarios } = useQuery<Scenario[]>({
@@ -582,9 +586,16 @@ export default function AdvancedAnalytics() {
     queryKey: ["/api/analytics/topic-mastery"],
   });
   
-
+  const { data: questionDifficulty, isLoading: isLoadingDifficulty } = useQuery<any[]>({
+    queryKey: ["/api/analytics/question-difficulty"],
+  });
+  
   const { data: studentVsSquadron, isLoading: isLoadingComparison } = useQuery<any[]>({
     queryKey: ["/api/analytics/student-vs-squadron"],
+  });
+  
+  const { data: moduleCompletion, isLoading: isLoadingModules } = useQuery<any[]>({
+    queryKey: ["/api/analytics/module-completion"],
   });
   
   const { data: certificationReadiness, isLoading: isLoadingCertification } = useQuery<any[]>({
@@ -594,10 +605,31 @@ export default function AdvancedAnalytics() {
   const { data: atRiskStudents, isLoading: isLoadingAtRisk } = useQuery<any[]>({
     queryKey: ["/api/analytics/at-risk-students"],
   });
-
-  const { data: iccData, isLoading: isLoadingIcc } = useQuery<any>({
-    queryKey: ["/api/analytics/icc-power-law", iccMetric],
-    queryFn: () => fetch(`/api/analytics/icc-power-law?metric=${iccMetric}`).then(r => r.json()),
+  
+  // ICC Power Law data - performance curves by time in role
+  const { data: iccData, isLoading: isLoadingIcc } = useQuery<{
+    metric: string;
+    metricLabel: string;
+    curves: {
+      squadron: string;
+      color: string;
+      dataPoints: {
+        year: number;
+        yearLabel: string;
+        rawValue: number;
+        normalizedValue: number;
+        usersInBin: number;
+        cumulativeUsers: number;
+      }[];
+    }[];
+    insights: { type: string; title: string; description: string }[];
+    summary: {
+      totalUsers: number;
+      squadronsIncluded: number;
+      tenureRange: { min: number; max: number };
+    };
+  }>({
+    queryKey: [`/api/analytics/icc-power-law?metric=${iccMetric}`],
   });
   
   // Derived state for analytics
@@ -1129,6 +1161,331 @@ export default function AdvancedAnalytics() {
             </Card>
           </div>
           
+          {/* ICC Power Law Distribution Chart */}
+          <Card className="mb-6" data-testid="card-icc-power-law">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Item Characteristic Curves (ICC)
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    Compare how different performance metrics develop across skill levels over time in role
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowIccFormulaModal(true)}
+                    className="px-3 py-2 rounded-lg text-sm font-mono border border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-300 hover:text-blue-200 cursor-pointer"
+                    data-testid="button-icc-formula"
+                  >
+                    View Formula
+                  </button>
+                  <Select value={iccMetric} onValueChange={setIccMetric}>
+                    <SelectTrigger className="w-[200px]" data-testid="select-icc-metric">
+                      <SelectValue placeholder="Select metric" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="assessmentsPassed">Assessments Passed</SelectItem>
+                      <SelectItem value="totalFlightHours">Total Flight Hours</SelectItem>
+                      <SelectItem value="activeQualifications">Active Qualifications</SelectItem>
+                      <SelectItem value="averageScore">Average Score</SelectItem>
+                      <SelectItem value="cargoWeight">Cargo Weight Handled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <HelpButton helpKey="iccPowerLaw" onClick={setActiveHelp} />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingIcc ? (
+                <div className="h-[400px] flex items-center justify-center">
+                  <Skeleton className="h-full w-full" />
+                </div>
+              ) : iccData?.curves && iccData.curves.length > 0 ? (
+                <>
+                  {/* Squadron Toggle Pills */}
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <span className="text-xs text-muted-foreground font-medium mr-1">Show:</span>
+                    {iccData.curves.map((curve) => {
+                      const isOn = iccSquadronToggles[curve.squadron] !== false;
+                      return (
+                        <button
+                          key={curve.squadron}
+                          onClick={() => {
+                            const activeCount = Object.values(iccSquadronToggles).filter(Boolean).length;
+                            if (isOn && activeCount <= 1) return;
+                            setIccSquadronToggles(prev => ({ ...prev, [curve.squadron]: !isOn }));
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
+                            isOn
+                              ? 'bg-gray-800 border-gray-600 text-gray-200'
+                              : 'bg-gray-900/60 border-gray-800 text-gray-600 line-through'
+                          }`}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: isOn ? curve.color : '#4B5563' }}
+                          />
+                          {curve.squadron}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Chart */}
+                  <div className="h-[400px] w-full" data-testid="icc-chart-container">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis 
+                          dataKey="year" 
+                          type="number"
+                          domain={[0, 12]}
+                          tickCount={13}
+                          label={{ value: 'Time in Role (Years)', position: 'insideBottom', offset: -10, fill: '#9CA3AF' }}
+                          stroke="#6B7280"
+                        />
+                        <YAxis 
+                          domain={[0, 1]}
+                          tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
+                          label={{ value: iccData.metricLabel, angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
+                          stroke="#6B7280"
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(31, 41, 55, 0.95)', 
+                            border: '1px solid #374151',
+                            borderRadius: '8px'
+                          }}
+                          formatter={(value: number, name: string) => [
+                            `${(value * 100).toFixed(1)}%`,
+                            name
+                          ]}
+                          labelFormatter={(label) => `Year ${label} in Role`}
+                        />
+                        <Legend 
+                          wrapperStyle={{ paddingTop: '20px' }}
+                        />
+                        {iccData.curves.filter(curve => iccSquadronToggles[curve.squadron] !== false).map((curve, index) => (
+                          <Line
+                            key={curve.squadron}
+                            data={curve.dataPoints}
+                            type="monotone"
+                            dataKey="normalizedValue"
+                            name={curve.squadron}
+                            stroke={curve.color}
+                            strokeWidth={3}
+                            dot={{ r: 4, fill: curve.color, strokeWidth: 1, stroke: '#fff' }}
+                            activeDot={{ r: 6, strokeWidth: 0 }}
+                            animationDuration={1500}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Axis Explanation Boxes */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <Card className="bg-muted/30 border-muted">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-sm mb-2 text-primary">Horizontal Axis: Time in Role</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Left (0 years) to right (12+ years). Shows how personnel at different experience levels perform. 
+                          Career progression stages visible from entry-level to senior loadmasters.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-muted/30 border-muted">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-sm mb-2 text-primary">Vertical Axis: {iccData.metricLabel}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          0% = entry level, 100% = maximum expected performance. 
+                          S-curve shape indicates power law learning distribution - steep growth mid-career, plateau at expertise.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Insights Panel */}
+                  {iccData.insights && iccData.insights.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-primary" />
+                        What These Curves Tell Us About Your Workforce
+                      </h4>
+                      <div className="space-y-2">
+                        {iccData.insights.map((insight, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`flex items-start gap-3 p-3 rounded-lg ${
+                              insight.type === 'strength' 
+                                ? 'bg-green-500/10 border border-green-500/30' 
+                                : insight.type === 'challenge'
+                                ? 'bg-orange-500/10 border border-orange-500/30'
+                                : 'bg-blue-500/10 border border-blue-500/30'
+                            }`}
+                          >
+                            <span className={`text-lg ${
+                              insight.type === 'strength' ? 'text-green-500' : 
+                              insight.type === 'challenge' ? 'text-orange-500' : 'text-blue-500'
+                            }`}>
+                              {insight.type === 'strength' ? '●' : insight.type === 'challenge' ? '●' : '●'}
+                            </span>
+                            <div>
+                              <p className="font-medium text-sm">{insight.title}</p>
+                              <p className="text-xs text-muted-foreground">{insight.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Summary Stats */}
+                  <div className="flex items-center gap-8 mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
+                    <span>Total Personnel: {iccData.summary?.totalUsers || 0}</span>
+                    <span>Squadrons: {iccData.summary?.squadronsIncluded || 0}</span>
+                    <span>Tenure Range: {Math.floor((iccData.summary?.tenureRange?.min || 0) / 12)} - {Math.floor((iccData.summary?.tenureRange?.max || 0) / 12)} years</span>
+                  </div>
+
+                  {/* ICC Formula Modal */}
+                  {showIccFormulaModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowIccFormulaModal(false)}>
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                      <div 
+                        className="relative bg-slate-900/60 border border-slate-700/50 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden"
+                        style={{
+                          backdropFilter: 'blur(10px)',
+                          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                          borderColor: 'rgba(71, 85, 105, 0.5)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-700/50">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h2 className="text-xl font-bold text-white mb-2">ICC Power Law Distribution</h2>
+                              <p className="text-sm text-blue-300">
+                                ✨ <strong>Why This Matters:</strong> This chart reveals hidden patterns in how your workforce develops skills over time, helping you predict performance trajectories and identify optimal training windows for each career stage.
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setShowIccFormulaModal(false)}
+                              className="text-slate-400 hover:text-white transition-colors"
+                            >
+                              <X className="h-6 w-6" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                          {/* What It Does */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                              <Target className="h-5 w-5 text-blue-400" />
+                              What It Does
+                            </h3>
+                            <p className="text-slate-300 text-sm leading-relaxed">
+                              The ICC (Item Characteristic Curve) Power Law Distribution chart models how performance metrics evolve across your workforce as personnel gain experience. It combines actual performance data with a sigmoid (S-curve) function to create smooth, realistic learning trajectories that match real-world skill development patterns.
+                            </p>
+                          </div>
+
+                          {/* What It Shows */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                              <TrendingUp className="h-5 w-5 text-blue-400" />
+                              What It Shows
+                            </h3>
+                            <ul className="space-y-2 text-sm text-slate-300">
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Career Stage Performance:</strong> How different experience levels (0-12 years) perform on key metrics</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Squadron Comparison:</strong> Color-coded lines for each squadron show comparative performance trajectories</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Growth Periods:</strong> Steep curves indicate rapid skill acquisition; plateau regions show expertise stabilization</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-blue-400 mt-1">•</span>
+                                <span><strong>Selectible Metrics:</strong> Switch between Assessments Passed, Flight Hours, Qualifications, Scores, and Cargo Weight</span>
+                              </li>
+                            </ul>
+                          </div>
+
+                          {/* Why It's Useful */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                              <Award className="h-5 w-5 text-blue-400" />
+                              Why It's Useful
+                            </h3>
+                            <ul className="space-y-2 text-sm text-slate-300">
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Workforce Planning:</strong> Predict when personnel will reach peak performance and plan succession</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Training Optimization:</strong> Identify the critical learning window (usually years 2-5) for targeted training investment</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Squadron Benchmarking:</strong> Compare squadron trajectories to identify best practices and improvement areas</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Performance Prediction:</strong> Estimate how new personnel will develop compared to historical patterns</span>
+                              </li>
+                              <li className="flex items-start gap-3">
+                                <span className="text-green-400 mt-1">✓</span>
+                                <span><strong>Data-Driven Decisions:</strong> Base promotion, assignment, and retention decisions on statistically validated learning curves</span>
+                              </li>
+                            </ul>
+                          </div>
+
+                          {/* Formula */}
+                          <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+                            <h4 className="text-sm font-semibold text-white mb-3">Mathematical Formula</h4>
+                            <div className="space-y-2 font-mono text-xs text-slate-300">
+                              <div className="text-center text-blue-300">Y = 0.6 × (M/M<sub>max</sub>) + 0.4 × σ(t)</div>
+                              <div className="text-center text-blue-300">σ(t) = 1 / (1 + e<sup>-0.8(x-5)</sup>)</div>
+                              <div className="text-slate-400 text-[10px] mt-3 text-center leading-relaxed">
+                                Y = final curve value • M = actual metric value • M<sub>max</sub> = maximum expected value • σ(t) = logistic sigmoid function • k = 0.8 (steepness) • x₀ = 5 (midpoint in years)
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-slate-700/50 bg-slate-800/30">
+                          <button
+                            onClick={() => setShowIccFormulaModal(false)}
+                            className="w-full py-2 px-4 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+                  <p>No ICC data available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
           {/* Filter Bar — applies to charts below */}
           <Card className="mb-6">
             <CardContent className="p-4">
@@ -1227,120 +1584,6 @@ export default function AdvancedAnalytics() {
 
           {/* Main Content Area */}
           <div className="space-y-6">
-
-              {/* ICC Power Law Distribution Chart */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between flex-wrap gap-3">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        Item Characteristic Curves (ICC)
-                      </CardTitle>
-                      <CardDescription className="mt-1">
-                        Workforce development curves — normalised performance by years in role
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Select value={iccMetric} onValueChange={setIccMetric}>
-                        <SelectTrigger className="h-8 w-[220px]">
-                          <SelectValue placeholder="Select metric" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="assessmentsPassed">Assessments Passed</SelectItem>
-                          <SelectItem value="totalFlightHours">Total Flight Hours</SelectItem>
-                          <SelectItem value="activeQualifications">Active Qualifications</SelectItem>
-                          <SelectItem value="averageScore">Average Score</SelectItem>
-                          <SelectItem value="cargoWeight">Cargo Weight Handled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <HelpButton helpKey="iccPowerLaw" onClick={setActiveHelp} />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingIcc ? (
-                    <div className="h-[400px] flex items-center justify-center">
-                      <Skeleton className="h-[360px] w-full" />
-                    </div>
-                  ) : iccData?.curves ? (
-                    <>
-                      <div className="h-[400px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
-                            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                            <XAxis
-                              dataKey="yearLabel"
-                              type="category"
-                              allowDuplicatedCategory={false}
-                              label={{ value: "Years in Role", position: "insideBottom", offset: -15 }}
-                            />
-                            <YAxis
-                              domain={[0, 1]}
-                              tickFormatter={(v: number) => `${Math.round(v * 100)}%`}
-                              label={{ value: "Normalised Performance", angle: -90, position: "insideLeft", offset: 10 }}
-                            />
-                            <Tooltip
-                              formatter={(value: number, name: string) => [`${(value * 100).toFixed(1)}%`, name]}
-                              labelFormatter={(label: string) => `Year ${label}`}
-                            />
-                            <Legend verticalAlign="top" />
-                            {iccData.curves.map((curve: any) => (
-                              <Line
-                                key={curve.squadron}
-                                data={curve.dataPoints}
-                                dataKey="normalizedValue"
-                                name={curve.squadron}
-                                stroke={curve.color}
-                                strokeWidth={2.5}
-                                dot={{ r: 3, fill: curve.color }}
-                                activeDot={{ r: 5 }}
-                                type="monotone"
-                              />
-                            ))}
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Insights */}
-                      {iccData.insights && iccData.insights.length > 0 && (
-                        <div className="mt-4 space-y-2">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Insights</p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {iccData.insights.map((insight: any, idx: number) => (
-                              <div
-                                key={idx}
-                                className={`p-3 rounded-lg border text-sm ${
-                                  insight.type === 'strength'
-                                    ? 'bg-success/5 border-success/30'
-                                    : 'bg-muted/40 border-border'
-                                }`}
-                              >
-                                <p className="font-medium">{insight.title}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">{insight.description}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Summary row */}
-                      {iccData.summary && (
-                        <div className="mt-4 flex flex-wrap gap-6 text-xs text-muted-foreground border-t border-border pt-3">
-                          <span>Users in model: <strong className="text-foreground">{iccData.summary.totalUsers}</strong></span>
-                          <span>Squadrons: <strong className="text-foreground">{iccData.summary.squadronsIncluded}</strong></span>
-                          <span>Metric: <strong className="text-foreground">{iccData.metricLabel}</strong></span>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-                      No ICC data available
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Performance Overview - 2-column layout */}
               <div className="grid md:grid-cols-2 gap-6">
                 {/* Score Distribution */}
@@ -1743,7 +1986,50 @@ export default function AdvancedAnalytics() {
                   </CardContent>
                 </Card>
                 
-
+                {/* Question Pass Rate */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Question Pass Rate
+                      </CardTitle>
+                      <div className="flex items-center gap-1.5">
+                        <RecommendationButton recommendations={recommendQuestionDifficulty(questionDifficulty || [])} context="Question Pass Rate" />
+                        <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
+                      </div>
+                    </div>
+                    <CardDescription>Top 10 most challenging questions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 max-h-[350px] overflow-y-auto">
+                      {(questionDifficulty || []).map((q: any, idx: number) => (
+                        <div key={q.questionId} className="p-3 rounded-lg bg-muted/50 border border-border">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-semibold text-muted-foreground">#{idx + 1}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                  {q.category}
+                                </span>
+                              </div>
+                              <p className="text-sm line-clamp-2">{q.questionText}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-lg font-bold ${
+                                q.successRate >= 70 ? 'text-success' : 
+                                q.successRate >= 50 ? 'text-warning' : 'text-danger'
+                              }`}>
+                                {q.successRate}%
+                              </div>
+                              <div className="text-xs text-muted-foreground">{q.attempts} attempts</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
               
               {/* Row 2: Student vs Squadron Average & Training Module Completion */}
@@ -1783,6 +2069,42 @@ export default function AdvancedAnalytics() {
                             }`}>
                               {student.difference > 0 ? '+' : ''}{student.difference}
                             </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Training Module Completion Progress */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5" />
+                        Training Module Completion
+                      </CardTitle>
+                      <HelpButton helpKey="moduleCompletion" onClick={setActiveHelp} />
+                    </div>
+                    <CardDescription>Progress tracking across all modules</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {(moduleCompletion || []).map((module: any) => (
+                        <div key={module.moduleId} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium text-sm">{module.moduleName}</div>
+                            <div className="text-sm font-bold text-primary">{module.completionRate}%</div>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${module.completionRate}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{module.studentsCompleted} completed</span>
+                            <span>{module.studentsStarted} started</span>
                           </div>
                         </div>
                       ))}
@@ -1898,8 +2220,7 @@ export default function AdvancedAnalytics() {
                   </CardContent>
                 </Card>
               </div>
-
-
+              
           </div>
         </>
       )}

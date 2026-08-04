@@ -3,36 +3,6 @@
 
 import bcrypt from 'bcryptjs';
 import { licenseExpiryService } from '../license-expiry-service';
-import { neon as neonSessions } from '@neondatabase/serverless';
-const sessionSql = neonSessions(process.env.DATABASE_URL!);
-
-export async function initSessionStore(): Promise<void> {
-  try {
-    await sessionSql`
-      CREATE TABLE IF NOT EXISTS isolated_sessions (
-        session_id TEXT PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        email TEXT NOT NULL,
-        role TEXT NOT NULL,
-        login_time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        expires_at TIMESTAMPTZ NOT NULL
-      )
-    `;
-    await sessionSql`DELETE FROM isolated_sessions WHERE expires_at < NOW()`;
-    const rows = await sessionSql`SELECT * FROM isolated_sessions`;
-    for (const r of rows as any[]) {
-      ISOLATED_SESSIONS.set(r.session_id, {
-        userId: r.user_id,
-        email: r.email,
-        role: r.role,
-        loginTime: new Date(r.login_time)
-      });
-    }
-    console.log(`SESSION STORE: hydrated ${rows.length} sessions from database`);
-  } catch (err) {
-    console.error('SESSION STORE: hydration failed, continuing in-memory only:', err);
-  }
-}
 
 // Isolated session storage - completely separate
 const ISOLATED_SESSIONS = new Map<string, {
@@ -66,11 +36,6 @@ export function createIsolatedSession(userId: number, email: string, role: strin
     loginTime: new Date()
   });
   console.log(`✅ ISOLATED AUTH: Session created for ${email}`);
-  sessionSql`
-    INSERT INTO isolated_sessions (session_id, user_id, email, role, login_time, expires_at)
-    VALUES (${sessionId}, ${userId}, ${email}, ${role}, NOW(), NOW() + INTERVAL '24 hours')
-    ON CONFLICT (session_id) DO NOTHING
-  `.catch((e: any) => console.error('SESSION STORE: insert failed:', e));
   return sessionId;
 }
 
@@ -101,16 +66,12 @@ export function deleteIsolatedSession(sessionId: string): boolean {
   }
   const deleted = ISOLATED_SESSIONS.delete(sessionId);
   console.log(`✅ ISOLATED AUTH: Session deleted ${sessionId}`);
-  sessionSql`DELETE FROM isolated_sessions WHERE session_id = ${sessionId}`
-    .catch((e: any) => console.error('SESSION STORE: delete failed:', e));
   return deleted;
 }
 
 export function clearAllIsolatedSessions(): void {
   ISOLATED_SESSIONS.clear();
   console.log('✅ ISOLATED AUTH: All sessions cleared');
-  sessionSql`DELETE FROM isolated_sessions`
-    .catch((e: any) => console.error('SESSION STORE: clear failed:', e));
 }
 
 export function getAllActiveSessions() {
@@ -203,11 +164,8 @@ export async function authenticateUser(email: string, password: string) {
       category: squadronData?.category || 'D',
       isFirstLogin: user.is_first_login
     };
-  } catch (error: any) {
-    if (error?.message === 'LICENSE_EXPIRED' || error?.message === 'INVALID_LICENSE') {
-      throw error;
-    }
-    console.error('AUTH: Database error during authentication:', error);
+  } catch (error) {
+    console.log(`✅ ISOLATED AUTH: Database error, falling back to superadmin-only mode`);
     return null;
   }
 }
