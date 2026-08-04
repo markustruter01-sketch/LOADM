@@ -224,42 +224,39 @@ export default function InstructorsPortal() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{scenarioSubmissions?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">Scenario attempts</p>
+              <p className="text-xs text-muted-foreground">Student attempts</p>
             </CardContent>
           </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Scenarios Passed</CardTitle>
+              <CardTitle className="text-sm font-medium">Pop Quizzes</CardTitle>
               <HelpCircle className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{(scenarioSubmissions?.filter(sub => (sub.score || 0) >= 70).length || 0)}</div>
-              <p className="text-xs text-muted-foreground">Marked scenarios at or above 70%</p>
+              <p className="text-xs text-muted-foreground">Quiz assessments</p>
             </CardContent>
           </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Scenario Pass Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
               <Award className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {(() => {
-                  const scored = scenarioSubmissions?.filter(sub => sub.score !== null && sub.score !== undefined) || [];
-                  return scored.length > 0
-                    ? Math.round((scored.filter(sub => sub.passed === true).length / scored.length) * 100)
-                    : 0;
-                })()}%
+                {(scenarioSubmissions?.length || 0) > 0 
+                  ? Math.round(((scenarioSubmissions?.filter(sub => sub.passed === true).length || 0) / (scenarioSubmissions?.length || 1)) * 100)
+                  : 0}%
               </div>
-              <p className="text-xs text-muted-foreground">Marked scenarios that passed</p>
+              <p className="text-xs text-muted-foreground">Student success rate</p>
             </CardContent>
           </Card>
           
           <Card className="bg-card hover:bg-card/90 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Avg Scenario Score</CardTitle>
+              <CardTitle className="text-sm font-medium">Average Score</CardTitle>
               <BarChart2 className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -271,7 +268,7 @@ export default function InstructorsPortal() {
                     : 0;
                 })()}%
               </div>
-              <p className="text-xs text-muted-foreground">Scored scenario submissions</p>
+              <p className="text-xs text-muted-foreground">Overall performance</p>
             </CardContent>
           </Card>
         </div>
@@ -302,10 +299,9 @@ export default function InstructorsPortal() {
                        userSquadron === `${squadronNumber}SQN` ||
                        userSquadron.startsWith(squadronNumber);
               }) || [];
-              const squadronScored = squadronSubmissions.filter(sub => sub.score !== null && sub.score !== undefined);
-              const squadronPassed = squadronScored.filter(sub => sub.passed === true).length;
-              const squadronPassRate = squadronScored.length > 0
-                ? Math.round((squadronPassed / squadronScored.length) * 100)
+              const squadronPassed = squadronSubmissions.filter(sub => sub.passed === true).length;
+              const squadronPassRate = squadronSubmissions.length > 0
+                ? Math.round((squadronPassed / squadronSubmissions.length) * 100)
                 : null;
 
               return (

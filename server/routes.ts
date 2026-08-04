@@ -1430,8 +1430,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (totalSubmissions < 3)  { riskFactors.push('Low engagement');            riskScore += 15; }
           if (daysSinceActivity > 14){ riskFactors.push('Inactive for 2+ weeks');     riskScore += 20; }
 
-          riskLevel = riskScore >= 40 ? 'high'
-                    : riskScore >= 20 ? 'medium'
+          riskLevel = riskScore >= 55 ? 'high'
+                    : riskScore >= 25 ? 'medium'
                     : 'low';
         }
 

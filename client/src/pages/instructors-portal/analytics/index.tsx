@@ -8,7 +8,7 @@ import {
   recommendPerformanceTrends,
   recommendAssessmentTypes,
   recommendTopicMastery,
-  recommendQuestionDifficulty,
+
   recommendAtRiskStudents,
 } from "@/lib/recommendations";
 import { 
@@ -581,10 +581,7 @@ export default function AdvancedAnalytics() {
   const { data: topicMastery, isLoading: isLoadingTopic } = useQuery<any[]>({
     queryKey: ["/api/analytics/topic-mastery"],
   });
-
-  const { data: questionDifficulty, isLoading: isLoadingDifficulty } = useQuery<any[]>({
-    queryKey: ["/api/analytics/question-difficulty"],
-  });
+  
 
   const { data: studentVsSquadron, isLoading: isLoadingComparison } = useQuery<any[]>({
     queryKey: ["/api/analytics/student-vs-squadron"],
@@ -763,31 +760,39 @@ export default function AdvancedAnalytics() {
   }
   
   function calculateOverviewStats(submissions: any[]) {
-    // Canonical: active loadmaster and instructor licences only
-    const totalLicensedStudents = users ? users.filter(user =>
-      user.isActive === true && (user.licenseType === 'loadmaster' || user.licenseType === 'instructor')
+    // Count total licensed students from users data (all active users except superadmins)
+    const totalLicensedStudents = users ? users.filter(user => 
+      user.isActive === true && user.licenseType !== 'superadmin' && user.licenseType !== 'leadership'
     ).length : 0;
-
-    // Exclude document submissions from all KPI calculations
-    const quizAndScenarioSubs = submissions.filter(sub => sub.type !== 'document');
-    const quizSubs = quizAndScenarioSubs.filter(sub => sub.type === 'quiz');
-    const scenSubs = quizAndScenarioSubs.filter(sub => sub.type === 'scenario');
-
-    // Average Score: mean of scored scenario submissions only
-    const scenScoredSubs = scenSubs.filter(sub =>
-      sub.calculatedScore !== null && sub.calculatedScore !== undefined
+    
+    // Filter submissions with scores
+    const submissionsWithScores = submissions.filter(sub => 
+      (sub.calculatedScore !== undefined && sub.calculatedScore !== null) || 
+      (sub.score !== undefined && sub.score !== null)
     );
-    const totalScenScore = scenScoredSubs.reduce((sum, sub) =>
-      sum + (sub.calculatedScore ?? sub.score ?? 0), 0);
-    const avgScore = scenScoredSubs.length > 0
-      ? totalScenScore / scenScoredSubs.length
+    
+    // Calculate average score
+    const totalScore = submissionsWithScores.reduce((sum, sub) => 
+      sum + (sub.calculatedScore || sub.score || 0), 0);
+    const avgScore = submissionsWithScores.length > 0 
+      ? totalScore / submissionsWithScores.length 
       : 0;
-
-    // Pass Rate: scenario passed=true / scenario scored (score IS NOT NULL)
-    const scenPasses = scenSubs.filter(sub => sub.passed === true).length;
-    const scenScored = scenScoredSubs.length;
-    const passRate = scenScored > 0
-      ? (scenPasses / scenScored) * 100
+    
+    // Calculate pass rate (require that passed field is a boolean)
+    const scorableSubmissions = submissions.filter(sub => 
+      sub.passed !== undefined || 
+      (sub.calculatedScore !== undefined && sub.calculatedScore >= 70) ||
+      (sub.score !== undefined && sub.score >= 70)
+    );
+    
+    const passedSubmissions = scorableSubmissions.filter(sub => 
+      sub.passed === true || 
+      (sub.calculatedScore !== undefined && sub.calculatedScore >= 70) ||
+      (sub.score !== undefined && sub.score >= 70)
+    );
+    
+    const passRate = scorableSubmissions.length > 0 
+      ? (passedSubmissions.length / scorableSubmissions.length) * 100 
       : 0;
     
     // Get breakdown by squadron with normalized formatting
@@ -819,7 +824,7 @@ export default function AdvancedAnalytics() {
     
     setOverviewStats({
       totalStudents: totalLicensedStudents,
-      totalSubmissions: quizAndScenarioSubs.length,
+      totalSubmissions: submissions.length,
       avgScore: Math.round(avgScore * 10) / 10, // Round to 1 decimal place
       passRate: Math.round(passRate * 10) / 10, // Round to 1 decimal place
       completionRate: 0, // Placeholder
@@ -1073,7 +1078,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.totalStudents}</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Active loadmasters and instructors
+                  Across {SQUADRONS.length} squadrons
                 </p>
               </CardContent>
             </Card>
@@ -1088,14 +1093,14 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.totalSubmissions}</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Quiz and scenario attempts combined
+                  All assessment types combined
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Avg Scenario Score</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex items-center">
@@ -1103,14 +1108,14 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.avgScore}%</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Scored scenario submissions
+                  {overviewStats.avgScore >= 70 ? "Above" : "Below"} passing threshold
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Scenario Pass Rate</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pass Rate</CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex items-center">
@@ -1118,7 +1123,7 @@ export default function AdvancedAnalytics() {
                   <div className="text-2xl font-bold">{overviewStats.passRate}%</div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Marked scenarios that passed
+                  Based on instructor evaluations
                 </p>
               </CardContent>
             </Card>
@@ -1737,53 +1742,7 @@ export default function AdvancedAnalytics() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Question Pass Rate */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5" />
-                        Question Pass Rate
-                      </CardTitle>
-                      <div className="flex items-center gap-1.5">
-                        <RecommendationButton recommendations={recommendQuestionDifficulty(questionDifficulty || [])} context="Question Pass Rate" />
-                        <HelpButton helpKey="questionDifficulty" onClick={setActiveHelp} />
-                      </div>
-                    </div>
-                    <CardDescription>Top 10 most challenging questions</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {isLoadingDifficulty ? (
-                      <div className="space-y-2">
-                        {Array(5).fill(0).map((_, i) => (
-                          <Skeleton key={i} className="h-10 w-full" />
-                        ))}
-                      </div>
-                    ) : (questionDifficulty || []).length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        No question difficulty data available
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-[350px] overflow-y-auto">
-                        {(questionDifficulty || []).map((q: any, idx: number) => (
-                          <div key={idx} className="flex items-start justify-between gap-3 p-2 rounded-lg hover:bg-muted/50">
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium truncate">{q.questionText}</div>
-                              <div className="text-xs text-muted-foreground">{q.category} · {q.attempts} attempts</div>
-                            </div>
-                            <div className={`text-sm font-bold shrink-0 ${
-                              q.successRate >= 70 ? 'text-success' :
-                              q.successRate >= 50 ? 'text-warning' : 'text-danger'
-                            }`}>
-                              {q.successRate}%
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                
 
               </div>
               
