@@ -71,7 +71,6 @@ export default function C17Grid({
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
             unitLabel={unitLabel}
-                  unitLabel={unitLabel}
                   aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {
@@ -113,7 +112,6 @@ export default function C17Grid({
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
             unitLabel={unitLabel}
-                  unitLabel={unitLabel}
                   aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {

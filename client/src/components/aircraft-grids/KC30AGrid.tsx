@@ -71,7 +71,6 @@ export default function KC30AGrid({
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
             unitLabel={unitLabel}
-                  unitLabel={unitLabel}
                   aircraftId="kc30a"
                   onClick={(e) => {
                     if (assignedPallet) {
@@ -113,7 +112,6 @@ export default function KC30AGrid({
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
             unitLabel={unitLabel}
-                  unitLabel={unitLabel}
                   aircraftId="kc30a"
                   onClick={(e) => {
                     if (assignedPallet) {
