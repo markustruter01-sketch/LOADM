@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 
 /** Simple two-column table of a submitted form. */
 export function downloadSubmissionPdf(opts: { title: string; submittedBy?: string; submittedAt: Date; rows: Array<[string, string]> }): void {

@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import type { Pallet } from "@/types/load-planning";
 import type { AircraftConfig, GridConfig } from "@/utils/aircraft-config";
 

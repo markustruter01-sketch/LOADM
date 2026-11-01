@@ -32,7 +32,7 @@ There is no login. Open the app, pick a role, and use it from that seat. Everyth
 
 Pull `main` into the Replit project and publish. That is the whole process. The only setting the app needs is `DATABASE_URL`, which Replit already provides.
 
-Developer scripts: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build && npm start`.
+Developer scripts: `npm run dev`, `npm run typecheck`, `npm run build && npm start`.
 
 ## Project layout
 
