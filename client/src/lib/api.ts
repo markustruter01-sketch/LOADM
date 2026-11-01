@@ -45,8 +45,6 @@ type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 interface RequestOptions {
   method?: Method;
   body?: unknown;
-  /** Raw FormData for uploads; sets no content-type. */
-  form?: FormData;
   signal?: AbortSignal;
 }
 
@@ -74,8 +72,7 @@ export async function api<T = unknown>(path: string, opts: RequestOptions = {}):
   const role = getStoredRole();
   if (role) headers["X-Demo-Role"] = role;
   let body: BodyInit | undefined;
-  if (opts.form) body = opts.form;
-  else if (opts.body !== undefined) {
+  if (opts.body !== undefined) {
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(opts.body);
   }
@@ -97,7 +94,6 @@ export const post = <T>(path: string, body?: unknown) => api<T>(path, { method: 
 export const put = <T>(path: string, body?: unknown) => api<T>(path, { method: "PUT", body });
 export const patch = <T>(path: string, body?: unknown) => api<T>(path, { method: "PATCH", body });
 export const del = <T>(path: string) => api<T>(path, { method: "DELETE" });
-export const upload = <T>(path: string, form: FormData) => api<T>(path, { method: "POST", form });
 
 /** Build a query string, skipping undefined/empty values. */
 export function qs(params: Record<string, string | number | boolean | undefined | null>): string {

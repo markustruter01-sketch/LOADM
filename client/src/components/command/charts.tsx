@@ -21,13 +21,6 @@ export const CHART = {
   bad: "#f87171",
 } as const;
 
-export const SQUADRON_COLORS: Record<FlyingSquadron, string> = {
-  "33SQN": CHART.c1,
-  "35SQN": CHART.c2,
-  "36SQN": CHART.c3,
-  "37SQN": CHART.c4,
-};
-
 /** Dark tooltip props shared by every chart. */
 export const tooltipStyle = {
   contentStyle: {
@@ -195,7 +188,6 @@ export function Gauge({ value, color, target, width = 160 }: { value: number; co
 }
 
 export const ALL_SQUADRONS = "ALL" as const;
-export type SquadronSelection = FlyingSquadron | typeof ALL_SQUADRONS;
 
 /** Squadron selector: All + each flying squadron. `undefined` means all. */
 export function SquadronTabs({ value, onChange }: { value: FlyingSquadron | undefined; onChange: (s: FlyingSquadron | undefined) => void }) {

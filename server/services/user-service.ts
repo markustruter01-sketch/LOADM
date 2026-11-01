@@ -6,11 +6,11 @@ import { NotFound } from "../lib/errors";
 
 export function toPublicUser(u: User): PublicUser {
   const {
-    id, email, firstName, lastName, rank, role, squadron, category, profilePhotoUrl,
+    id, email, firstName, lastName, rank, role, squadron, category,
     isActive, isFlightReady, notReadyReason, readinessUpdatedAt, lastActiveAt, createdAt,
   } = u;
   return {
-    id, email, firstName, lastName, rank, role, squadron, category, profilePhotoUrl,
+    id, email, firstName, lastName, rank, role, squadron, category,
     isActive, isFlightReady, notReadyReason, readinessUpdatedAt, lastActiveAt, createdAt,
   };
 }
@@ -58,6 +58,3 @@ export async function listReadinessPersonnel(squadron?: Squadron): Promise<User[
   return listUsers({ squadron, aircrewOnly: true, activeOnly: true });
 }
 
-export async function touchLastActive(id: number): Promise<void> {
-  await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, id));
-}

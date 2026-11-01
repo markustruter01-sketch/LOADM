@@ -123,7 +123,6 @@ export default function TrainingModulePage() {
                   <ContentViewer
                     module={m}
                     item={active}
-                    videos={m.videos}
                     isCompleted={completed.has(active.id)}
                     onComplete={() => markComplete(active.id)}
                     hasNext={activeIndex < content.length - 1}

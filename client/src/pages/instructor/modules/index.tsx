@@ -27,7 +27,7 @@ export default function ManageModules() {
     <>
       <PageHeader
         title="Manage modules"
-        description="Training modules: readings, videos and an assessment. Completion rate is the share of aircrew who have passed."
+        description="Training modules: readings and an assessment. Completion rate is the share of aircrew who have passed."
         actions={
           <Button asChild>
             <Link href="/instructor/modules/new">

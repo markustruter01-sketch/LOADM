@@ -25,7 +25,6 @@ export const keys = {
   demo: {
     me: ["/api/demo/me"] as const,
     roles: ["/api/demo/roles"] as const,
-    status: ["/api/demo/status"] as const,
   },
   users: {
     all: ["/api/users"] as const,

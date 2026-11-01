@@ -9,7 +9,7 @@ import { keys } from "@/lib/keys";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 import { Spinner } from "@/components/common";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface RoleOption {
   role: Role;
@@ -101,10 +101,7 @@ export default function RolePicker() {
                 </ul>
                 {p && (
                   <div className="mt-5 flex items-center gap-2 border-t border-border/60 pt-4">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={p.profilePhotoUrl ?? undefined} alt="" />
-                      <AvatarFallback className="bg-muted text-xs">{p.firstName[0]}{p.lastName[0]}</AvatarFallback>
-                    </Avatar>
+                    <UserAvatar className="h-8 w-8" />
                     <div className="min-w-0 text-xs">
                       <div className="truncate font-medium">
                         {p.rank} {p.firstName} {p.lastName}

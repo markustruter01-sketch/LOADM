@@ -3,7 +3,6 @@ import type {
   TrainingModule,
   TrainingModuleCompletion,
   TrainingModuleContent,
-  TrainingModuleVideo,
 } from "@shared/schema";
 
 /** GET /api/training/modules row. */
@@ -19,7 +18,6 @@ export type StudentModuleQuestion = Omit<ModuleQuizQuestion, "correctIndex"> & {
 /** GET /api/training/modules/:id. */
 export type TrainingModuleDetail = TrainingModule & {
   content: Array<Omit<TrainingModuleContent, "questions"> & { questions: StudentModuleQuestion[] | null }>;
-  videos: TrainingModuleVideo[];
 };
 
 export type ModuleContentItem = TrainingModuleDetail["content"][number];
@@ -35,8 +33,3 @@ export type AssessmentResult = {
 };
 
 export type AssessmentResponse = { completion: TrainingModuleCompletion; results: AssessmentResult[] };
-
-/** GET /api/training/completions/mine row. */
-export type MyModuleCompletion = TrainingModuleCompletion & {
-  module: { id: number; title: string; difficulty: TrainingModule["difficulty"]; passingThreshold: number | null };
-};

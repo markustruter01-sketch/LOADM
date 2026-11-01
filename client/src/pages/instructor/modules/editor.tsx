@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "wouter";
-import { BookOpen, FileQuestion, ListChecks, Pencil, Plus, Trash2, Video } from "lucide-react";
+import { BookOpen, FileQuestion, ListChecks, Pencil, Plus, Trash2 } from "lucide-react";
 import type { ModuleContentType } from "@shared/constants";
 import type { TrainingModuleContent } from "@shared/schema";
 import { del } from "@/lib/api";
@@ -14,14 +14,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ModuleForm } from "@/components/instructor/ModuleForm";
 import { ModuleContentDialog } from "@/components/instructor/ModuleContentDialog";
-import { ModuleVideos } from "@/components/instructor/ModuleVideos";
 import { ActiveBadge } from "@/components/instructor/shared";
 import { cn } from "@/lib/utils";
 import type { ModuleDetail } from "../types";
 
 const TYPE_META: Record<ModuleContentType, { label: string; icon: typeof BookOpen }> = {
   reading: { label: "Reading", icon: BookOpen },
-  video: { label: "Video", icon: Video },
   quiz: { label: "Knowledge check", icon: FileQuestion },
   assessment: { label: "Assessment", icon: ListChecks },
 };
@@ -158,15 +156,12 @@ export default function ModuleEditor() {
 
   return (
     <>
-      <PageHeader backHref="/instructor/modules" eyebrow="Edit module" title={moduleQuery.data?.title ?? "Module"} description="Module details, content and videos." />
+      <PageHeader backHref="/instructor/modules" eyebrow="Edit module" title={moduleQuery.data?.title ?? "Module"} description="Module details and content." />
       <QueryState query={moduleQuery}>
         {(m) => (
           <div className="space-y-8">
             <ModuleForm key={m.id} module={m} />
             <ContentSection module={m} />
-            <Section title="Videos" description="Uploaded files are streamed to students from this server.">
-              <ModuleVideos moduleId={m.id} videos={m.videos} />
-            </Section>
           </div>
         )}
       </QueryState>

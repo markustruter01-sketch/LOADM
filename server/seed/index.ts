@@ -53,7 +53,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
 
   await tx.execute(sql`
     TRUNCATE TABLE
-      showcase.activity_log, showcase.chat_messages, showcase.readiness_snapshots, showcase.safety_records, showcase.flight_records, showcase.user_qualifications, showcase.mission_documents, showcase.missions, showcase.checklist_step_audit, showcase.checklist_completions, showcase.checklist_items, showcase.checklists, showcase.training_module_completions, showcase.training_module_videos, showcase.training_module_content, showcase.training_modules, showcase.quiz_submissions, showcase.quiz_attempts, showcase.quizzes, showcase.quiz_questions, showcase.scenario_submissions, showcase.scenarios, showcase.document_submissions, showcase.documents, showcase.phone_directory, showcase.users
+      showcase.activity_log, showcase.chat_messages, showcase.readiness_snapshots, showcase.safety_records, showcase.flight_records, showcase.user_qualifications, showcase.mission_documents, showcase.missions, showcase.checklist_step_audit, showcase.checklist_completions, showcase.checklist_items, showcase.checklists, showcase.training_module_completions, showcase.training_module_content, showcase.training_modules, showcase.quiz_submissions, showcase.quiz_attempts, showcase.quizzes, showcase.quiz_questions, showcase.scenario_submissions, showcase.scenarios, showcase.document_submissions, showcase.documents, showcase.phone_directory, showcase.users
     RESTART IDENTITY CASCADE
   `);
 
@@ -164,9 +164,8 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     const cat = moduleCategory(seed);
     const bank = rng.sample(bankByCategory.get(cat) ?? questionRows, 5);
     await tx.insert(trainingModuleContent).values([
-      { moduleId: m.id, title: `${seed.title}: Reading`, type: "reading", durationMinutes: Math.round(seed.durationMinutes * 0.4), description: "Core reading for this module.", body: readingFor(seed), orderIndex: 1 },
-      { moduleId: m.id, title: `${seed.title}: Walkthrough`, type: "video", durationMinutes: Math.round(seed.durationMinutes * 0.3), description: "Instructor-led walkthrough. Video is attached by the instructor from the module management page.", orderIndex: 2 },
-      { moduleId: m.id, title: `${seed.title}: Assessment`, type: "assessment", durationMinutes: Math.round(seed.durationMinutes * 0.3), description: "End-of-module assessment. Pass mark applies.", questions: moduleQuizFor(bank), orderIndex: 3 },
+      { moduleId: m.id, title: `${seed.title}: Reading`, type: "reading", durationMinutes: Math.round(seed.durationMinutes * 0.7), description: "Core reading for this module.", body: readingFor(seed), orderIndex: 1 },
+      { moduleId: m.id, title: `${seed.title}: Assessment`, type: "assessment", durationMinutes: Math.round(seed.durationMinutes * 0.3), description: "End-of-module assessment. Pass mark applies.", questions: moduleQuizFor(bank), orderIndex: 2 },
     ]);
   }
 

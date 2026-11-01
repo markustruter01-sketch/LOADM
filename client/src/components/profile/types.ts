@@ -1,5 +1,5 @@
 import type { SubmissionStatus } from "@shared/constants";
-import type { FlightRecord, PublicUser, UserQualification } from "@shared/schema";
+import type { PublicUser, UserQualification } from "@shared/schema";
 
 /** One row of `activity[]` from GET /api/users/me (server/routes/users.ts buildProfile). */
 export type ActivityItem = {
@@ -55,5 +55,3 @@ export type FlightSummary = {
   byAircraft: Array<{ aircraft: string; sorties: number; hours: number }>;
   last12Months: Array<{ month: string; hours: number; sorties: number }>;
 };
-
-export type FlightRecordRow = FlightRecord;

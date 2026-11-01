@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { z } from "zod";
-import { Camera } from "lucide-react";
 import { updateUserProfileSchema, type PublicUser } from "@shared/schema";
 import { CATEGORIES, NOT_READY_REASONS, SQUADRONS, SQUADRON_LABELS, ROLE_LABELS } from "@shared/constants";
-import { patch, put, upload } from "@/lib/api";
+import { patch, put } from "@/lib/api";
 import { keys } from "@/lib/keys";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { formatDateTime } from "@/components/common";
@@ -31,29 +30,9 @@ function useInvalidateMe() {
 }
 
 export function ProfilePhoto({ user }: { user: PublicUser }) {
-  const { toast } = useToast();
-  const invalidate = useInvalidateMe();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const uploadPhoto = useMutation({
-    mutationFn: (file: File) => {
-      const form = new FormData();
-      form.append("photo", file);
-      return upload<PublicUser>("/api/users/me/photo", form);
-    },
-    onSuccess: () => {
-      invalidate();
-      toast({ title: "Photo updated" });
-    },
-    onError: (e: Error) => toast({ variant: "destructive", title: "Upload failed", description: e.message }),
-  });
   return (
     <div className="flex items-center gap-4">
-      <Avatar className="h-20 w-20">
-        <AvatarImage src={user.profilePhotoUrl ?? undefined} alt="" />
-        <AvatarFallback className="bg-primary/20 text-lg text-primary">
-          {(user.firstName[0] ?? "") + (user.lastName[0] ?? "")}
-        </AvatarFallback>
-      </Avatar>
+      <UserAvatar className="h-20 w-20" />
       <div>
         <div className="font-medium">
           {user.rank} {user.firstName} {user.lastName}
@@ -61,21 +40,6 @@ export function ProfilePhoto({ user }: { user: PublicUser }) {
         <div className="text-sm text-muted-foreground">
           {ROLE_LABELS[user.role]} · {SQUADRON_LABELS[user.squadron]}
         </div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="sr-only"
-          aria-label="Choose profile photo"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) uploadPhoto.mutate(file);
-            e.target.value = "";
-          }}
-        />
-        <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => inputRef.current?.click()} disabled={uploadPhoto.isPending}>
-          <Camera className="h-4 w-4" aria-hidden /> {uploadPhoto.isPending ? "Uploading…" : "Change photo"}
-        </Button>
       </div>
     </div>
   );

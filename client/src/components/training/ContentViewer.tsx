@@ -1,6 +1,6 @@
-import { BookOpen, CheckCircle2, ClipboardCheck, FileQuestion, PlayCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, ClipboardCheck, FileQuestion } from "lucide-react";
 import type { ModuleContentType } from "@shared/constants";
-import type { TrainingModule, TrainingModuleVideo } from "@shared/schema";
+import type { TrainingModule } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -10,12 +10,9 @@ import type { ModuleContentItem } from "@/pages/training/types";
 
 export const CONTENT_ICONS: Record<ModuleContentType, typeof BookOpen> = {
   reading: BookOpen,
-  video: PlayCircle,
   quiz: FileQuestion,
   assessment: ClipboardCheck,
 };
-
-const FALLBACK_VIDEO = "/videos/sample-training.mp4";
 
 /** Ordered list of a module's content with completion ticks. */
 export function ContentList({
@@ -69,7 +66,6 @@ export function ContentList({
 export function ContentViewer({
   module,
   item,
-  videos,
   isCompleted,
   onComplete,
   onNext,
@@ -77,14 +73,12 @@ export function ContentViewer({
 }: {
   module: Pick<TrainingModule, "id" | "passingThreshold">;
   item: ModuleContentItem;
-  videos: TrainingModuleVideo[];
   isCompleted: boolean;
   onComplete: () => void;
   onNext: () => void;
   hasNext: boolean;
 }) {
   const assessable = item.type === "assessment" || item.type === "quiz";
-  const videoSrc = videos[0] ? `/api/training/videos/${videos[0].id}/stream` : FALLBACK_VIDEO;
 
   return (
     <Card className="border-border/60 bg-card/60">
@@ -96,22 +90,6 @@ export function ContentViewer({
       <CardContent>
         {item.type === "reading" &&
           (item.body ? <Markdown source={item.body} className="max-w-prose" /> : <p className="text-sm text-muted-foreground">No reading content yet.</p>)}
-
-        {item.type === "video" && (
-          <div className="space-y-2">
-            <video
-              key={videoSrc}
-              controls
-              preload="metadata"
-              src={videoSrc}
-              className="aspect-video w-full rounded-md border border-border/60 bg-black"
-              onEnded={onComplete}
-            >
-              Your browser does not support embedded video.
-            </video>
-            {videos[0] && <p className="text-xs text-muted-foreground">{videos[0].title}</p>}
-          </div>
-        )}
 
         {assessable && <AssessmentRunner key={item.id} module={module} questions={item.questions ?? []} onPassed={onComplete} />}
 

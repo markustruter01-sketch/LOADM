@@ -88,7 +88,6 @@ export const users = appSchema.table(
     role: roleEnum("role").notNull(),
     squadron: squadronEnum("squadron").notNull(),
     category: categoryEnum("category").notNull().default("D"),
-    profilePhotoUrl: text("profile_photo_url"),
     isActive: boolean("is_active").notNull().default(true),
     /** The user a visitor "becomes" when they pick this role. One per role. */
     isDemoPersona: boolean("is_demo_persona").notNull().default(false),
@@ -436,7 +435,6 @@ export const trainingModuleContent = appSchema.table(
     body: text("body"),
     /** Questions for quiz/assessment content. */
     questions: json("questions").$type<ModuleQuizQuestion[]>(),
-    videoUrl: text("video_url"),
     orderIndex: integer("order_index").notNull().default(0),
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps,
@@ -461,7 +459,6 @@ export const insertTrainingModuleContentSchema = z.object({
     )
     .nullable()
     .optional(),
-  videoUrl: z.string().url().nullable().optional(),
   orderIndex: z.number().int().nonnegative().optional(),
   isActive: z.boolean().optional(),
 });
@@ -486,27 +483,6 @@ export const trainingModuleCompletions = appSchema.table(
   },
   (t) => [index("training_module_completions_user_idx").on(t.userId, t.submittedAt)],
 );
-
-export const submitModuleAssessmentSchema = z.object({
-  moduleId: z.number().int().positive(),
-  answers: z.record(z.number().int()),
-});
-
-export const trainingModuleVideos = appSchema.table("training_module_videos", {
-  id: serial("id").primaryKey(),
-  moduleId: integer("module_id")
-    .notNull()
-    .references(() => trainingModules.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  description: text("description"),
-  fileName: text("file_name").notNull(),
-  storedName: text("stored_name").notNull(),
-  fileSize: integer("file_size").notNull(),
-  mimeType: text("mime_type").notNull(),
-  orderIndex: integer("order_index").notNull().default(1),
-  uploadedById: integer("uploaded_by_id").references(() => users.id, { onDelete: "set null" }),
-  ...timestamps,
-});
 
 // ---------------------------------------------------------------------------
 // Checklists
@@ -892,14 +868,10 @@ export const quizSubmissionsRelations = relations(quizSubmissions, ({ one }) => 
 
 export const trainingModulesRelations = relations(trainingModules, ({ many }) => ({
   content: many(trainingModuleContent),
-  videos: many(trainingModuleVideos),
   completions: many(trainingModuleCompletions),
 }));
 export const trainingModuleContentRelations = relations(trainingModuleContent, ({ one }) => ({
   module: one(trainingModules, { fields: [trainingModuleContent.moduleId], references: [trainingModules.id] }),
-}));
-export const trainingModuleVideosRelations = relations(trainingModuleVideos, ({ one }) => ({
-  module: one(trainingModules, { fields: [trainingModuleVideos.moduleId], references: [trainingModules.id] }),
 }));
 export const trainingModuleCompletionsRelations = relations(trainingModuleCompletions, ({ one }) => ({
   module: one(trainingModules, { fields: [trainingModuleCompletions.moduleId], references: [trainingModules.id] }),
@@ -956,7 +928,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type PublicUser = Pick<
   User,
   | "id" | "email" | "firstName" | "lastName" | "rank" | "role" | "squadron" | "category"
-  | "profilePhotoUrl" | "isActive" | "isFlightReady" | "notReadyReason" | "readinessUpdatedAt" | "lastActiveAt" | "createdAt"
+  | "isActive" | "isFlightReady" | "notReadyReason" | "readinessUpdatedAt" | "lastActiveAt" | "createdAt"
 >;
 
 export type Document = typeof documents.$inferSelect;
@@ -966,7 +938,6 @@ export type DocumentSubmission = typeof documentSubmissions.$inferSelect;
 export type Scenario = typeof scenarios.$inferSelect;
 export type InsertScenario = z.infer<typeof insertScenarioSchema>;
 export type ScenarioSubmission = typeof scenarioSubmissions.$inferSelect;
-export type InsertScenarioSubmission = z.infer<typeof insertScenarioSubmissionSchema>;
 
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
 export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
@@ -982,7 +953,6 @@ export type InsertTrainingModule = z.infer<typeof insertTrainingModuleSchema>;
 export type TrainingModuleContent = typeof trainingModuleContent.$inferSelect;
 export type InsertTrainingModuleContent = z.infer<typeof insertTrainingModuleContentSchema>;
 export type TrainingModuleCompletion = typeof trainingModuleCompletions.$inferSelect;
-export type TrainingModuleVideo = typeof trainingModuleVideos.$inferSelect;
 
 export type Checklist = typeof checklists.$inferSelect;
 export type ChecklistItem = typeof checklistItems.$inferSelect;
@@ -995,9 +965,7 @@ export type InsertMission = z.infer<typeof insertMissionSchema>;
 export type MissionDocument = typeof missionDocuments.$inferSelect;
 
 export type UserQualification = typeof userQualifications.$inferSelect;
-export type InsertUserQualification = z.infer<typeof insertUserQualificationSchema>;
 export type FlightRecord = typeof flightRecords.$inferSelect;
-export type InsertFlightRecord = z.infer<typeof insertFlightRecordSchema>;
 export type SafetyRecord = typeof safetyRecords.$inferSelect;
 export type InsertSafetyRecord = z.infer<typeof insertSafetyRecordSchema>;
 export type ReadinessSnapshot = typeof readinessSnapshots.$inferSelect;

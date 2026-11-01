@@ -1,24 +1,19 @@
 import { Router } from "express";
 import { z } from "zod";
-import { eq, desc, and, gte, sql } from "drizzle-orm";
-import multer from "multer";
-import path from "node:path";
-import fs from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { eq, desc, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   users, updateUserProfileSchema, quizSubmissions, scenarioSubmissions, trainingModuleCompletions,
   quizzes, scenarios, trainingModules, flightRecords, userQualifications, documentSubmissions, documents,
 } from "@shared/schema";
-import { ROLES, SQUADRONS, NOT_READY_REASONS, THRESHOLDS, isPassing } from "@shared/constants";
+import { ROLES, SQUADRONS, NOT_READY_REASONS, THRESHOLDS } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
 import { parseId, queryFlag } from "../lib/ids";
-import { BadRequest, Forbidden, NotFound } from "../lib/errors";
+import { Forbidden, NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser, canActFor, invalidatePersonaCache } from "../middleware/persona";
 import { listUsers, getUser, toPublicUser } from "../services/user-service";
 import { logActivity } from "../services/activity-service";
-import { env } from "../config";
 
 export const usersRouter = Router();
 
@@ -126,45 +121,6 @@ usersRouter.put(
   }),
 );
 
-// ---- Profile photo -------------------------------------------------------
-
-const IMAGE_EXT: Record<string, string> = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
-
-const photoUpload = multer({
-  storage: multer.diskStorage({
-    destination: async (_req, _file, cb) => {
-      const dir = path.resolve(env.UPLOAD_DIR, "profile-photos");
-      await fs.mkdir(dir, { recursive: true });
-      cb(null, dir);
-    },
-    filename: (_req, file, cb) => {
-      cb(null, `${randomUUID()}${IMAGE_EXT[file.mimetype] ?? ".bin"}`);
-    },
-  }),
-  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
-  fileFilter: (_req, file, cb) => {
-    if (["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) cb(null, true);
-    else cb(new BadRequest("Only JPEG, PNG or WebP images are accepted"));
-  },
-});
-
-usersRouter.post(
-  "/me/photo",
-  requirePersona,
-  photoUpload.single("photo"),
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    if (!req.file) throw new BadRequest("No file uploaded");
-    const url = `/uploads/profile-photos/${req.file.filename}`;
-    const [row] = await db.update(users).set({ profilePhotoUrl: url }).where(eq(users.id, me.id)).returning();
-    if (me.profilePhotoUrl?.startsWith("/uploads/")) {
-      await fs.rm(path.resolve(env.UPLOAD_DIR, me.profilePhotoUrl.replace("/uploads/", "")), { force: true });
-    }
-    invalidatePersonaCache();
-    res.json(toPublicUser(row));
-  }),
-);
-
 // ---- Profile builder -----------------------------------------------------
 
 async function buildProfile(userId: number) {
@@ -267,4 +223,3 @@ async function buildProfile(userId: number) {
   };
 }
 
-void isPassing;

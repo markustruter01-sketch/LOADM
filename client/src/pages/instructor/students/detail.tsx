@@ -9,7 +9,7 @@ import { PageHeader, Section, StatCard, QueryState, EmptyState, ScoreBadge, form
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ReadinessDialog } from "@/components/ReadinessDialog";
 import { personName } from "@/components/instructor/shared";
@@ -52,10 +52,6 @@ function ScoreTrend({ profile, analytics }: { profile: StudentProfile; analytics
   );
 }
 
-function initials(first: string, last: string) {
-  return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
-}
-
 const QUAL_TONE = { current: "border-emerald-500/40 text-emerald-400", expiring: "border-amber-500/40 text-amber-400", expired: "border-red-500/40 text-red-400" } as const;
 
 function StudentBody({ profile, analytics }: { profile: StudentProfile; analytics: StudentAnalytics | undefined }) {
@@ -69,10 +65,7 @@ function StudentBody({ profile, analytics }: { profile: StudentProfile; analytic
       <Card className="mb-6 border-border/60 bg-card/60">
         <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-14 w-14">
-              <AvatarImage src={user.profilePhotoUrl ?? undefined} alt="" />
-              <AvatarFallback className="bg-primary/20 text-primary">{initials(user.firstName, user.lastName)}</AvatarFallback>
-            </Avatar>
+            <UserAvatar className="h-14 w-14" />
             <div>
               <div className="text-lg font-semibold">{personName(user)}</div>
               <div className="text-sm text-muted-foreground">

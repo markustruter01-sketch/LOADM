@@ -2,7 +2,6 @@ import express, { type Express } from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
-import path from "node:path";
 import { env, isProd } from "./config";
 import { attachPersona } from "./middleware/persona";
 import { requestLog } from "./middleware/request-log";
@@ -63,10 +62,6 @@ export function createApp(): Express {
 
   app.use(attachPersona);
 
-
-  // Uploaded files (profile photos, training videos). Public by design: this
-  // is a demo with no private data.
-  app.use("/uploads", express.static(path.resolve(env.UPLOAD_DIR), { maxAge: "1h", index: false }));
 
   app.use("/api", apiRouter);
   app.use("/api", notFoundHandler);

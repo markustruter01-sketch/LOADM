@@ -1,25 +1,20 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, RefreshCw, LogOut, ChevronDown, Info } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ROLE_LABELS, ROLES, SQUADRON_LABELS, type Role } from "@shared/constants";
 import { usePersona } from "@/lib/persona";
 import { visibleNav } from "@/lib/nav";
 import { post } from "@/lib/api";
-import { keys } from "@/lib/keys";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/Logo";
 import { ChatDock } from "@/components/chat/ChatDock";
-
-function initials(first: string, last: string) {
-  return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
-}
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const { can } = usePersona();
@@ -61,15 +56,11 @@ function RoleSwitcher() {
   const { user, role, chooseRole, leave } = usePersona();
   const [, navigate] = useLocation();
   if (!user || !role) return null;
-  const photo = user.profilePhotoUrl ?? undefined;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted" aria-label="Switch role">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={photo} alt="" />
-            <AvatarFallback className="bg-primary/20 text-xs text-primary">{initials(user.firstName, user.lastName)}</AvatarFallback>
-          </Avatar>
+          <UserAvatar className="h-8 w-8" />
           <div className="hidden min-w-0 sm:block">
             <div className="truncate text-sm font-medium leading-tight">
               {user.rank} {user.firstName} {user.lastName}
@@ -114,7 +105,6 @@ function RoleSwitcher() {
 function DemoControls() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const status = useQuery<{ lastResetAt: string | null; nextResetAt: string | null }>({ queryKey: keys.demo.status, staleTime: 60_000 });
   const reset = useMutation({
     mutationFn: () => post<{ ok: true }>("/api/demo/reset"),
     onSuccess: async () => {
@@ -123,7 +113,6 @@ function DemoControls() {
     },
     onError: (err: Error) => toast({ title: "Reset failed", description: err.message, variant: "destructive" }),
   });
-  const next = status.data?.nextResetAt ? new Date(status.data.nextResetAt) : null;
   return (
     <div className="flex items-center gap-1">
       <Tooltip>
@@ -135,7 +124,6 @@ function DemoControls() {
         </TooltipTrigger>
         <TooltipContent side="bottom">
           Restores the seeded dataset for everyone.
-          {next && <div className="text-muted-foreground">Next automatic reset {next.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })}</div>}
         </TooltipContent>
       </Tooltip>
     </div>

@@ -134,7 +134,6 @@ export type SafetyStatus = (typeof SAFETY_STATUSES)[number];
 export const FLIGHT_PHASES = [
   "ground", "taxi", "takeoff", "climb", "cruise", "descent", "approach", "landing", "parking",
 ] as const;
-export type FlightPhase = (typeof FLIGHT_PHASES)[number];
 export const SAFETY_LEVELS = [
   "Level 1 - Catastrophic", "Level 2 - Critical", "Level 3 - Marginal", "Level 4 - Negligible",
 ] as const;
@@ -143,7 +142,7 @@ export const CHECKLIST_CATEGORIES = ["startup", "shutdown", "pre-flight", "post-
 export type ChecklistCategory = (typeof CHECKLIST_CATEGORIES)[number];
 export const CHECKLIST_AIRCRAFT = [...AIRCRAFT_TYPES, "General"] as const;
 
-export const MODULE_CONTENT_TYPES = ["video", "reading", "quiz", "assessment"] as const;
+export const MODULE_CONTENT_TYPES = ["reading", "quiz", "assessment"] as const;
 export type ModuleContentType = (typeof MODULE_CONTENT_TYPES)[number];
 
 export const CHAT_MESSAGE_TYPES = ["question", "answer"] as const;

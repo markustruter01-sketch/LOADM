@@ -9,10 +9,6 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(5000),
   DATABASE_URL: z.string().url(),
-  /** Where uploaded files are stored. Ephemeral on most PaaS hosts, which is fine for a demo. */
-  UPLOAD_DIR: z.string().default("uploads"),
-  /** Hour (UTC, 0-23) at which demo data is reset. Empty string disables. */
-  DEMO_RESET_HOUR_UTC: z.union([z.literal(""), z.coerce.number().int().min(0).max(23)]).default(16),
   /** Set to "false" to skip seeding on boot when the database is empty. */
   SEED_ON_BOOT: z
     .string()

@@ -6,18 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface Pallet {
-  id: number;
-  position: { x: number; y: number };
-  location: "cargo" | "configure";
-  weight: number | null;
-  size: { width: number; height: number };
-  cargoType?: "C" | "DG";
-  cargoCategory?: string;
-  dgClass?: string;
-  positionLabel?: string;
-}
-
 interface PalletConfigDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

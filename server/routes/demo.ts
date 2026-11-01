@@ -5,7 +5,7 @@ import { validate } from "../middleware/validate";
 import { asyncHandler } from "../lib/async";
 import { DEMO_ROLE_COOKIE, loadPersona } from "../middleware/persona";
 import { toPublicUser } from "../services/user-service";
-import { resetDemoData, getDemoStatus } from "../services/demo-service";
+import { resetDemoData } from "../services/demo-service";
 import { isProd } from "../config";
 import { NotFound } from "../lib/errors";
 
@@ -66,8 +66,6 @@ demoRouter.post("/leave", (_req, res) => {
   res.clearCookie(DEMO_ROLE_COOKIE, { path: "/" });
   res.json({ ok: true });
 });
-
-demoRouter.get("/status", asyncHandler(async (_req, res) => res.json(await getDemoStatus())));
 
 /** Restore the seed data. Anyone can press it; that is the point of a demo. */
 demoRouter.post(

@@ -14,4 +14,3 @@ export const logger = pino({
   redact: ["req.headers.cookie", "req.headers.authorization"],
 });
 
-export type Logger = typeof logger;

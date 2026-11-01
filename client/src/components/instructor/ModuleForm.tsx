@@ -46,7 +46,7 @@ export function ModuleForm({ module }: { module: TrainingModule | null }) {
     onSuccess: (row) => {
       qc.invalidateQueries({ queryKey: keys.training.all });
       qc.invalidateQueries({ queryKey: keys.training.module(row.id) });
-      toast({ title: module ? "Module saved" : "Module created", description: module ? undefined : "Now add readings, videos and an assessment." });
+      toast({ title: module ? "Module saved" : "Module created", description: module ? undefined : "Now add readings and an assessment." });
       if (!module) navigate(`/instructor/modules/${row.id}`);
       else form.reset(toForm(row));
     },

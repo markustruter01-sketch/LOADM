@@ -1,13 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
 import { eq, desc, asc, and, sql } from "drizzle-orm";
-import multer from "multer";
-import path from "node:path";
-import fs from "node:fs/promises";
-import { randomUUID } from "node:crypto";
 import { db } from "../db";
 import {
-  trainingModules, trainingModuleContent, trainingModuleCompletions, trainingModuleVideos,
+  trainingModules, trainingModuleContent, trainingModuleCompletions,
   insertTrainingModuleSchema, insertTrainingModuleContentSchema,
 } from "@shared/schema";
 import { isPassing, roleHas } from "@shared/constants";
@@ -21,11 +17,8 @@ import {
   stripAnswerKey, gradeModuleAssessment, findAssessmentContent,
   bestCompletionsFor, moduleCompletionRates, contentCountsFor,
 } from "../services/training-service";
-import { env } from "../config";
 
 export const trainingRouter = Router();
-
-const VIDEO_DIR = path.resolve(env.UPLOAD_DIR, "training-videos");
 
 // ---- Module listing ------------------------------------------------------
 
@@ -99,7 +92,7 @@ trainingRouter.get(
 
 // ---- Single module -------------------------------------------------------
 
-/** Module with ordered content and videos. Answer keys are stripped for non-instructors. */
+/** Module with ordered content. Answer keys are stripped for non-instructors. */
 trainingRouter.get(
   "/modules/:id",
   requirePersona,
@@ -114,7 +107,6 @@ trainingRouter.get(
           where: instruct ? undefined : eq(trainingModuleContent.isActive, true),
           orderBy: [asc(trainingModuleContent.orderIndex), asc(trainingModuleContent.id)],
         },
-        videos: { orderBy: [asc(trainingModuleVideos.orderIndex), asc(trainingModuleVideos.id)] },
       },
     });
     if (!mod || (!instruct && !mod.isActive)) throw new NotFound("Training module");
@@ -258,121 +250,5 @@ trainingRouter.post(
       .returning();
     await logActivity({ actor: me, action: "CREATE", resourceType: "ModuleCompletion", resourceId: completion.id, resourceName: mod.title, details: `${graded.score}% ${passed ? "pass" : "fail"}` });
     res.status(201).json({ completion, results: graded.results });
-  }),
-);
-
-// ---- Videos --------------------------------------------------------------
-
-const VIDEO_EXT: Record<string, string> = { "video/mp4": ".mp4", "video/webm": ".webm" };
-
-const videoUpload = multer({
-  storage: multer.diskStorage({
-    destination: async (_req, _file, cb) => {
-      await fs.mkdir(VIDEO_DIR, { recursive: true });
-      cb(null, VIDEO_DIR);
-    },
-    filename: (_req, file, cb) => {
-      cb(null, `${randomUUID()}${VIDEO_EXT[file.mimetype] ?? ".bin"}`);
-    },
-  }),
-  limits: { fileSize: 200 * 1024 * 1024, files: 1 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype in VIDEO_EXT) cb(null, true);
-    else cb(new BadRequest("Only MP4 or WebM video is accepted"));
-  },
-});
-
-const videoBody = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
-});
-
-/** Upload a video (multipart field `video`, plus `title`/`description`) for a module. */
-trainingRouter.post(
-  "/modules/:id/videos",
-  requireInstruct,
-  videoUpload.single("video"),
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const file = req.file;
-    if (!file) throw new BadRequest("No file uploaded");
-    const discard = () => fs.rm(file.path, { force: true });
-    let id = 0;
-    try {
-      id = parseId(req.params.id);
-    } catch (err) {
-      await discard();
-      throw err;
-    }
-    // Validate after multer has parsed the multipart text fields; drop the file on failure.
-    const parsed = videoBody.safeParse(req.body);
-    if (!parsed.success) {
-      await discard();
-      throw new BadRequest("Validation failed", parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
-    }
-    const [mod] = await db.select().from(trainingModules).where(eq(trainingModules.id, id)).limit(1);
-    if (!mod) {
-      await discard();
-      throw new NotFound("Training module");
-    }
-    const [agg] = await db
-      .select({ max: sql<number>`coalesce(max(${trainingModuleVideos.orderIndex}),0)::int` })
-      .from(trainingModuleVideos)
-      .where(eq(trainingModuleVideos.moduleId, id));
-    const [row] = await db
-      .insert(trainingModuleVideos)
-      .values({
-        moduleId: id,
-        title: parsed.data.title,
-        description: parsed.data.description ?? null,
-        fileName: file.originalname,
-        storedName: file.filename,
-        fileSize: file.size,
-        mimeType: file.mimetype,
-        orderIndex: (agg?.max ?? 0) + 1,
-        uploadedById: me.id,
-      })
-      .returning();
-    await logActivity({ actor: me, action: "CREATE", resourceType: "TrainingVideo", resourceId: row.id, resourceName: row.title, details: `Module: ${mod.title}` });
-    res.status(201).json(row);
-  }),
-);
-
-/** Delete the row, then the file on disk. */
-trainingRouter.delete(
-  "/videos/:videoId",
-  requireInstruct,
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const videoId = parseId(req.params.videoId, "videoId");
-    const [row] = await db
-      .delete(trainingModuleVideos)
-      .where(eq(trainingModuleVideos.id, videoId))
-      .returning({ id: trainingModuleVideos.id, title: trainingModuleVideos.title, storedName: trainingModuleVideos.storedName });
-    if (!row) throw new NotFound("Video");
-    await fs.rm(path.resolve(VIDEO_DIR, row.storedName), { force: true });
-    await logActivity({ actor: me, action: "DELETE", resourceType: "TrainingVideo", resourceId: row.id, resourceName: row.title });
-    res.json({ id: row.id });
-  }),
-);
-
-/** Stream a video. Express's sendFile honours Range requests. */
-trainingRouter.get(
-  "/videos/:videoId/stream",
-  requirePersona,
-  asyncHandler(async (req, res) => {
-    const videoId = parseId(req.params.videoId, "videoId");
-    const [row] = await db.select().from(trainingModuleVideos).where(eq(trainingModuleVideos.id, videoId)).limit(1);
-    if (!row) throw new NotFound("Video");
-    const absPath = path.resolve(VIDEO_DIR, row.storedName);
-    try {
-      await fs.access(absPath);
-    } catch {
-      throw new NotFound("Video file");
-    }
-    res.type(row.mimeType);
-    await new Promise<void>((resolve, reject) => {
-      res.sendFile(absPath, { acceptRanges: true }, (err) => (err ? reject(err) : resolve()));
-    });
   }),
 );

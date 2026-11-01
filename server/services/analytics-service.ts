@@ -290,7 +290,9 @@ export async function getSquadronReadiness(f: AnalyticsFilter): Promise<Readines
   return f.squadron ? figures.filter((r) => r.squadron === f.squadron) : figures;
 }
 
+/** History up to today; today's snapshot is captured on first read (idempotent). */
 export async function getReadinessHistory(squadron: SnapshotSquadron, days: number): Promise<ReadinessSnapshot[]> {
+  await captureSnapshot();
   const rows = await getSnapshotHistory(squadron, days);
   return [...rows].sort((a, b) => a.snapshotDate.getTime() - b.snapshotDate.getTime());
 }

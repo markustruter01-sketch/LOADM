@@ -259,17 +259,3 @@ export const isBalanceAtOrBeyondLimits = (cg: number): boolean => {
   const displayValue = cg.toFixed(2);
   return displayValue === "18.00" || displayValue === "88.00" || cg < 18 || cg > 88;
 };
-
-/**
- * Calculate consistent pallet dimensions based on cell dimensions
- */
-export const calculatePalletDimensions = (
-  cellWidth: number, 
-  cellHeight: number
-): { width: number; height: number } => {
-  // Make pallets 10% smaller than cells for better visual appearance
-  return {
-    width: cellWidth * 0.9,
-    height: cellHeight * 0.9
-  };
-};

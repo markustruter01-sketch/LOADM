@@ -21,13 +21,6 @@ export const ENGINE_TO_FLEET: Record<EngineAircraftId, AircraftType> = {
   kc30a: "KC30A",
 };
 
-export const FLEET_TO_ENGINE: Record<AircraftType, EngineAircraftId> = {
-  C130J: "c130",
-  C17: "c17",
-  C27J: "c27j",
-  KC30A: "kc30a",
-};
-
 export const AIRCRAFT_IMAGES: Record<EngineAircraftId, string> = {
   c130: c130Image,
   c17: c17Image,

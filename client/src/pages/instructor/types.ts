@@ -10,7 +10,6 @@ import type {
   ScenarioSubmission,
   TrainingModule,
   TrainingModuleContent,
-  TrainingModuleVideo,
   UserQualification,
 } from "@shared/schema";
 import type { FlyingSquadron, QuestionCategory } from "@shared/constants";
@@ -125,8 +124,6 @@ export type StudentAnalytics = Partial<{
   comparison: StudentComparison | null;
 }>;
 
-export type ReadinessBody = { isFlightReady: boolean; notReadyReason?: string | null };
-
 // ---- Dashboard -----------------------------------------------------------
 
 export type RecommendationSeverity = "info" | "warning" | "critical";
@@ -169,7 +166,7 @@ export type ModuleListItem = TrainingModule & {
   completionRate: number;
 };
 
-export type ModuleDetail = TrainingModule & { content: TrainingModuleContent[]; videos: TrainingModuleVideo[] };
+export type ModuleDetail = TrainingModule & { content: TrainingModuleContent[] };
 
 // ---- Checklists ------------------------------------------------------------
 

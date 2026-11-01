@@ -87,11 +87,4 @@ export function usePersona(): PersonaContextValue {
   return ctx;
 }
 
-/** Convenience: the current user, throwing if used outside a chosen persona. */
-export function useCurrentUser(): PublicUser {
-  const { user } = usePersona();
-  if (!user) throw new Error("No persona selected");
-  return user;
-}
-
 export { ROLE_CAPABILITIES };

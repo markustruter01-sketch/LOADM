@@ -5,9 +5,8 @@ import { createApp, markReady } from "./app";
 import { pool } from "./db";
 import { setupVite, serveStatic } from "./vite";
 import { attachChatServer } from "./ws/chat";
-import { ensureSeeded, startDemoResetSchedule } from "./services/demo-service";
+import { ensureSeeded } from "./services/demo-service";
 import { ensureDatabaseSchema } from "./db-setup";
-import { startSnapshotSchedule } from "./services/readiness-service";
 import { errorHandler } from "./middleware/errors";
 
 async function main(): Promise<void> {
@@ -31,13 +30,9 @@ async function main(): Promise<void> {
   attachChatServer(httpServer);
   markReady();
   logger.info("ready");
-  const stopReset = startDemoResetSchedule();
-  const stopSnapshots = startSnapshotSchedule();
 
   const shutdown = async (signal: string) => {
     logger.info({ signal }, "shutting down");
-    stopReset();
-    stopSnapshots();
     httpServer.close();
     await pool.end().catch(() => undefined);
     process.exit(0);

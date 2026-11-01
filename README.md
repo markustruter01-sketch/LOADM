@@ -2,7 +2,7 @@
 
 A full-stack showcase of a training, assessment and workforce-readiness platform for air mobility loadmasters. It covers the whole training pipeline — modules, quizzes drawn from a managed question bank, instructor-marked scenarios, checklists, load planning for four airframes, flight logs and qualification currency — and rolls it up into squadron-level readiness, safety and performance analytics for command.
 
-There is no login. Open the app, pick a role, and use it from that seat. Everything is live and editable; the data is fictional and resets daily.
+There is no login. Open the app, pick a role, and use it from that seat. Everything is live and editable; the data is fictional, reloads itself once a day, and anyone can restore it with the "Reset demo data" button.
 
 | Role | What you get |
 | --- | --- |
@@ -14,7 +14,7 @@ There is no login. Open the app, pick a role, and use it from that seat. Everyth
 ## Stack
 
 - **Client:** React 18, TypeScript, Vite, wouter, TanStack Query, react-hook-form + Zod, shadcn/ui (Radix), Tailwind, Recharts
-- **Server:** Node 20, Express, TypeScript, Drizzle ORM, PostgreSQL (Neon serverless driver), Zod validation, pino logging, WebSockets for live chat
+- **Server:** Node 20, Express, TypeScript, Drizzle ORM, PostgreSQL (Neon), Zod validation, pino logging, WebSockets for live crew chat
 - **Shared:** one `shared/` package holds the schema, every enum and every business threshold, so client and server never disagree about a pass mark or a squadron name
 
 ## Architecture notes
@@ -25,22 +25,14 @@ There is no login. Open the app, pick a role, and use it from that seat. Everyth
 - Every API route lives in one domain router under `server/routes/`, validates its input with Zod, derives identity and scores server-side, and reports errors through one JSON error handler.
 - Quiz grading is attempt-based: the questions served to a student are stored with the attempt and graded by question id, so a student is only ever graded on what they saw.
 - Readiness has one definition (`server/services/readiness-service.ts`) used by the live dashboard, the daily snapshot and the seed.
-- Demo data is generated deterministically (`server/seed/`) so every reset produces the same world; a Postgres advisory lock makes reset safe across instances.
-
-## Running locally
-
-```bash
-cp .env.example .env            # set DATABASE_URL to any PostgreSQL 14+
-npm install
-npm run db:push                 # create the schema (or db:migrate once migrations are generated)
-npm run dev                     # http://localhost:5000 — seeds demo data on first boot
-```
-
-Other scripts: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build && npm start`, `npm run db:reset` (restore seed data).
+- Demo data is generated deterministically (`server/seed/`) so every reset produces the same world. On start-up the app creates its own tables and reloads the data if it is more than a day old — there are no background jobs.
+- All tables live in a separate `showcase` Postgres schema, so tables from the earlier version of the app in `public` are never touched.
 
 ## Deploying
 
-The app is a single Node process serving the API and the built client. `Dockerfile` builds a production image; any host with a PostgreSQL database works (Render, Railway, Fly, a VPS). Set `DATABASE_URL`, optionally `DEMO_RESET_HOUR_UTC` (default 16) and `UPLOAD_DIR` (mount a volume if uploads should survive restarts).
+Pull `main` into the Replit project and publish. That is the whole process. The only setting the app needs is `DATABASE_URL`, which Replit already provides.
+
+Developer scripts: `npm run dev`, `npm run typecheck`, `npm test`, `npm run build && npm start`.
 
 ## Project layout
 

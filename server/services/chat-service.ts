@@ -7,12 +7,12 @@ import { NotFound } from "../lib/errors";
 const DAY_MS = 86_400_000;
 
 /** The slice of a person attached to a chat message. */
-export type ChatUser = Pick<User, "id" | "firstName" | "lastName" | "rank" | "role" | "squadron" | "profilePhotoUrl">;
+export type ChatUser = Pick<User, "id" | "firstName" | "lastName" | "rank" | "role" | "squadron">;
 export type ChatMessageWithUser = ChatMessage & { user: ChatUser };
 
 export function toChatUser(u: User): ChatUser {
-  const { id, firstName, lastName, rank, role, squadron, profilePhotoUrl } = u;
-  return { id, firstName, lastName, rank, role, squadron, profilePhotoUrl };
+  const { id, firstName, lastName, rank, role, squadron } = u;
+  return { id, firstName, lastName, rank, role, squadron };
 }
 
 export function retentionCutoff(now = Date.now()): Date {

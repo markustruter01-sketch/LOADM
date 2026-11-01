@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { OptionsEditor } from "./OptionsEditor";
 import { NullableNumberInput, RowControls, newId } from "./shared";
 
@@ -30,17 +30,16 @@ const contentFormSchema = insertTrainingModuleContentSchema.extend({
   description: z.string(),
   body: z.string(),
   questions: z.array(questionSchema),
-  videoUrl: z.union([z.literal(""), z.string().url()]),
   isActive: z.boolean(),
 });
 type ContentForm = z.infer<typeof contentFormSchema>;
 type ContentQuestion = ContentForm["questions"][number];
 
-const TYPE_LABELS: Record<ContentForm["type"], string> = { reading: "Reading", video: "Video", quiz: "Knowledge check", assessment: "Assessment" };
+const TYPE_LABELS: Record<ContentForm["type"], string> = { reading: "Reading", quiz: "Knowledge check", assessment: "Assessment" };
 const blankQuestion = (): ContentQuestion => ({ id: newId("mq"), question: "", options: ["", "", ""], correctIndex: 0 });
 
 function toForm(c: TrainingModuleContent | null): ContentForm {
-  if (!c) return { title: "", type: "reading", durationMinutes: 10, description: "", body: "", questions: [], videoUrl: "", isActive: true };
+  if (!c) return { title: "", type: "reading", durationMinutes: 10, description: "", body: "", questions: [], isActive: true };
   return {
     title: c.title,
     type: c.type,
@@ -48,7 +47,6 @@ function toForm(c: TrainingModuleContent | null): ContentForm {
     description: c.description,
     body: c.body ?? "",
     questions: (c.questions ?? []).map((q) => ({ ...q, options: q.options.slice() })),
-    videoUrl: c.videoUrl ?? "",
     isActive: c.isActive,
   };
 }
@@ -165,7 +163,6 @@ export function ModuleContentDialog({
       description: v.description.trim(),
       body: v.type === "reading" ? v.body : null,
       questions,
-      videoUrl: v.videoUrl ? v.videoUrl : null,
       isActive: v.isActive,
       ...(content ? {} : { orderIndex: nextOrderIndex }),
     });
@@ -255,22 +252,6 @@ export function ModuleContentDialog({
                     <FormControl>
                       <Textarea rows={12} className="font-mono text-sm" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {(type === "video" || type === "reading") && (
-              <FormField
-                control={form.control}
-                name="videoUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>External video URL (optional)</FormLabel>
-                    <FormControl>
-                      <Input type="url" placeholder="https://…" {...field} />
-                    </FormControl>
-                    <FormDescription>Uploaded videos are managed in the Videos section instead.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

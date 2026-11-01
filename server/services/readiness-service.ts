@@ -1,8 +1,7 @@
-import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import { db, type Tx, type Db } from "../db";
 import { users, userQualifications, readinessSnapshots, type ReadinessSnapshot } from "@shared/schema";
 import { FLYING_SQUADRONS, THRESHOLDS, type FlyingSquadron } from "@shared/constants";
-import { logger } from "../lib/logger";
 
 export type SnapshotSquadron = FlyingSquadron | "ALL";
 
@@ -109,12 +108,3 @@ export async function getSnapshotHistory(squadron: SnapshotSquadron, days: numbe
     .where(and(eq(readinessSnapshots.squadron, squadron), gte(readinessSnapshots.snapshotDate, since)))
     .orderBy(desc(readinessSnapshots.snapshotDate));
 }
-
-export function startSnapshotSchedule(): () => void {
-  const run = () => captureSnapshot().then((r) => r.created && logger.info(r, "readiness snapshot captured")).catch((err) => logger.error({ err }, "snapshot failed"));
-  void run();
-  const timer = setInterval(run, 60 * 60 * 1000);
-  return () => clearInterval(timer);
-}
-
-export const readinessSql = { now: sql`now()` };

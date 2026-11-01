@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, HelpCircle, Send, Trash2 } from "lucide-react";
 import { ROLE_LABELS, THRESHOLDS, roleHas } from "@shared/constants";
 import { EmptyState, QueryState, formatDate } from "@/components/common";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,13 +42,9 @@ function groupByDay(messages: ChatMessageWithUser[]): Array<{ label: string; key
 function MessageBubble({ m, mine, canDelete, onDelete }: { m: ChatMessageWithUser; mine: boolean; canDelete: boolean; onDelete: () => void }) {
   const isAnswer = m.messageType === "answer";
   const staff = roleHas(m.user.role, "instruct");
-  const initials = `${m.user.firstName[0] ?? ""}${m.user.lastName[0] ?? ""}`.toUpperCase();
   return (
     <li className={cn("group flex gap-3", mine && "flex-row-reverse")}>
-      <Avatar className="h-8 w-8 shrink-0">
-        <AvatarImage src={m.user.profilePhotoUrl ?? undefined} alt="" />
-        <AvatarFallback className="bg-muted text-[11px]">{initials}</AvatarFallback>
-      </Avatar>
+      <UserAvatar className="h-8 w-8 shrink-0" />
       <div className={cn("min-w-0 max-w-[85%]", mine && "items-end text-right")}>
         <div className={cn("mb-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground", mine && "justify-end")}>
           <span className="font-medium text-foreground">
