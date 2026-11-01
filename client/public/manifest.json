@@ -1,10 +1,61 @@
 {
-  "name": "LOADM — Loadmaster Training & Operations",
-  "short_name": "LOADM",
-  "description": "Showcase: loadmaster training, assessment and workforce readiness platform.",
+  "name": "LoadMaster Workflow",
+  "short_name": "LoadMaster",
+  "description": "Military cargo load planning and training application",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b0f14",
-  "theme_color": "#0b0f14",
-  "icons": [{ "src": "/logo192.png", "type": "image/png", "sizes": "192x192" }]
+  "background_color": "#1e293b",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot2.png",
+      "type": "image/png",
+      "sizes": "750x1334",
+      "form_factor": "narrow"
+    }
+  ],
+  "orientation": "any",
+  "categories": ["productivity", "education", "logistics"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Load Planner",
+      "short_name": "Plan Load",
+      "description": "Start planning a new cargo load",
+      "url": "/load-planning",
+      "icons": [{ "src": "/icons/cargo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Training Modules",
+      "short_name": "Training",
+      "description": "Access training modules",
+      "url": "/training-modules",
+      "icons": [{ "src": "/icons/training.png", "sizes": "96x96" }]
+    }
+  ],
+  "offline_enabled": true
 }

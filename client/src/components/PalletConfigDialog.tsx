@@ -6,6 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
+interface Pallet {
+  id: number;
+  position: { x: number; y: number };
+  location: "cargo" | "configure";
+  weight: number | null;
+  size: { width: number; height: number };
+  cargoType?: "C" | "DG";
+  cargoCategory?: string;
+  dgClass?: string;
+  positionLabel?: string;
+}
+
 interface PalletConfigDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -17,8 +29,6 @@ interface PalletConfigDialogProps {
   dgClass: string;
   isDangerousGoods: boolean;
   maxPalletWeight: number;
-  /** Unit shown on the weight field (defaults to kg). */
-  unitLabel?: string;
   onConfirm: (data: {
     id: number;
     weight: number | null;
@@ -46,7 +56,6 @@ export default function PalletConfigDialog({
   dgClass,
   isDangerousGoods,
   maxPalletWeight,
-  unitLabel = 'kg',
   onConfirm,
   onCancel,
   onWeightChange,
@@ -63,8 +72,7 @@ export default function PalletConfigDialog({
     setConfirmLoading(true);
     
     // Convert weight string to number, or null if empty
-    const parsed = parseFloat(weight);
-    const weightValue = weight && !Number.isNaN(parsed) ? Math.round(parsed) : null;
+    const weightValue = weight ? parseInt(weight) : null;
     
     onConfirm({
       id: palletId,
@@ -89,7 +97,7 @@ export default function PalletConfigDialog({
           {/* Weight Input */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="weight" className="text-right">
-              Weight ({unitLabel})
+              Weight (kg)
             </Label>
             <Input
               id="weight"
@@ -97,7 +105,7 @@ export default function PalletConfigDialog({
               value={weight}
               onChange={(e) => onWeightChange(e.target.value)}
               className="col-span-3"
-              placeholder={`Max: ${maxPalletWeight.toLocaleString()} ${unitLabel}`}
+              placeholder={`Max: ${maxPalletWeight} kg`}
               min="0"
               max={maxPalletWeight}
             />

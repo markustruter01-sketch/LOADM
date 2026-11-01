@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import CargoGridCell from "../CargoGridCell";
 import { GridConfig } from "@/utils/aircraft-config";
+import { debugLog } from "@/utils/debug-helpers";
 
 interface Pallet {
   id: number;
@@ -19,15 +20,13 @@ interface C130GridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
-  unitLabel?: string;
 }
 
 export default function C130Grid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart,
-  unitLabel
+  onDragStart 
 }: C130GridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -69,10 +68,13 @@ export default function C130Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-                  unitLabel={unitLabel}
                   aircraftId="c130"
                   onClick={(e) => {
                     if (assignedPallet) {
+                      debugLog("C130 position clicked", { 
+                        id: assignedPallet.id, 
+                        position: positionLabel 
+                      });
                       onPalletCellClick(e, assignedPallet, positionLabel);
                     }
                   }}
@@ -106,10 +108,13 @@ export default function C130Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-                  unitLabel={unitLabel}
                   aircraftId="c130"
                   onClick={(e) => {
                     if (assignedPallet) {
+                      debugLog("C130 position clicked", { 
+                        id: assignedPallet.id, 
+                        position: positionLabel 
+                      });
                       onPalletCellClick(e, assignedPallet, positionLabel);
                     }
                   }}

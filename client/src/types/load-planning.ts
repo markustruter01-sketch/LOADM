@@ -14,6 +14,13 @@ export interface Pallet {
   positionLabel?: string; // Store position label like "P1", "P2", etc.
 }
 
+export interface DropZone {
+  id: number;
+  position: { x: number; y: number };
+  occupied: boolean;
+  area: "cargo" | "configure";
+}
+
 export interface AircraftConfig {
   id: string;
   name: string;
@@ -32,6 +39,12 @@ export interface GridConfig {
   palletHeight: number;
 }
 
+export interface BalanceData {
+  balanceValue: number; // -100 to 100 range
+  balanceCG: number; // 18-88 degrees
+  status: 'safe' | 'moderate' | 'warning' | 'caution';
+}
+
 export interface PalletFormData {
   id: number;
   weight: number | null;
@@ -40,3 +53,21 @@ export interface PalletFormData {
   dgClass: string;
   position: string;
 }
+
+export type CargoCategory = 
+  | 'pax' // Passenger Bags
+  | 'mechanical' 
+  | 'medical' 
+  | 'perishable'
+  | 'general'; // General Cargo
+
+export type DangerousGoodsClass = 
+  | '1' // Explosives
+  | '2' // Gases
+  | '3' // Flammable Liquids
+  | '4' // Flammable Solids
+  | '5' // Oxidizing Substances
+  | '6' // Toxic Substances
+  | '7' // Radioactive Material
+  | '8' // Corrosives
+  | '9'; // Miscellaneous

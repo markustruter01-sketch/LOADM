@@ -1,24 +1,104 @@
-import { QueryClient } from "@tanstack/react-query";
-import { get, ApiError } from "./api";
-import { urlOf } from "./keys";
+import { QueryClient } from '@tanstack/react-query';
 
-/**
- * Default query function: the last key element is the URL. Keys are built with the
- * helpers in `@/lib/keys` so invalidation always matches.
- */
+// Enhanced API request function with proper session handling
+export async function apiRequest(options: {
+  url: string;
+  method?: string;
+  body?: any;
+  data?: any;
+  headers?: Record<string, string>;
+}) {
+  const { url, method = 'GET', body, data, headers = {} } = options;
+  const requestBody = body || data;
+  
+  const response = await fetch(url, {
+    method,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    body: requestBody ? JSON.stringify(requestBody) : undefined,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Request failed: ${response.status} - ${errorText}`);
+  }
+
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  }
+  
+  return response;
+}
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: async ({ queryKey, signal }) => get(urlOf(queryKey), signal),
-      staleTime: 15_000,
-      // 503 = server still setting up demo data on first boot: keep waiting.
-      retry: (count, err) => {
-        if (err instanceof ApiError && err.status === 503) return count < 30;
-        return !(err instanceof ApiError && err.status < 500) && count < 2;
+      queryFn: async ({ queryKey }) => {
+        const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+        const response = await fetch(url as string, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.status}`);
+        }
+        
+        return response.json();
       },
-      retryDelay: (attempt, err) => (err instanceof ApiError && err.status === 503 ? 3000 : Math.min(1000 * 2 ** attempt, 8000)),
-      refetchOnWindowFocus: true,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
     },
-    mutations: { retry: 0 },
   },
 });
+
+// Export for compatibility with offline system
+export const getQueryFn = () => async ({ queryKey }: { queryKey: string[] }) => {
+  const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+  const response = await fetch(url as string, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Network response was not ok: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
+// Create offline query client function (expected by App.tsx)
+export const createOfflineQueryClient = () => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        queryFn: async ({ queryKey }) => {
+          const url = Array.isArray(queryKey) ? queryKey[0] : queryKey;
+          const response = await fetch(url as string, {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.status}`);
+          }
+          
+          return response.json();
+        },
+        retry: 1,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+};

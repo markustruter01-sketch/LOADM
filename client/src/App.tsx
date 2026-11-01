@@ -1,172 +1,223 @@
-import { lazy, Suspense, type ComponentType } from "react";
-import { Route, Switch, Redirect, useLocation } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import type { Capability } from "@shared/constants";
-import { queryClient } from "@/lib/queryClient";
-import { PersonaProvider, usePersona } from "@/lib/persona";
-import { AppShell } from "@/components/layout/AppShell";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/toaster";
-import { LoadingState, EmptyState } from "@/components/common";
-import { Button } from "@/components/ui/button";
-import RolePicker from "@/pages/role-picker";
+import { Switch, Route, useLocation } from "wouter";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createOfflineQueryClient } from "@/lib/queryClient";
+import { useState, useEffect } from 'react';
+import { IsolatedAuthProvider, useIsolatedAuth } from './auth-isolated/auth-context';
+import { RedesignedLogin } from './auth-isolated/redesigned-login';
+import { FirstTimePasswordChange } from './auth-isolated/first-time-password';
+import OnboardingTour from '@/components/OnboardingTour';
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  
+  return null;
+}
+
+// Import all your existing pages
+import DocumentFormPage from "@/pages/document-form-page";
+import ModernScenarioPage from "@/pages/scenario-page-modern";
+import DocsListPage from "@/pages/docs-list-page";
+import ScenariosPage from "@/pages/scenarios-page";
+import LoadPlanningSelectionPage from "@/pages/load-planning-selection-page";
+import LoadPlanningPage from "@/pages/load-planning-page";
+import DocumentsPage from "@/pages/documents-page";
+import UserProfile from "@/pages/user-profile";
+import ToolsPage from "@/pages/tools-page";
+import TrainingModulesPage from "@/pages/training-modules";
+import TrainingModuleDetailPage from "@/pages/training-modules/[id]";
+import AirframeIntegratedPage from "@/pages/airframe-integrated-page";
+import DocumentManagement from "@/pages/admin/document-management";
+import ScenarioManagement from "@/pages/admin/scenario-management";
+import UserManagement from "@/pages/admin/user-management";
+import InstructorsPortal from "@/pages/instructors-portal";
+import InstructorsScenarios from "@/pages/instructors-portal/scenarios";
+import CreateScenario from "@/pages/instructors-portal/scenarios/new-create";
+import EditScenario from "@/pages/instructors-portal/scenarios/edit/[id]";
+import StudentProgress from "@/pages/instructors-portal/student-progress";
+import SubmissionReview from "@/pages/instructors-portal/student-progress/[id]";
+import AdvancedAnalytics from "@/pages/instructors-portal/analytics";
+import WAMCalculatorPage from "@/pages/tools/wam-calculator";
+import RestraintCalculatorPage from "@/pages/tools/restraint-calculator";
+import FuelCalculatorPage from "@/pages/tools/fuel-calculator";
+import VehicleCgfaPage from "@/pages/tools/vehicle-cgfa";
+import BoxPsiCalculatorPage from "@/pages/tools/box-psi";
+import DrumPsiCalculatorPage from "@/pages/tools/drum-psi";
+import SkiddedBoxPsiCalculatorPage from "@/pages/tools/skidded-box-psi";
+import TirePsiCalculatorPage from "@/pages/tools/tire-psi";
+import HomePage from "@/pages/home-page";
+import ArmyHomePage from "@/pages/army-home-page";
+import NavyHomePage from "@/pages/navy-home-page";
 import NotFound from "@/pages/not-found";
+import QuizList from "@/pages/instructors-portal/quizzes";
+import CreateQuiz from "@/pages/instructors-portal/quizzes/create";
+import QuizDetail from "@/pages/instructors-portal/quizzes/[id]";
+import EditQuizPage from "@/pages/instructors-portal/quizzes/edit/[id]";
+import SuperAdminDashboard from "@/pages/superadmin-dashboard";
+import LicensingManagement from "@/pages/licensing-management";
+import LicenseRegistration from "@/pages/license-registration";
 
-// Pages are lazy so each role only downloads what it uses.
-const Dashboard = lazy(() => import("@/pages/dashboard"));
-const Profile = lazy(() => import("@/pages/profile"));
-const TrainingList = lazy(() => import("@/pages/training/index"));
-const TrainingModule = lazy(() => import("@/pages/training/module"));
-const QuizList = lazy(() => import("@/pages/quizzes/index"));
-const QuizTake = lazy(() => import("@/pages/quizzes/take"));
-const QuizResult = lazy(() => import("@/pages/quizzes/result"));
-const ScenarioList = lazy(() => import("@/pages/scenarios/index"));
-const ScenarioTake = lazy(() => import("@/pages/scenarios/take"));
-const ScenarioResult = lazy(() => import("@/pages/scenarios/result"));
-const ChecklistList = lazy(() => import("@/pages/checklists/index"));
-const ChecklistRun = lazy(() => import("@/pages/checklists/run"));
-const LoadPlanningSelect = lazy(() => import("@/pages/load-planning/index"));
-const LoadPlanning = lazy(() => import("@/pages/load-planning/plan"));
-const Missions = lazy(() => import("@/pages/missions/index"));
-const MissionDetail = lazy(() => import("@/pages/missions/detail"));
-const Documents = lazy(() => import("@/pages/documents/index"));
-const DocumentForm = lazy(() => import("@/pages/documents/form"));
-const Tools = lazy(() => import("@/pages/tools/index"));
-const ToolPage = lazy(() => import("@/pages/tools/tool"));
-const Directory = lazy(() => import("@/pages/directory"));
-const Chat = lazy(() => import("@/pages/chat"));
+import TeachingMaterials from "@/pages/instructors-portal/resources";
+import BestPractices from "@/pages/instructors-portal/best-practices";
+import ScenarioResources from "@/pages/instructors-portal/scenarios/resources";
+import QuizPage from "@/pages/quizzes/[id]";
+import WorkforcePage from "@/pages/instructors-portal/workforce";
+import WorkforceAnalytics from "@/pages/instructors-portal/workforce-analytics";
+import PermissionsDashboard from "@/pages/permissions-dashboard";
+import QuizQuestionsManagement from "@/pages/instructors-portal/quiz-questions";
+import TrainingModulesManagement from "@/pages/instructors-portal/training-modules";
+import ChecklistDetailPage from "@/pages/tools/checklists/[id]";
+import ChecklistManagement from "@/pages/instructors-portal/checklist-management";
+import LeadershipPortal from "@/pages/leadership-portal";
 
-const InstructorDashboard = lazy(() => import("@/pages/instructor/index"));
-const ReviewQueue = lazy(() => import("@/pages/instructor/reviews/index"));
-const ReviewSubmission = lazy(() => import("@/pages/instructor/reviews/review"));
-const Students = lazy(() => import("@/pages/instructor/students/index"));
-const StudentDetail = lazy(() => import("@/pages/instructor/students/detail"));
-const QuestionBank = lazy(() => import("@/pages/instructor/question-bank"));
-const ManageQuizzes = lazy(() => import("@/pages/instructor/quizzes/index"));
-const QuizEditor = lazy(() => import("@/pages/instructor/quizzes/editor"));
-const QuizInsights = lazy(() => import("@/pages/instructor/quizzes/insights"));
-const ManageScenarios = lazy(() => import("@/pages/instructor/scenarios/index"));
-const ScenarioEditor = lazy(() => import("@/pages/instructor/scenarios/editor"));
-const ManageModules = lazy(() => import("@/pages/instructor/modules/index"));
-const ModuleEditor = lazy(() => import("@/pages/instructor/modules/editor"));
-const ManageChecklists = lazy(() => import("@/pages/instructor/checklists/index"));
-const ChecklistEditor = lazy(() => import("@/pages/instructor/checklists/editor"));
-const SafetyRecords = lazy(() => import("@/pages/instructor/safety/index"));
+// Import route protection components (we'll adapt these)
+import { ProtectedRoute, AuthenticatedRoute, SuperAdminRoute, InstructorRoute, LeadershipRoute } from "./lib/auth-routes";
+import Header from "@/components/Header";
+import BottomNav from "@/components/BottomNav";
+import { ChatSystem } from "@/components/chat-system";
+// import OfflineStatus from "@/components/OfflineStatus";
 
-const CommandReadiness = lazy(() => import("@/pages/command/index"));
-const CommandPerformance = lazy(() => import("@/pages/command/performance"));
-const CommandCurrency = lazy(() => import("@/pages/command/currency"));
-const CommandSafety = lazy(() => import("@/pages/command/safety"));
-const CommandFlightOps = lazy(() => import("@/pages/command/flight-ops"));
-const CommandPersonnel = lazy(() => import("@/pages/command/personnel"));
-const CommandActivity = lazy(() => import("@/pages/command/activity"));
+const queryClient = createOfflineQueryClient();
 
-/** Route guarded by capability. Renders a friendly block instead of a dead end. */
-function Guarded({ requires, component: C }: { requires?: Capability; component: ComponentType<Record<string, never>> }) {
-  const { can } = usePersona();
-  const [, navigate] = useLocation();
-  if (requires && !can(requires)) {
-    return (
-      <EmptyState
-        title="Not available for this role"
-        description="Switch to a role with the right permissions using the menu in the top-right corner."
-        action={<Button onClick={() => navigate("/")}>Go to dashboard</Button>}
-      />
-    );
-  }
-  return <C />;
-}
+function AuthenticatedApp() {
+  const { user, refreshUser } = useIsolatedAuth();
+  
+  // ONBOARDING SYSTEM DEACTIVATED - Users go directly to home dashboard
+  // const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // // Check if user needs onboarding after first login password change
+  // useEffect(() => {
+  //   if (user && !user.isFirstLogin && user.hasCompletedOnboarding === false) {
+  //     setShowOnboarding(true);
+  //   }
+  // }, [user]);
 
-const ROUTES: Array<{ path: string; component: ComponentType<Record<string, never>>; requires?: Capability }> = [
-  { path: "/", component: Dashboard },
-  { path: "/profile", component: Profile },
-  { path: "/training", component: TrainingList },
-  { path: "/training/:id", component: TrainingModule },
-  { path: "/quizzes", component: QuizList },
-  { path: "/quizzes/:id", component: QuizTake },
-  { path: "/quizzes/results/:submissionId", component: QuizResult },
-  { path: "/scenarios", component: ScenarioList },
-  { path: "/scenarios/:id", component: ScenarioTake },
-  { path: "/scenarios/results/:submissionId", component: ScenarioResult },
-  { path: "/checklists", component: ChecklistList },
-  { path: "/checklists/:id", component: ChecklistRun },
-  { path: "/tools", component: Tools },
-  { path: "/tools/:tool", component: ToolPage },
-  { path: "/directory", component: Directory },
-  { path: "/chat", component: Chat },
-  { path: "/load-planning", component: LoadPlanningSelect, requires: "operate" },
-  { path: "/load-planning/:aircraft", component: LoadPlanning, requires: "operate" },
-  { path: "/missions", component: Missions, requires: "operate" },
-  { path: "/missions/:id", component: MissionDetail, requires: "operate" },
-  { path: "/documents", component: Documents, requires: "operate" },
-  { path: "/documents/:id", component: DocumentForm, requires: "operate" },
-  { path: "/instructor", component: InstructorDashboard, requires: "instruct" },
-  { path: "/instructor/reviews", component: ReviewQueue, requires: "instruct" },
-  { path: "/instructor/reviews/:submissionId", component: ReviewSubmission, requires: "instruct" },
-  { path: "/instructor/students", component: Students, requires: "instruct" },
-  { path: "/instructor/students/:id", component: StudentDetail, requires: "instruct" },
-  { path: "/instructor/question-bank", component: QuestionBank, requires: "instruct" },
-  { path: "/instructor/quizzes", component: ManageQuizzes, requires: "instruct" },
-  { path: "/instructor/quizzes/new", component: QuizEditor, requires: "instruct" },
-  { path: "/instructor/quizzes/:id", component: QuizInsights, requires: "instruct" },
-  { path: "/instructor/quizzes/:id/edit", component: QuizEditor, requires: "instruct" },
-  { path: "/instructor/scenarios", component: ManageScenarios, requires: "instruct" },
-  { path: "/instructor/scenarios/new", component: ScenarioEditor, requires: "instruct" },
-  { path: "/instructor/scenarios/:id/edit", component: ScenarioEditor, requires: "instruct" },
-  { path: "/instructor/modules", component: ManageModules, requires: "instruct" },
-  { path: "/instructor/modules/new", component: ModuleEditor, requires: "instruct" },
-  { path: "/instructor/modules/:id", component: ModuleEditor, requires: "instruct" },
-  { path: "/instructor/checklists", component: ManageChecklists, requires: "instruct" },
-  { path: "/instructor/checklists/new", component: ChecklistEditor, requires: "instruct" },
-  { path: "/instructor/checklists/:id", component: ChecklistEditor, requires: "instruct" },
-  { path: "/instructor/safety", component: SafetyRecords, requires: "instruct" },
-  { path: "/command", component: CommandReadiness, requires: "command" },
-  { path: "/command/performance", component: CommandPerformance, requires: "command" },
-  { path: "/command/currency", component: CommandCurrency, requires: "command" },
-  { path: "/command/safety", component: CommandSafety, requires: "command" },
-  { path: "/command/flight-ops", component: CommandFlightOps, requires: "command" },
-  { path: "/command/personnel", component: CommandPersonnel, requires: "command" },
-  { path: "/command/activity", component: CommandActivity, requires: "command" },
-];
+  // const handleOnboardingComplete = async () => {
+  //   setShowOnboarding(false);
+  //   await refreshUser();
+  // };
 
-function Routed() {
-  const { role, isReady, isLoading } = usePersona();
-  if (!role) return <RolePicker />;
-  if (isLoading || !isReady) {
-    return (
-      <div className="mx-auto max-w-3xl p-10">
-        <LoadingState rows={4} />
-      </div>
-    );
-  }
-  return (
-    <AppShell>
-      <Suspense fallback={<LoadingState rows={4} />}>
-        <Switch>
-          {ROUTES.map((r) => (
-            <Route key={r.path} path={r.path}>
-              <Guarded requires={r.requires} component={r.component} />
-            </Route>
-          ))}
-          <Route path="/home">
-            <Redirect to="/" />
-          </Route>
-          <Route component={NotFound} />
-        </Switch>
-      </Suspense>
-    </AppShell>
-  );
-}
-
-export default function App() {
+  // const handleOnboardingSkip = () => {
+  //   setShowOnboarding(false);
+  // };
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={200}>
-        <PersonaProvider>
-          <Routed />
-          <Toaster />
-        </PersonaProvider>
-      </TooltipProvider>
+      <ScrollToTop />
+      <div className="App">
+        <Header />
+        <main className="main-content pb-20">
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/army" component={ArmyHomePage} />
+            <Route path="/navy" component={NavyHomePage} />
+            <Route path="/documents-old" component={DocsListPage} />
+            <Route path="/documents/:id" component={DocumentFormPage} />
+            <Route path="/scenarios" component={ScenariosPage} />
+            <Route path="/scenarios/:id" component={ModernScenarioPage} />
+            <Route path="/airframe">
+              {(params) => <AirframeIntegratedPage {...params} />}
+            </Route>
+
+            <Route path="/load-planning" component={LoadPlanningSelectionPage} />
+            <Route path="/load-planning/:aircraftId" component={LoadPlanningPage} />
+
+            <Route path="/documents" component={DocumentsPage} />
+
+            <Route path="/tools" component={ToolsPage} />
+            <Route path="/tools/restraint-calculator" component={RestraintCalculatorPage} />
+            <Route path="/tools/fuel-calculator" component={FuelCalculatorPage} />
+            <Route path="/tools/wam-calculator" component={WAMCalculatorPage} />
+            <Route path="/tools/vehicle-cgfa" component={VehicleCgfaPage} />
+            <Route path="/tools/box-psi" component={BoxPsiCalculatorPage} />
+            <Route path="/tools/drum-psi" component={DrumPsiCalculatorPage} />
+            <Route path="/tools/skidded-box-psi" component={SkiddedBoxPsiCalculatorPage} />
+            <Route path="/tools/tire-psi" component={TirePsiCalculatorPage} />
+            <AuthenticatedRoute path="/tools/checklists/:id" component={ChecklistDetailPage} />
+            <Route path="/training-modules" component={TrainingModulesPage} />
+            <Route path="/training-modules/:id" component={TrainingModuleDetailPage} />
+            <ProtectedRoute path="/admin/documents" component={DocumentManagement} />
+            <ProtectedRoute path="/admin/scenarios" component={ScenarioManagement} />
+            <ProtectedRoute path="/admin/users" component={UserManagement} />
+            <InstructorRoute path="/instructors-portal" component={InstructorsPortal} />
+            <InstructorRoute path="/instructors-portal/scenarios" component={InstructorsScenarios} />
+            <InstructorRoute path="/instructors-portal/scenarios/create" component={CreateScenario} />
+            <InstructorRoute path="/instructors-portal/scenarios/edit/:id" component={EditScenario} />
+            <InstructorRoute path="/instructors-portal/student-progress" component={StudentProgress} />
+            <InstructorRoute path="/instructors-portal/student-progress/:id" component={SubmissionReview} />
+            <InstructorRoute path="/instructors-portal/analytics" component={AdvancedAnalytics} />
+            <InstructorRoute path="/instructors-portal/quiz-management" component={QuizList} />
+            <InstructorRoute path="/instructors-portal/quizzes" component={QuizList} />
+            <InstructorRoute path="/instructors-portal/quizzes/create" component={CreateQuiz} />
+            <InstructorRoute path="/instructors-portal/quizzes/:id" component={QuizDetail} />
+            <InstructorRoute path="/instructors-portal/quizzes/edit/:id" component={EditQuizPage} />
+            <InstructorRoute path="/instructors-portal/workforce" component={WorkforcePage} />
+            <InstructorRoute path="/instructors-portal/workforce-analytics" component={WorkforceAnalytics} />
+            <LeadershipRoute path="/leadership-portal" component={LeadershipPortal} />
+            <SuperAdminRoute path="/superadmin-dashboard" component={SuperAdminDashboard} />
+            <SuperAdminRoute path="/licensing" component={LicensingManagement} />
+            <SuperAdminRoute path="/licensing-management" component={LicensingManagement} />
+            <SuperAdminRoute path="/permissions-dashboard" component={PermissionsDashboard} />
+            <Route path="/license-registration" component={LicenseRegistration} />
+            <AuthenticatedRoute path="/user-profile" component={UserProfile} />
+
+            <InstructorRoute path="/instructors-portal/resources" component={TeachingMaterials} />
+            <InstructorRoute path="/instructors-portal/best-practices" component={BestPractices} />
+            <InstructorRoute path="/instructors-portal/scenarios/resources" component={ScenarioResources} />
+            <AuthenticatedRoute path="/quizzes/:id" component={QuizPage} />
+            <InstructorRoute path="/instructors-portal/quiz-questions" component={QuizQuestionsManagement} />
+            <InstructorRoute path="/instructors-portal/training-modules" component={TrainingModulesManagement} />
+            <InstructorRoute path="/instructors-portal/checklist-management" component={ChecklistManagement} />
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+        <BottomNav />
+        <ChatSystem />
+        
+        {/* ONBOARDING TOUR DEACTIVATED - Users go directly to home dashboard */}
+        {/* <OnboardingTour 
+          isVisible={showOnboarding}
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        /> */}
+      </div>
     </QueryClientProvider>
   );
 }
+
+function AppContent() {
+  const { user, isLoading } = useIsolatedAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <RedesignedLogin />;
+  }
+
+  // Check if user needs to change password on first login
+  if (user.isFirstLogin) {
+    return <FirstTimePasswordChange />;
+  }
+
+  return <AuthenticatedApp />;
+}
+
+function App() {
+  return (
+    <IsolatedAuthProvider>
+      <AppContent />
+    </IsolatedAuthProvider>
+  );
+}
+
+export default App;

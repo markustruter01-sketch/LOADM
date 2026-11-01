@@ -1,0 +1,1838 @@
+import { Helmet } from "react-helmet";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Phone, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, ArrowLeft, FileText, Eye, Download, Briefcase, CheckCircle, Archive } from "lucide-react";
+import { useLocation, Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import PdfModal from "@/components/PdfModal";
+import { useToast } from "@/hooks/use-toast";
+
+interface Contact {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  description: string;
+}
+
+interface DirectoryEntry {
+  id: number;
+  airbaseCode: string;
+  airbaseName: string;
+  contacts: Contact[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PdfDocument {
+  filename: string;
+  title: string;
+  description: string;
+  category: string;
+  lastModified: string;
+  size: string;
+}
+
+interface Mission {
+  id: number;
+  missionName: string;
+  aircraftCallSign: string;
+  captainName: string;
+  departureLocation: string;
+  arrivalDestination: string;
+  loadmaster1Name: string;
+  loadmaster2Name: string;
+  hasDangerousGoods: boolean;
+  isCompleted: boolean;
+  completedAt: string | null;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MissionDocument {
+  id: number;
+  missionId: number;
+  documentFilename: string;
+  documentTitle: string;
+  addedAt: string;
+  addedBy: number;
+}
+
+export default function DocumentsPage() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
+  const [expandedAirfields, setExpandedAirfields] = useState<Set<number>>(new Set());
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [isAddingContact, setIsAddingContact] = useState<number | null>(null);
+  const [newEntryData, setNewEntryData] = useState({
+    airbaseCode: "",
+    airbaseName: "",
+  });
+  const [newContactData, setNewContactData] = useState({
+    name: "",
+    phoneNumber: "",
+    description: "",
+  });
+  
+  // PDF Modal state
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [selectedPdf, setSelectedPdf] = useState<PdfDocument | null>(null);
+
+  // Mission management state
+  const [isCreatingMission, setIsCreatingMission] = useState(false);
+  const [selectedMissions, setSelectedMissions] = useState<Set<number>>(new Set());
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [missionDetailOpen, setMissionDetailOpen] = useState(false);
+  const [isAddingDocument, setIsAddingDocument] = useState(false);
+  const [selectedDocumentToAdd, setSelectedDocumentToAdd] = useState("");
+  const [isEditingMission, setIsEditingMission] = useState(false);
+  const [activeMissionsPage, setActiveMissionsPage] = useState(1);
+  const [archivePage, setArchivePage] = useState(1);
+  const [archiveExpanded, setArchiveExpanded] = useState(false);
+  const MISSIONS_PER_PAGE = 5;
+  const [pendingDeleteEntry, setPendingDeleteEntry] = useState<{ id: number; name: string } | null>(null);
+  const [editMissionData, setEditMissionData] = useState({
+    missionName: "",
+    aircraftCallSign: "",
+    captainName: "",
+    departureLocation: "",
+    arrivalDestination: "",
+    loadmaster1Name: "",
+    loadmaster2Name: "",
+    hasDangerousGoods: false,
+  });
+  const [newMissionData, setNewMissionData] = useState({
+    missionName: "",
+    aircraftCallSign: "",
+    captainName: "",
+    departureLocation: "",
+    arrivalDestination: "",
+    loadmaster1Name: "",
+    loadmaster2Name: "",
+    hasDangerousGoods: false,
+  });
+
+  // Available PDF documents
+  const pdfDocuments: PdfDocument[] = [
+    {
+      filename: "DG Checklist.pdf",
+      title: "Dangerous Goods Checklist",
+      description: "Comprehensive checklist for non-radioactive dangerous goods shipments with verification procedures",
+      category: "Operational Procedures",
+      lastModified: "2024-06-04",
+      size: "86 KB"
+    },
+    {
+      filename: "Passenger and Cargo Manifest.pdf",
+      title: "Passenger/Crew and Cargo Manifest",
+      description: "Official form for listing all personnel and cargo in transport operations",
+      category: "Forms",
+      lastModified: "2024-06-04",
+      size: "145 KB"
+    },
+    {
+      filename: "DG Shipper Declaration.pdf",
+      title: "Dangerous Goods Shipper Declaration",
+      description: "Official shipper declaration form for dangerous goods transport compliance and documentation",
+      category: "Forms",
+      lastModified: "2024-06-07",
+      size: "219 KB"
+    },
+    {
+      filename: "Vehicles Load Card.pdf",
+      title: "Vehicle Load Card",
+      description: "DA Form 7598 for documenting vehicle cargo loading, weight distribution, and load planning specifications",
+      category: "Load Planning",
+      lastModified: "2024-06-07",
+      size: "124 KB"
+    }
+  ];
+
+  const queryClient = useQueryClient();
+
+  // Fetch current user data
+  const { data: currentUser } = useQuery<{ email: string; firstName: string; lastName: string }>({
+    queryKey: ["/api/auth/user"],
+  });
+
+  // Handle PDF modal opening
+  const handleViewPdf = (pdf: PdfDocument) => {
+    setSelectedPdf(pdf);
+    setPdfModalOpen(true);
+  };
+
+  const handleClosePdfModal = () => {
+    setPdfModalOpen(false);
+    setSelectedPdf(null);
+  };
+
+  const {
+    data: directories = [],
+    isLoading: directoryLoading,
+    error: directoryError,
+  } = useQuery({
+    queryKey: ["/api/phone-directory"],
+  });
+
+  const createDirectoryMutation = useMutation({
+    mutationFn: async (data: { airbaseCode: string; airbaseName: string }) => {
+      return await apiRequest({
+        url: "/api/phone-directory",
+        method: "POST",
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+      setIsAddingNew(false);
+      setNewEntryData({ airbaseCode: "", airbaseName: "" });
+    },
+  });
+
+  const updateDirectoryMutation = useMutation({
+    mutationFn: async (data: DirectoryEntry) => {
+      return await apiRequest({
+        url: `/api/phone-directory/${data.id}`,
+        method: "PATCH",
+        body: data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+      setEditingEntry(null);
+    },
+  });
+
+  const deleteDirectoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest({
+        url: `/api/phone-directory/${id}`,
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+    },
+  });
+
+  // Missions queries and mutations
+  const {
+    data: missions = [],
+    isLoading: missionsLoading,
+  } = useQuery<Mission[]>({
+    queryKey: ["/api/missions"],
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+
+  const createMissionMutation = useMutation({
+    mutationFn: async (data: typeof newMissionData) => {
+      console.log("Creating mission with data:", data);
+      const response = await apiRequest({
+        url: "/api/missions",
+        method: "POST",
+        body: data,
+      });
+      console.log("Mission created successfully:", response);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      toast({
+        title: "Mission Created",
+        description: "Your mission has been created successfully.",
+      });
+      setIsCreatingMission(false);
+      setNewMissionData({
+        missionName: "",
+        aircraftCallSign: "",
+        captainName: "",
+        departureLocation: "",
+        arrivalDestination: "",
+        loadmaster1Name: "",
+        loadmaster2Name: "",
+        hasDangerousGoods: false,
+      });
+    },
+    onError: (error: any) => {
+      console.error("Failed to create mission:", error);
+      toast({
+        title: "Error Creating Mission",
+        description: error.message || "Failed to create mission. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMissionsMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await Promise.all(ids.map(id => 
+        apiRequest({ url: `/api/missions/${id}`, method: "DELETE" })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      toast({
+        title: "Missions Deleted",
+        description: `Successfully deleted ${Array.from(selectedMissions).length} mission(s).`,
+      });
+      setSelectedMissions(new Set());
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Deleting Missions",
+        description: error.message || "Failed to delete missions. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMissionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: typeof editMissionData }) => {
+      return await apiRequest({
+        url: `/api/missions/${id}`,
+        method: "PATCH",
+        body: data,
+      });
+    },
+    onSuccess: (updated: Mission) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      setSelectedMission(updated);
+      setIsEditingMission(false);
+      toast({
+        title: "Mission Updated",
+        description: "Mission details have been saved.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Updating Mission",
+        description: error.message || "Failed to update mission. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const markMissionDoneMutation = useMutation({
+    mutationFn: async (mission: Mission) => {
+      return await apiRequest({
+        url: `/api/missions/${mission.id}`,
+        method: "PATCH",
+        body: {
+          missionName: mission.missionName,
+          aircraftCallSign: mission.aircraftCallSign,
+          captainName: mission.captainName,
+          departureLocation: mission.departureLocation,
+          arrivalDestination: mission.arrivalDestination,
+          loadmaster1Name: mission.loadmaster1Name,
+          loadmaster2Name: mission.loadmaster2Name,
+          hasDangerousGoods: mission.hasDangerousGoods,
+          isCompleted: true,
+        },
+      });
+    },
+    onSuccess: (updated: Mission) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions"] });
+      setSelectedMission(updated);
+      setMissionDetailOpen(false);
+      setArchiveExpanded(true);
+      toast({
+        title: "Mission Archived",
+        description: `"${updated.missionName}" has been marked as done and moved to the archive.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to mark mission as done.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mission Documents queries and mutations
+  const {
+    data: missionDocs = [],
+    isLoading: missionDocsLoading,
+  } = useQuery<MissionDocument[]>({
+    queryKey: ["/api/missions", selectedMission?.id, "documents"],
+    queryFn: async () => {
+      if (!selectedMission?.id) return [];
+      const response = await fetch(`/api/missions/${selectedMission.id}/documents`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch mission documents: ${response.status}`);
+      }
+      return response.json();
+    },
+    enabled: !!selectedMission?.id,
+  });
+
+  const addDocumentToMissionMutation = useMutation({
+    mutationFn: async ({ missionId, documentFilename, documentTitle }: { missionId: number; documentFilename: string; documentTitle: string }) => {
+      return await apiRequest({
+        url: `/api/missions/${missionId}/documents`,
+        method: "POST",
+        body: { documentFilename, documentTitle },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions", selectedMission?.id, "documents"] });
+      toast({
+        title: "Document Added",
+        description: "Document successfully added to mission.",
+      });
+      setSelectedDocumentToAdd("");
+      setIsAddingDocument(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Adding Document",
+        description: error.message || "Failed to add document to mission.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeDocumentFromMissionMutation = useMutation({
+    mutationFn: async ({ missionId, docId }: { missionId: number; docId: number }) => {
+      return await apiRequest({
+        url: `/api/missions/${missionId}/documents/${docId}`,
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/missions", selectedMission?.id, "documents"] });
+      toast({
+        title: "Document Removed",
+        description: "Document successfully removed from mission.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Removing Document",
+        description: error.message || "Failed to remove document from mission.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const addContactMutation = useMutation({
+    mutationFn: async ({ entryId, contact }: { entryId: number; contact: Contact }) => {
+      const entry = (directories as DirectoryEntry[]).find(d => d.id === entryId);
+      if (!entry) throw new Error("Directory entry not found");
+      
+      const updatedEntry = {
+        ...entry,
+        contacts: [...entry.contacts, contact],
+      };
+      
+      await apiRequest({
+        url: `/api/phone-directory/${entryId}`,
+        method: "PATCH",
+        body: updatedEntry,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+      setIsAddingContact(null);
+      setNewContactData({ name: "", phoneNumber: "", description: "" });
+    },
+  });
+
+  const updateContactMutation = useMutation({
+    mutationFn: async ({ entryId, contact }: { entryId: number; contact: Contact }) => {
+      const entry = (directories as DirectoryEntry[]).find(d => d.id === entryId);
+      if (!entry) throw new Error("Directory entry not found");
+      
+      const updatedEntry = {
+        ...entry,
+        contacts: entry.contacts.map((c: Contact) => 
+          c.id === contact.id ? contact : c
+        ),
+      };
+      
+      await apiRequest({
+        url: `/api/phone-directory/${entryId}`,
+        method: "PATCH",
+        body: updatedEntry,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+      setEditingContact(null);
+    },
+  });
+
+  const deleteContactMutation = useMutation({
+    mutationFn: async ({ entryId, contactId }: { entryId: number; contactId: string }) => {
+      const entry = (directories as DirectoryEntry[]).find(d => d.id === entryId);
+      if (!entry) throw new Error("Directory entry not found");
+      
+      const updatedEntry = {
+        ...entry,
+        contacts: entry.contacts.filter((contact: Contact) => contact.id !== contactId),
+      };
+      
+      await apiRequest({
+        url: `/api/phone-directory/${entryId}`,
+        method: "PATCH",
+        body: updatedEntry,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-directory"] });
+    },
+  });
+
+  const handleToggleExpanded = (entryId: number) => {
+    const newExpanded = new Set(expandedAirfields);
+    if (newExpanded.has(entryId)) {
+      newExpanded.delete(entryId);
+    } else {
+      newExpanded.add(entryId);
+    }
+    setExpandedAirfields(newExpanded);
+  };
+
+  const handleAddContact = (entryId: number) => {
+    const newContact: Contact = {
+      id: Date.now().toString(),
+      name: newContactData.name,
+      phoneNumber: newContactData.phoneNumber,
+      description: newContactData.description,
+    };
+    
+    addContactMutation.mutate({ entryId, contact: newContact });
+  };
+
+  const handleUpdateContact = (entryId: number, contact: Contact) => {
+    updateContactMutation.mutate({ entryId, contact });
+  };
+
+  const handleDeleteContact = (entryId: number, contactId: string) => {
+    deleteContactMutation.mutate({ entryId, contactId });
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Documents - LOADMworkflow</title>
+        <meta name="description" content="Access PDF documents and phone directory for airbase contact information" />
+      </Helmet>
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setLocation("/")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
+        
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground">Documents</h1>
+          <p className="text-muted-foreground mt-2">
+            Access PDF documents and contact information
+          </p>
+        </div>
+
+        <Tabs defaultValue="pdfs" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="pdfs" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              PDF Documents
+            </TabsTrigger>
+            <TabsTrigger value="missions" className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              Mission Documents
+            </TabsTrigger>
+            <TabsTrigger value="directory" className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Phone Directory
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pdfs" className="mt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">PDF Documents</h2>
+                  <p className="text-muted-foreground">Training materials, forms, and operational procedures</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pdfDocuments.map((doc) => (
+                  <Card key={doc.filename} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <FileText className="h-8 w-8 text-primary" />
+                        <Badge variant="secondary" className="text-xs">
+                          {doc.category}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg leading-tight">{doc.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        {doc.description}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+                        <span>Size: {doc.size}</span>
+                        <span>Modified: {doc.lastModified}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          className="flex-1" 
+                          size="sm"
+                          onClick={() => handleViewPdf(doc)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View PDF
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = `/pdfs/${doc.filename}`;
+                            link.download = doc.filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="missions" className="mt-6">
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    {currentUser?.email ? `${currentUser.email}'s Mission Documents` : 'Mission Documents'}
+                  </h2>
+                  <p className="text-muted-foreground">Mission-specific documents and operational briefings</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setIsCreatingMission(true)}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Mission
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={() => {
+                    if (selectedMissions.size === 0) return;
+                    deleteMissionsMutation.mutate(Array.from(selectedMissions));
+                  }}
+                  disabled={selectedMissions.size === 0 || deleteMissionsMutation.isPending}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected ({selectedMissions.size})
+                </Button>
+              </div>
+
+              {/* Missions Table — active only, paginated */}
+              {(() => {
+                const activeMissions = missions.filter(m => !m.isCompleted);
+                const completedMissions = missions.filter(m => m.isCompleted);
+                const totalActivePages = Math.max(1, Math.ceil(activeMissions.length / MISSIONS_PER_PAGE));
+                const pagedActive = activeMissions.slice((activeMissionsPage - 1) * MISSIONS_PER_PAGE, activeMissionsPage * MISSIONS_PER_PAGE);
+                const totalArchivePages = Math.max(1, Math.ceil(completedMissions.length / MISSIONS_PER_PAGE));
+                const pagedArchive = completedMissions.slice((archivePage - 1) * MISSIONS_PER_PAGE, archivePage * MISSIONS_PER_PAGE);
+
+                return (
+                  <>
+                    {missionsLoading ? (
+                      <div className="flex justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : activeMissions.length === 0 ? (
+                      <div className="text-center py-12 border rounded-lg">
+                        <Briefcase className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-muted-foreground mb-2">No active missions</h3>
+                        <p className="text-muted-foreground mb-4">Create your first mission to get started</p>
+                        <Button onClick={() => setIsCreatingMission(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Mission
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="border rounded-lg overflow-hidden">
+                          <table className="w-full">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="px-4 py-3 text-left">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedMissions.size === activeMissions.length && activeMissions.length > 0}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedMissions(new Set(activeMissions.map(m => m.id)));
+                                      } else {
+                                        setSelectedMissions(new Set());
+                                      }
+                                    }}
+                                    className="rounded"
+                                  />
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Mission Name</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Aircraft</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Captain</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Route</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">Loadmasters</th>
+                                <th className="px-4 py-3 text-left text-sm font-semibold">DG</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {pagedActive.map((mission) => (
+                                <tr
+                                  key={mission.id}
+                                  className="border-t hover:bg-muted/50 cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedMission(mission);
+                                    setMissionDetailOpen(true);
+                                  }}
+                                >
+                                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedMissions.has(mission.id)}
+                                      onChange={(e) => {
+                                        const newSelected = new Set(selectedMissions);
+                                        if (e.target.checked) {
+                                          newSelected.add(mission.id);
+                                        } else {
+                                          newSelected.delete(mission.id);
+                                        }
+                                        setSelectedMissions(newSelected);
+                                      }}
+                                      className="rounded"
+                                    />
+                                  </td>
+                                  <td className="px-4 py-3 font-medium">{mission.missionName}</td>
+                                  <td className="px-4 py-3">{mission.aircraftCallSign}</td>
+                                  <td className="px-4 py-3">{mission.captainName}</td>
+                                  <td className="px-4 py-3 text-sm">
+                                    {mission.departureLocation} → {mission.arrivalDestination}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm">
+                                    {mission.loadmaster1Name}
+                                    {mission.loadmaster2Name && `, ${mission.loadmaster2Name}`}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {mission.hasDangerousGoods ? (
+                                      <Badge variant="destructive">Yes</Badge>
+                                    ) : (
+                                      <Badge variant="secondary">No</Badge>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Active missions pagination */}
+                        {totalActivePages > 1 && (
+                          <div className="flex items-center justify-between pt-2">
+                            <p className="text-sm text-muted-foreground">
+                              Page {activeMissionsPage} of {totalActivePages} · {activeMissions.length} active missions
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={activeMissionsPage <= 1}
+                                onClick={() => setActiveMissionsPage(p => Math.max(1, p - 1))}
+                              >
+                                <ChevronRight className="w-4 h-4 rotate-180" />
+                                Prev
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={activeMissionsPage >= totalActivePages}
+                                onClick={() => setActiveMissionsPage(p => Math.min(totalActivePages, p + 1))}
+                              >
+                                Next
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Archive — collapsible */}
+                    <div className="border rounded-lg overflow-hidden">
+                      <button
+                        className="w-full flex items-center justify-between px-4 py-3 bg-muted hover:bg-muted/80 transition-colors"
+                        onClick={() => setArchiveExpanded(v => !v)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Archive className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-semibold text-sm">Completed Missions Archive</span>
+                          <Badge variant="secondary" className="text-xs">{completedMissions.length}</Badge>
+                        </div>
+                        {archiveExpanded ? (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </button>
+
+                      {archiveExpanded && (
+                        completedMissions.length === 0 ? (
+                          <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                            No completed missions yet. Mark a mission as done to archive it.
+                          </div>
+                        ) : (
+                          <>
+                            <table className="w-full">
+                              <thead className="bg-muted/50">
+                                <tr>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Mission Name</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Aircraft</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Route</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">Completed</th>
+                                  <th className="px-4 py-2 text-left text-sm font-semibold">DG</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {pagedArchive.map((mission) => (
+                                  <tr
+                                    key={mission.id}
+                                    className="border-t hover:bg-muted/30 cursor-pointer opacity-75"
+                                    onClick={() => {
+                                      setSelectedMission(mission);
+                                      setMissionDetailOpen(true);
+                                    }}
+                                  >
+                                    <td className="px-4 py-3">
+                                      <div className="flex items-center gap-2">
+                                        <CheckCircle className="w-4 h-4 text-orange-400 shrink-0" />
+                                        <span className="font-medium">{mission.missionName}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">{mission.aircraftCallSign}</td>
+                                    <td className="px-4 py-3 text-sm">{mission.departureLocation} → {mission.arrivalDestination}</td>
+                                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                                      {mission.completedAt ? new Date(mission.completedAt).toLocaleDateString() : "—"}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      {mission.hasDangerousGoods ? (
+                                        <Badge variant="destructive">Yes</Badge>
+                                      ) : (
+                                        <Badge variant="secondary">No</Badge>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+
+                            {/* Archive pagination */}
+                            {totalArchivePages > 1 && (
+                              <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/20">
+                                <p className="text-sm text-muted-foreground">
+                                  Page {archivePage} of {totalArchivePages}
+                                </p>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={archivePage <= 1}
+                                    onClick={() => setArchivePage(p => Math.max(1, p - 1))}
+                                  >
+                                    <ChevronRight className="w-4 h-4 rotate-180" />
+                                    Prev
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={archivePage >= totalArchivePages}
+                                    onClick={() => setArchivePage(p => Math.min(totalArchivePages, p + 1))}
+                                  >
+                                    Next
+                                    <ChevronRight className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="directory" className="mt-6">
+            <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold">Phone Directory</h2>
+                <p className="text-muted-foreground">Airbase contact information organized by location codes</p>
+              </div>
+              <Button onClick={() => setIsAddingNew(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Airbase
+              </Button>
+            </div>
+
+            {directoryLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : directoryError ? (
+              <div className="text-center py-12">
+                <p className="text-red-500">Error loading phone directory</p>
+              </div>
+            ) : (directories as DirectoryEntry[]).length === 0 ? (
+              <div className="text-center py-12">
+                <Phone className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">No airbases found</h3>
+                <p className="text-muted-foreground mb-4">Add your first airbase directory to get started</p>
+                <Button onClick={() => setIsAddingNew(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Airbase
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(directories as DirectoryEntry[]).map((entry) => {
+                  const isExpanded = expandedAirfields.has(entry.id);
+                  return (
+                    <Card key={entry.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader 
+                        className="pb-3 cursor-pointer"
+                        onClick={() => handleToggleExpanded(entry.id)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="p-1 h-6 w-6 flex items-center justify-center">
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </div>
+                              <CardTitle className="text-lg">
+                                {entry.airbaseCode} - {entry.airbaseName}
+                              </CardTitle>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {entry.contacts.length} contact{entry.contacts.length !== 1 ? 's' : ''}
+                            </p>
+                          </div>
+                          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingEntry(entry)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setPendingDeleteEntry({ id: entry.id, name: entry.airbaseName })}
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      {isExpanded && (
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-medium">Contacts</h4>
+                              <Button
+                                size="sm"
+                                onClick={() => setIsAddingContact(entry.id)}
+                              >
+                                <Plus className="w-3 h-3 mr-1" />
+                                Add Contact
+                              </Button>
+                            </div>
+                            
+                            {entry.contacts.length === 0 ? (
+                              <p className="text-muted-foreground text-sm">No contacts available</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {entry.contacts.map((contact: Contact) => (
+                                  <div
+                                    key={contact.id}
+                                    className="flex justify-between items-start p-3 bg-muted/50 rounded-lg"
+                                  >
+                                    <div className="flex-1">
+                                      <div className="font-medium">{contact.name}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {contact.phoneNumber}
+                                      </div>
+                                      {contact.description && (
+                                        <div className="text-sm text-muted-foreground mt-1">
+                                          {contact.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setEditingContact(contact)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteContact(entry.id, contact.id)}
+                                        className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {isAddingContact === entry.id && (
+                              <div className="border rounded-lg p-4 bg-background">
+                                <h5 className="font-medium mb-3">Add New Contact</h5>
+                                <div className="space-y-3">
+                                  <div>
+                                    <Label htmlFor="contact-name">Name</Label>
+                                    <Input
+                                      id="contact-name"
+                                      value={newContactData.name}
+                                      onChange={(e) =>
+                                        setNewContactData(prev => ({ ...prev, name: e.target.value }))
+                                      }
+                                      placeholder="Contact name"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="contact-phone">Phone Number</Label>
+                                    <Input
+                                      id="contact-phone"
+                                      value={newContactData.phoneNumber}
+                                      onChange={(e) =>
+                                        setNewContactData(prev => ({ ...prev, phoneNumber: e.target.value }))
+                                      }
+                                      placeholder="Phone number"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="contact-description">Description</Label>
+                                    <Input
+                                      id="contact-description"
+                                      value={newContactData.description}
+                                      onChange={(e) =>
+                                        setNewContactData(prev => ({ ...prev, description: e.target.value }))
+                                      }
+                                      placeholder="Role or department"
+                                    />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      onClick={() => handleAddContact(entry.id)}
+                                      disabled={!newContactData.name || !newContactData.phoneNumber}
+                                    >
+                                      <Save className="w-4 h-4 mr-2" />
+                                      Save Contact
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => {
+                                        setIsAddingContact(null);
+                                        setNewContactData({ name: "", phoneNumber: "", description: "" });
+                                      }}
+                                    >
+                                      <X className="w-4 h-4 mr-2" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            <Dialog open={isAddingNew} onOpenChange={setIsAddingNew}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Airbase Directory</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="airbase-code">Airbase Code</Label>
+                    <Input
+                      id="airbase-code"
+                      value={newEntryData.airbaseCode}
+                      onChange={(e) =>
+                        setNewEntryData(prev => ({ ...prev, airbaseCode: e.target.value }))
+                      }
+                      placeholder="e.g., RAAF"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="airbase-name">Airbase Name</Label>
+                    <Input
+                      id="airbase-name"
+                      value={newEntryData.airbaseName}
+                      onChange={(e) =>
+                        setNewEntryData(prev => ({ ...prev, airbaseName: e.target.value }))
+                      }
+                      placeholder="e.g., RAAF Base Amberley"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddingNew(false);
+                        setNewEntryData({ airbaseCode: "", airbaseName: "" });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => createDirectoryMutation.mutate(newEntryData)}
+                      disabled={!newEntryData.airbaseCode || !newEntryData.airbaseName}
+                    >
+                      Add Airbase
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={editingEntry !== null} onOpenChange={() => setEditingEntry(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Airbase Directory</DialogTitle>
+                </DialogHeader>
+                {editingEntry && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-airbase-code">Airbase Code</Label>
+                      <Input
+                        id="edit-airbase-code"
+                        value={editingEntry.airbaseCode}
+                        onChange={(e) =>
+                          setEditingEntry(prev => prev ? ({ ...prev, airbaseCode: e.target.value }) : null)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-airbase-name">Airbase Name</Label>
+                      <Input
+                        id="edit-airbase-name"
+                        value={editingEntry.airbaseName}
+                        onChange={(e) =>
+                          setEditingEntry(prev => prev ? ({ ...prev, airbaseName: e.target.value }) : null)
+                        }
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setEditingEntry(null)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={() => updateDirectoryMutation.mutate(editingEntry)}>
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={editingContact !== null} onOpenChange={() => setEditingContact(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Contact</DialogTitle>
+                </DialogHeader>
+                {editingContact && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-contact-name">Name</Label>
+                      <Input
+                        id="edit-contact-name"
+                        value={editingContact.name}
+                        onChange={(e) =>
+                          setEditingContact(prev => prev ? ({ ...prev, name: e.target.value }) : null)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-contact-phone">Phone Number</Label>
+                      <Input
+                        id="edit-contact-phone"
+                        value={editingContact.phoneNumber}
+                        onChange={(e) =>
+                          setEditingContact(prev => prev ? ({ ...prev, phoneNumber: e.target.value }) : null)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-contact-description">Description</Label>
+                      <Input
+                        id="edit-contact-description"
+                        value={editingContact.description}
+                        onChange={(e) =>
+                          setEditingContact(prev => prev ? ({ ...prev, description: e.target.value }) : null)
+                        }
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setEditingContact(null)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          const entryId = (directories as DirectoryEntry[]).find(d => 
+                            d.contacts.some((c: Contact) => c.id === editingContact.id)
+                          )?.id;
+                          if (entryId) {
+                            handleUpdateContact(entryId, editingContact);
+                          }
+                        }}
+                      >
+                        {updateContactMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Changes
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* PDF Modal */}
+      {selectedPdf && (
+        <PdfModal
+          key={selectedPdf.filename}
+          isOpen={pdfModalOpen}
+          onClose={handleClosePdfModal}
+          filename={selectedPdf.filename}
+          title={selectedPdf.title}
+        />
+      )}
+
+      {/* Create Mission Dialog */}
+      <Dialog open={isCreatingMission} onOpenChange={setIsCreatingMission}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Mission</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="mission-name">Mission Name *</Label>
+              <Input
+                id="mission-name"
+                data-testid="input-mission-name"
+                value={newMissionData.missionName}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, missionName: e.target.value }))
+                }
+                placeholder="e.g., Operation Phoenix Flight"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="aircraft-callsign">Aircraft Call Sign *</Label>
+              <Input
+                id="aircraft-callsign"
+                data-testid="input-aircraft-callsign"
+                value={newMissionData.aircraftCallSign}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, aircraftCallSign: e.target.value }))
+                }
+                placeholder="e.g., RAAF C-17A A41-210"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="captain-name">Captain Name *</Label>
+              <Input
+                id="captain-name"
+                data-testid="input-captain-name"
+                value={newMissionData.captainName}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, captainName: e.target.value }))
+                }
+                placeholder="e.g., SQNLDR John Smith"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="departure-location">Departure Location *</Label>
+                <Input
+                  id="departure-location"
+                  data-testid="input-departure-location"
+                  value={newMissionData.departureLocation}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, departureLocation: e.target.value }))
+                  }
+                  placeholder="e.g., RAAF Base Amberley"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="arrival-destination">Arrival Destination *</Label>
+                <Input
+                  id="arrival-destination"
+                  data-testid="input-arrival-destination"
+                  value={newMissionData.arrivalDestination}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, arrivalDestination: e.target.value }))
+                  }
+                  placeholder="e.g., RAAF Base Darwin"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="loadmaster1-name">Loadmaster 1 *</Label>
+                <Input
+                  id="loadmaster1-name"
+                  data-testid="input-loadmaster1-name"
+                  value={newMissionData.loadmaster1Name}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, loadmaster1Name: e.target.value }))
+                  }
+                  placeholder="e.g., SGT Jane Doe"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="loadmaster2-name">Loadmaster 2</Label>
+                <Input
+                  id="loadmaster2-name"
+                  data-testid="input-loadmaster2-name"
+                  value={newMissionData.loadmaster2Name}
+                  onChange={(e) =>
+                    setNewMissionData(prev => ({ ...prev, loadmaster2Name: e.target.value }))
+                  }
+                  placeholder="e.g., CPL Mike Johnson (optional)"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="dangerous-goods"
+                data-testid="checkbox-dangerous-goods"
+                checked={newMissionData.hasDangerousGoods}
+                onChange={(e) =>
+                  setNewMissionData(prev => ({ ...prev, hasDangerousGoods: e.target.checked }))
+                }
+                className="rounded"
+              />
+              <Label htmlFor="dangerous-goods" className="cursor-pointer">
+                Contains Dangerous Goods
+              </Label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsCreatingMission(false);
+                  setNewMissionData({
+                    missionName: "",
+                    aircraftCallSign: "",
+                    captainName: "",
+                    departureLocation: "",
+                    arrivalDestination: "",
+                    loadmaster1Name: "",
+                    loadmaster2Name: "",
+                    hasDangerousGoods: false,
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                data-testid="button-create-mission"
+                onClick={() => createMissionMutation.mutate(newMissionData)}
+                disabled={
+                  !newMissionData.missionName ||
+                  !newMissionData.aircraftCallSign ||
+                  !newMissionData.captainName ||
+                  !newMissionData.departureLocation ||
+                  !newMissionData.arrivalDestination ||
+                  !newMissionData.loadmaster1Name ||
+                  createMissionMutation.isPending
+                }
+              >
+                {createMissionMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Mission
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mission Detail Dialog */}
+      {selectedMission && (
+        <Dialog open={missionDetailOpen} onOpenChange={(open) => {
+          if (!open) { setIsEditingMission(false); }
+          setMissionDetailOpen(open);
+        }}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <div className="flex items-center justify-between pr-8">
+                <DialogTitle className="text-2xl">
+                  {isEditingMission ? editMissionData.missionName || selectedMission.missionName : selectedMission.missionName}
+                </DialogTitle>
+                {!isEditingMission ? (
+                  <div className="flex gap-2">
+                    {!selectedMission.isCompleted && (
+                      <Button
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                        onClick={() => markMissionDoneMutation.mutate(selectedMission)}
+                        disabled={markMissionDoneMutation.isPending}
+                      >
+                        {markMissionDoneMutation.isPending ? (
+                          <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Marking...</>
+                        ) : (
+                          <><CheckCircle className="w-4 h-4 mr-1" />Mark Done</>
+                        )}
+                      </Button>
+                    )}
+                    {selectedMission.isCompleted && (
+                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Completed {selectedMission.completedAt ? new Date(selectedMission.completedAt).toLocaleDateString() : ""}
+                      </Badge>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditMissionData({
+                          missionName: selectedMission.missionName,
+                          aircraftCallSign: selectedMission.aircraftCallSign,
+                          captainName: selectedMission.captainName,
+                          departureLocation: selectedMission.departureLocation,
+                          arrivalDestination: selectedMission.arrivalDestination,
+                          loadmaster1Name: selectedMission.loadmaster1Name,
+                          loadmaster2Name: selectedMission.loadmaster2Name || "",
+                          hasDangerousGoods: selectedMission.hasDangerousGoods,
+                        });
+                        setIsEditingMission(true);
+                      }}
+                    >
+                      <Edit2 className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => updateMissionMutation.mutate({ id: selectedMission.id, data: editMissionData })}
+                      disabled={
+                        !editMissionData.missionName ||
+                        !editMissionData.aircraftCallSign ||
+                        !editMissionData.captainName ||
+                        !editMissionData.departureLocation ||
+                        !editMissionData.arrivalDestination ||
+                        !editMissionData.loadmaster1Name ||
+                        updateMissionMutation.isPending
+                      }
+                    >
+                      {updateMissionMutation.isPending ? (
+                        <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Saving...</>
+                      ) : (
+                        <><Save className="w-4 h-4 mr-1" />Save</>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsEditingMission(false)}
+                      disabled={updateMissionMutation.isPending}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Mission Details — view or edit mode */}
+              {!isEditingMission ? (
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Aircraft</p>
+                    <p className="font-medium">{selectedMission.aircraftCallSign}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Captain</p>
+                    <p className="font-medium">{selectedMission.captainName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Departure</p>
+                    <p className="font-medium">{selectedMission.departureLocation}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Arrival</p>
+                    <p className="font-medium">{selectedMission.arrivalDestination}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Loadmaster 1</p>
+                    <p className="font-medium">{selectedMission.loadmaster1Name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Loadmaster 2</p>
+                    <p className="font-medium">{selectedMission.loadmaster2Name || <span className="text-muted-foreground italic">None</span>}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Dangerous Goods</p>
+                    <p className="font-medium">{selectedMission.hasDangerousGoods ? "Yes" : "No"}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-muted rounded-lg space-y-4">
+                  <div>
+                    <Label>Mission Name *</Label>
+                    <Input
+                      value={editMissionData.missionName}
+                      onChange={(e) => setEditMissionData(prev => ({ ...prev, missionName: e.target.value }))}
+                      placeholder="Mission name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Aircraft Call Sign *</Label>
+                      <Input
+                        value={editMissionData.aircraftCallSign}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, aircraftCallSign: e.target.value }))}
+                        placeholder="e.g., ASSY106"
+                      />
+                    </div>
+                    <div>
+                      <Label>Captain Name *</Label>
+                      <Input
+                        value={editMissionData.captainName}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, captainName: e.target.value }))}
+                        placeholder="e.g., SQNLDR Smith"
+                      />
+                    </div>
+                    <div>
+                      <Label>Departure Location *</Label>
+                      <Input
+                        value={editMissionData.departureLocation}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, departureLocation: e.target.value }))}
+                        placeholder="e.g., RAAF Amberley"
+                      />
+                    </div>
+                    <div>
+                      <Label>Arrival Destination *</Label>
+                      <Input
+                        value={editMissionData.arrivalDestination}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, arrivalDestination: e.target.value }))}
+                        placeholder="e.g., RAAF Tindal"
+                      />
+                    </div>
+                    <div>
+                      <Label>Loadmaster 1 *</Label>
+                      <Input
+                        value={editMissionData.loadmaster1Name}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, loadmaster1Name: e.target.value }))}
+                        placeholder="e.g., SGT Truter"
+                      />
+                    </div>
+                    <div>
+                      <Label>Loadmaster 2</Label>
+                      <Input
+                        value={editMissionData.loadmaster2Name}
+                        onChange={(e) => setEditMissionData(prev => ({ ...prev, loadmaster2Name: e.target.value }))}
+                        placeholder="e.g., CPL Jones (optional)"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="edit-dangerous-goods"
+                      checked={editMissionData.hasDangerousGoods}
+                      onChange={(e) => setEditMissionData(prev => ({ ...prev, hasDangerousGoods: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <Label htmlFor="edit-dangerous-goods" className="cursor-pointer">Contains Dangerous Goods</Label>
+                  </div>
+                </div>
+              )}
+
+              {/* Documents Section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Mission Documents</h3>
+                  <Button 
+                    onClick={() => setIsAddingDocument(true)}
+                    disabled={isAddingDocument}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Document
+                  </Button>
+                </div>
+
+                {/* Add Document Dropdown */}
+                {isAddingDocument && (
+                  <div className="flex gap-2 p-4 bg-muted rounded-lg">
+                    <Select
+                      value={selectedDocumentToAdd}
+                      onValueChange={setSelectedDocumentToAdd}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select a document to add" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pdfDocuments.map((pdf) => (
+                          <SelectItem key={pdf.filename} value={pdf.filename}>
+                            {pdf.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => {
+                        if (selectedDocumentToAdd && selectedMission) {
+                          const selectedPdf = pdfDocuments.find(p => p.filename === selectedDocumentToAdd);
+                          if (selectedPdf) {
+                            addDocumentToMissionMutation.mutate({
+                              missionId: selectedMission.id,
+                              documentFilename: selectedPdf.filename,
+                              documentTitle: selectedPdf.title,
+                            });
+                          }
+                        }
+                      }}
+                      disabled={!selectedDocumentToAdd || addDocumentToMissionMutation.isPending}
+                    >
+                      {addDocumentToMissionMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        "Add"
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsAddingDocument(false);
+                        setSelectedDocumentToAdd("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+
+                {/* Documents Table */}
+                {missionDocsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : missionDocs.length === 0 ? (
+                  <div className="text-center py-12 border rounded-lg">
+                    <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No documents attached to this mission</p>
+                    <p className="text-sm text-muted-foreground mt-2">Click "Add Document" to attach documents</p>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold">Document</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold">Added</th>
+                          <th className="px-4 py-3 text-left text-sm font-semibold">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {missionDocs.map((doc) => {
+                          const pdfInfo = pdfDocuments.find(p => p.filename === doc.documentFilename);
+                          return (
+                            <tr key={doc.id} className="border-t hover:bg-muted/50">
+                              <td className="px-4 py-3">
+                                <div>
+                                  <p className="font-medium">{doc.documentTitle}</p>
+                                  {pdfInfo && (
+                                    <p className="text-sm text-muted-foreground">{pdfInfo.description}</p>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                {new Date(doc.addedAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    data-testid={`button-view-document-${doc.id}`}
+                                    onClick={() => {
+                                      // Create PDF object directly from database record
+                                      const pdfToView: PdfDocument = pdfInfo || {
+                                        filename: doc.documentFilename || "",
+                                        title: doc.documentTitle || "Untitled Document",
+                                        description: "",
+                                        category: "Mission Document",
+                                        lastModified: doc.addedAt ? new Date(doc.addedAt).toLocaleDateString() : "Unknown",
+                                        size: "Unknown"
+                                      };
+                                      console.log('📄 Opening PDF:', pdfToView);
+                                      handleViewPdf(pdfToView);
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    View
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    data-testid={`button-delete-document-${doc.id}`}
+                                    onClick={() => {
+                                      if (selectedMission) {
+                                        removeDocumentFromMissionMutation.mutate({
+                                          missionId: selectedMission.id,
+                                          docId: doc.id,
+                                        });
+                                      }
+                                    }}
+                                    disabled={removeDocumentFromMissionMutation.isPending}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Directory Entry Confirmation Dialog */}
+      <AlertDialog open={!!pendingDeleteEntry} onOpenChange={(open) => { if (!open) setPendingDeleteEntry(null); }}>
+        <AlertDialogContent className="bg-gray-900 border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Directory Entry</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Are you sure you want to delete <span className="text-white font-semibold">{pendingDeleteEntry?.name}</span>? This will permanently remove the airbase and all its contacts from the phone directory.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+              onClick={() => setPendingDeleteEntry(null)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                if (pendingDeleteEntry) {
+                  deleteDirectoryMutation.mutate(pendingDeleteEntry.id);
+                  setPendingDeleteEntry(null);
+                }
+              }}
+              disabled={deleteDirectoryMutation.isPending}
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
