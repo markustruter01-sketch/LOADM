@@ -118,8 +118,7 @@ export default function ScenarioManagement() {
       // Update the numberOfQuestions field to match the actual number of questions
       data.numberOfQuestions = data.questions.length;
       
-      const res = await apiRequest("POST", "/api/scenarios", data);
-      return res.json();
+      return await apiRequest({ url: "/api/scenarios", method: "POST", body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
@@ -145,8 +144,7 @@ export default function ScenarioManagement() {
       // Update the numberOfQuestions field to match the actual number of questions
       data.numberOfQuestions = data.questions.length;
       
-      const res = await apiRequest("PUT", `/api/scenarios/${id}`, data);
-      return res.json();
+      return await apiRequest({ url: `/api/scenarios/${id}`, method: "PUT", body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });
@@ -169,7 +167,7 @@ export default function ScenarioManagement() {
   // Delete scenario mutation
   const deleteScenarioMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/scenarios/${id}`);
+      await apiRequest({ url: `/api/scenarios/${id}`, method: "DELETE" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scenarios"] });

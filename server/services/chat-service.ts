@@ -1,55 +1,41 @@
-import { asc, eq, gte, lt } from "drizzle-orm";
+import { asc, gte, lt } from "drizzle-orm";
 import { db } from "../db";
 import { chatMessages, type ChatMessage, type User } from "@shared/schema";
 import { THRESHOLDS } from "@shared/constants";
-import { NotFound } from "../lib/errors";
+import { clientRole, personName } from "../lib/client-format";
 
 const DAY_MS = 86_400_000;
 
-/** The slice of a person attached to a chat message. */
-export type ChatUser = Pick<User, "id" | "firstName" | "lastName" | "rank" | "role" | "squadron">;
-export type ChatMessageWithUser = ChatMessage & { user: ChatUser };
-
-export function toChatUser(u: User): ChatUser {
-  const { id, firstName, lastName, rank, role, squadron } = u;
-  return { id, firstName, lastName, rank, role, squadron };
+function retentionCutoff(): Date {
+  return new Date(Date.now() - THRESHOLDS.CHAT_RETENTION_DAYS * DAY_MS);
 }
 
-export function retentionCutoff(now = Date.now()): Date {
-  return new Date(now - THRESHOLDS.CHAT_RETENTION_DAYS * DAY_MS);
+/** The flat message shape the chat panel reads (components/chat-system.tsx). */
+function toClientMessage(row: ChatMessage, author: User) {
+  return {
+    ...row,
+    userName: personName(author),
+    userRole: clientRole(author.role),
+    profilePhotoUrl: null,
+  };
 }
 
-/** Messages inside the retention window, oldest first, with their author. */
-export async function listRecentMessages(limit = 500): Promise<ChatMessageWithUser[]> {
+/** Messages inside the retention window, oldest first. */
+export async function listRecentMessages() {
   const rows = await db.query.chatMessages.findMany({
     where: gte(chatMessages.createdAt, retentionCutoff()),
     with: { user: true },
     orderBy: [asc(chatMessages.createdAt)],
-    limit,
   });
-  return rows.map((r) => ({ ...r, user: toChatUser(r.user) }));
+  return rows.map(({ user, ...row }) => toClientMessage(row, user));
 }
 
-export async function createMessage(
-  author: User,
-  input: { messageType: ChatMessage["messageType"]; content: string },
-): Promise<ChatMessageWithUser> {
+export async function createMessage(author: User, input: { messageType: ChatMessage["messageType"]; content: string }) {
   const [row] = await db
     .insert(chatMessages)
     .values({ userId: author.id, messageType: input.messageType, content: input.content })
     .returning();
-  return { ...row, user: toChatUser(author) };
-}
-
-export async function getMessage(id: number): Promise<ChatMessage> {
-  const [row] = await db.select().from(chatMessages).where(eq(chatMessages.id, id)).limit(1);
-  if (!row) throw new NotFound("Message");
-  return row;
-}
-
-export async function deleteMessage(id: number): Promise<void> {
-  const deleted = await db.delete(chatMessages).where(eq(chatMessages.id, id)).returning({ id: chatMessages.id });
-  if (deleted.length === 0) throw new NotFound("Message");
+  return toClientMessage(row, author);
 }
 
 export async function clearMessages(): Promise<number> {

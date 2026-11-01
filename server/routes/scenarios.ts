@@ -1,228 +1,40 @@
 import { Router } from "express";
 import { z } from "zod";
-import { eq, desc, and, inArray, sql, type SQL } from "drizzle-orm";
+import { eq, desc, and, type SQL } from "drizzle-orm";
 import { db } from "../db";
 import {
-  scenarios, scenarioSubmissions, insertScenarioSchema, insertScenarioSubmissionSchema, reviewScenarioSubmissionSchema,
+  scenarios, scenarioSubmissions, insertScenarioSchema,
+  type Scenario, type ScenarioSubmission, type User,
 } from "@shared/schema";
-import { SQUADRONS, SUBMISSION_STATUSES, passMarkFor, roleHas } from "@shared/constants";
+import { SUBMISSION_TYPES, passMarkFor, roleHas } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId, parseOptionalInt } from "../lib/ids";
+import { parseId } from "../lib/ids";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../lib/errors";
+import { personName } from "../lib/client-format";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser, canActFor } from "../middleware/persona";
-import { toPublicUser } from "../services/user-service";
 import { logActivity } from "../services/activity-service";
-import { getScenario, scenarioForViewer, gradeReview } from "../services/scenario-service";
+import { getScenario, gradeReview } from "../services/scenario-service";
+
+/**
+ * The scenario screens grade multiple-choice answers in the browser, so the
+ * answer key (`correctAnswer`) is served to every role, as it always was.
+ */
+function toClientScenario(s: Scenario) {
+  return { ...s, numberOfQuestions: s.questions.length, passingThreshold: passMarkFor(s) };
+}
 
 export const scenariosRouter = Router();
 
-// ---- Listing -------------------------------------------------------------
-
-/** Scenarios. Students see active ones without the answer key; instructors see all. */
+/** Active scenarios, newest first. Deleted (inactive) ones are hidden from every role. */
 scenariosRouter.get(
   "/",
   requirePersona,
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const instruct = roleHas(me.role, "instruct");
-    const rows = await db
-      .select()
-      .from(scenarios)
-      .where(instruct ? undefined : eq(scenarios.isActive, true))
-      .orderBy(desc(scenarios.createdAt))
-      .limit(500);
-    if (rows.length === 0) {
-      res.json([]);
-      return;
-    }
-    const ids = rows.map((r) => r.id);
-    const [counts, mine] = await Promise.all([
-      db
-        .select({ scenarioId: scenarioSubmissions.scenarioId, count: sql<number>`count(*)::int` })
-        .from(scenarioSubmissions)
-        .where(inArray(scenarioSubmissions.scenarioId, ids))
-        .groupBy(scenarioSubmissions.scenarioId),
-      db
-        .select({
-          id: scenarioSubmissions.id,
-          scenarioId: scenarioSubmissions.scenarioId,
-          status: scenarioSubmissions.status,
-          score: scenarioSubmissions.score,
-          passed: scenarioSubmissions.passed,
-          submittedAt: scenarioSubmissions.submittedAt,
-        })
-        .from(scenarioSubmissions)
-        .where(and(eq(scenarioSubmissions.userId, me.id), inArray(scenarioSubmissions.scenarioId, ids)))
-        .orderBy(desc(scenarioSubmissions.submittedAt)),
-    ]);
-    const countBy = new Map(counts.map((c) => [c.scenarioId, c.count]));
-    const latest = new Map<number, { id: number; status: string; score: number | null; passed: boolean | null; submittedAt: Date }>();
-    for (const m of mine) {
-      if (!latest.has(m.scenarioId)) latest.set(m.scenarioId, { id: m.id, status: m.status, score: m.score, passed: m.passed, submittedAt: m.submittedAt });
-    }
-    res.json(
-      rows.map((s) => ({
-        ...scenarioForViewer(s, me),
-        submissionCount: countBy.get(s.id) ?? 0,
-        mySubmission: latest.get(s.id) ?? null,
-      })),
-    );
+  asyncHandler(async (_req, res) => {
+    const rows = await db.select().from(scenarios).where(eq(scenarios.isActive, true)).orderBy(desc(scenarios.createdAt));
+    res.json(rows.map(toClientScenario));
   }),
 );
-
-// ---- Submissions + notifications (registered before /:id) ----------------
-
-const submissionsQuery = z.object({
-  status: z.enum(SUBMISSION_STATUSES).optional(),
-  squadron: z.enum(SQUADRONS).optional(),
-  scenarioId: z.coerce.number().int().positive().optional(),
-});
-
-/** Instructors see every submission (filterable); others see their own. */
-scenariosRouter.get(
-  "/submissions",
-  requirePersona,
-  validate(submissionsQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const q = req.query as z.infer<typeof submissionsQuery>;
-    const limit = parseOptionalInt(req.query.limit, 500, { max: 2000 });
-    const conds: SQL[] = [];
-    if (!roleHas(me.role, "instruct")) conds.push(eq(scenarioSubmissions.userId, me.id));
-    if (q.status) conds.push(eq(scenarioSubmissions.status, q.status));
-    if (q.squadron) conds.push(eq(scenarioSubmissions.squadron, q.squadron));
-    if (q.scenarioId) conds.push(eq(scenarioSubmissions.scenarioId, q.scenarioId));
-    const rows = await db.query.scenarioSubmissions.findMany({
-      where: conds.length ? and(...conds) : undefined,
-      with: { user: true, scenario: { columns: { title: true } } },
-      orderBy: [desc(scenarioSubmissions.submittedAt)],
-      limit,
-    });
-    res.json(
-      rows.map(({ user, scenario, ...submission }) => ({
-        ...submission,
-        user: user ? toPublicUser(user) : null,
-        scenarioTitle: scenario ? scenario.title : null,
-      })),
-    );
-  }),
-);
-
-/** One submission with its scenario and reviewer. Owner or instructor. */
-scenariosRouter.get(
-  "/submissions/:id",
-  requirePersona,
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const id = parseId(req.params.id);
-    const row = await db.query.scenarioSubmissions.findFirst({
-      where: eq(scenarioSubmissions.id, id),
-      with: { user: true, scenario: true, reviewer: true },
-    });
-    if (!row) throw new NotFound("Submission");
-    if (!canActFor(me, row.userId)) throw new Forbidden();
-    const { user, scenario, reviewer, ...submission } = row;
-    if (!scenario) throw new NotFound("Scenario");
-    res.json({
-      ...submission,
-      user: user ? toPublicUser(user) : null,
-      reviewer: reviewer ? toPublicUser(reviewer) : null,
-      // The answer key is revealed to the student only once the review is in.
-      scenario: scenarioForViewer(scenario, me, submission.status === "reviewed"),
-    });
-  }),
-);
-
-/** Instructor marking. Score, pass/fail and reviewer are derived server-side. */
-scenariosRouter.patch(
-  "/submissions/:id/review",
-  requireInstruct,
-  validate(reviewScenarioSubmissionSchema),
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const id = parseId(req.params.id);
-    const b = req.body as z.infer<typeof reviewScenarioSubmissionSchema>;
-    const [existing] = await db.select().from(scenarioSubmissions).where(eq(scenarioSubmissions.id, id)).limit(1);
-    if (!existing) throw new NotFound("Submission");
-    const scenario = await getScenario(existing.scenarioId);
-    const graded = gradeReview(scenario, b.markedAnswers);
-    const [row] = await db
-      .update(scenarioSubmissions)
-      .set({
-        status: "reviewed",
-        score: graded.score,
-        passed: graded.passed,
-        markedAnswers: graded.markedAnswers,
-        questionFeedback: b.questionFeedback ?? existing.questionFeedback,
-        instructorFeedback: b.instructorFeedback ?? existing.instructorFeedback,
-        reviewedById: me.id,
-        reviewedAt: new Date(),
-        notificationSeen: false,
-      })
-      .where(eq(scenarioSubmissions.id, id))
-      .returning();
-    if (!row) throw new NotFound("Submission");
-    await logActivity({
-      actor: me,
-      action: "REVIEW",
-      resourceType: "Scenario submission",
-      resourceId: row.id,
-      resourceName: scenario.title,
-      details: `${graded.score}% (${graded.passed ? "pass" : "fail"})`,
-    });
-    res.json(row);
-  }),
-);
-
-/** The current user's reviewed submissions they have not yet acknowledged. */
-scenariosRouter.get(
-  "/notifications",
-  requirePersona,
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const rows = await db
-      .select({ submission: scenarioSubmissions, scenarioTitle: scenarios.title, passingThreshold: scenarios.passingThreshold })
-      .from(scenarioSubmissions)
-      .innerJoin(scenarios, eq(scenarios.id, scenarioSubmissions.scenarioId))
-      .where(
-        and(
-          eq(scenarioSubmissions.userId, me.id),
-          eq(scenarioSubmissions.status, "reviewed"),
-          eq(scenarioSubmissions.notificationSeen, false),
-        ),
-      )
-      .orderBy(desc(scenarioSubmissions.reviewedAt));
-    res.json(rows.map((r) => ({ ...r.submission, scenarioTitle: r.scenarioTitle, passMark: passMarkFor({ passingThreshold: r.passingThreshold }) })));
-  }),
-);
-
-const dismissBody = z.object({ ids: z.array(z.number().int().positive()).optional() });
-
-/** Dismiss the given notifications, or all of the current user's when `ids` is omitted. */
-scenariosRouter.post(
-  "/notifications/dismiss",
-  requirePersona,
-  validate(dismissBody),
-  asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const b = req.body as z.infer<typeof dismissBody>;
-    if (b.ids && b.ids.length === 0) {
-      res.json({ dismissed: [] });
-      return;
-    }
-    const conds: SQL[] = [eq(scenarioSubmissions.userId, me.id), eq(scenarioSubmissions.notificationSeen, false)];
-    if (b.ids) conds.push(inArray(scenarioSubmissions.id, b.ids));
-    const rows = await db
-      .update(scenarioSubmissions)
-      .set({ notificationSeen: true })
-      .where(and(...conds))
-      .returning({ id: scenarioSubmissions.id });
-    res.json({ dismissed: rows.map((r) => r.id) });
-  }),
-);
-
-// ---- CRUD ----------------------------------------------------------------
 
 scenariosRouter.post(
   "/",
@@ -233,7 +45,7 @@ scenariosRouter.post(
     const b = req.body as z.infer<typeof insertScenarioSchema>;
     const [row] = await db.insert(scenarios).values({ ...b, createdById: me.id }).returning();
     await logActivity({ actor: me, action: "CREATE", resourceType: "Scenario", resourceId: row.id, resourceName: row.title });
-    res.status(201).json(row);
+    res.status(201).json(toClientScenario(row));
   }),
 );
 
@@ -244,7 +56,7 @@ scenariosRouter.get(
     const me = currentUser(req);
     const scenario = await getScenario(parseId(req.params.id));
     if (!scenario.isActive && !roleHas(me.role, "instruct")) throw new NotFound("Scenario");
-    res.json(scenarioForViewer(scenario, me));
+    res.json(toClientScenario(scenario));
   }),
 );
 
@@ -256,13 +68,11 @@ scenariosRouter.put(
   validate(updateScenarioBody),
   asyncHandler(async (req, res) => {
     const me = currentUser(req);
-    const id = parseId(req.params.id);
     const b = req.body as z.infer<typeof updateScenarioBody>;
-    if (Object.keys(b).length === 0) throw new BadRequest("Nothing to update");
-    const [row] = await db.update(scenarios).set(b).where(eq(scenarios.id, id)).returning();
+    const [row] = await db.update(scenarios).set(b).where(eq(scenarios.id, parseId(req.params.id))).returning();
     if (!row) throw new NotFound("Scenario");
     await logActivity({ actor: me, action: "UPDATE", resourceType: "Scenario", resourceId: row.id, resourceName: row.title });
-    res.json(row);
+    res.json(toClientScenario(row));
   }),
 );
 
@@ -272,28 +82,77 @@ scenariosRouter.delete(
   requireInstruct,
   asyncHandler(async (req, res) => {
     const me = currentUser(req);
-    const id = parseId(req.params.id);
-    const [row] = await db.update(scenarios).set({ isActive: false }).where(eq(scenarios.id, id)).returning();
+    const [row] = await db
+      .update(scenarios)
+      .set({ isActive: false })
+      .where(eq(scenarios.id, parseId(req.params.id)))
+      .returning();
     if (!row) throw new NotFound("Scenario");
     await logActivity({ actor: me, action: "DELETE", resourceType: "Scenario", resourceId: row.id, resourceName: row.title });
-    res.json(row);
+    res.json({ id: row.id });
   }),
 );
 
-// ---- Submitting a scenario -----------------------------------------------
+// ---- Submissions: /api/scenario-submissions --------------------------------
 
-/** `scenarioId` comes from the URL; a body value is accepted but ignored. */
-const submitScenarioBody = insertScenarioSubmissionSchema.extend({ scenarioId: z.number().int().positive().optional() });
+export const scenarioSubmissionsRouter = Router();
 
-scenariosRouter.post(
-  "/:id/submissions",
+/** A submission with the flat names the review screens read. */
+function toClientSubmission({ user, reviewer, ...s }: ScenarioSubmission & { user: User | null; reviewer: User | null }) {
+  return {
+    ...s,
+    submissionDate: s.submittedAt,
+    timeSpent: s.timeSpentSeconds,
+    studentName: user ? personName(user) : null,
+    studentId: String(s.userId),
+    reviewedBy: reviewer ? personName(reviewer) : null,
+  };
+}
+
+const listQuery = z.object({
+  scenarioId: z.coerce.number().int().positive().optional(),
+  userId: z.coerce.number().int().positive().optional(),
+});
+
+/** Newest first. Instructors see everyone's (optionally filtered); others their own. */
+scenarioSubmissionsRouter.get(
+  "/",
   requirePersona,
-  validate(submitScenarioBody),
+  validate(listQuery, "query"),
   asyncHandler(async (req, res) => {
     const me = currentUser(req);
-    const scenario = await getScenario(parseId(req.params.id));
+    const q = req.query as z.infer<typeof listQuery>;
+    const conds: SQL[] = [];
+    if (!roleHas(me.role, "instruct")) conds.push(eq(scenarioSubmissions.userId, me.id));
+    else if (q.userId) conds.push(eq(scenarioSubmissions.userId, q.userId));
+    if (q.scenarioId) conds.push(eq(scenarioSubmissions.scenarioId, q.scenarioId));
+    const rows = await db.query.scenarioSubmissions.findMany({
+      where: conds.length ? and(...conds) : undefined,
+      with: { user: true, reviewer: true, scenario: { columns: { title: true } } },
+      orderBy: [desc(scenarioSubmissions.submittedAt)],
+    });
+    res.json(rows.map(({ scenario, ...row }) => ({ ...toClientSubmission(row), scenarioTitle: scenario?.title ?? null })));
+  }),
+);
+
+const submitBody = z.object({
+  scenarioId: z.coerce.number().int().positive(),
+  answers: z.array(z.object({ questionId: z.string(), answer: z.string(), notes: z.string().optional() })),
+  submissionType: z.enum(SUBMISSION_TYPES).optional(),
+  timeSpent: z.number().int().nonnegative().optional(),
+  notes: z.string().max(5000).optional(),
+});
+
+/** A student's answers. Name, id and squadron come from the persona, not the form. */
+scenarioSubmissionsRouter.post(
+  "/",
+  requirePersona,
+  validate(submitBody),
+  asyncHandler(async (req, res) => {
+    const me = currentUser(req);
+    const b = req.body as z.infer<typeof submitBody>;
+    const scenario = await getScenario(b.scenarioId);
     if (!scenario.isActive) throw new Conflict("This scenario is no longer available");
-    const b = req.body as z.infer<typeof submitScenarioBody>;
     const known = new Set(scenario.questions.map((q) => q.id));
     const unknown = b.answers.filter((a) => !known.has(a.questionId)).map((a) => a.questionId);
     if (unknown.length) throw new BadRequest("Answers reference unknown questions", { questionIds: unknown });
@@ -305,12 +164,83 @@ scenariosRouter.post(
         squadron: me.squadron,
         answers: b.answers,
         submissionType: b.submissionType,
-        timeSpentSeconds: b.timeSpentSeconds ?? null,
+        timeSpentSeconds: b.timeSpent ?? null,
         notes: b.notes ?? null,
         status: "submitted",
       })
       .returning();
     await logActivity({ actor: me, action: "CREATE", resourceType: "Scenario submission", resourceId: row.id, resourceName: scenario.title });
-    res.status(201).json(row);
+    res.status(201).json(toClientSubmission({ ...row, user: me, reviewer: null }));
+  }),
+);
+
+/** One submission with the scenario's questions flattened in. Owner or instructor. */
+scenarioSubmissionsRouter.get(
+  "/:id",
+  requirePersona,
+  asyncHandler(async (req, res) => {
+    const me = currentUser(req);
+    const row = await db.query.scenarioSubmissions.findFirst({
+      where: eq(scenarioSubmissions.id, parseId(req.params.id)),
+      with: { user: true, reviewer: true, scenario: true },
+    });
+    if (!row) throw new NotFound("Submission");
+    if (!canActFor(me, row.userId)) throw new Forbidden();
+    const { scenario, ...submission } = row;
+    res.json({
+      ...toClientSubmission(submission),
+      scenarioTitle: scenario?.title ?? null,
+      scenarioQuestions: scenario?.questions ?? [],
+    });
+  }),
+);
+
+/** The instructor's score and Pass/Fail switch are kept as given; missing values fall back to the marking. */
+const reviewBody = z.object({
+  markedAnswers: z.record(z.boolean()).default({}),
+  questionFeedback: z.record(z.string()).optional(),
+  instructorFeedback: z.string().max(10000).optional(),
+  score: z.number().min(0).max(100).optional(),
+  passed: z.boolean().optional(),
+});
+
+scenarioSubmissionsRouter.patch(
+  "/:id",
+  requireInstruct,
+  validate(reviewBody),
+  asyncHandler(async (req, res) => {
+    const me = currentUser(req);
+    const id = parseId(req.params.id);
+    const b = req.body as z.infer<typeof reviewBody>;
+    const [existing] = await db.select().from(scenarioSubmissions).where(eq(scenarioSubmissions.id, id)).limit(1);
+    if (!existing) throw new NotFound("Submission");
+    const scenario = await getScenario(existing.scenarioId);
+    const graded = gradeReview(scenario, b.markedAnswers);
+    const score = b.score === undefined ? graded.score : Math.round(b.score);
+    const passed = b.passed ?? graded.passed;
+    const [row] = await db
+      .update(scenarioSubmissions)
+      .set({
+        status: "reviewed",
+        score,
+        passed,
+        markedAnswers: graded.markedAnswers,
+        questionFeedback: b.questionFeedback ?? existing.questionFeedback,
+        instructorFeedback: b.instructorFeedback ?? existing.instructorFeedback,
+        reviewedById: me.id,
+        reviewedAt: new Date(),
+        notificationSeen: false,
+      })
+      .where(eq(scenarioSubmissions.id, id))
+      .returning();
+    await logActivity({
+      actor: me,
+      action: "REVIEW",
+      resourceType: "Scenario submission",
+      resourceId: row.id,
+      resourceName: scenario.title,
+      details: `${score}% (${passed ? "pass" : "fail"})`,
+    });
+    res.json(row);
   }),
 );

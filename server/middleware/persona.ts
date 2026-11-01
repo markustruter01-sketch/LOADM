@@ -6,22 +6,18 @@ import { ROLES, roleHas, type Role, type Capability } from "@shared/constants";
 import { Unauthorized, Forbidden } from "../lib/errors";
 
 /**
- * There is no authentication in this showcase. A visitor chooses a role on
- * first load; the client stores it in the `demo_role` cookie and also sends
- * it as the `X-Demo-Role` header (the header wins, so a role can be switched
- * per request if needed). Each role maps to exactly one seeded persona user
- * (`users.isDemoPersona = true`), which becomes `req.user`.
+ * There is no authentication in this showcase. The visitor picks a role on
+ * the sign-in screen and the choice is kept in the `demo_role` cookie. Each
+ * role maps to exactly one seeded persona user (`users.isDemoPersona`),
+ * which becomes `req.user`.
  */
 
 export const DEMO_ROLE_COOKIE = "demo_role";
-export const DEMO_ROLE_HEADER = "x-demo-role";
 
 declare module "express-serve-static-core" {
   interface Request {
     /** The persona the visitor is acting as. Undefined until a role is chosen. */
     user?: User;
-    /** The role string that was requested, if any (even if no persona row exists yet). */
-    requestedRole?: Role;
   }
 }
 
@@ -48,15 +44,18 @@ function isRole(v: unknown): v is Role {
   return typeof v === "string" && (ROLES as readonly string[]).includes(v);
 }
 
-/** Attaches `req.user` when a valid role is presented. Never rejects. */
+/** Attaches `req.user` when the cookie holds a valid role. Never rejects. */
 export const attachPersona: RequestHandler = async (req, _res, next) => {
   try {
-    const header = req.get(DEMO_ROLE_HEADER);
-    const cookie = (req as Request & { cookies?: Record<string, string> }).cookies?.[DEMO_ROLE_COOKIE];
-    const role = isRole(header) ? header : isRole(cookie) ? cookie : undefined;
-    if (!role) return next();
-    req.requestedRole = role;
+    const role = (req.cookies as Record<string, string> | undefined)?.[DEMO_ROLE_COOKIE];
+    if (!isRole(role)) return next();
     req.user = await loadPersona(role);
+    // Keep "last active" current (at most one write a minute) so activity figures are real.
+    if (req.user && (!req.user.lastActiveAt || Date.now() - req.user.lastActiveAt.getTime() > 60_000)) {
+      const now = new Date();
+      await db.update(users).set({ lastActiveAt: now }).where(eq(users.id, req.user.id));
+      req.user.lastActiveAt = now;
+    }
     next();
   } catch (err) {
     next(err);

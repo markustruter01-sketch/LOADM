@@ -76,6 +76,8 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
         isActive: p.isActive ?? true,
         isDemoPersona: p.isDemoPersona ?? false,
         lastActiveAt: daysAgo(rng.chance(0.75) ? rng.int(0, 2) : rng.int(3, 20), rng.int(6, 20), rng.int(0, 59)),
+        // Annual access licences: most well in date, a few due for renewal, the posted-out member lapsed.
+        licenseExpiresAt: p.isActive === false ? daysAgo(rng.int(10, 60)) : daysFromNow(p.isDemoPersona ? 365 : rng.chance(0.1) ? rng.int(5, 28) : rng.int(60, 365)),
         createdAt: daysAgo(rng.int(200, 900)),
       })),
     )

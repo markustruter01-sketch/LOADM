@@ -95,6 +95,10 @@ export const users = appSchema.table(
     notReadyReason: text("not_ready_reason"),
     readinessUpdatedAt: timestamp("readiness_updated_at", { withTimezone: true }),
     lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
+    /** Access licence expiry shown on the licensing screens. */
+    licenseExpiresAt: timestamp("license_expires_at", { withTimezone: true }),
+    /** Career totals the member typed in on their profile (overrides the flight-record sums). */
+    profileTotals: json("profile_totals").$type<ProfileTotals>(),
     ...timestamps,
   },
   (t) => [
@@ -105,6 +109,16 @@ export const users = appSchema.table(
       .where(sql`${t.isDemoPersona} = true`),
   ],
 );
+
+export type ProfileTotals = {
+  totalMissionsFlown: number;
+  totalCargoWeight: number;
+  totalFlightHours: number;
+  totalNightHours: number;
+  totalDayHours: number;
+  totalCargoCarried: number;
+  totalPassengersCarried: number;
+};
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -587,7 +601,7 @@ export const missions = appSchema.table(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     missionName: text("mission_name").notNull(),
-    aircraft: aircraftEnum("aircraft").notNull(),
+    aircraft: aircraftEnum("aircraft"),
     aircraftCallSign: text("aircraft_call_sign").notNull(),
     captainName: text("captain_name").notNull(),
     departureLocation: text("departure_location").notNull(),
@@ -604,7 +618,7 @@ export const missions = appSchema.table(
 
 export const insertMissionSchema = z.object({
   missionName: z.string().min(1).max(200),
-  aircraft: z.enum(AIRCRAFT_TYPES),
+  aircraft: z.enum(AIRCRAFT_TYPES).nullable().optional(),
   aircraftCallSign: z.string().min(1).max(50),
   captainName: z.string().min(1).max(100),
   departureLocation: z.string().min(1).max(100),

@@ -115,7 +115,7 @@ export default function ChecklistManagement() {
       apiRequest({
         url: '/api/checklists',
         method: 'POST',
-        body: JSON.stringify(data)
+        body: data
       }) as Promise<any>,
     onSuccess: () => {
       toast({
@@ -140,7 +140,7 @@ export default function ChecklistManagement() {
       apiRequest({
         url: `/api/checklists/${data.id}`,
         method: 'PUT',
-        body: JSON.stringify(data.checklist)
+        body: data.checklist
       }) as Promise<any>,
     onSuccess: () => {
       toast({

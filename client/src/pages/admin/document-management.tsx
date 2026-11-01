@@ -121,8 +121,7 @@ export default function DocumentManagement() {
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentFormValues) => {
-      const res = await apiRequest("POST", "/api/documents", data);
-      return res.json();
+      return await apiRequest({ url: "/api/documents", method: "POST", body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -145,8 +144,7 @@ export default function DocumentManagement() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: DocumentFormValues }) => {
-      const res = await apiRequest("PUT", `/api/documents/${id}`, data);
-      return res.json();
+      return await apiRequest({ url: `/api/documents/${id}`, method: "PUT", body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
@@ -169,7 +167,7 @@ export default function DocumentManagement() {
   // Delete document mutation
   const deleteDocumentMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/documents/${id}`);
+      await apiRequest({ url: `/api/documents/${id}`, method: "DELETE" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });

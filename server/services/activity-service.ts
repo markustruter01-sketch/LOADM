@@ -1,7 +1,8 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../db";
-import { activityLog, type User } from "@shared/schema";
+import { activityLog, users, type User } from "@shared/schema";
 import { logger } from "../lib/logger";
+import { personName } from "../lib/client-format";
 
 /** Append an audit row. Never throws: an audit failure must not fail the request. */
 export async function logActivity(params: {
@@ -26,6 +27,21 @@ export async function logActivity(params: {
   }
 }
 
-export async function listActivity(limit = 200) {
-  return db.query.activityLog.findMany({ orderBy: [desc(activityLog.performedAt)], limit });
+/**
+ * The deletion log the command dashboard shows (it words every entry as
+ * "X deleted Y"): the 500 newest DELETE rows with the actor's name and email.
+ */
+export async function listDeletions() {
+  const rows = await db
+    .select({ row: activityLog, user: users })
+    .from(activityLog)
+    .leftJoin(users, eq(users.id, activityLog.userId))
+    .where(eq(activityLog.action, "DELETE"))
+    .orderBy(desc(activityLog.performedAt))
+    .limit(500);
+  return rows.map(({ row, user }) => ({
+    ...row,
+    userName: user ? personName(user) : "System",
+    userEmail: user?.email ?? "",
+  }));
 }

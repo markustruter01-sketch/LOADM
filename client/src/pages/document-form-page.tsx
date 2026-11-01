@@ -95,12 +95,11 @@ export default function DocumentFormPage() {
         documentId,
         formData: data,
       };
-      const res = await apiRequest({
+      return await apiRequest({
         method: "POST",
         url: "/api/document-submissions",
         data: submissionData
       });
-      return await res.json();
     },
     onSuccess: () => {
       toast({

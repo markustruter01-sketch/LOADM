@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { demoRouter } from "./demo";
 import { usersRouter } from "./users";
 import { documentsRouter } from "./documents";
 import { scenariosRouter } from "./scenarios";
@@ -20,7 +19,6 @@ import { activityRouter } from "./activity";
  */
 export const apiRouter = Router();
 
-apiRouter.use("/demo", demoRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/documents", documentsRouter);
 apiRouter.use("/scenarios", scenariosRouter);

@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db, type Tx, type Db } from "../db";
-import { users, userQualifications, readinessSnapshots, type ReadinessSnapshot } from "@shared/schema";
+import { users, userQualifications, readinessSnapshots, type ReadinessSnapshot, type User } from "@shared/schema";
 import { FLYING_SQUADRONS, THRESHOLDS, type FlyingSquadron } from "@shared/constants";
 
 export type SnapshotSquadron = FlyingSquadron | "ALL";
@@ -17,19 +17,41 @@ export interface ReadinessFigures {
   personnelAtRisk: number;
 }
 
+export interface QualCounts {
+  current: number;
+  expiring: number;
+  expired: number;
+}
+
+export interface PersonReadiness {
+  user: User;
+  ready: boolean;
+  /** Why the person is not ready; null when ready. */
+  reason: string | null;
+  quals: QualCounts;
+}
+
 const DAY_MS = 86_400_000;
 
 /**
- * The one definition of squadron readiness, used by the live dashboard, the
- * daily snapshot and the seed. "Personnel" = active students and loadmasters
- * in a flying squadron. "At risk" = ready now but with a qualification
- * expiring inside the warning window.
+ * The one definition of readiness, used by the live dashboard, the daily
+ * snapshot and the seed. "Personnel" = active students and loadmasters in a
+ * flying squadron. Ready = marked flight-ready and no expired qualification.
+ * A not-ready person's reason is the recorded one, else "Currency Lapsed"
+ * when a qualification has expired, else "Pending Review".
  */
-export async function computeReadinessForDate(conn: Db | Tx, asOf: Date): Promise<ReadinessFigures[]> {
+export async function assessReadiness(conn: Db | Tx, asOf: Date, squadron?: FlyingSquadron): Promise<PersonReadiness[]> {
   const personnel = await conn
-    .select({ id: users.id, squadron: users.squadron, isFlightReady: users.isFlightReady })
+    .select()
     .from(users)
-    .where(and(eq(users.isActive, true), inArray(users.role, ["student", "loadmaster"]), inArray(users.squadron, [...FLYING_SQUADRONS])));
+    .where(
+      and(
+        eq(users.isActive, true),
+        inArray(users.role, ["student", "loadmaster"]),
+        inArray(users.squadron, squadron ? [squadron] : [...FLYING_SQUADRONS]),
+      ),
+    )
+    .orderBy(asc(users.squadron), asc(users.lastName), asc(users.firstName));
   const ids = personnel.map((p) => p.id);
   const quals = ids.length
     ? await conn
@@ -40,46 +62,49 @@ export async function computeReadinessForDate(conn: Db | Tx, asOf: Date): Promis
 
   const warnMs = THRESHOLDS.QUALIFICATION_EXPIRY_WARNING_DAYS * DAY_MS;
   const t = asOf.getTime();
-  const perUser = new Map<number, { expired: number; expiring: number; current: number }>();
+  const perUser = new Map<number, QualCounts>();
   for (const q of quals) {
-    const rec = perUser.get(q.userId) ?? { expired: 0, expiring: 0, current: 0 };
-    if (!q.expiryDate) rec.current++;
-    else {
-      const e = q.expiryDate.getTime();
-      if (e < t) rec.expired++;
-      else if (e - t <= warnMs) rec.expiring++;
-      else rec.current++;
-    }
+    const rec = perUser.get(q.userId) ?? { current: 0, expiring: 0, expired: 0 };
+    const e = q.expiryDate?.getTime();
+    if (e === undefined || e - t > warnMs) rec.current++;
+    else if (e < t) rec.expired++;
+    else rec.expiring++;
     perUser.set(q.userId, rec);
   }
 
-  const figuresFor = (squadron: SnapshotSquadron, members: typeof personnel): ReadinessFigures => {
-    let ready = 0, current = 0, expiring = 0, expired = 0, atRisk = 0;
-    for (const m of members) {
-      const q = perUser.get(m.id) ?? { expired: 0, expiring: 0, current: 0 };
-      current += q.current; expiring += q.expiring; expired += q.expired;
-      const isReady = m.isFlightReady && q.expired === 0;
-      if (isReady) ready++;
-      if (isReady && q.expiring > 0) atRisk++;
-    }
-    const total = members.length;
-    return {
-      squadron,
-      totalPersonnel: total,
-      readyCount: ready,
-      notReadyCount: total - ready,
-      readyPercent: total ? Number(((ready / total) * 100).toFixed(1)) : 0,
-      currentQuals: current,
-      expiringQuals: expiring,
-      expiredQuals: expired,
-      personnelAtRisk: atRisk,
-    };
-  };
+  return personnel.map((user) => {
+    const q = perUser.get(user.id) ?? { current: 0, expiring: 0, expired: 0 };
+    const ready = user.isFlightReady && q.expired === 0;
+    const reason = ready ? null : (!user.isFlightReady && user.notReadyReason) || (q.expired > 0 ? "Currency Lapsed" : "Pending Review");
+    return { user, ready, reason, quals: q };
+  });
+}
 
-  return [
-    figuresFor("ALL", personnel),
-    ...FLYING_SQUADRONS.map((s) => figuresFor(s, personnel.filter((p) => p.squadron === s))),
-  ];
+/** "At risk" = ready now but with a qualification expiring inside the warning window. */
+function figuresFor(squadron: SnapshotSquadron, people: PersonReadiness[]): ReadinessFigures {
+  let ready = 0, current = 0, expiring = 0, expired = 0, atRisk = 0;
+  for (const p of people) {
+    current += p.quals.current; expiring += p.quals.expiring; expired += p.quals.expired;
+    if (p.ready) ready++;
+    if (p.ready && p.quals.expiring > 0) atRisk++;
+  }
+  const total = people.length;
+  return {
+    squadron,
+    totalPersonnel: total,
+    readyCount: ready,
+    notReadyCount: total - ready,
+    readyPercent: total ? Number(((ready / total) * 100).toFixed(1)) : 0,
+    currentQuals: current,
+    expiringQuals: expiring,
+    expiredQuals: expired,
+    personnelAtRisk: atRisk,
+  };
+}
+
+export async function computeReadinessForDate(conn: Db | Tx, asOf: Date): Promise<ReadinessFigures[]> {
+  const people = await assessReadiness(conn, asOf);
+  return [figuresFor("ALL", people), ...FLYING_SQUADRONS.map((s) => figuresFor(s, people.filter((p) => p.user.squadron === s)))];
 }
 
 function startOfUtcDay(d = new Date()): Date {
@@ -100,11 +125,19 @@ export async function captureSnapshot(): Promise<{ created: number }> {
   return { created: inserted.length };
 }
 
-export async function getSnapshotHistory(squadron: SnapshotSquadron, days: number): Promise<ReadinessSnapshot[]> {
-  const since = new Date(Date.now() - days * DAY_MS);
-  return db
-    .select()
-    .from(readinessSnapshots)
-    .where(and(eq(readinessSnapshots.squadron, squadron), gte(readinessSnapshots.snapshotDate, since)))
-    .orderBy(desc(readinessSnapshots.snapshotDate));
+/** The latest `limit` daily snapshots (oldest first) and the date collection began. */
+export async function getSnapshotHistory(
+  squadron: SnapshotSquadron,
+  limit: number,
+): Promise<{ points: ReadinessSnapshot[]; firstDate: Date | null }> {
+  const [rows, first] = await Promise.all([
+    db.select().from(readinessSnapshots).where(eq(readinessSnapshots.squadron, squadron)).orderBy(desc(readinessSnapshots.snapshotDate)).limit(limit),
+    db
+      .select({ date: readinessSnapshots.snapshotDate })
+      .from(readinessSnapshots)
+      .where(eq(readinessSnapshots.squadron, squadron))
+      .orderBy(asc(readinessSnapshots.snapshotDate))
+      .limit(1),
+  ]);
+  return { points: rows.reverse(), firstDate: first[0]?.date ?? null };
 }

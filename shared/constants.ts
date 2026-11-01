@@ -138,7 +138,7 @@ export const SAFETY_LEVELS = [
   "Level 1 - Catastrophic", "Level 2 - Critical", "Level 3 - Marginal", "Level 4 - Negligible",
 ] as const;
 
-export const CHECKLIST_CATEGORIES = ["startup", "shutdown", "pre-flight", "post-flight", "emergency"] as const;
+export const CHECKLIST_CATEGORIES = ["startup", "shutdown", "pre-flight", "post-flight", "emergency", "systems"] as const;
 export type ChecklistCategory = (typeof CHECKLIST_CATEGORIES)[number];
 export const CHECKLIST_AIRCRAFT = [...AIRCRAFT_TYPES, "General"] as const;
 

@@ -96,9 +96,10 @@ export default function ChecklistDetailPage() {
 
   const updateCompletionMutation = useMutation({
     mutationFn: (data: { checklistId: number; completedItems: number[] }) => 
-      apiRequest(`/api/checklists/${data.checklistId}/completion`, {
+      apiRequest({
+        url: `/api/checklists/${data.checklistId}/completion`,
         method: 'POST',
-        body: JSON.stringify({ completedItems: data.completedItems })
+        body: { completedItems: data.completedItems }
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/checklists/${checklistId}`] });

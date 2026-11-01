@@ -5,19 +5,36 @@ import { db } from "../db";
 import { phoneDirectory, insertPhoneDirectorySchema } from "@shared/schema";
 import { asyncHandler } from "../lib/async";
 import { parseId } from "../lib/ids";
-import { BadRequest, Conflict, NotFound } from "../lib/errors";
+import { Conflict, NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
-import { requirePersona, requireInstruct, currentUser } from "../middleware/persona";
+import { requirePersona, currentUser } from "../middleware/persona";
 import { logActivity } from "../services/activity-service";
 
+/**
+ * Mounted at /api/phone-directory. The documents page offers add/edit/delete
+ * to every visitor, so every route only needs a persona.
+ */
 export const directoryRouter = Router();
+directoryRouter.use(requirePersona);
 
+/** New airbases arrive without contacts; they are added later through PATCH. */
+const createDirectorySchema = insertPhoneDirectorySchema.extend({
+  contacts: insertPhoneDirectorySchema.shape.contacts.default([]),
+});
+/** The client PATCHes the whole entry (id and timestamps are stripped). */
 const updateDirectorySchema = insertPhoneDirectorySchema.partial();
 
-/** Airbase phone directory, sorted by airbase name. */
+async function assertCodeFree(airbaseCode: string, exceptId?: number): Promise<void> {
+  const [clash] = await db
+    .select({ id: phoneDirectory.id })
+    .from(phoneDirectory)
+    .where(exceptId ? and(eq(phoneDirectory.airbaseCode, airbaseCode), ne(phoneDirectory.id, exceptId)) : eq(phoneDirectory.airbaseCode, airbaseCode))
+    .limit(1);
+  if (clash) throw new Conflict(`Airbase code ${airbaseCode} already exists`);
+}
+
 directoryRouter.get(
   "/",
-  requirePersona,
   asyncHandler(async (_req, res) => {
     res.json(await db.select().from(phoneDirectory).orderBy(asc(phoneDirectory.airbaseName)));
   }),
@@ -25,56 +42,37 @@ directoryRouter.get(
 
 directoryRouter.post(
   "/",
-  requireInstruct,
-  validate(insertPhoneDirectorySchema),
+  validate(createDirectorySchema),
   asyncHandler(async (req, res) => {
-    const me = currentUser(req);
-    const b = req.body as z.infer<typeof insertPhoneDirectorySchema>;
-    const [existing] = await db
-      .select({ id: phoneDirectory.id })
-      .from(phoneDirectory)
-      .where(eq(phoneDirectory.airbaseCode, b.airbaseCode))
-      .limit(1);
-    if (existing) throw new Conflict(`Airbase code ${b.airbaseCode} already exists`);
+    const b = req.body as z.infer<typeof createDirectorySchema>;
+    await assertCodeFree(b.airbaseCode);
     const [row] = await db.insert(phoneDirectory).values(b).returning();
-    await logActivity({ actor: me, action: "CREATE", resourceType: "Directory", resourceId: row.id, resourceName: `${row.airbaseCode} ${row.airbaseName}` });
+    await logActivity({ actor: currentUser(req), action: "CREATE", resourceType: "Directory", resourceId: row.id, resourceName: `${row.airbaseCode} ${row.airbaseName}` });
     res.status(201).json(row);
   }),
 );
 
-directoryRouter.put(
+directoryRouter.patch(
   "/:id",
-  requireInstruct,
   validate(updateDirectorySchema),
   asyncHandler(async (req, res) => {
-    const me = currentUser(req);
     const id = parseId(req.params.id);
     const b = req.body as z.infer<typeof updateDirectorySchema>;
-    if (Object.keys(b).length === 0) throw new BadRequest("Nothing to update");
-    if (b.airbaseCode !== undefined) {
-      const [clash] = await db
-        .select({ id: phoneDirectory.id })
-        .from(phoneDirectory)
-        .where(and(eq(phoneDirectory.airbaseCode, b.airbaseCode), ne(phoneDirectory.id, id)))
-        .limit(1);
-      if (clash) throw new Conflict(`Airbase code ${b.airbaseCode} already exists`);
-    }
+    if (b.airbaseCode !== undefined) await assertCodeFree(b.airbaseCode, id);
     const [row] = await db.update(phoneDirectory).set(b).where(eq(phoneDirectory.id, id)).returning();
     if (!row) throw new NotFound("Directory entry");
-    await logActivity({ actor: me, action: "UPDATE", resourceType: "Directory", resourceId: row.id, resourceName: `${row.airbaseCode} ${row.airbaseName}` });
+    await logActivity({ actor: currentUser(req), action: "UPDATE", resourceType: "Directory", resourceId: row.id, resourceName: `${row.airbaseCode} ${row.airbaseName}` });
     res.json(row);
   }),
 );
 
 directoryRouter.delete(
   "/:id",
-  requireInstruct,
   asyncHandler(async (req, res) => {
-    const me = currentUser(req);
     const id = parseId(req.params.id);
     const [row] = await db.delete(phoneDirectory).where(eq(phoneDirectory.id, id)).returning();
     if (!row) throw new NotFound("Directory entry");
-    await logActivity({ actor: me, action: "DELETE", resourceType: "Directory", resourceId: id, resourceName: `${row.airbaseCode} ${row.airbaseName}` });
+    await logActivity({ actor: currentUser(req), action: "DELETE", resourceType: "Directory", resourceId: id, resourceName: `${row.airbaseCode} ${row.airbaseName}` });
     res.json({ id });
   }),
 );

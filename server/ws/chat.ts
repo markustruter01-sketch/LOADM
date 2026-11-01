@@ -1,67 +1,65 @@
 import type { Server, IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocketServer, WebSocket } from "ws";
-import { ROLES, type Role } from "@shared/constants";
+import { ROLES, roleHas, type Role } from "@shared/constants";
+import { insertChatMessageSchema, type User } from "@shared/schema";
 import { DEMO_ROLE_COOKIE, loadPersona } from "../middleware/persona";
-import { purgeExpiredMessages } from "../services/chat-service";
+import { createMessage, purgeExpiredMessages } from "../services/chat-service";
 import { logger } from "../lib/logger";
 
 /**
- * Push channel for the help-desk chat. Clients receive frames when a message
- * is posted, deleted or the room is cleared; they never send chat content
- * here (posting goes through REST, which calls `broadcast`). The only
- * client→server frame is {type:'ping'}, answered with {type:'pong'}.
+ * Help-desk chat socket, speaking the protocol of components/chat-system.tsx:
+ *   client → {type:'auth', ...}                         server → {type:'auth_success'}
+ *   client → {type:'chat_message', messageType, content} server → {type:'new_message', message} to everyone
+ * Identity is the persona cookie read at upgrade; the client's auth frame is
+ * acknowledged but never trusted.
  */
 
-export const WS_PATH = "/ws";
+const WS_PATH = "/ws";
 const HEARTBEAT_MS = 30_000;
 const CLEANUP_MS = 6 * 60 * 60 * 1000;
 /** Close code sent when the visitor has not chosen a role. */
 const CLOSE_NO_PERSONA = 4401;
 
-export type ServerFrame =
-  | { type: "message"; message: unknown }
-  | { type: "deleted"; id: number }
-  | { type: "cleared" }
-  | { type: "pong" };
-
 const clients = new Set<WebSocket>();
 const alive = new WeakMap<WebSocket, boolean>();
 
-/** Send a JSON frame to every open socket. */
-export function broadcast(frame: object): void {
-  const data = JSON.stringify(frame);
-  for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(data);
-  }
+function send(ws: WebSocket, frame: object): void {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(frame));
 }
 
-function parseCookies(header: string | undefined): Record<string, string> {
-  const out: Record<string, string> = {};
-  if (!header) return out;
-  for (const part of header.split(";")) {
+function broadcast(frame: object): void {
+  for (const ws of clients) send(ws, frame);
+}
+
+function cookieValue(header: string | undefined, name: string): string | undefined {
+  for (const part of (header ?? "").split(";")) {
     const idx = part.indexOf("=");
-    if (idx === -1) continue;
-    const name = part.slice(0, idx).trim();
-    if (!name) continue;
-    const raw = part.slice(idx + 1).trim();
-    try {
-      out[name] = decodeURIComponent(raw);
-    } catch {
-      out[name] = raw;
-    }
+    if (idx !== -1 && part.slice(0, idx).trim() === name) return decodeURIComponent(part.slice(idx + 1).trim());
   }
-  return out;
+  return undefined;
 }
 
 function isRole(v: unknown): v is Role {
   return typeof v === "string" && (ROLES as readonly string[]).includes(v);
 }
 
-function pathnameOf(req: IncomingMessage): string {
-  const url = req.url ?? "/";
-  const q = url.indexOf("?");
-  return q === -1 ? url : url.slice(0, q);
+async function handleFrame(ws: WebSocket, persona: User, frame: { type?: unknown }): Promise<void> {
+  if (frame.type === "auth") {
+    send(ws, { type: "auth_success" });
+    return;
+  }
+  if (frame.type !== "chat_message") return;
+  const parsed = insertChatMessageSchema.safeParse(frame);
+  if (!parsed.success) {
+    send(ws, { type: "error", message: "Invalid message" });
+    return;
+  }
+  if (parsed.data.messageType === "answer" && !roleHas(persona.role, "instruct")) {
+    send(ws, { type: "error", message: "Only instructors can post answers" });
+    return;
+  }
+  broadcast({ type: "new_message", message: await createMessage(persona, parsed.data) });
 }
 
 export function attachChatServer(httpServer: Server): void {
@@ -70,40 +68,49 @@ export function attachChatServer(httpServer: Server): void {
   const wss = new WebSocketServer({ noServer: true });
 
   httpServer.on("upgrade", (req: IncomingMessage, socket: Duplex, head: Buffer) => {
-    if (pathnameOf(req) !== WS_PATH) return;
+    if ((req.url ?? "/").split("?")[0] !== WS_PATH) return;
     wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
   });
 
   wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
-    const role = parseCookies(req.headers.cookie)[DEMO_ROLE_COOKIE];
-    void (async () => {
-      const persona = isRole(role) ? await loadPersona(role).catch(() => undefined) : undefined;
+    // Listeners are attached at once so frames sent on open (the client's auth) are not lost.
+    const personaReady = (async () => {
+      const role = cookieValue(req.headers.cookie, DEMO_ROLE_COOKIE);
+      return isRole(role) ? loadPersona(role) : undefined;
+    })().catch((err) => {
+      logger.error({ err }, "chat socket persona lookup failed");
+      return undefined;
+    });
+
+    ws.on("message", (raw) => {
+      void personaReady.then(async (persona) => {
+        if (!persona) return;
+        let frame: { type?: unknown };
+        try {
+          frame = JSON.parse(raw.toString()) as { type?: unknown };
+        } catch {
+          return;
+        }
+        await handleFrame(ws, persona, frame).catch((err) => {
+          logger.error({ err, userId: persona.id }, "chat message failed");
+          send(ws, { type: "error", message: "Failed to save message" });
+        });
+      });
+    });
+    ws.on("pong", () => alive.set(ws, true));
+    ws.on("close", () => clients.delete(ws));
+    ws.on("error", (err) => {
+      logger.warn({ err }, "chat socket error");
+      clients.delete(ws);
+    });
+
+    void personaReady.then((persona) => {
       if (!persona) {
         ws.close(CLOSE_NO_PERSONA, "Select a role to continue");
         return;
       }
       clients.add(ws);
       alive.set(ws, true);
-
-      ws.on("pong", () => alive.set(ws, true));
-      ws.on("message", (raw) => {
-        try {
-          const frame = JSON.parse(raw.toString()) as { type?: unknown };
-          if (frame.type === "ping" && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "pong" } satisfies ServerFrame));
-          }
-        } catch {
-          // Malformed frames are ignored; chat content is never accepted here.
-        }
-      });
-      ws.on("close", () => clients.delete(ws));
-      ws.on("error", (err) => {
-        logger.warn({ err, userId: persona.id }, "chat socket error");
-        clients.delete(ws);
-      });
-    })().catch((err) => {
-      logger.error({ err }, "chat socket auth failed");
-      ws.close(CLOSE_NO_PERSONA, "Select a role to continue");
     });
   });
 

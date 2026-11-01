@@ -236,7 +236,7 @@ export default function SuperAdminDashboard() {
             <Button
               variant="outline"
               onClick={() => {
-                fetch('/api/logout', { method: 'POST' }).then(() => { window.location.href = '/auth'; });
+                fetch('/api/logout', { method: 'POST' }).then(() => { window.location.href = '/'; });
               }}
               className="border-slate-600 text-slate-300 hover:bg-slate-800"
             >

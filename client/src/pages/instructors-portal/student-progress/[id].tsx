@@ -107,7 +107,7 @@ export default function SubmissionReview() {
   
   // Fetch scenario data
   const { data: scenario } = useQuery<Scenario>({
-    queryKey: ['/api/scenarios', submission?.scenarioId],
+    queryKey: [`/api/scenarios/${submission?.scenarioId}`],
     enabled: !!submission?.scenarioId,
   });
   

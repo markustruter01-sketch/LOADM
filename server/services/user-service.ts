@@ -15,10 +15,6 @@ export function toPublicUser(u: User): PublicUser {
   };
 }
 
-export function fullName(u: Pick<User, "firstName" | "lastName" | "rank">): string {
-  return `${u.rank} ${u.firstName} ${u.lastName}`.trim();
-}
-
 export async function getUser(id: number): Promise<User> {
   const [row] = await db.select().from(users).where(eq(users.id, id)).limit(1);
   if (!row) throw new NotFound("User");

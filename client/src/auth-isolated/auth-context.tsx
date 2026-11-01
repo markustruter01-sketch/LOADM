@@ -2,6 +2,7 @@
 // This works independently of everything else in the app
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { Role } from '@shared/constants';
 
 interface User {
   id: number;
@@ -19,7 +20,7 @@ interface User {
 interface IsolatedAuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (role: Role) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
@@ -64,8 +65,7 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('✅ ISOLATED CLIENT: Login attempt for', email);
+  const login = async (role: Role): Promise<boolean> => {
     try {
       const response = await fetch('/auth-isolated/login', {
         method: 'POST',
@@ -74,46 +74,13 @@ export function IsolatedAuthProvider({ children }: { children: ReactNode }) {
           'Accept': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ role })
       });
-
-      console.log('✅ ISOLATED CLIENT: Response status:', response.status);
-      console.log('✅ ISOLATED CLIENT: Response headers:', response.headers.get('content-type'));
-      
-      if (response.ok) {
-        const responseText = await response.text();
-        console.log('✅ ISOLATED CLIENT: Raw response:', responseText);
-        
-        try {
-          const userData = JSON.parse(responseText);
-          console.log('✅ ISOLATED CLIENT: Login SUCCESS');
-          setUser(userData);
-          return true;
-        } catch (parseError) {
-          console.error('✅ ISOLATED CLIENT: JSON parse error:', parseError);
-          console.error('✅ ISOLATED CLIENT: Response was:', responseText);
-          return false;
-        }
-      } else {
-        const errorText = await response.text();
-        console.log('✅ ISOLATED CLIENT: Login FAILED - Response:', errorText);
-        
-        // Handle license expiry errors
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.code === 'LICENSE_EXPIRED') {
-            throw new Error('Your license has expired. Please contact your administrator to renew your access.');
-          } else if (errorData.code === 'INVALID_LICENSE') {
-            throw new Error('Your license is invalid or inactive. Please contact your administrator.');
-          }
-        } catch (parseError) {
-          // If JSON parsing fails, continue with generic error
-        }
-        
-        return false;
-      }
+      if (!response.ok) return false;
+      setUser(await response.json());
+      return true;
     } catch (error) {
-      console.error('✅ ISOLATED CLIENT: Login error:', error);
+      console.error('Login error:', error);
       return false;
     }
   };
