@@ -1,50 +1,64 @@
-# LOADMworkflow - Military Logistics Training Platform
+# LOADM — Loadmaster Training & Operations Platform
 
-## Overview
-A comprehensive military logistics and training management platform designed for loadmaster operations, featuring advanced authentication, role-based access controls, and comprehensive analytics.
+A full-stack showcase of a training, assessment and workforce-readiness platform for air mobility loadmasters. It covers the whole training pipeline — modules, quizzes drawn from a managed question bank, instructor-marked scenarios, checklists, load planning for four airframes, flight logs and qualification currency — and rolls it up into squadron-level readiness, safety and performance analytics for command.
 
-## Architecture
-- **Frontend**: React + TypeScript + Shadcn/ui
-- **Backend**: Express.js + TypeScript  
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Custom isolated session management
-- **Deployment**: Replit-ready configuration
+There is no login. Open the app, pick a role, and use it from that seat. Everything is live and editable; the data is fictional and resets daily.
 
-## Key Features
-- Role-based access control (Superadmin, Instructor, Student)
-- Advanced analytics dashboard with performance tracking
-- Quiz and scenario management system
-- Document submission and review system
-- Real-time chat functionality
-- Comprehensive licensing system
+| Role | What you get |
+| --- | --- |
+| **Student** | Training modules with assessments, quizzes, scenarios, checklists, personal progress and streaks |
+| **Qualified Loadmaster** | Everything above plus interactive load planning, missions, operational forms, flight log, qualifications, crew chat |
+| **Instructor** | Author quizzes, scenarios, modules and checklists; review queue with marking; student roster with at-risk flags; question bank; safety records |
+| **Command** | Squadron readiness with 90-day history, qualification forecasting, safety compliance, flight operations, rule-based recommendations, audit log |
 
-## Security Features
-- Isolated authentication system
-- Secure session management
-- Input validation and sanitization
-- Role-based API protection
-- Secure password handling with bcrypt
+## Stack
 
-## Database Schema
-See `shared/schema.ts` for complete database schema including:
-- User management and licensing
-- Quiz and scenario systems
-- Submission tracking
-- Analytics data
+- **Client:** React 18, TypeScript, Vite, wouter, TanStack Query, react-hook-form + Zod, shadcn/ui (Radix), Tailwind, Recharts
+- **Server:** Node 20, Express, TypeScript, Drizzle ORM, PostgreSQL (Neon serverless driver), Zod validation, pino logging, WebSockets for live chat
+- **Shared:** one `shared/` package holds the schema, every enum and every business threshold, so client and server never disagree about a pass mark or a squadron name
 
-## Development
+## Architecture notes
+
+- `shared/constants.ts` is the single source of truth for roles, capabilities, squadrons, aircraft, thresholds and pass-mark resolution.
+- `shared/schema.ts` is the single source of truth for tables and request validation (Drizzle tables + Zod schemas side by side).
+- Roles are capability sets (`train` → `assess` → `operate` → `instruct` → `command`). The server authorises with `requireCapability`; the client gates navigation and controls with the same table.
+- Every API route lives in one domain router under `server/routes/`, validates its input with Zod, derives identity and scores server-side, and reports errors through one JSON error handler.
+- Quiz grading is attempt-based: the questions served to a student are stored with the attempt and graded by question id, so a student is only ever graded on what they saw.
+- Readiness has one definition (`server/services/readiness-service.ts`) used by the live dashboard, the daily snapshot and the seed.
+- Demo data is generated deterministically (`server/seed/`) so every reset produces the same world; a Postgres advisory lock makes reset safe across instances.
+
+## Running locally
+
 ```bash
+cp .env.example .env            # set DATABASE_URL to any PostgreSQL 14+
 npm install
-npm run dev
+npm run db:push                 # create the schema (or db:migrate once migrations are generated)
+npm run dev                     # http://localhost:5000 — seeds demo data on first boot
 ```
 
-## Production Deployment
-Ready for deployment on Replit with automatic SSL and health checks.
+Other scripts: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build && npm start`, `npm run db:reset` (restore seed data).
 
-## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string
-- `OPENAI_API_KEY` - OpenAI API key for AI features
-- `SENDGRID_API_KEY` - SendGrid API key for email services
+## Deploying
 
-## License
-Proprietary - Digital Dynamics
+The app is a single Node process serving the API and the built client. `Dockerfile` builds a production image; any host with a PostgreSQL database works (Render, Railway, Fly, a VPS). Set `DATABASE_URL`, optionally `DEMO_RESET_HOUR_UTC` (default 16) and `UPLOAD_DIR` (mount a volume if uploads should survive restarts).
+
+## Project layout
+
+```
+client/src
+  components/   shared UI (common.tsx, layout/, load-planning/, chat/, …)
+  lib/          api client, query keys, persona context, navigation
+  pages/        one folder per area: training, quizzes, scenarios, instructor, command, …
+server
+  routes/       one router per domain, mounted once in routes/index.ts
+  services/     business logic (grading, readiness, analytics, demo reset)
+  middleware/   persona (role) resolution, validation, error handling
+  seed/         deterministic demo dataset
+shared
+  constants.ts  enums, roles, thresholds
+  schema.ts     Drizzle tables + Zod request schemas
+```
+
+## Licence
+
+MIT. All personnel, units, incidents and figures in the demo data are fictional.

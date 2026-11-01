@@ -1,711 +1,119 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, foreignKey, real } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import {
+  pgTable,
+  pgEnum,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  json,
+  real,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import {
+  ROLES,
+  SQUADRONS,
+  CATEGORIES,
+  AIRCRAFT_TYPES,
+  DIFFICULTIES,
+  QUESTION_DIFFICULTIES,
+  QUESTION_CATEGORIES,
+  SUBMISSION_STATUSES,
+  SUBMISSION_TYPES,
+  SAFETY_RECORD_TYPES,
+  SAFETY_SEVERITIES,
+  SAFETY_STATUSES,
+  CHECKLIST_CATEGORIES,
+  MODULE_CONTENT_TYPES,
+  CHAT_MESSAGE_TYPES,
+} from "./constants";
 
-// Contact interface for phone directory
-export interface Contact {
-  id: string;
-  name: string;
-  phoneNumber: string;
-  description: string;
-}
+// ---------------------------------------------------------------------------
+// Enums (mirrors shared/constants.ts — that file is the source of the values)
+// ---------------------------------------------------------------------------
 
-// License schema - Updated for email-only authentication
-export const licenses = pgTable("licenses", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").default(""),
-  licenseKey: text("license_key").notNull().unique(),
-  licenseType: text("license_type").notNull().default("loadmaster"), // loadmaster, instructor, superadmin, readonly
-  squadron: text("squadron").default("AMG").notNull(), // 33SQN | 35SQN | 36SQN | 37SQN (flying units) | AMG (leadership/admin container only)
-  category: text("category").default("D").notNull(), // D, C, B, A (seniority level)
-  isActive: boolean("is_active").default(true).notNull(),
-  issuedDate: timestamp("issued_date").defaultNow().notNull(),
-  expiryDate: timestamp("expiry_date").notNull(),
-  maxConcurrentSessions: integer("max_concurrent_sessions").default(1).notNull(),
-  maxDevices: integer("max_devices").default(2).notNull(),
-  createdByAdmin: integer("created_by_admin").notNull(),
-  notes: text("notes").default(""),
-  totalMissionsFlown: integer("total_missions_flown").default(0),
-  totalCargoWeight: integer("total_cargo_weight").default(0),
-  totalFlightHours: real("total_flight_hours").default(0),
-  totalNightHours: real("total_night_hours").default(0),
-  totalDayHours: real("total_day_hours").default(0),
-  totalCargoCarried: integer("total_cargo_carried").default(0),
-  totalPassengersCarried: integer("total_passengers_carried").default(0),
-  profilePhotoUrl: text("profile_photo_url"),
-  isFlightReady: boolean("is_flight_ready").default(true).notNull(),
-  notReadyReason: text("not_ready_reason"),
-  readinessUpdatedAt: timestamp("readiness_updated_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+export const roleEnum = pgEnum("role", ROLES);
+export const squadronEnum = pgEnum("squadron", SQUADRONS);
+export const categoryEnum = pgEnum("category", CATEGORIES);
+export const aircraftEnum = pgEnum("aircraft_type", AIRCRAFT_TYPES);
+export const difficultyEnum = pgEnum("difficulty", DIFFICULTIES);
+export const questionDifficultyEnum = pgEnum("question_difficulty", QUESTION_DIFFICULTIES);
+export const questionCategoryEnum = pgEnum("question_category", QUESTION_CATEGORIES);
+export const submissionStatusEnum = pgEnum("submission_status", SUBMISSION_STATUSES);
+export const submissionTypeEnum = pgEnum("submission_type", SUBMISSION_TYPES);
+export const safetyRecordTypeEnum = pgEnum("safety_record_type", SAFETY_RECORD_TYPES);
+export const safetySeverityEnum = pgEnum("safety_severity", SAFETY_SEVERITIES);
+export const safetyStatusEnum = pgEnum("safety_status", SAFETY_STATUSES);
+export const checklistCategoryEnum = pgEnum("checklist_category", CHECKLIST_CATEGORIES);
+export const moduleContentTypeEnum = pgEnum("module_content_type", MODULE_CONTENT_TYPES);
+export const chatMessageTypeEnum = pgEnum("chat_message_type", CHAT_MESSAGE_TYPES);
 
-// User schema - Email-only authentication with password tracking
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  hashedPassword: text("hashed_password").notNull(),
-  isFirstLogin: boolean("is_first_login").default(true).notNull(),
-  hasCompletedOnboarding: boolean("has_completed_onboarding").default(false).notNull(),
-  isAdmin: boolean("is_admin").default(false).notNull(),
-  isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
-  licenseId: integer("license_id").references(() => licenses.id, { onDelete: "cascade" }),
-  userRole: text("user_role").default("loadmaster").notNull(),
-  createdBy: integer("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastLogin: timestamp("last_login"),
-});
+const timestamps = {
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+};
 
-// License sessions tracking
-export const licenseSessions = pgTable("license_sessions", {
-  id: serial("id").primaryKey(),
-  licenseId: integer("license_id").notNull().references(() => licenses.id, { onDelete: "cascade" }),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
-  deviceFingerprint: text("device_fingerprint").notNull(),
-  ipAddress: text("ip_address").notNull(),
-  userAgent: text("user_agent").notNull(),
-  loginTime: timestamp("login_time").defaultNow().notNull(),
-  lastActivity: timestamp("last_activity").defaultNow().notNull(),
-  logoutTime: timestamp("logout_time"),
-  status: text("status").notNull().default("active"), // active, inactive, expired
-});
+// ---------------------------------------------------------------------------
+// People
+// ---------------------------------------------------------------------------
 
-// License audit log
-export const licenseAuditLog = pgTable("license_audit_log", {
-  id: serial("id").primaryKey(),
-  licenseId: integer("license_id").references(() => licenses.id, { onDelete: "cascade" }),
-  adminId: integer("admin_id").notNull().references(() => users.id),
-  action: text("action").notNull(), // created, modified, suspended, activated, deleted
-  details: json("details"),
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
-});
+/**
+ * One row per person. Replaces the old users + licenses pair.
+ * There is no authentication: a visitor picks a role and is attached to the
+ * `isDemoPersona` user for that role.
+ */
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    rank: text("rank").notNull().default("LAC"),
+    role: roleEnum("role").notNull(),
+    squadron: squadronEnum("squadron").notNull(),
+    category: categoryEnum("category").notNull().default("D"),
+    profilePhotoUrl: text("profile_photo_url"),
+    isActive: boolean("is_active").notNull().default(true),
+    /** The user a visitor "becomes" when they pick this role. One per role. */
+    isDemoPersona: boolean("is_demo_persona").notNull().default(false),
+    isFlightReady: boolean("is_flight_ready").notNull().default(true),
+    notReadyReason: text("not_ready_reason"),
+    readinessUpdatedAt: timestamp("readiness_updated_at", { withTimezone: true }),
+    lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    index("users_squadron_idx").on(t.squadron),
+    index("users_role_idx").on(t.role),
+    uniqueIndex("users_demo_persona_role_idx")
+      .on(t.role)
+      .where(sql`${t.isDemoPersona} = true`),
+  ],
+);
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-  lastLogin: true,
-});
-
-export const insertLicenseSchema = createInsertSchema(licenses).omit({
-  id: true,
-  createdAt: true,
   updatedAt: true,
+  isDemoPersona: true,
+  lastActiveAt: true,
 });
+export const updateUserProfileSchema = insertUserSchema
+  .pick({ firstName: true, lastName: true, rank: true, squadron: true, category: true })
+  .partial();
 
-export const insertLicenseSessionSchema = createInsertSchema(licenseSessions).pick({
-  licenseId: true,
-  userId: true,
-  deviceFingerprint: true,
-  ipAddress: true,
-  userAgent: true,
-});
+// ---------------------------------------------------------------------------
+// Documents (form templates) and submissions
+// ---------------------------------------------------------------------------
 
-// Document schema
-export const documents = pgTable("documents", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-  type: text("type").notNull(),
-  fields: json("fields").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertDocumentSchema = createInsertSchema(documents).pick({
-  title: true,
-  description: true,
-  type: true,
-  fields: true,
-});
-
-// Document submission schema
-export const documentSubmissions = pgTable("document_submissions", {
-  id: serial("id").primaryKey(),
-  documentId: integer("document_id")
-    .notNull()
-    .references(() => documents.id, { onDelete: "cascade" }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  submissionDate: timestamp("submission_date").defaultNow().notNull(),
-  formData: json("form_data").notNull(),
-});
-
-export const insertDocumentSubmissionSchema = createInsertSchema(documentSubmissions).pick({
-  documentId: true,
-  userId: true,
-  formData: true,
-});
-
-// Scenario schema
-export const scenarios = pgTable("scenarios", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  numberOfQuestions: integer("number_of_questions").notNull(),
-  questions: json("questions").notNull(),
-  passingThreshold: integer("passing_threshold").default(70), // Default 70% threshold
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertScenarioSchema = createInsertSchema(scenarios).pick({
-  title: true,
-  description: true,
-  numberOfQuestions: true,
-  questions: true,
-  passingThreshold: true,
-});
-
-// Scenario Submission Schema - Updated to match actual database structure
-export const scenarioSubmissions = pgTable("scenario_submissions", {
-  id: serial("id").primaryKey(),
-  scenarioId: integer("scenario_id")
-    .notNull()
-    .references(() => scenarios.id, { onDelete: "cascade" }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  submissionDate: timestamp("submission_date").defaultNow().notNull(),
-  answers: json("answers").notNull().$type<Array<{questionId: string, answer: string, notes?: string}>>(),
-  score: integer("score"),
-  studentName: text("student_name"),
-  studentId: text("student_id"),
-  instructorFeedback: text("instructor_feedback"),
-  markedAnswers: json("marked_answers"),
-  status: text("status").default("submitted").notNull(),
-  passed: boolean("passed").default(false),
-  squadron: text("squadron"),
-  timeSpent: integer("time_spent"),
-  notes: text("notes"),
-  submissionType: text("submission_type").default("assessment").notNull(), // "training" or "assessment"
-  reviewedBy: text("reviewed_by"),
-  reviewedAt: timestamp("reviewed_at"),
-  questionFeedback: json("question_feedback").$type<Record<string, string>>(),
-  notificationSeen: boolean("notification_seen").default(true).notNull(),
-});
-
-export const insertScenarioSubmissionSchema = createInsertSchema(scenarioSubmissions, {
-  answers: z.array(z.object({
-    questionId: z.string(),
-    answer: z.string(),
-    notes: z.string().optional()
-  }))
-}).pick({
-  scenarioId: true,
-  answers: true,
-  studentName: true,
-  studentId: true,
-  squadron: true,
-  timeSpent: true,
-  notes: true,
-  score: true,
-  status: true,
-  submissionType: true,
-});
-
-// Quiz schema
-export const quizzes = pgTable("quizzes", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").default('').notNull(),
-  createdById: integer("created_by_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  questionCount: integer("question_count").notNull(),
-  categories: json("categories").notNull().$type<string[]>(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  expiresAt: timestamp("expires_at"),
-});
-
-export const insertQuizSchema = createInsertSchema(quizzes).pick({
-  title: true,
-  description: true,
-  createdById: true,
-  questionCount: true,
-  categories: true,
-  isActive: true,
-  expiresAt: true,
-});
-
-// Quiz submission schema
-export const quizSubmissions = pgTable("quiz_submissions", {
-  id: serial("id").primaryKey(),
-  quizId: integer("quiz_id")
-    .notNull()
-    .references(() => quizzes.id, { onDelete: "cascade" }),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  submissionDate: timestamp("submission_date").defaultNow().notNull(),
-  answers: json("answers").notNull().$type<Array<{questionId: string, answeredOption: number}>>(),
-  score: integer("score").notNull(),
-  squadron: text("squadron").default('33SQN').notNull(), // 33SQN | 35SQN | 36SQN | 37SQN — flying units only; null recorded as unattributed
-});
-
-export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).pick({
-  quizId: true,
-  userId: true,
-  answers: true,
-  score: true,
-  squadron: true,
-});
-
-// Quiz Questions schema - Editable question bank for instructors
-export const quizQuestions = pgTable("quiz_questions", {
-  id: serial("id").primaryKey(),
-  category: text("category").notNull(), // dangerous-goods, loadmaster-fundamentals, etc.
-  questionText: text("question_text").notNull(),
-  correctAnswer: text("correct_answer").notNull(),
-  incorrectOption1: text("incorrect_option_1").notNull(),
-  incorrectOption2: text("incorrect_option_2").notNull(),
-  incorrectOption3: text("incorrect_option_3").notNull(),
-  difficulty: text("difficulty").notNull().default("medium"), // easy, medium, hard
-  createdById: integer("created_by_id")
-    .notNull()
-    .references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-});
-
-export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).pick({
-  category: true,
-  questionText: true,
-  correctAnswer: true,
-  incorrectOption1: true,
-  incorrectOption2: true,
-  incorrectOption3: true,
-  difficulty: true,
-  createdById: true,
-  isActive: true,
-});
-
-// Phone Directory schema (moved from later in file to avoid conflicts)
-export const phoneDirectory = pgTable("phone_directory", {
-  id: serial("id").primaryKey(),
-  airbaseCode: text("airbase_code").notNull(),
-  airbaseName: text("airbase_name").notNull(),
-  contacts: json("contacts").$type<Contact[]>().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertPhoneDirectorySchema = createInsertSchema(phoneDirectory).pick({
-  airbaseCode: true,
-  airbaseName: true,
-  contacts: true,
-});
-
-export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
-export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
-
-// Missions schema
-export const missions = pgTable("missions", {
-  id: serial("id").primaryKey(),
-  missionName: text("mission_name").notNull(),
-  aircraftCallSign: text("aircraft_call_sign").notNull(),
-  captainName: text("captain_name").notNull(),
-  departureLocation: text("departure_location").notNull(),
-  arrivalDestination: text("arrival_destination").notNull(),
-  loadmaster1Name: text("loadmaster1_name").notNull(),
-  loadmaster2Name: text("loadmaster2_name").default(""),
-  hasDangerousGoods: boolean("has_dangerous_goods").default(false).notNull(),
-  isCompleted: boolean("is_completed").default(false).notNull(),
-  completedAt: timestamp("completed_at"),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertMissionSchema = createInsertSchema(missions).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type InsertMission = z.infer<typeof insertMissionSchema>;
-export type Mission = typeof missions.$inferSelect;
-
-// Mission Documents - Links missions to PDF documents
-export const missionDocuments = pgTable("mission_documents", {
-  id: serial("id").primaryKey(),
-  missionId: integer("mission_id").notNull().references(() => missions.id, { onDelete: "cascade" }),
-  documentFilename: text("document_filename").notNull(),
-  documentTitle: text("document_title").notNull(),
-  addedAt: timestamp("added_at").defaultNow().notNull(),
-  addedBy: integer("added_by").notNull().references(() => users.id, { onDelete: "cascade" }),
-});
-
-export const insertMissionDocumentSchema = createInsertSchema(missionDocuments).omit({
-  id: true,
-  addedAt: true,
-});
-
-export type InsertMissionDocument = z.infer<typeof insertMissionDocumentSchema>;
-export type MissionDocument = typeof missionDocuments.$inferSelect;
-
-// Training Module Videos schema - For direct video uploads
-export const trainingModuleVideos = pgTable("training_module_videos", {
-  id: serial("id").primaryKey(),
-  moduleId: integer("module_id").notNull(), // Will reference training modules when that table exists
-  videoTitle: text("video_title").notNull(),
-  videoDescription: text("video_description"),
-  fileName: text("file_name").notNull(), // Original filename
-  filePath: text("file_path").notNull(), // Storage path on server
-  fileSize: integer("file_size").notNull(), // File size in bytes
-  mimeType: text("mime_type").notNull(), // video/mp4, video/webm, etc.
-  duration: integer("duration"), // Video duration in seconds
-  uploadedById: integer("uploaded_by_id").notNull().references(() => users.id),
-  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  videoOrder: integer("video_order").default(1).notNull(), // For ordering videos in a module (1-3)
-});
-
-export const insertTrainingModuleVideoSchema = createInsertSchema(trainingModuleVideos).pick({
-  moduleId: true,
-  videoTitle: true,
-  videoDescription: true,
-  fileName: true,
-  filePath: true,
-  fileSize: true,
-  mimeType: true,
-  duration: true,
-  uploadedById: true,
-  videoOrder: true,
-  isActive: true,
-});
-
-// Chat Messages schema
-export const chatMessages = pgTable("chat_messages", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  messageType: text("message_type").notNull(), // "question" or "answer"
-  content: text("content").notNull(),
-  userName: text("user_name").notNull(),
-  userRole: text("user_role").notNull(),
-  profilePhotoUrl: text("profile_photo_url"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
-  userId: true,
-  messageType: true,
-  content: true,
-  userName: true,
-  userRole: true,
-  profilePhotoUrl: true,
-});
-
-export type ChatMessage = typeof chatMessages.$inferSelect;
-export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
-
-// Checklists schema - For instructor-created checklists
-export const checklists = pgTable("checklists", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
-  aircraftType: text("aircraft_type").notNull(), // C-17, C-130, C-27J, KC30A, General
-  category: text("category").notNull().default("startup"), // startup, shutdown, pre-flight, post-flight, emergency
-  isActive: boolean("is_active").default(true).notNull(),
-  enforceLinearProgression: boolean("enforce_linear_progression").default(false).notNull(), // QRH mode: must complete items in order
-  createdById: integer("created_by_id").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertChecklistSchema = createInsertSchema(checklists).pick({
-  title: true,
-  description: true,
-  aircraftType: true,
-  category: true,
-  isActive: true,
-  enforceLinearProgression: true,
-  createdById: true,
-});
-
-export type Checklist = typeof checklists.$inferSelect;
-export type InsertChecklist = z.infer<typeof insertChecklistSchema>;
-
-// Checklist items schema - Individual items within a checklist
-export const checklistItems = pgTable("checklist_items", {
-  id: serial("id").primaryKey(),
-  checklistId: integer("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
-  itemText: text("item_text").notNull(),
-  itemOrder: integer("item_order").notNull(),
-  isRequired: boolean("is_required").default(true).notNull(),
-  category: text("category"), // Optional grouping like "Engine Start", "Systems Check"
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertChecklistItemSchema = createInsertSchema(checklistItems).pick({
-  checklistId: true,
-  itemText: true,
-  itemOrder: true,
-  isRequired: true,
-  category: true,
-});
-
-export type ChecklistItem = typeof checklistItems.$inferSelect;
-export type InsertChecklistItem = z.infer<typeof insertChecklistItemSchema>;
-
-// Checklist completions schema - User completions of checklists
-export const checklistCompletions = pgTable("checklist_completions", {
-  id: serial("id").primaryKey(),
-  checklistId: integer("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  completedItems: json("completed_items").$type<number[]>().notNull(), // Array of completed item IDs
-  completionStatus: text("completion_status").notNull().default("in_progress"), // in_progress, completed
-  startedAt: timestamp("started_at").defaultNow().notNull(),
-  completedAt: timestamp("completed_at"),
-  totalItems: integer("total_items").notNull(),
-  completedCount: integer("completed_count").notNull().default(0),
-});
-
-export const insertChecklistCompletionSchema = createInsertSchema(checklistCompletions).pick({
-  checklistId: true,
-  userId: true,
-  completedItems: true,
-  completionStatus: true,
-  completedAt: true,
-  totalItems: true,
-  completedCount: true,
-});
-
-export type ChecklistCompletion = typeof checklistCompletions.$inferSelect;
-export type InsertChecklistCompletion = z.infer<typeof insertChecklistCompletionSchema>;
-
-// Checklist step audit trail - Records each individual step completion with timestamp
-export const checklistStepAudit = pgTable("checklist_step_audit", {
-  id: serial("id").primaryKey(),
-  checklistId: integer("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
-  checklistItemId: integer("checklist_item_id").notNull().references(() => checklistItems.id, { onDelete: "cascade" }),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  completionId: integer("completion_id").notNull().references(() => checklistCompletions.id, { onDelete: "cascade" }),
-  action: text("action").notNull(), // 'checked' or 'unchecked'
-  stepOrder: integer("step_order").notNull(),
-  completedAt: timestamp("completed_at").defaultNow().notNull(),
-});
-
-export const insertChecklistStepAuditSchema = createInsertSchema(checklistStepAudit).pick({
-  checklistId: true,
-  checklistItemId: true,
-  userId: true,
-  completionId: true,
-  action: true,
-  stepOrder: true,
-});
-
-export type ChecklistStepAudit = typeof checklistStepAudit.$inferSelect;
-export type InsertChecklistStepAudit = z.infer<typeof insertChecklistStepAuditSchema>;
-
-// Relations
-export const usersRelations = relations(users, ({ many, one }) => ({
-  documentSubmissions: many(documentSubmissions),
-  scenarioSubmissions: many(scenarioSubmissions),
-  quizzes: many(quizzes),
-  quizSubmissions: many(quizSubmissions),
-  chatMessages: many(chatMessages),
-  checklists: many(checklists),
-  checklistCompletions: many(checklistCompletions),
-  license: one(licenses, {
-    fields: [users.licenseId],
-    references: [licenses.id],
-  }),
-  licenseSessions: many(licenseSessions),
-  auditLogs: many(licenseAuditLog),
-}));
-
-export const licensesRelations = relations(licenses, ({ many, one }) => ({
-  users: many(users),
-  sessions: many(licenseSessions),
-  auditLogs: many(licenseAuditLog),
-  createdBy: one(users, {
-    fields: [licenses.createdByAdmin],
-    references: [users.id],
-  }),
-}));
-
-export const licenseSessionsRelations = relations(licenseSessions, ({ one }) => ({
-  license: one(licenses, {
-    fields: [licenseSessions.licenseId],
-    references: [licenses.id],
-  }),
-  user: one(users, {
-    fields: [licenseSessions.userId],
-    references: [users.id],
-  }),
-}));
-
-export const licenseAuditLogRelations = relations(licenseAuditLog, ({ one }) => ({
-  license: one(licenses, {
-    fields: [licenseAuditLog.licenseId],
-    references: [licenses.id],
-  }),
-  admin: one(users, {
-    fields: [licenseAuditLog.adminId],
-    references: [users.id],
-  }),
-}));
-
-export const documentsRelations = relations(documents, ({ many }) => ({
-  submissions: many(documentSubmissions),
-}));
-
-export const documentSubmissionsRelations = relations(documentSubmissions, ({ one }) => ({
-  document: one(documents, {
-    fields: [documentSubmissions.documentId],
-    references: [documents.id],
-  }),
-  user: one(users, {
-    fields: [documentSubmissions.userId],
-    references: [users.id],
-  }),
-}));
-
-export const scenariosRelations = relations(scenarios, ({ many }) => ({
-  submissions: many(scenarioSubmissions),
-}));
-
-export const scenarioSubmissionsRelations = relations(scenarioSubmissions, ({ one }) => ({
-  scenario: one(scenarios, {
-    fields: [scenarioSubmissions.scenarioId],
-    references: [scenarios.id],
-  }),
-  user: one(users, {
-    fields: [scenarioSubmissions.userId],
-    references: [users.id],
-  }),
-}));
-
-export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
-  creator: one(users, {
-    fields: [quizzes.createdById],
-    references: [users.id],
-  }),
-  submissions: many(quizSubmissions),
-}));
-
-export const quizSubmissionsRelations = relations(quizSubmissions, ({ one }) => ({
-  quiz: one(quizzes, {
-    fields: [quizSubmissions.quizId],
-    references: [quizzes.id],
-  }),
-  user: one(users, {
-    fields: [quizSubmissions.userId],
-    references: [users.id],
-  }),
-}));
-
-export const quizQuestionsRelations = relations(quizQuestions, ({ one }) => ({
-  creator: one(users, {
-    fields: [quizQuestions.createdById],
-    references: [users.id],
-  }),
-}));
-
-export const trainingModuleVideosRelations = relations(trainingModuleVideos, ({ one }) => ({
-  uploadedBy: one(users, {
-    fields: [trainingModuleVideos.uploadedById],
-    references: [users.id],
-  }),
-}));
-
-export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
-  user: one(users, {
-    fields: [chatMessages.userId],
-    references: [users.id],
-  }),
-}));
-
-export const checklistsRelations = relations(checklists, ({ one, many }) => ({
-  creator: one(users, {
-    fields: [checklists.createdById],
-    references: [users.id],
-  }),
-  items: many(checklistItems),
-  completions: many(checklistCompletions),
-  stepAudits: many(checklistStepAudit),
-}));
-
-export const checklistItemsRelations = relations(checklistItems, ({ one, many }) => ({
-  checklist: one(checklists, {
-    fields: [checklistItems.checklistId],
-    references: [checklists.id],
-  }),
-  stepAudits: many(checklistStepAudit),
-}));
-
-export const checklistStepAuditRelations = relations(checklistStepAudit, ({ one }) => ({
-  checklist: one(checklists, {
-    fields: [checklistStepAudit.checklistId],
-    references: [checklists.id],
-  }),
-  checklistItem: one(checklistItems, {
-    fields: [checklistStepAudit.checklistItemId],
-    references: [checklistItems.id],
-  }),
-  user: one(users, {
-    fields: [checklistStepAudit.userId],
-    references: [users.id],
-  }),
-  completion: one(checklistCompletions, {
-    fields: [checklistStepAudit.completionId],
-    references: [checklistCompletions.id],
-  }),
-}));
-
-export const checklistCompletionsRelations = relations(checklistCompletions, ({ one }) => ({
-  checklist: one(checklists, {
-    fields: [checklistCompletions.checklistId],
-    references: [checklists.id],
-  }),
-  user: one(users, {
-    fields: [checklistCompletions.userId],
-    references: [users.id],
-  }),
-}));
-
-// Types
-export type InsertTrainingModuleVideo = z.infer<typeof insertTrainingModuleVideoSchema>;
-export type TrainingModuleVideo = typeof trainingModuleVideos.$inferSelect;
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
-export type InsertLicense = z.infer<typeof insertLicenseSchema>;
-export type License = typeof licenses.$inferSelect;
-
-export type InsertLicenseSession = z.infer<typeof insertLicenseSessionSchema>;
-export type LicenseSession = typeof licenseSessions.$inferSelect;
-
-export type LicenseAuditLog = typeof licenseAuditLog.$inferSelect;
-
-export type InsertDocument = z.infer<typeof insertDocumentSchema>;
-export type Document = typeof documents.$inferSelect;
-
-export type InsertDocumentSubmission = z.infer<typeof insertDocumentSubmissionSchema>;
-export type DocumentSubmission = typeof documentSubmissions.$inferSelect;
-
-export type InsertScenario = z.infer<typeof insertScenarioSchema>;
-export type Scenario = typeof scenarios.$inferSelect;
-
-export type InsertScenarioSubmission = z.infer<typeof insertScenarioSubmissionSchema>;
-export type ScenarioSubmission = typeof scenarioSubmissions.$inferSelect;
-
-export type InsertQuiz = z.infer<typeof insertQuizSchema>;
-export type Quiz = typeof quizzes.$inferSelect;
-
-export type InsertQuizSubmission = z.infer<typeof insertQuizSubmissionSchema>;
-export type QuizSubmission = typeof quizSubmissions.$inferSelect;
-
-export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
-export type QuizQuestion = typeof quizQuestions.$inferSelect;
-
-// Field type for document forms
 export type FormField = {
   id: string;
   label: string;
@@ -715,7 +123,54 @@ export type FormField = {
   required?: boolean;
 };
 
-// Question type for scenarios
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  type: text("type").notNull(),
+  fields: json("fields").$type<FormField[]>().notNull(),
+  createdById: integer("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+export const insertDocumentSchema = createInsertSchema(documents, {
+  fields: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      type: z.enum(["text", "number", "select", "checkbox", "date", "textarea"]),
+      placeholder: z.string().optional(),
+      options: z.array(z.string()).optional(),
+      required: z.boolean().optional(),
+    }),
+  ),
+}).pick({ title: true, description: true, type: true, fields: true });
+
+export const documentSubmissions = pgTable(
+  "document_submissions",
+  {
+    id: serial("id").primaryKey(),
+    documentId: integer("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+    formData: json("form_data").$type<Record<string, unknown>>().notNull(),
+  },
+  (t) => [index("document_submissions_user_idx").on(t.userId, t.submittedAt)],
+);
+
+export const insertDocumentSubmissionSchema = z.object({
+  documentId: z.number().int().positive(),
+  formData: z.record(z.unknown()),
+});
+
+// ---------------------------------------------------------------------------
+// Scenarios and submissions
+// ---------------------------------------------------------------------------
+
 export type ScenarioQuestion = {
   id: string;
   question: string;
@@ -724,241 +179,822 @@ export type ScenarioQuestion = {
   correctAnswer: string;
 };
 
-// User Qualifications/Currencies schema
-export const userQualifications = pgTable("user_qualifications", {
+export const scenarioQuestionSchema = z.object({
+  id: z.string().min(1),
+  question: z.string().min(1),
+  questionType: z.enum(["multiple-choice", "free-text"]),
+  options: z.array(z.string()).default([]),
+  correctAnswer: z.string().default(""),
+});
+
+export const scenarios = pgTable("scenarios", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  expiryDate: timestamp("expiry_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertUserQualificationSchema = createInsertSchema(userQualifications).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  startDate: z.coerce.date(),
-  expiryDate: z.coerce.date().nullable().optional(),
-});
-
-export type UserQualification = typeof userQualifications.$inferSelect;
-export type InsertUserQualification = z.infer<typeof insertUserQualificationSchema>;
-
-// Flight Records schema
-export const flightRecords = pgTable("flight_records", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  date: timestamp("date").notNull(),
-  callsign: text("callsign"),
-  departure: text("departure").notNull(),
-  arrival: text("arrival").notNull(),
-  passengersCarried: integer("passengers_carried").default(0),
-  cargoWeight: integer("cargo_weight").default(0),
-  captain: text("captain").notNull(),
-  nightHours: real("night_hours").default(0),
-  dayHours: real("day_hours").default(0),
-  aircraftType: text("aircraft_type").default("KC30A"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertFlightRecordSchema = createInsertSchema(flightRecords).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  date: z.coerce.date(),
-});
-
-export type FlightRecord = typeof flightRecords.$inferSelect;
-export type InsertFlightRecord = z.infer<typeof insertFlightRecordSchema>;
-
-// Safety Records schema - for tracking incidents, observations, and compliance
-export const safetyRecords = pgTable("safety_records", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  recordType: text("record_type").notNull(), // "incident", "observation", "commendation", "training_failure"
+  title: text("title").notNull(),
   description: text("description").notNull(),
-  severity: text("severity"), // "minor", "moderate", "major" - nullable for non-incidents
-  date: timestamp("date").notNull(),
-  reportedBy: integer("reported_by").references(() => users.id, { onDelete: "set null" }),
-  status: text("status").default("open").notNull(), // "open", "reviewed", "closed"
-  resolutionNotes: text("resolution_notes"),
-  squadron: text("squadron"),
-  // Aviation-specific fields
-  location: text("location"),                     // e.g. "RAAF Base Amberley", "En Route"
-  aircraftType: text("aircraft_type"),            // C130J, C17A, KC30A, C27J
-  flightPhase: text("flight_phase"),              // ground, taxi, takeoff, climb, cruise, descent, approach, landing, parking
-  safetyLevel: text("safety_level"),             // Level 1-Catastrophic, Level 2-Critical, Level 3-Marginal, Level 4-Negligible
-  immediateActions: text("immediate_actions"),    // What was done at the time
-  contributingFactors: text("contributing_factors"), // Causal/contributing factors
-  correctiveActions: text("corrective_actions"), // Follow-up actions to prevent recurrence
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  aircraft: aircraftEnum("aircraft"),
+  questions: json("questions").$type<ScenarioQuestion[]>().notNull(),
+  passingThreshold: integer("passing_threshold"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdById: integer("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
 });
 
-export const insertSafetyRecordSchema = createInsertSchema(safetyRecords).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  date: z.coerce.date(),
-  location: z.string().optional(),
-  aircraftType: z.string().optional(),
-  flightPhase: z.string().optional(),
-  safetyLevel: z.string().optional(),
-  immediateActions: z.string().optional(),
-  contributingFactors: z.string().optional(),
-  correctiveActions: z.string().optional(),
+export const insertScenarioSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().min(1),
+  aircraft: z.enum(AIRCRAFT_TYPES).nullable().optional(),
+  questions: z.array(scenarioQuestionSchema).min(1),
+  passingThreshold: z.number().int().min(0).max(100).nullable().optional(),
+  isActive: z.boolean().optional(),
 });
 
-export type SafetyRecord = typeof safetyRecords.$inferSelect;
-export type InsertSafetyRecord = z.infer<typeof insertSafetyRecordSchema>;
+export type ScenarioAnswer = { questionId: string; answer: string; notes?: string };
 
-// Standard qualification types for consistent tracking
-export const STANDARD_QUALIFICATION_TYPES = [
-  "Basic Loadmaster Certification",
-  "KC30A Type Rating",
-  "Night Operations Currency",
-  "Dangerous Goods (DG) Handling",
-  "Air-to-Air Refueling (AAR)",
-  "Aeromedical Evacuation",
-  "Combat Readiness",
-  "Annual Proficiency Check",
-  "Other"
-] as const;
+export const scenarioSubmissions = pgTable(
+  "scenario_submissions",
+  {
+    id: serial("id").primaryKey(),
+    scenarioId: integer("scenario_id")
+      .notNull()
+      .references(() => scenarios.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Squadron of the user at submission time (denormalised for analytics). */
+    squadron: squadronEnum("squadron").notNull(),
+    submissionType: submissionTypeEnum("submission_type").notNull().default("assessment"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+    answers: json("answers").$type<ScenarioAnswer[]>().notNull(),
+    timeSpentSeconds: integer("time_spent_seconds"),
+    notes: text("notes"),
+    status: submissionStatusEnum("status").notNull().default("submitted"),
+    /** Set by instructor review. */
+    score: integer("score"),
+    passed: boolean("passed"),
+    markedAnswers: json("marked_answers").$type<Record<string, boolean>>(),
+    questionFeedback: json("question_feedback").$type<Record<string, string>>(),
+    instructorFeedback: text("instructor_feedback"),
+    reviewedById: integer("reviewed_by_id").references(() => users.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    notificationSeen: boolean("notification_seen").notNull().default(true),
+  },
+  (t) => [
+    index("scenario_submissions_user_idx").on(t.userId, t.submittedAt),
+    index("scenario_submissions_scenario_idx").on(t.scenarioId),
+    index("scenario_submissions_status_idx").on(t.status),
+  ],
+);
 
-// Not ready reasons for readiness tracking
-export const NOT_READY_REASONS = [
-  "Medical",
-  "Leave/Personal",
-  "Currency Lapsed",
-  "Training Required",
-  "Administrative",
-  "Other"
-] as const;
+export const insertScenarioSubmissionSchema = z.object({
+  scenarioId: z.number().int().positive(),
+  answers: z.array(z.object({ questionId: z.string(), answer: z.string(), notes: z.string().optional() })).min(1),
+  submissionType: z.enum(SUBMISSION_TYPES).optional(),
+  timeSpentSeconds: z.number().int().nonnegative().optional(),
+  notes: z.string().max(5000).optional(),
+});
 
-// Training Modules schema - For instructor portal management
+export const reviewScenarioSubmissionSchema = z.object({
+  markedAnswers: z.record(z.boolean()),
+  questionFeedback: z.record(z.string()).optional(),
+  instructorFeedback: z.string().max(10000).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Quizzes: question bank, quiz definitions, attempts, submissions
+// ---------------------------------------------------------------------------
+
+export const quizQuestions = pgTable(
+  "quiz_questions",
+  {
+    id: serial("id").primaryKey(),
+    category: questionCategoryEnum("category").notNull(),
+    questionText: text("question_text").notNull(),
+    options: json("options").$type<string[]>().notNull(),
+    /** Index into `options`. Never sent to a student before they submit. */
+    correctIndex: integer("correct_index").notNull(),
+    explanation: text("explanation"),
+    difficulty: questionDifficultyEnum("difficulty").notNull().default("medium"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdById: integer("created_by_id").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [index("quiz_questions_category_idx").on(t.category, t.isActive)],
+);
+
+export const insertQuizQuestionSchema = z
+  .object({
+    category: z.enum(QUESTION_CATEGORIES),
+    questionText: z.string().min(5).max(2000),
+    options: z.array(z.string().min(1)).min(2).max(6),
+    correctIndex: z.number().int().nonnegative(),
+    explanation: z.string().max(2000).nullable().optional(),
+    difficulty: z.enum(QUESTION_DIFFICULTIES).optional(),
+    isActive: z.boolean().optional(),
+  })
+  .refine((q) => q.correctIndex < q.options.length, {
+    message: "correctIndex must point at one of the options",
+    path: ["correctIndex"],
+  });
+
+export const quizzes = pgTable("quizzes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  categories: json("categories").$type<string[]>().notNull(),
+  questionCount: integer("question_count").notNull(),
+  passingThreshold: integer("passing_threshold"),
+  timeLimitMinutes: integer("time_limit_minutes"),
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  createdById: integer("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+export const insertQuizSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  categories: z.array(z.enum(QUESTION_CATEGORIES)).min(1),
+  questionCount: z.number().int().min(1).max(100),
+  passingThreshold: z.number().int().min(0).max(100).nullable().optional(),
+  timeLimitMinutes: z.number().int().min(1).max(240).nullable().optional(),
+  isActive: z.boolean().optional(),
+  expiresAt: z.coerce.date().nullable().optional(),
+});
+
+/**
+ * The exact set of questions served to a user for one sitting. Submissions
+ * are graded against this set, by question id, so the student is never
+ * graded on questions they did not see.
+ */
+export const quizAttempts = pgTable(
+  "quiz_attempts",
+  {
+    id: serial("id").primaryKey(),
+    quizId: integer("quiz_id")
+      .notNull()
+      .references(() => quizzes.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    questionIds: json("question_ids").$type<number[]>().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  },
+  (t) => [index("quiz_attempts_user_quiz_idx").on(t.userId, t.quizId)],
+);
+
+export type QuizAnswer = { questionId: number; answeredIndex: number };
+
+export const quizSubmissions = pgTable(
+  "quiz_submissions",
+  {
+    id: serial("id").primaryKey(),
+    attemptId: integer("attempt_id")
+      .notNull()
+      .unique()
+      .references(() => quizAttempts.id, { onDelete: "cascade" }),
+    quizId: integer("quiz_id")
+      .notNull()
+      .references(() => quizzes.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    squadron: squadronEnum("squadron").notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+    answers: json("answers").$type<QuizAnswer[]>().notNull(),
+    correctCount: integer("correct_count").notNull(),
+    totalQuestions: integer("total_questions").notNull(),
+    score: integer("score").notNull(),
+    passed: boolean("passed").notNull(),
+    timeSpentSeconds: integer("time_spent_seconds"),
+  },
+  (t) => [
+    index("quiz_submissions_user_idx").on(t.userId, t.submittedAt),
+    index("quiz_submissions_quiz_idx").on(t.quizId),
+  ],
+);
+
+export const submitQuizSchema = z.object({
+  attemptId: z.number().int().positive(),
+  answers: z.array(z.object({ questionId: z.number().int(), answeredIndex: z.number().int().min(-1) })),
+  timeSpentSeconds: z.number().int().nonnegative().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Training modules
+// ---------------------------------------------------------------------------
+
 export const trainingModules = pgTable("training_modules", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  aircraft: text("aircraft").notNull(), // c17, c130, kc30a, c27j, all
-  difficulty: text("difficulty").notNull().default("beginner"), // beginner, intermediate, advanced, expert
-  duration: text("duration").notNull(),
-  topics: text("topics").array().default([]),
-  objectives: text("objectives").array().default([]),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  aircraft: aircraftEnum("aircraft"),
+  difficulty: difficultyEnum("difficulty").notNull().default("beginner"),
+  durationMinutes: integer("duration_minutes").notNull(),
+  topics: json("topics").$type<string[]>().notNull().default([]),
+  objectives: json("objectives").$type<string[]>().notNull().default([]),
+  passingThreshold: integer("passing_threshold"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdById: integer("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
 });
 
-export const insertTrainingModuleSchema = createInsertSchema(trainingModules).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertTrainingModuleSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().min(1),
+  aircraft: z.enum(AIRCRAFT_TYPES).nullable().optional(),
+  difficulty: z.enum(DIFFICULTIES).optional(),
+  durationMinutes: z.number().int().min(1).max(100000),
+  topics: z.array(z.string()).optional(),
+  objectives: z.array(z.string()).optional(),
+  passingThreshold: z.number().int().min(0).max(100).nullable().optional(),
+  isActive: z.boolean().optional(),
 });
+
+export type ModuleQuizQuestion = { id: string; question: string; options: string[]; correctIndex: number };
+
+export const trainingModuleContent = pgTable(
+  "training_module_content",
+  {
+    id: serial("id").primaryKey(),
+    moduleId: integer("module_id")
+      .notNull()
+      .references(() => trainingModules.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    type: moduleContentTypeEnum("type").notNull(),
+    durationMinutes: integer("duration_minutes").notNull().default(10),
+    description: text("description").notNull().default(""),
+    /** Markdown for readings. */
+    body: text("body"),
+    /** Questions for quiz/assessment content. */
+    questions: json("questions").$type<ModuleQuizQuestion[]>(),
+    videoUrl: text("video_url"),
+    orderIndex: integer("order_index").notNull().default(0),
+    isActive: boolean("is_active").notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [index("training_module_content_module_idx").on(t.moduleId, t.orderIndex)],
+);
+
+export const insertTrainingModuleContentSchema = z.object({
+  title: z.string().min(1).max(200),
+  type: z.enum(MODULE_CONTENT_TYPES),
+  durationMinutes: z.number().int().min(1).optional(),
+  description: z.string().optional(),
+  body: z.string().nullable().optional(),
+  questions: z
+    .array(
+      z.object({
+        id: z.string(),
+        question: z.string().min(1),
+        options: z.array(z.string()).min(2),
+        correctIndex: z.number().int().nonnegative(),
+      }),
+    )
+    .nullable()
+    .optional(),
+  videoUrl: z.string().url().nullable().optional(),
+  orderIndex: z.number().int().nonnegative().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const trainingModuleCompletions = pgTable(
+  "training_module_completions",
+  {
+    id: serial("id").primaryKey(),
+    moduleId: integer("module_id")
+      .notNull()
+      .references(() => trainingModules.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    squadron: squadronEnum("squadron").notNull(),
+    score: integer("score").notNull(),
+    passed: boolean("passed").notNull(),
+    correctCount: integer("correct_count").notNull(),
+    totalQuestions: integer("total_questions").notNull(),
+    answers: json("answers").$type<Record<string, number>>().notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("training_module_completions_user_idx").on(t.userId, t.submittedAt)],
+);
+
+export const submitModuleAssessmentSchema = z.object({
+  moduleId: z.number().int().positive(),
+  answers: z.record(z.number().int()),
+});
+
+export const trainingModuleVideos = pgTable("training_module_videos", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id")
+    .notNull()
+    .references(() => trainingModules.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  fileName: text("file_name").notNull(),
+  storedName: text("stored_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  orderIndex: integer("order_index").notNull().default(1),
+  uploadedById: integer("uploaded_by_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+// ---------------------------------------------------------------------------
+// Checklists
+// ---------------------------------------------------------------------------
+
+export const checklists = pgTable("checklists", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  aircraftType: text("aircraft_type").notNull(),
+  category: checklistCategoryEnum("category").notNull().default("startup"),
+  isActive: boolean("is_active").notNull().default(true),
+  enforceLinearProgression: boolean("enforce_linear_progression").notNull().default(false),
+  createdById: integer("created_by_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+export const checklistItems = pgTable(
+  "checklist_items",
+  {
+    id: serial("id").primaryKey(),
+    checklistId: integer("checklist_id")
+      .notNull()
+      .references(() => checklists.id, { onDelete: "cascade" }),
+    itemText: text("item_text").notNull(),
+    itemOrder: integer("item_order").notNull(),
+    isRequired: boolean("is_required").notNull().default(true),
+    section: text("section"),
+  },
+  (t) => [index("checklist_items_checklist_idx").on(t.checklistId, t.itemOrder)],
+);
+
+export const insertChecklistSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).nullable().optional(),
+  aircraftType: z.string().min(1),
+  category: z.enum(CHECKLIST_CATEGORIES).optional(),
+  isActive: z.boolean().optional(),
+  enforceLinearProgression: z.boolean().optional(),
+  items: z
+    .array(
+      z.object({
+        itemText: z.string().min(1),
+        isRequired: z.boolean().optional(),
+        section: z.string().nullable().optional(),
+      }),
+    )
+    .min(1),
+});
+
+export const checklistCompletions = pgTable(
+  "checklist_completions",
+  {
+    id: serial("id").primaryKey(),
+    checklistId: integer("checklist_id")
+      .notNull()
+      .references(() => checklists.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    completedItemIds: json("completed_item_ids").$type<number[]>().notNull(),
+    isComplete: boolean("is_complete").notNull().default(false),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("checklist_completions_user_checklist_idx").on(t.userId, t.checklistId)],
+);
+
+export const updateChecklistProgressSchema = z.object({
+  completedItemIds: z.array(z.number().int().positive()),
+});
+
+export const checklistStepAudit = pgTable(
+  "checklist_step_audit",
+  {
+    id: serial("id").primaryKey(),
+    completionId: integer("completion_id")
+      .notNull()
+      .references(() => checklistCompletions.id, { onDelete: "cascade" }),
+    checklistItemId: integer("checklist_item_id")
+      .notNull()
+      .references(() => checklistItems.id, { onDelete: "cascade" }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    action: text("action").notNull(), // checked | unchecked
+    at: timestamp("at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("checklist_step_audit_completion_idx").on(t.completionId, t.at)],
+);
+
+// ---------------------------------------------------------------------------
+// Missions
+// ---------------------------------------------------------------------------
+
+export const missions = pgTable(
+  "missions",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    missionName: text("mission_name").notNull(),
+    aircraft: aircraftEnum("aircraft").notNull(),
+    aircraftCallSign: text("aircraft_call_sign").notNull(),
+    captainName: text("captain_name").notNull(),
+    departureLocation: text("departure_location").notNull(),
+    arrivalDestination: text("arrival_destination").notNull(),
+    loadmaster1Name: text("loadmaster1_name").notNull(),
+    loadmaster2Name: text("loadmaster2_name"),
+    hasDangerousGoods: boolean("has_dangerous_goods").notNull().default(false),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("missions_user_idx").on(t.userId, t.createdAt)],
+);
+
+export const insertMissionSchema = z.object({
+  missionName: z.string().min(1).max(200),
+  aircraft: z.enum(AIRCRAFT_TYPES),
+  aircraftCallSign: z.string().min(1).max(50),
+  captainName: z.string().min(1).max(100),
+  departureLocation: z.string().min(1).max(100),
+  arrivalDestination: z.string().min(1).max(100),
+  loadmaster1Name: z.string().min(1).max(100),
+  loadmaster2Name: z.string().max(100).nullable().optional(),
+  hasDangerousGoods: z.boolean().optional(),
+});
+
+export const missionDocuments = pgTable("mission_documents", {
+  id: serial("id").primaryKey(),
+  missionId: integer("mission_id")
+    .notNull()
+    .references(() => missions.id, { onDelete: "cascade" }),
+  documentFilename: text("document_filename").notNull(),
+  documentTitle: text("document_title").notNull(),
+  addedById: integer("added_by_id").references(() => users.id, { onDelete: "set null" }),
+  addedAt: timestamp("added_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const insertMissionDocumentSchema = z.object({
+  documentFilename: z.string().min(1).max(255),
+  documentTitle: z.string().min(1).max(255),
+});
+
+// ---------------------------------------------------------------------------
+// Personnel records
+// ---------------------------------------------------------------------------
+
+export const userQualifications = pgTable(
+  "user_qualifications",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+    expiryDate: timestamp("expiry_date", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("user_qualifications_user_idx").on(t.userId), index("user_qualifications_expiry_idx").on(t.expiryDate)],
+);
+
+export const insertUserQualificationSchema = z.object({
+  name: z.string().min(1).max(200),
+  startDate: z.coerce.date(),
+  expiryDate: z.coerce.date().nullable().optional(),
+});
+
+export const flightRecords = pgTable(
+  "flight_records",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: timestamp("date", { withTimezone: true }).notNull(),
+    aircraft: aircraftEnum("aircraft").notNull(),
+    callsign: text("callsign"),
+    departure: text("departure").notNull(),
+    arrival: text("arrival").notNull(),
+    captain: text("captain").notNull(),
+    passengersCarried: integer("passengers_carried").notNull().default(0),
+    cargoWeightKg: integer("cargo_weight_kg").notNull().default(0),
+    dayHours: real("day_hours").notNull().default(0),
+    nightHours: real("night_hours").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [index("flight_records_user_date_idx").on(t.userId, t.date)],
+);
+
+export const insertFlightRecordSchema = z.object({
+  date: z.coerce.date(),
+  aircraft: z.enum(AIRCRAFT_TYPES),
+  callsign: z.string().max(50).nullable().optional(),
+  departure: z.string().min(1).max(100),
+  arrival: z.string().min(1).max(100),
+  captain: z.string().min(1).max(100),
+  passengersCarried: z.number().int().nonnegative().optional(),
+  cargoWeightKg: z.number().int().nonnegative().optional(),
+  dayHours: z.number().nonnegative().max(24).optional(),
+  nightHours: z.number().nonnegative().max(24).optional(),
+});
+
+export const safetyRecords = pgTable(
+  "safety_records",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    squadron: squadronEnum("squadron").notNull(),
+    recordType: safetyRecordTypeEnum("record_type").notNull(),
+    description: text("description").notNull(),
+    severity: safetySeverityEnum("severity"),
+    date: timestamp("date", { withTimezone: true }).notNull(),
+    reportedById: integer("reported_by_id").references(() => users.id, { onDelete: "set null" }),
+    status: safetyStatusEnum("status").notNull().default("open"),
+    resolutionNotes: text("resolution_notes"),
+    location: text("location"),
+    aircraft: aircraftEnum("aircraft"),
+    flightPhase: text("flight_phase"),
+    safetyLevel: text("safety_level"),
+    immediateActions: text("immediate_actions"),
+    contributingFactors: text("contributing_factors"),
+    correctiveActions: text("corrective_actions"),
+    ...timestamps,
+  },
+  (t) => [index("safety_records_squadron_date_idx").on(t.squadron, t.date), index("safety_records_user_idx").on(t.userId)],
+);
+
+export const insertSafetyRecordSchema = z.object({
+  userId: z.number().int().positive(),
+  recordType: z.enum(SAFETY_RECORD_TYPES),
+  description: z.string().min(1).max(10000),
+  severity: z.enum(SAFETY_SEVERITIES).nullable().optional(),
+  date: z.coerce.date(),
+  status: z.enum(SAFETY_STATUSES).optional(),
+  resolutionNotes: z.string().max(10000).nullable().optional(),
+  location: z.string().max(200).nullable().optional(),
+  aircraft: z.enum(AIRCRAFT_TYPES).nullable().optional(),
+  flightPhase: z.string().max(50).nullable().optional(),
+  safetyLevel: z.string().max(50).nullable().optional(),
+  immediateActions: z.string().max(10000).nullable().optional(),
+  contributingFactors: z.string().max(10000).nullable().optional(),
+  correctiveActions: z.string().max(10000).nullable().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Readiness snapshots (daily, per squadron + ALL)
+// ---------------------------------------------------------------------------
+
+export const readinessSnapshots = pgTable(
+  "readiness_snapshots",
+  {
+    id: serial("id").primaryKey(),
+    snapshotDate: timestamp("snapshot_date", { withTimezone: true }).notNull(),
+    /** A flying squadron, or "ALL". */
+    squadron: text("squadron").notNull(),
+    totalPersonnel: integer("total_personnel").notNull(),
+    readyCount: integer("ready_count").notNull(),
+    notReadyCount: integer("not_ready_count").notNull(),
+    readyPercent: real("ready_percent").notNull(),
+    currentQuals: integer("current_quals").notNull(),
+    expiringQuals: integer("expiring_quals").notNull(),
+    expiredQuals: integer("expired_quals").notNull(),
+    personnelAtRisk: integer("personnel_at_risk").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("readiness_snapshots_date_squadron_idx").on(t.snapshotDate, t.squadron)],
+);
+
+// ---------------------------------------------------------------------------
+// Phone directory, chat, activity log
+// ---------------------------------------------------------------------------
+
+export type Contact = { id: string; name: string; phoneNumber: string; description: string };
+
+export const phoneDirectory = pgTable("phone_directory", {
+  id: serial("id").primaryKey(),
+  airbaseCode: text("airbase_code").notNull().unique(),
+  airbaseName: text("airbase_name").notNull(),
+  contacts: json("contacts").$type<Contact[]>().notNull(),
+  ...timestamps,
+});
+
+export const insertPhoneDirectorySchema = z.object({
+  airbaseCode: z.string().min(2).max(10).toUpperCase(),
+  airbaseName: z.string().min(1).max(200),
+  contacts: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string().min(1),
+      phoneNumber: z.string().min(1),
+      description: z.string().default(""),
+    }),
+  ),
+});
+
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    messageType: chatMessageTypeEnum("message_type").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("chat_messages_created_idx").on(t.createdAt)],
+);
+
+export const insertChatMessageSchema = z.object({
+  messageType: z.enum(CHAT_MESSAGE_TYPES),
+  content: z.string().min(1).max(4000),
+});
+
+export const activityLog = pgTable(
+  "activity_log",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").references(() => users.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    resourceType: text("resource_type").notNull(),
+    resourceId: integer("resource_id"),
+    resourceName: text("resource_name").notNull(),
+    details: text("details"),
+    performedAt: timestamp("performed_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("activity_log_performed_idx").on(t.performedAt)],
+);
+
+// ---------------------------------------------------------------------------
+// Relations
+// ---------------------------------------------------------------------------
+
+export const usersRelations = relations(users, ({ many }) => ({
+  documentSubmissions: many(documentSubmissions),
+  scenarioSubmissions: many(scenarioSubmissions, { relationName: "submitter" }),
+  quizSubmissions: many(quizSubmissions),
+  quizAttempts: many(quizAttempts),
+  chatMessages: many(chatMessages),
+  checklistCompletions: many(checklistCompletions),
+  qualifications: many(userQualifications),
+  flightRecords: many(flightRecords),
+  safetyRecords: many(safetyRecords, { relationName: "subject" }),
+  missions: many(missions),
+  moduleCompletions: many(trainingModuleCompletions),
+}));
+
+export const documentsRelations = relations(documents, ({ many }) => ({ submissions: many(documentSubmissions) }));
+export const documentSubmissionsRelations = relations(documentSubmissions, ({ one }) => ({
+  document: one(documents, { fields: [documentSubmissions.documentId], references: [documents.id] }),
+  user: one(users, { fields: [documentSubmissions.userId], references: [users.id] }),
+}));
+
+export const scenariosRelations = relations(scenarios, ({ many }) => ({ submissions: many(scenarioSubmissions) }));
+export const scenarioSubmissionsRelations = relations(scenarioSubmissions, ({ one }) => ({
+  scenario: one(scenarios, { fields: [scenarioSubmissions.scenarioId], references: [scenarios.id] }),
+  user: one(users, { fields: [scenarioSubmissions.userId], references: [users.id], relationName: "submitter" }),
+  reviewer: one(users, { fields: [scenarioSubmissions.reviewedById], references: [users.id], relationName: "reviewer" }),
+}));
+
+export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
+  creator: one(users, { fields: [quizzes.createdById], references: [users.id] }),
+  attempts: many(quizAttempts),
+  submissions: many(quizSubmissions),
+}));
+export const quizAttemptsRelations = relations(quizAttempts, ({ one }) => ({
+  quiz: one(quizzes, { fields: [quizAttempts.quizId], references: [quizzes.id] }),
+  user: one(users, { fields: [quizAttempts.userId], references: [users.id] }),
+  submission: one(quizSubmissions, { fields: [quizAttempts.id], references: [quizSubmissions.attemptId] }),
+}));
+export const quizSubmissionsRelations = relations(quizSubmissions, ({ one }) => ({
+  quiz: one(quizzes, { fields: [quizSubmissions.quizId], references: [quizzes.id] }),
+  user: one(users, { fields: [quizSubmissions.userId], references: [users.id] }),
+  attempt: one(quizAttempts, { fields: [quizSubmissions.attemptId], references: [quizAttempts.id] }),
+}));
+
+export const trainingModulesRelations = relations(trainingModules, ({ many }) => ({
+  content: many(trainingModuleContent),
+  videos: many(trainingModuleVideos),
+  completions: many(trainingModuleCompletions),
+}));
+export const trainingModuleContentRelations = relations(trainingModuleContent, ({ one }) => ({
+  module: one(trainingModules, { fields: [trainingModuleContent.moduleId], references: [trainingModules.id] }),
+}));
+export const trainingModuleVideosRelations = relations(trainingModuleVideos, ({ one }) => ({
+  module: one(trainingModules, { fields: [trainingModuleVideos.moduleId], references: [trainingModules.id] }),
+}));
+export const trainingModuleCompletionsRelations = relations(trainingModuleCompletions, ({ one }) => ({
+  module: one(trainingModules, { fields: [trainingModuleCompletions.moduleId], references: [trainingModules.id] }),
+  user: one(users, { fields: [trainingModuleCompletions.userId], references: [users.id] }),
+}));
+
+export const checklistsRelations = relations(checklists, ({ one, many }) => ({
+  creator: one(users, { fields: [checklists.createdById], references: [users.id] }),
+  items: many(checklistItems),
+  completions: many(checklistCompletions),
+}));
+export const checklistItemsRelations = relations(checklistItems, ({ one }) => ({
+  checklist: one(checklists, { fields: [checklistItems.checklistId], references: [checklists.id] }),
+}));
+export const checklistCompletionsRelations = relations(checklistCompletions, ({ one, many }) => ({
+  checklist: one(checklists, { fields: [checklistCompletions.checklistId], references: [checklists.id] }),
+  user: one(users, { fields: [checklistCompletions.userId], references: [users.id] }),
+  steps: many(checklistStepAudit),
+}));
+export const checklistStepAuditRelations = relations(checklistStepAudit, ({ one }) => ({
+  completion: one(checklistCompletions, { fields: [checklistStepAudit.completionId], references: [checklistCompletions.id] }),
+  item: one(checklistItems, { fields: [checklistStepAudit.checklistItemId], references: [checklistItems.id] }),
+}));
+
+export const missionsRelations = relations(missions, ({ one, many }) => ({
+  user: one(users, { fields: [missions.userId], references: [users.id] }),
+  documents: many(missionDocuments),
+}));
+export const missionDocumentsRelations = relations(missionDocuments, ({ one }) => ({
+  mission: one(missions, { fields: [missionDocuments.missionId], references: [missions.id] }),
+}));
+
+export const userQualificationsRelations = relations(userQualifications, ({ one }) => ({
+  user: one(users, { fields: [userQualifications.userId], references: [users.id] }),
+}));
+export const flightRecordsRelations = relations(flightRecords, ({ one }) => ({
+  user: one(users, { fields: [flightRecords.userId], references: [users.id] }),
+}));
+export const safetyRecordsRelations = relations(safetyRecords, ({ one }) => ({
+  user: one(users, { fields: [safetyRecords.userId], references: [users.id], relationName: "subject" }),
+  reportedBy: one(users, { fields: [safetyRecords.reportedById], references: [users.id], relationName: "reporter" }),
+}));
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  user: one(users, { fields: [chatMessages.userId], references: [users.id] }),
+}));
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+/** What the API returns for a person: never includes internal flags. */
+export type PublicUser = Pick<
+  User,
+  | "id" | "email" | "firstName" | "lastName" | "rank" | "role" | "squadron" | "category"
+  | "profilePhotoUrl" | "isActive" | "isFlightReady" | "notReadyReason" | "readinessUpdatedAt" | "lastActiveAt" | "createdAt"
+>;
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type DocumentSubmission = typeof documentSubmissions.$inferSelect;
+
+export type Scenario = typeof scenarios.$inferSelect;
+export type InsertScenario = z.infer<typeof insertScenarioSchema>;
+export type ScenarioSubmission = typeof scenarioSubmissions.$inferSelect;
+export type InsertScenarioSubmission = z.infer<typeof insertScenarioSubmissionSchema>;
+
+export type QuizQuestion = typeof quizQuestions.$inferSelect;
+export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
+/** A question as served to a student: no answer key. */
+export type StudentQuizQuestion = Omit<QuizQuestion, "correctIndex" | "explanation" | "createdById" | "createdAt" | "updatedAt" | "isActive">;
+export type Quiz = typeof quizzes.$inferSelect;
+export type InsertQuiz = z.infer<typeof insertQuizSchema>;
+export type QuizAttempt = typeof quizAttempts.$inferSelect;
+export type QuizSubmission = typeof quizSubmissions.$inferSelect;
 
 export type TrainingModule = typeof trainingModules.$inferSelect;
 export type InsertTrainingModule = z.infer<typeof insertTrainingModuleSchema>;
-
-// Training Module Content schema - Individual lessons within modules
-export const trainingModuleContent = pgTable("training_module_content", {
-  id: serial("id").primaryKey(),
-  moduleId: integer("module_id").notNull().references(() => trainingModules.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  type: text("type").notNull(), // video, reading, quiz, assessment
-  duration: text("duration").notNull(),
-  description: text("description").notNull(),
-  content: text("content"), // Text content for readings, quiz questions JSON, etc.
-  videoUrl: text("video_url"), // For video content
-  orderIndex: integer("order_index").default(0).notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertTrainingModuleContentSchema = createInsertSchema(trainingModuleContent).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
 export type TrainingModuleContent = typeof trainingModuleContent.$inferSelect;
 export type InsertTrainingModuleContent = z.infer<typeof insertTrainingModuleContentSchema>;
-
-// Readiness Snapshots schema - For tracking historical workforce readiness trends
-export const readinessSnapshots = pgTable("readiness_snapshots", {
-  id: serial("id").primaryKey(),
-  snapshotDate: timestamp("snapshot_date").notNull(),
-  squadron: text("squadron").notNull(), // "33" | "35" | "36" | "37" (flying squadrons) | "ALL" — AMG excluded (leadership are not flight-ready metrics subjects)
-  totalPersonnel: integer("total_personnel").notNull(),
-  readyCount: integer("ready_count").notNull(),
-  notReadyCount: integer("not_ready_count").notNull(),
-  readyPercent: real("ready_percent").notNull(),
-  currentQuals: integer("current_quals").notNull(),
-  expiringQuals: integer("expiring_quals").notNull(),
-  expiredQuals: integer("expired_quals").notNull(),
-  personnelAtRisk: integer("personnel_at_risk").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertReadinessSnapshotSchema = createInsertSchema(readinessSnapshots).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  snapshotDate: z.coerce.date(),
-});
-
-export type ReadinessSnapshot = typeof readinessSnapshots.$inferSelect;
-export type InsertReadinessSnapshot = z.infer<typeof insertReadinessSnapshotSchema>;
-
-// Training Module Assessment Completions - records assessment submissions from training modules
-export const trainingModuleCompletions = pgTable("training_module_completions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  moduleId: text("module_id").notNull(),
-  moduleTitle: text("module_title").notNull(),
-  aircraft: text("aircraft").notNull().default("all"),
-  difficulty: text("difficulty").notNull().default("beginner"),
-  score: integer("score").notNull(),
-  passed: boolean("passed").notNull(),
-  totalQuestions: integer("total_questions").notNull(),
-  correctCount: integer("correct_count").notNull(),
-  squadron: text("squadron").notNull().default("33SQN"), // 33SQN | 35SQN | 36SQN | 37SQN — flying units; defaults to 33SQN for safety (auto-populated from session in practice)
-  answers: json("answers").notNull(),
-  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-});
-
-export const insertTrainingModuleCompletionSchema = createInsertSchema(trainingModuleCompletions).omit({
-  id: true,
-  submittedAt: true,
-});
-
 export type TrainingModuleCompletion = typeof trainingModuleCompletions.$inferSelect;
-export type InsertTrainingModuleCompletion = z.infer<typeof insertTrainingModuleCompletionSchema>;
+export type TrainingModuleVideo = typeof trainingModuleVideos.$inferSelect;
 
-// Activity Log — tracks destructive actions (deletions) for SuperAdmin audit trail
-export const activityLog = pgTable("activity_log", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id"),
-  userEmail: text("user_email").notNull(),
-  userName: text("user_name").notNull(),
-  action: text("action").notNull(), // e.g. "DELETE"
-  resourceType: text("resource_type").notNull(), // e.g. "Phone Directory Entry"
-  resourceName: text("resource_name").notNull(), // e.g. "Adelaide Airport"
-  details: text("details"), // optional extra context
-  performedAt: timestamp("performed_at").defaultNow().notNull(),
-});
+export type Checklist = typeof checklists.$inferSelect;
+export type ChecklistItem = typeof checklistItems.$inferSelect;
+export type InsertChecklist = z.infer<typeof insertChecklistSchema>;
+export type ChecklistCompletion = typeof checklistCompletions.$inferSelect;
+export type ChecklistWithItems = Checklist & { items: ChecklistItem[] };
 
-export const insertActivityLogSchema = createInsertSchema(activityLog).omit({
-  id: true,
-  performedAt: true,
-});
+export type Mission = typeof missions.$inferSelect;
+export type InsertMission = z.infer<typeof insertMissionSchema>;
+export type MissionDocument = typeof missionDocuments.$inferSelect;
 
+export type UserQualification = typeof userQualifications.$inferSelect;
+export type InsertUserQualification = z.infer<typeof insertUserQualificationSchema>;
+export type FlightRecord = typeof flightRecords.$inferSelect;
+export type InsertFlightRecord = z.infer<typeof insertFlightRecordSchema>;
+export type SafetyRecord = typeof safetyRecords.$inferSelect;
+export type InsertSafetyRecord = z.infer<typeof insertSafetyRecordSchema>;
+export type ReadinessSnapshot = typeof readinessSnapshots.$inferSelect;
+
+export type PhoneDirectory = typeof phoneDirectory.$inferSelect;
+export type InsertPhoneDirectory = z.infer<typeof insertPhoneDirectorySchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
 export type ActivityLog = typeof activityLog.$inferSelect;
-export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
