@@ -8,7 +8,7 @@ import {
   type User, type QuizQuestion, type ScenarioQuestion,
 } from "@shared/schema";
 import {
-  FLYING_SQUADRONS, STANDARD_QUALIFICATION_TYPES, NOT_READY_REASONS, THRESHOLDS, SQUADRON_AIRCRAFT,
+  FLYING_SQUADRONS, NOT_READY_REASONS, SQUADRON_AIRCRAFT,
   isPassing, type Squadron, type FlyingSquadron, type AircraftType,
 } from "@shared/constants";
 import { Rng, daysAgo, daysFromNow } from "./rng";
@@ -57,6 +57,9 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     RESTART IDENTITY CASCADE
   `);
 
+  // Audit events generated alongside the data, written to activity_log at the end.
+  const events: { userId: number; action: string; resourceType: string; resourceId: number | null; resourceName: string; details: string | null; performedAt: Date }[] = [];
+
   // ---- People ------------------------------------------------------------
   const people = buildPeople(rng);
   const userRows = await tx
@@ -72,7 +75,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
         category: p.category,
         isActive: p.isActive ?? true,
         isDemoPersona: p.isDemoPersona ?? false,
-        lastActiveAt: daysAgo(rng.int(0, 20)),
+        lastActiveAt: daysAgo(rng.chance(0.75) ? rng.int(0, 2) : rng.int(3, 20), rng.int(6, 20), rng.int(0, 59)),
         createdAt: daysAgo(rng.int(200, 900)),
       })),
     )
@@ -81,6 +84,14 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
   people.forEach((p, i) => byKey.set(p.key, userRows[i]));
   const persona = (k: "student" | "loadmaster" | "instructor" | "command") => byKey.get(k)!;
   const instructors = userRows.filter((u) => u.role === "instructor");
+  /** Who marks a submission: the squadron's own instructor, the sample instructor, or wing staff. */
+  const reviewerFor = (u: User): User => {
+    const own = instructors.find((i) => i.squadron === u.squadron && !i.isDemoPersona);
+    const r = rng.next();
+    if (r < 0.4) return persona("instructor");
+    if (r < 0.85 && own) return own;
+    return rng.pick(instructors);
+  };
   const aircrew = userRows.filter((u) => (u.role === "student" || u.role === "loadmaster") && u.squadron !== "AMG");
   const profile = (u: User) => SQN_PROFILE[u.squadron as FlyingSquadron];
 
@@ -214,7 +225,6 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     const inserted = await tx.insert(userQualifications).values(values).returning();
     qualRows.push(...inserted.map((r) => ({ userId: r.userId, expiryDate: r.expiryDate })));
   }
-  void STANDARD_QUALIFICATION_TYPES;
 
   // ---- Flight records ----------------------------------------------------
   let flightCount = 0;
@@ -249,12 +259,12 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
   // ---- Quiz attempts + submissions --------------------------------------
   let submissionCount = 0;
   for (const u of aircrew) {
-    const attempts = Math.round(rng.int(3, 9) * profile(u).activity);
+    const attempts = Math.round(rng.int(4, 10) * profile(u).activity);
     for (let i = 0; i < attempts; i++) {
       const quiz = rng.pick(quizRows);
       const pool = quiz.categories.flatMap((c) => bankByCategory.get(c) ?? []);
       const drawn = rng.sample(pool, Math.min(quiz.questionCount, pool.length));
-      const when = daysAgo(rng.int(0, 180), rng.int(7, 21));
+      const when = daysAgo(rng.recentDay(120), rng.int(7, 21), rng.int(0, 59));
       const [attempt] = await tx
         .insert(quizAttempts)
         .values({ quizId: quiz.id, userId: u.id, questionIds: drawn.map((q) => q.id), startedAt: when, submittedAt: when })
@@ -284,25 +294,27 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
   }
 
   // ---- Scenario submissions ---------------------------------------------
-  for (const u of aircrew) {
-    const n = Math.round(rng.int(1, 4) * profile(u).activity);
-    for (let i = 0; i < n; i++) {
-      const sc = rng.pick(scenarioRows);
-      const when = daysAgo(rng.int(0, 180), rng.int(7, 21));
-      const ability = rng.gauss(profile(u).skill, 14, 25, 98) / 100;
-      const marked: Record<string, boolean> = {};
-      const answers = sc.questions.map((q) => {
-        const right = rng.chance(ability);
-        marked[q.id] = right;
-        return {
-          questionId: q.id,
-          answer: q.questionType === "multiple-choice" ? (right ? q.correctAnswer : rng.pick(q.options.filter((o) => o !== q.correctAnswer))) : right ? q.correctAnswer : "Partial answer; key point missed.",
-        };
-      });
-      const reviewed = rng.chance(0.78) || (daysAgo(0).getTime() - when.getTime()) / 86_400_000 > 14;
-      const correct = Object.values(marked).filter(Boolean).length;
-      const score = Math.round((correct / sc.questions.length) * 100);
-      await tx.insert(scenarioSubmissions).values({
+  // Older work is marked; the last week has a realistic backlog awaiting review.
+  const submitScenario = async (u: User, sc: (typeof scenarioRows)[number], when: Date, force?: "pending" | "reviewed-unseen") => {
+    const ability = rng.gauss(profile(u).skill, 14, 25, 98) / 100;
+    const marked: Record<string, boolean> = {};
+    const answers = sc.questions.map((q) => {
+      const right = rng.chance(ability);
+      marked[q.id] = right;
+      return {
+        questionId: q.id,
+        answer: q.questionType === "multiple-choice" ? (right ? q.correctAnswer : rng.pick(q.options.filter((o) => o !== q.correctAnswer))) : right ? q.correctAnswer : "Partial answer; key point missed.",
+      };
+    });
+    const ageDays = (Date.now() - when.getTime()) / 86_400_000;
+    const reviewed = force ? force === "reviewed-unseen" : ageDays > 7 || rng.chance(0.35);
+    const correct = Object.values(marked).filter(Boolean).length;
+    const score = Math.round((correct / sc.questions.length) * 100);
+    const reviewer = reviewerFor(u);
+    const reviewedAt = new Date(Math.min(Date.now() - 3_600_000, when.getTime() + rng.int(4, 72) * 3_600_000));
+    const [row] = await tx
+      .insert(scenarioSubmissions)
+      .values({
         scenarioId: sc.id,
         userId: u.id,
         squadron: u.squadron,
@@ -317,15 +329,25 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
               passed: isPassing(score, sc),
               markedAnswers: marked,
               instructorFeedback: score >= 85 ? "Strong, well-reasoned answers. Ready for the next level." : score >= 60 ? "Sound fundamentals; revisit restraint factors and DG segregation." : "Below standard. Re-attempt after reviewing the module reading.",
-              reviewedById: rng.pick(instructors).id,
-              reviewedAt: new Date(when.getTime() + rng.int(1, 5) * 86_400_000),
-              notificationSeen: rng.chance(0.7),
+              reviewedById: reviewer.id,
+              reviewedAt,
+              notificationSeen: force === "reviewed-unseen" ? false : ageDays > 10 || rng.chance(0.5),
             }
           : {}),
-      });
-      submissionCount++;
+      })
+      .returning({ id: scenarioSubmissions.id });
+    if (reviewed && ageDays < 30) {
+      events.push({ userId: reviewer.id, action: "REVIEW", resourceType: "ScenarioSubmission", resourceId: row.id, resourceName: sc.title, details: `${u.rank} ${u.lastName}: ${score}%`, performedAt: reviewedAt });
     }
+    submissionCount++;
+  };
+  for (const u of aircrew) {
+    const n = Math.round(rng.int(2, 5) * profile(u).activity);
+    for (let i = 0; i < n; i++) await submitScenario(u, rng.pick(scenarioRows), daysAgo(rng.recentDay(120), rng.int(7, 21), rng.int(0, 59)));
   }
+  // The sample student always has a freshly marked result waiting and one still with the instructor.
+  await submitScenario(persona("student"), scenarioRows[1], daysAgo(2, 10), "reviewed-unseen");
+  await submitScenario(persona("student"), scenarioRows[0], daysAgo(0, 8), "pending");
 
   // ---- Module completions ------------------------------------------------
   for (const u of aircrew) {
@@ -344,7 +366,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
         correctCount: correct,
         totalQuestions: total,
         answers: {},
-        submittedAt: daysAgo(rng.int(0, 150)),
+        submittedAt: daysAgo(rng.recentDay(150), rng.int(7, 21)),
       });
     }
   }
@@ -360,8 +382,8 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
         userId: u.id,
         completedItemIds: ids,
         isComplete: complete,
-        startedAt: daysAgo(rng.int(1, 60)),
-        completedAt: complete ? daysAgo(rng.int(0, 59)) : null,
+        startedAt: daysAgo(complete ? rng.int(2, 60) : rng.int(0, 3)),
+        completedAt: complete ? daysAgo(rng.int(0, 1)) : null,
       });
     }
   }
@@ -374,7 +396,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
       await tx.insert(documentSubmissions).values({
         documentId: d.id,
         userId: u.id,
-        submittedAt: daysAgo(rng.int(0, 120)),
+        submittedAt: daysAgo(rng.recentDay(120), rng.int(6, 20)),
         formData: { flightNumber: `ASY${rng.int(100, 999)}`, departure: dep, arrival: arr, passengers: rng.int(0, 80), cargoWeightKg: rng.int(500, 20000), remarks: "Nil." },
       });
     }
@@ -399,8 +421,10 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     for (let i = 0; i < n; i++) {
       const t = rng.pick(safetyTemplates);
       const subject = rng.pick(members);
-      const when = daysAgo(rng.int(0, 240));
+      const when = daysAgo(rng.recentDay(240), rng.int(6, 20));
       const closed = rng.chance(0.6);
+      const reporter = reviewerFor(subject);
+      events.push({ userId: reporter.id, action: "CREATE", resourceType: "SafetyRecord", resourceId: null, resourceName: t.type.replace("_", " "), details: `${subject.rank} ${subject.lastName}, ${sqn}`, performedAt: when });
       await tx.insert(safetyRecords).values({
         userId: subject.id,
         squadron: sqn,
@@ -408,7 +432,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
         description: t.text,
         severity: t.sev,
         date: when,
-        reportedById: rng.pick(instructors).id,
+        reportedById: reporter.id,
         status: closed ? "closed" : rng.chance(0.5) ? "reviewed" : "open",
         resolutionNotes: closed ? "Investigated; corrective action complete and briefed to the squadron." : null,
         location: rng.pick(["RAAF Base Amberley", "RAAF Base Richmond", "RAAF Base Townsville", "En route", "Forward operating base"]),
@@ -424,28 +448,50 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
 
   // ---- Missions for the loadmaster persona ------------------------------
   const lm = persona("loadmaster");
-  const missionRows = await tx
+  await tx
     .insert(missions)
     .values([
       { userId: lm.id, missionName: "Op RESOLUTE resupply", aircraft: "KC30A", aircraftCallSign: "DRGN21", captainName: "SQNLDR Price", departureLocation: "YAMB", arrivalDestination: "YPDN", loadmaster1Name: "SGT S. Mackenzie", loadmaster2Name: "CPL J. Nguyen", hasDangerousGoods: true, isCompleted: true, completedAt: daysAgo(12), createdAt: daysAgo(14) },
       { userId: lm.id, missionName: "Ex TALISMAN SABRE lift 3", aircraft: "KC30A", aircraftCallSign: "DRGN34", captainName: "FLTLT Hammond", departureLocation: "YAMB", arrivalDestination: "YBTL", loadmaster1Name: "SGT S. Mackenzie", loadmaster2Name: null, hasDangerousGoods: false, isCompleted: true, completedAt: daysAgo(5), createdAt: daysAgo(7) },
       { userId: lm.id, missionName: "Pacific partner engagement", aircraft: "KC30A", aircraftCallSign: "DRGN12", captainName: "SQNLDR Lim", departureLocation: "YAMB", arrivalDestination: "PHIK", loadmaster1Name: "SGT S. Mackenzie", loadmaster2Name: "CPL A. Taylor", hasDangerousGoods: true, isCompleted: false, createdAt: daysAgo(1) },
-    ])
-    .returning();
-  void missionRows;
+    ]);
 
   // ---- Chat ----------------------------------------------------------------
-  const chat = [
-    { who: aircrew[3], type: "question", text: "Can a Class 9 lithium battery shipment go on the same pallet as general stores if it's UN3481 Section II?", d: 2, h: 8 },
-    { who: instructors[0], type: "answer", text: "Yes for Section II, provided the package marking is present and it's not co-loaded with Class 1 or Class 3. Keep it accessible.", d: 2, h: 9 },
-    { who: aircrew[10], type: "question", text: "Is the 3.0g forward restraint still the figure for the C-17 with the new ALM revision?", d: 1, h: 14 },
-    { who: persona("instructor"), type: "answer", text: "Unchanged. The revision only altered the lateral figures for vehicles over 20,000 kg.", d: 1, h: 15 },
-    { who: aircrew[21], type: "question", text: "Where's the AME oxygen outlet diagram for the KC-30A?", d: 0, h: 7 },
-    { who: instructors[1], type: "answer", text: "Training modules > KC30-A Mixed Operations > Reading, figure 3. I've also pinned it in the resources tab.", d: 0, h: 8 },
-  ] as const;
-  for (const c of chat) {
-    await tx.insert(chatMessages).values({ userId: c.who.id, messageType: c.type, content: c.text, createdAt: daysAgo(c.d, c.h) });
+  // A week of crew Q&A. Questions come from aircrew; answers from instructors
+  // (the sample instructor answers a good share).
+  const CHAT: Array<[string, string]> = [
+    ["Can a Class 9 lithium battery shipment go on the same pallet as general stores if it's UN3481 Section II?", "Yes for Section II, provided the package marking is present and it isn't co-loaded with Class 1 or Class 3. Keep it accessible."],
+    ["Is the 3.0g forward restraint still the figure for the C-17 with the new ALM revision?", "Unchanged. The revision only altered the lateral figures for vehicles over 20,000 kg."],
+    ["Where's the AME oxygen outlet diagram for the KC-30A?", "Training modules > KC30-A Mixed Operations > Reading. It's in the cabin layout section."],
+    ["Does a NOTOC need re-issuing if we offload DG at an intermediate stop?", "Yes. Amend it before departure from the intermediate stop so the captain has the current state of the load."],
+    ["What's the minimum separation between Class 3 and passengers on the C-130J?", "Keep them in a separate zone with at least one pallet position between, and accessible in flight."],
+    ["Anyone know if the Amberley K-loaders are back in service?", "Two are back since Tuesday; the third is still with GSE. Check the directory for the Air Movements desk."],
+    ["For the restraint calculator, do I enter the vehicle's GVW or the axle weights?", "GVW for the restraint calculation; axle weights only matter for the floor-loading check."],
+    ["Is the DG Refresher quiz mandatory before the annual proficiency check?", "Yes, it needs to be current within 12 months before the APC board."],
+    ["Can we carry dry ice in the KC-30A cabin hold with pax?", "Yes within quantity limits; declare it on the NOTOC and ensure ventilation per the ALM."],
+    ["Who signs the trim sheet when we have two loadmasters?", "The primary loadmaster signs; the second loadmaster checks and initials."],
+    ["Is the C-27J ramp rated for the Bushmaster?", "No. Use the C-130J or C-17 for PMVs."],
+    ["What's the turnaround on scenario marking at the moment?", "We're aiming for 72 hours. A few from this week are still in the queue; they'll be through by Friday."],
+  ];
+  const askers = aircrew.filter((a) => a.isActive);
+  for (let i = 0; i < CHAT.length; i++) {
+    const day = Math.max(0, 6 - Math.floor((i * 7) / CHAT.length));
+    const [q, ans] = CHAT[i];
+    const asker = i === 2 ? persona("student") : i === 5 ? persona("loadmaster") : rng.pick(askers);
+    const answerer = i % 2 === 0 ? persona("instructor") : rng.pick(instructors);
+    const asked = daysAgo(day, rng.int(6, 16), rng.int(0, 59));
+    await tx.insert(chatMessages).values({ userId: asker.id, messageType: "question", content: q, createdAt: asked });
+    await tx.insert(chatMessages).values({ userId: answerer.id, messageType: "answer", content: ans, createdAt: new Date(Math.min(Date.now() - 60_000, asked.getTime() + rng.int(8, 90) * 60_000)) });
   }
+
+  // ---- Activity log ----------------------------------------------------------
+  for (const q of quizRows) if (q.createdById) events.push({ userId: q.createdById, action: "CREATE", resourceType: "Quiz", resourceId: q.id, resourceName: q.title, details: null, performedAt: q.createdAt });
+  for (const sc of scenarioRows) if (sc.createdById) events.push({ userId: sc.createdById, action: "CREATE", resourceType: "Scenario", resourceId: sc.id, resourceName: sc.title, details: null, performedAt: sc.createdAt });
+  for (const u of aircrew.filter((a) => !a.isFlightReady)) {
+    events.push({ userId: persona("command").id, action: "UPDATE", resourceType: "Readiness", resourceId: u.id, resourceName: `${u.rank} ${u.firstName} ${u.lastName}`, details: "Marked not ready", performedAt: daysAgo(rng.int(1, 30), rng.int(7, 17)) });
+  }
+  events.sort((x, y) => x.performedAt.getTime() - y.performedAt.getTime());
+  if (events.length) await tx.insert(activityLog).values(events);
 
   // ---- Readiness snapshots (last 90 days) ---------------------------------
   // Computed from the data above so history and "now" agree by construction;
@@ -481,7 +527,6 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     details: `Seeded ${userRows.length} users, ${questionRows.length} questions, ${submissionCount} submissions`,
   });
 
-  void THRESHOLDS;
   return {
     users: userRows.length,
     questions: questionRows.length,

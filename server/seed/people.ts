@@ -21,8 +21,11 @@ export const RANKS_BY_ROLE: Record<Role, readonly string[]> = {
   student: ["AC", "LAC", "CPL"],
   loadmaster: ["CPL", "SGT", "FSGT"],
   instructor: ["FSGT", "WOFF"],
-  command: ["SQNLDR", "WGCDR", "GPCAPT"],
+  command: ["WGCDR"],
 };
+
+/** Rank follows seniority category for qualified loadmasters. */
+const LOADMASTER_RANK_BY_CATEGORY: Record<Category, string> = { D: "CPL", C: "CPL", B: "SGT", A: "FSGT" };
 
 export interface SeedPerson extends InsertUser {
   /** stable key used by other seed files to reference this person */
@@ -98,15 +101,16 @@ export function buildPeople(rng: Rng): SeedPerson[] {
     }
     used.add(email);
     n += 1;
+    // Loadmaster seniority skews junior: most are C/B, a few A.
     const cat: Category =
       category ??
-      (role === "student" ? "D" : rng.pick(role === "loadmaster" ? (["C", "B", "A"] as const) : (["B", "A"] as const)));
+      (role === "student" ? "D" : role === "loadmaster" ? rng.pick(["C", "C", "C", "B", "B", "A"] as const) : "A");
     return {
       key: `${role}-${n}`,
       email,
       firstName,
       lastName,
-      rank: rng.pick(RANKS_BY_ROLE[role]),
+      rank: role === "loadmaster" ? LOADMASTER_RANK_BY_CATEGORY[cat] : rng.pick(RANKS_BY_ROLE[role]),
       role,
       squadron,
       category: cat,
@@ -114,25 +118,26 @@ export function buildPeople(rng: Rng): SeedPerson[] {
     };
   };
 
-  // Per-squadron sizes differ so the analytics have texture.
+  // About 54 people. Per-squadron sizes differ so the analytics have texture.
+  // Each flying squadron has a commanding officer, an embedded instructor,
+  // trainees and qualified loadmasters. AMG holds wing staff.
   const sizes: Record<(typeof FLYING_SQUADRONS)[number], { students: number; loadmasters: number }> = {
-    "33SQN": { students: 4, loadmasters: 11 },
-    "35SQN": { students: 3, loadmasters: 8 },
-    "36SQN": { students: 5, loadmasters: 12 },
-    "37SQN": { students: 4, loadmasters: 10 },
+    "33SQN": { students: 3, loadmasters: 7 },
+    "35SQN": { students: 2, loadmasters: 6 },
+    "36SQN": { students: 4, loadmasters: 8 },
+    "37SQN": { students: 3, loadmasters: 6 },
   };
 
   for (const sqn of FLYING_SQUADRONS) {
     const { students, loadmasters } = sizes[sqn];
+    people.push({ ...make("command", sqn, "A"), rank: "WGCDR" });
+    people.push(make("instructor", sqn, "A"));
     for (let i = 0; i < students; i++) people.push(make("student", sqn, "D"));
     for (let i = 0; i < loadmasters; i++) people.push(make("loadmaster", sqn));
-    // One embedded instructor per squadron
-    people.push(make("instructor", sqn, "A"));
   }
-  // AMG staff
   people.push(make("instructor", "AMG", "A"));
-  people.push(make("command", "AMG", "A"));
-  // One inactive (posted out) loadmaster, to exercise the active filter.
+  people.push({ ...make("command", "AMG", "A"), rank: "GPCAPT" });
+  // One posted-out loadmaster, to exercise the active filter.
   people.push(make("loadmaster", "37SQN", "B", false));
 
   return people;

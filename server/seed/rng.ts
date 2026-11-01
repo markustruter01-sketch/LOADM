@@ -37,6 +37,10 @@ export class Rng {
   sample<T>(arr: readonly T[], n: number): T[] {
     return this.shuffle(arr).slice(0, n);
   }
+  /** Days ago in [0, max], skewed towards recent so the workforce looks active now. */
+  recentDay(max: number): number {
+    return Math.floor(max * Math.pow(this.next(), 2.2));
+  }
   /** Normal-ish value via sum of uniforms, clamped. */
   gauss(mean: number, sd: number, min: number, max: number): number {
     const u = (this.next() + this.next() + this.next() + this.next() - 2) * 1.73;
@@ -44,13 +48,19 @@ export class Rng {
   }
 }
 
+/** A moment `days` ago at the given UTC time, never later than a few minutes ago. */
 export function daysAgo(days: number, hour = 9, minute = 0): Date {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() - days);
   d.setUTCHours(hour, minute, 0, 0);
-  return d;
+  const latest = Date.now() - 5 * 60_000;
+  return d.getTime() > latest ? new Date(latest - (days + 1) * 17 * 60_000) : d;
 }
 
+/** A date `days` in the future (qualification expiries). */
 export function daysFromNow(days: number): Date {
-  return daysAgo(-days);
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
 }
