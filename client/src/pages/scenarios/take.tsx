@@ -164,7 +164,7 @@ export default function ScenarioTake() {
                   aria-label="Submission type"
                 >
                   {SUBMISSION_TYPES.map((t) => (
-                    <ToggleGroupItem key={t} value={t} size="sm" className="data-[state=on]:bg-primary/15 data-[state=on]:text-primary">
+                    <ToggleGroupItem key={t} value={t} className="h-8 px-3 text-xs">
                       {TYPE_LABELS[t]}
                     </ToggleGroupItem>
                   ))}
