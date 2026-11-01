@@ -9,8 +9,6 @@ uploads/
 .vscode/
 .idea/
 coverage/
-.replit
-replit.nix
 .cache/
 .local/
 .upm/
