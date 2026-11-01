@@ -1,6 +1,7 @@
 import type { ChangeEvent } from "react";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import type { PublicUser } from "@shared/schema";
+import { AIRCRAFT_LABELS, AIRCRAFT_TYPES, type AircraftType } from "@shared/constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,11 @@ import { cn } from "@/lib/utils";
 export function personName(u: Pick<PublicUser, "rank" | "firstName" | "lastName"> | null | undefined): string {
   if (!u) return "Unknown";
   return `${u.rank} ${u.firstName} ${u.lastName}`;
+}
+
+/** Label for a checklist aircraftType (an AircraftType or "General"). */
+export function aircraftLabel(a: string): string {
+  return (AIRCRAFT_TYPES as readonly string[]).includes(a) ? AIRCRAFT_LABELS[a as AircraftType] : a;
 }
 
 /** Short random id for client-created question rows (scenario / module questions). */

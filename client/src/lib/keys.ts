@@ -1,9 +1,26 @@
 import { qs } from "./api";
 
 /**
- * Query keys. `queryKey[0]` is always the URL the default queryFn fetches.
- * Invalidate with the prefix helpers (e.g. `keys.quizzes.all`) after mutations.
+ * Query keys.
+ *
+ * Every key in an area starts with that area's prefix and ends with the URL
+ * the default queryFn fetches, e.g. `["/api/quizzes", "/api/quizzes/5"]`.
+ * TanStack matches keys element by element, so invalidating `keys.quizzes.all`
+ * (`["/api/quizzes"]`) refreshes every quiz query: lists, details and
+ * submissions. Single-element keys are both area and URL.
  */
+type Key = readonly [string] | readonly [string, string];
+
+function k(area: string, url: string): Key {
+  return url === area ? ([url] as const) : ([area, url] as const);
+}
+
+/** The URL a key fetches: always its last element. */
+export function urlOf(key: readonly unknown[]): string {
+  const url = key[key.length - 1];
+  if (typeof url !== "string") throw new Error("query key must end with a URL string");
+  return url;
+}
 export const keys = {
   demo: {
     me: ["/api/demo/me"] as const,
@@ -12,87 +29,87 @@ export const keys = {
   },
   users: {
     all: ["/api/users"] as const,
-    list: (p: { squadron?: string; role?: string; includeInactive?: boolean } = {}) => [`/api/users${qs(p)}`] as const,
-    me: ["/api/users/me"] as const,
-    profile: (id: number) => [`/api/users/${id}/profile`] as const,
+    list: (p: { squadron?: string; role?: string; includeInactive?: boolean } = {}) => k("/api/users", `/api/users${qs(p)}`),
+    me: k("/api/users", "/api/users/me"),
+    profile: (id: number) => k("/api/users", `/api/users/${id}/profile`),
   },
   quizzes: {
     all: ["/api/quizzes"] as const,
-    list: (p: { includeInactive?: boolean } = {}) => [`/api/quizzes${qs(p)}`] as const,
-    one: (id: number) => [`/api/quizzes/${id}`] as const,
-    submissions: (id: number) => [`/api/quizzes/${id}/submissions`] as const,
-    mine: ["/api/quizzes/submissions/mine"] as const,
-    submission: (id: number) => [`/api/quizzes/submissions/${id}`] as const,
+    list: (p: { includeInactive?: boolean } = {}) => k("/api/quizzes", `/api/quizzes${qs(p)}`),
+    one: (id: number) => k("/api/quizzes", `/api/quizzes/${id}`),
+    submissions: (id: number) => k("/api/quizzes", `/api/quizzes/${id}/submissions`),
+    mine: k("/api/quizzes", "/api/quizzes/submissions/mine"),
+    submission: (id: number) => k("/api/quizzes", `/api/quizzes/submissions/${id}`),
   },
   questionBank: {
     all: ["/api/question-bank"] as const,
-    list: (p: { category?: string; difficulty?: string; includeInactive?: boolean } = {}) => [`/api/question-bank${qs(p)}`] as const,
-    categories: ["/api/question-bank/categories"] as const,
+    list: (p: { category?: string; difficulty?: string; includeInactive?: boolean } = {}) => k("/api/question-bank", `/api/question-bank${qs(p)}`),
+    categories: k("/api/question-bank", "/api/question-bank/categories"),
   },
   scenarios: {
     all: ["/api/scenarios"] as const,
-    list: ["/api/scenarios"] as const,
-    one: (id: number) => [`/api/scenarios/${id}`] as const,
-    submissions: (p: { status?: string; squadron?: string; scenarioId?: number } = {}) => [`/api/scenarios/submissions${qs(p)}`] as const,
-    submission: (id: number) => [`/api/scenarios/submissions/${id}`] as const,
-    notifications: ["/api/scenarios/notifications"] as const,
+    list: k("/api/scenarios", "/api/scenarios"),
+    one: (id: number) => k("/api/scenarios", `/api/scenarios/${id}`),
+    submissions: (p: { status?: string; squadron?: string; scenarioId?: number } = {}) => k("/api/scenarios", `/api/scenarios/submissions${qs(p)}`),
+    submission: (id: number) => k("/api/scenarios", `/api/scenarios/submissions/${id}`),
+    notifications: k("/api/scenarios", "/api/scenarios/notifications"),
   },
   training: {
     all: ["/api/training"] as const,
-    modules: (p: { includeInactive?: boolean } = {}) => [`/api/training/modules${qs(p)}`] as const,
-    module: (id: number) => [`/api/training/modules/${id}`] as const,
-    mine: ["/api/training/completions/mine"] as const,
+    modules: (p: { includeInactive?: boolean } = {}) => k("/api/training", `/api/training/modules${qs(p)}`),
+    module: (id: number) => k("/api/training", `/api/training/modules/${id}`),
+    mine: k("/api/training", "/api/training/completions/mine"),
   },
   checklists: {
     all: ["/api/checklists"] as const,
-    list: ["/api/checklists"] as const,
+    list: k("/api/checklists", "/api/checklists"),
     /** Instructor view: includes inactive checklists. */
-    manage: ["/api/checklists?includeInactive=true"] as const,
-    one: (id: number) => [`/api/checklists/${id}`] as const,
-    completions: (id: number) => [`/api/checklists/${id}/completions`] as const,
-    mine: ["/api/checklists/completions/mine"] as const,
+    manage: k("/api/checklists", "/api/checklists?includeInactive=true"),
+    one: (id: number) => k("/api/checklists", `/api/checklists/${id}`),
+    completions: (id: number) => k("/api/checklists", `/api/checklists/${id}/completions`),
+    mine: k("/api/checklists", "/api/checklists/completions/mine"),
   },
   documents: {
     all: ["/api/documents"] as const,
-    list: ["/api/documents"] as const,
-    one: (id: number) => [`/api/documents/${id}`] as const,
-    submissions: (p: { documentId?: number } = {}) => [`/api/documents/submissions${qs(p)}`] as const,
-    submission: (id: number) => [`/api/documents/submissions/${id}`] as const,
+    list: k("/api/documents", "/api/documents"),
+    one: (id: number) => k("/api/documents", `/api/documents/${id}`),
+    submissions: (p: { documentId?: number } = {}) => k("/api/documents", `/api/documents/submissions${qs(p)}`),
+    submission: (id: number) => k("/api/documents", `/api/documents/submissions/${id}`),
   },
   missions: {
     all: ["/api/missions"] as const,
-    list: (p: { all?: boolean } = {}) => [`/api/missions${qs(p)}`] as const,
-    one: (id: number) => [`/api/missions/${id}`] as const,
+    list: (p: { all?: boolean } = {}) => k("/api/missions", `/api/missions${qs(p)}`),
+    one: (id: number) => k("/api/missions", `/api/missions/${id}`),
   },
   personnel: {
     all: ["/api/personnel"] as const,
-    qualifications: (p: { userId?: number } = {}) => [`/api/personnel/qualifications${qs(p)}`] as const,
-    expiring: (p: { squadron?: string; days?: number } = {}) => [`/api/personnel/qualifications/expiring${qs(p)}`] as const,
-    flightRecords: (p: { userId?: number; limit?: number } = {}) => [`/api/personnel/flight-records${qs(p)}`] as const,
-    flightSummary: (p: { userId?: number } = {}) => [`/api/personnel/flight-records/summary${qs(p)}`] as const,
-    safety: (p: { squadron?: string; status?: string; recordType?: string } = {}) => [`/api/personnel/safety-records${qs(p)}`] as const,
-    safetyOne: (id: number) => [`/api/personnel/safety-records/${id}`] as const,
-    roster: (p: { squadron?: string } = {}) => [`/api/personnel/roster${qs(p)}`] as const,
+    qualifications: (p: { userId?: number } = {}) => k("/api/personnel", `/api/personnel/qualifications${qs(p)}`),
+    expiring: (p: { squadron?: string; days?: number } = {}) => k("/api/personnel", `/api/personnel/qualifications/expiring${qs(p)}`),
+    flightRecords: (p: { userId?: number; limit?: number } = {}) => k("/api/personnel", `/api/personnel/flight-records${qs(p)}`),
+    flightSummary: (p: { userId?: number } = {}) => k("/api/personnel", `/api/personnel/flight-records/summary${qs(p)}`),
+    safety: (p: { squadron?: string; status?: string; recordType?: string } = {}) => k("/api/personnel", `/api/personnel/safety-records${qs(p)}`),
+    safetyOne: (id: number) => k("/api/personnel", `/api/personnel/safety-records/${id}`),
+    roster: (p: { squadron?: string } = {}) => k("/api/personnel", `/api/personnel/roster${qs(p)}`),
   },
   analytics: {
     all: ["/api/analytics"] as const,
-    overview: (p: { squadron?: string } = {}) => [`/api/analytics/overview${qs(p)}`] as const,
-    squadronReadiness: ["/api/analytics/squadron-readiness"] as const,
-    readinessHistory: (p: { squadron?: string; days?: number } = {}) => [`/api/analytics/readiness-history${qs(p)}`] as const,
-    squadronPerformance: ["/api/analytics/squadron-performance"] as const,
-    scoreDistribution: (p: { squadron?: string } = {}) => [`/api/analytics/score-distribution${qs(p)}`] as const,
-    performanceTrend: (p: { squadron?: string; months?: number } = {}) => [`/api/analytics/performance-trend${qs(p)}`] as const,
-    questionDifficulty: ["/api/analytics/question-difficulty"] as const,
-    atRisk: (p: { squadron?: string } = {}) => [`/api/analytics/at-risk-students${qs(p)}`] as const,
-    certificationReadiness: (p: { squadron?: string } = {}) => [`/api/analytics/certification-readiness${qs(p)}`] as const,
-    moduleCompletion: (p: { squadron?: string } = {}) => [`/api/analytics/module-completion${qs(p)}`] as const,
-    flightHours: (p: { squadron?: string } = {}) => [`/api/analytics/flight-hours${qs(p)}`] as const,
-    currency: (p: { squadron?: string } = {}) => [`/api/analytics/currency-status${qs(p)}`] as const,
-    forecast: (p: { squadron?: string; months?: number } = {}) => [`/api/analytics/qualification-forecast${qs(p)}`] as const,
-    safety: (p: { squadron?: string } = {}) => [`/api/analytics/safety-summary${qs(p)}`] as const,
-    student: (id: number) => [`/api/analytics/student/${id}`] as const,
-    instructorWorkload: ["/api/analytics/instructor-workload"] as const,
-    recommendations: (p: { squadron?: string } = {}) => [`/api/analytics/recommendations${qs(p)}`] as const,
+    overview: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/overview${qs(p)}`),
+    squadronReadiness: k("/api/analytics", "/api/analytics/squadron-readiness"),
+    readinessHistory: (p: { squadron?: string; days?: number } = {}) => k("/api/analytics", `/api/analytics/readiness-history${qs(p)}`),
+    squadronPerformance: k("/api/analytics", "/api/analytics/squadron-performance"),
+    scoreDistribution: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/score-distribution${qs(p)}`),
+    performanceTrend: (p: { squadron?: string; months?: number } = {}) => k("/api/analytics", `/api/analytics/performance-trend${qs(p)}`),
+    questionDifficulty: k("/api/analytics", "/api/analytics/question-difficulty"),
+    atRisk: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/at-risk-students${qs(p)}`),
+    certificationReadiness: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/certification-readiness${qs(p)}`),
+    moduleCompletion: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/module-completion${qs(p)}`),
+    flightHours: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/flight-hours${qs(p)}`),
+    currency: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/currency-status${qs(p)}`),
+    forecast: (p: { squadron?: string; months?: number } = {}) => k("/api/analytics", `/api/analytics/qualification-forecast${qs(p)}`),
+    safety: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/safety-summary${qs(p)}`),
+    student: (id: number) => k("/api/analytics", `/api/analytics/student/${id}`),
+    instructorWorkload: k("/api/analytics", "/api/analytics/instructor-workload"),
+    recommendations: (p: { squadron?: string } = {}) => k("/api/analytics", `/api/analytics/recommendations${qs(p)}`),
   },
   directory: { all: ["/api/directory"] as const },
   chat: { all: ["/api/chat/messages"] as const },
@@ -101,15 +118,15 @@ export const keys = {
 
 /**
  * Invalidation filter matching every query whose URL starts with the given
- * key's URL. Array-prefix matching alone does not do this: `["/api/missions"]`
- * does not match `["/api/missions/3"]` or `["/api/missions?all=true"]`.
- * Usage: `qc.invalidateQueries(byPrefix(keys.missions.all))`.
+ * key's URL. With area-prefixed keys `{ queryKey: keys.x.all }` already does
+ * this; kept for cross-area prefixes and existing call sites.
  */
-export function byPrefix(key: readonly [string]) {
+export function byPrefix(key: readonly unknown[]) {
+  const prefix = urlOf(key);
   return {
     predicate: (q: { queryKey: readonly unknown[] }) => {
-      const url = q.queryKey[0];
-      return typeof url === "string" && url.startsWith(key[0]);
+      const url = q.queryKey[q.queryKey.length - 1];
+      return typeof url === "string" && url.startsWith(prefix);
     },
   };
 }

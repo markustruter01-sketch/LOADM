@@ -145,7 +145,7 @@ function ContentSection({ module }: { module: ModuleDetail }) {
 export default function ModuleEditor() {
   const { id: idParam } = useParams<{ id?: string }>();
   const id = idParam ? Number(idParam) : null;
-  const module = useQuery<ModuleDetail>({ queryKey: keys.training.module(id ?? 0), enabled: id !== null });
+  const moduleQuery = useQuery<ModuleDetail>({ queryKey: keys.training.module(id ?? 0), enabled: id !== null });
 
   if (id === null) {
     return (
@@ -158,8 +158,8 @@ export default function ModuleEditor() {
 
   return (
     <>
-      <PageHeader backHref="/instructor/modules" eyebrow="Edit module" title={module.data?.title ?? "Module"} description="Module details, content and videos." />
-      <QueryState query={module}>
+      <PageHeader backHref="/instructor/modules" eyebrow="Edit module" title={moduleQuery.data?.title ?? "Module"} description="Module details, content and videos." />
+      <QueryState query={moduleQuery}>
         {(m) => (
           <div className="space-y-8">
             <ModuleForm key={m.id} module={m} />
