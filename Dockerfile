@@ -13,7 +13,6 @@ ENV NODE_ENV=production PORT=5000 UPLOAD_DIR=/data/uploads
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./
-COPY --from=build /app/migrations ./migrations
 COPY --from=build /app/drizzle.config.ts ./
 COPY --from=build /app/shared ./shared
 VOLUME ["/data/uploads"]

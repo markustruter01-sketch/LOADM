@@ -1,11 +1,12 @@
 import { createServer } from "node:http";
 import { env, isProd } from "./config";
 import { logger } from "./lib/logger";
-import { createApp } from "./app";
+import { createApp, markReady } from "./app";
 import { pool } from "./db";
 import { setupVite, serveStatic } from "./vite";
 import { attachChatServer } from "./ws/chat";
 import { ensureSeeded, startDemoResetSchedule } from "./services/demo-service";
+import { ensureDatabaseSchema } from "./db-setup";
 import { startSnapshotSchedule } from "./services/readiness-service";
 import { errorHandler } from "./middleware/errors";
 
@@ -22,14 +23,16 @@ async function main(): Promise<void> {
   }
   app.use(errorHandler);
 
-  attachChatServer(httpServer);
-
-  await ensureSeeded();
-  const stopReset = startDemoResetSchedule();
-  const stopSnapshots = startSnapshotSchedule();
-
   await new Promise<void>((resolve) => httpServer.listen(env.PORT, "0.0.0.0", resolve));
   logger.info({ port: env.PORT, env: env.NODE_ENV }, "LOADM showcase listening");
+
+  await ensureDatabaseSchema();
+  await ensureSeeded();
+  attachChatServer(httpServer);
+  markReady();
+  logger.info("ready");
+  const stopReset = startDemoResetSchedule();
+  const stopSnapshots = startSnapshotSchedule();
 
   const shutdown = async (signal: string) => {
     logger.info({ signal }, "shutting down");

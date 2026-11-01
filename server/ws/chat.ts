@@ -77,7 +77,7 @@ export function attachChatServer(httpServer: Server): void {
   wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     const role = parseCookies(req.headers.cookie)[DEMO_ROLE_COOKIE];
     void (async () => {
-      const persona = isRole(role) ? await loadPersona(role) : undefined;
+      const persona = isRole(role) ? await loadPersona(role).catch(() => undefined) : undefined;
       if (!persona) {
         ws.close(CLOSE_NO_PERSONA, "Select a role to continue");
         return;

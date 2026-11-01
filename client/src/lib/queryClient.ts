@@ -11,7 +11,12 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: async ({ queryKey, signal }) => get(urlOf(queryKey), signal),
       staleTime: 15_000,
-      retry: (count, err) => !(err instanceof ApiError && err.status < 500) && count < 2,
+      // 503 = server still setting up demo data on first boot: keep waiting.
+      retry: (count, err) => {
+        if (err instanceof ApiError && err.status === 503) return count < 30;
+        return !(err instanceof ApiError && err.status < 500) && count < 2;
+      },
+      retryDelay: (attempt, err) => (err instanceof ApiError && err.status === 503 ? 3000 : Math.min(1000 * 2 ** attempt, 8000)),
       refetchOnWindowFocus: true,
     },
     mutations: { retry: 0 },

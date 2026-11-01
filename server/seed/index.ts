@@ -53,11 +53,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
 
   await tx.execute(sql`
     TRUNCATE TABLE
-      activity_log, chat_messages, readiness_snapshots, safety_records, flight_records, user_qualifications,
-      mission_documents, missions, checklist_step_audit, checklist_completions, checklist_items, checklists,
-      training_module_completions, training_module_videos, training_module_content, training_modules,
-      quiz_submissions, quiz_attempts, quizzes, quiz_questions, scenario_submissions, scenarios,
-      document_submissions, documents, phone_directory, users
+      showcase.activity_log, showcase.chat_messages, showcase.readiness_snapshots, showcase.safety_records, showcase.flight_records, showcase.user_qualifications, showcase.mission_documents, showcase.missions, showcase.checklist_step_audit, showcase.checklist_completions, showcase.checklist_items, showcase.checklists, showcase.training_module_completions, showcase.training_module_videos, showcase.training_module_content, showcase.training_modules, showcase.quiz_submissions, showcase.quiz_attempts, showcase.quizzes, showcase.quiz_questions, showcase.scenario_submissions, showcase.scenarios, showcase.document_submissions, showcase.documents, showcase.phone_directory, showcase.users
     RESTART IDENTITY CASCADE
   `);
 

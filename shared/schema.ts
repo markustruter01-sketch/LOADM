@@ -1,6 +1,5 @@
 import {
-  pgTable,
-  pgEnum,
+  pgSchema,
   text,
   serial,
   integer,
@@ -32,25 +31,34 @@ import {
   CHAT_MESSAGE_TYPES,
 } from "./constants";
 
+/**
+ * Every table and enum lives in the `showcase` Postgres schema, not `public`.
+ * This keeps the rebuilt app fully separate from the legacy tables that
+ * still sit in `public` in the same database, so the legacy data is never
+ * read, altered or dropped.
+ */
+export const DB_SCHEMA = "showcase";
+export const appSchema = pgSchema(DB_SCHEMA);
+
 // ---------------------------------------------------------------------------
 // Enums (mirrors shared/constants.ts — that file is the source of the values)
 // ---------------------------------------------------------------------------
 
-export const roleEnum = pgEnum("role", ROLES);
-export const squadronEnum = pgEnum("squadron", SQUADRONS);
-export const categoryEnum = pgEnum("category", CATEGORIES);
-export const aircraftEnum = pgEnum("aircraft_type", AIRCRAFT_TYPES);
-export const difficultyEnum = pgEnum("difficulty", DIFFICULTIES);
-export const questionDifficultyEnum = pgEnum("question_difficulty", QUESTION_DIFFICULTIES);
-export const questionCategoryEnum = pgEnum("question_category", QUESTION_CATEGORIES);
-export const submissionStatusEnum = pgEnum("submission_status", SUBMISSION_STATUSES);
-export const submissionTypeEnum = pgEnum("submission_type", SUBMISSION_TYPES);
-export const safetyRecordTypeEnum = pgEnum("safety_record_type", SAFETY_RECORD_TYPES);
-export const safetySeverityEnum = pgEnum("safety_severity", SAFETY_SEVERITIES);
-export const safetyStatusEnum = pgEnum("safety_status", SAFETY_STATUSES);
-export const checklistCategoryEnum = pgEnum("checklist_category", CHECKLIST_CATEGORIES);
-export const moduleContentTypeEnum = pgEnum("module_content_type", MODULE_CONTENT_TYPES);
-export const chatMessageTypeEnum = pgEnum("chat_message_type", CHAT_MESSAGE_TYPES);
+export const roleEnum = appSchema.enum("role", ROLES);
+export const squadronEnum = appSchema.enum("squadron", SQUADRONS);
+export const categoryEnum = appSchema.enum("category", CATEGORIES);
+export const aircraftEnum = appSchema.enum("aircraft_type", AIRCRAFT_TYPES);
+export const difficultyEnum = appSchema.enum("difficulty", DIFFICULTIES);
+export const questionDifficultyEnum = appSchema.enum("question_difficulty", QUESTION_DIFFICULTIES);
+export const questionCategoryEnum = appSchema.enum("question_category", QUESTION_CATEGORIES);
+export const submissionStatusEnum = appSchema.enum("submission_status", SUBMISSION_STATUSES);
+export const submissionTypeEnum = appSchema.enum("submission_type", SUBMISSION_TYPES);
+export const safetyRecordTypeEnum = appSchema.enum("safety_record_type", SAFETY_RECORD_TYPES);
+export const safetySeverityEnum = appSchema.enum("safety_severity", SAFETY_SEVERITIES);
+export const safetyStatusEnum = appSchema.enum("safety_status", SAFETY_STATUSES);
+export const checklistCategoryEnum = appSchema.enum("checklist_category", CHECKLIST_CATEGORIES);
+export const moduleContentTypeEnum = appSchema.enum("module_content_type", MODULE_CONTENT_TYPES);
+export const chatMessageTypeEnum = appSchema.enum("chat_message_type", CHAT_MESSAGE_TYPES);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -69,7 +77,7 @@ const timestamps = {
  * There is no authentication: a visitor picks a role and is attached to the
  * `isDemoPersona` user for that role.
  */
-export const users = pgTable(
+export const users = appSchema.table(
   "users",
   {
     id: serial("id").primaryKey(),
@@ -123,7 +131,7 @@ export type FormField = {
   required?: boolean;
 };
 
-export const documents = pgTable("documents", {
+export const documents = appSchema.table("documents", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -146,7 +154,7 @@ export const insertDocumentSchema = createInsertSchema(documents, {
   ),
 }).pick({ title: true, description: true, type: true, fields: true });
 
-export const documentSubmissions = pgTable(
+export const documentSubmissions = appSchema.table(
   "document_submissions",
   {
     id: serial("id").primaryKey(),
@@ -187,7 +195,7 @@ export const scenarioQuestionSchema = z.object({
   correctAnswer: z.string().default(""),
 });
 
-export const scenarios = pgTable("scenarios", {
+export const scenarios = appSchema.table("scenarios", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -210,7 +218,7 @@ export const insertScenarioSchema = z.object({
 
 export type ScenarioAnswer = { questionId: string; answer: string; notes?: string };
 
-export const scenarioSubmissions = pgTable(
+export const scenarioSubmissions = appSchema.table(
   "scenario_submissions",
   {
     id: serial("id").primaryKey(),
@@ -263,7 +271,7 @@ export const reviewScenarioSubmissionSchema = z.object({
 // Quizzes: question bank, quiz definitions, attempts, submissions
 // ---------------------------------------------------------------------------
 
-export const quizQuestions = pgTable(
+export const quizQuestions = appSchema.table(
   "quiz_questions",
   {
     id: serial("id").primaryKey(),
@@ -296,7 +304,7 @@ export const insertQuizQuestionSchema = z
     path: ["correctIndex"],
   });
 
-export const quizzes = pgTable("quizzes", {
+export const quizzes = appSchema.table("quizzes", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
@@ -326,7 +334,7 @@ export const insertQuizSchema = z.object({
  * are graded against this set, by question id, so the student is never
  * graded on questions they did not see.
  */
-export const quizAttempts = pgTable(
+export const quizAttempts = appSchema.table(
   "quiz_attempts",
   {
     id: serial("id").primaryKey(),
@@ -345,7 +353,7 @@ export const quizAttempts = pgTable(
 
 export type QuizAnswer = { questionId: number; answeredIndex: number };
 
-export const quizSubmissions = pgTable(
+export const quizSubmissions = appSchema.table(
   "quiz_submissions",
   {
     id: serial("id").primaryKey(),
@@ -384,7 +392,7 @@ export const submitQuizSchema = z.object({
 // Training modules
 // ---------------------------------------------------------------------------
 
-export const trainingModules = pgTable("training_modules", {
+export const trainingModules = appSchema.table("training_modules", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -413,7 +421,7 @@ export const insertTrainingModuleSchema = z.object({
 
 export type ModuleQuizQuestion = { id: string; question: string; options: string[]; correctIndex: number };
 
-export const trainingModuleContent = pgTable(
+export const trainingModuleContent = appSchema.table(
   "training_module_content",
   {
     id: serial("id").primaryKey(),
@@ -458,7 +466,7 @@ export const insertTrainingModuleContentSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export const trainingModuleCompletions = pgTable(
+export const trainingModuleCompletions = appSchema.table(
   "training_module_completions",
   {
     id: serial("id").primaryKey(),
@@ -484,7 +492,7 @@ export const submitModuleAssessmentSchema = z.object({
   answers: z.record(z.number().int()),
 });
 
-export const trainingModuleVideos = pgTable("training_module_videos", {
+export const trainingModuleVideos = appSchema.table("training_module_videos", {
   id: serial("id").primaryKey(),
   moduleId: integer("module_id")
     .notNull()
@@ -504,7 +512,7 @@ export const trainingModuleVideos = pgTable("training_module_videos", {
 // Checklists
 // ---------------------------------------------------------------------------
 
-export const checklists = pgTable("checklists", {
+export const checklists = appSchema.table("checklists", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
@@ -516,7 +524,7 @@ export const checklists = pgTable("checklists", {
   ...timestamps,
 });
 
-export const checklistItems = pgTable(
+export const checklistItems = appSchema.table(
   "checklist_items",
   {
     id: serial("id").primaryKey(),
@@ -549,7 +557,7 @@ export const insertChecklistSchema = z.object({
     .min(1),
 });
 
-export const checklistCompletions = pgTable(
+export const checklistCompletions = appSchema.table(
   "checklist_completions",
   {
     id: serial("id").primaryKey(),
@@ -572,7 +580,7 @@ export const updateChecklistProgressSchema = z.object({
   completedItemIds: z.array(z.number().int().positive()),
 });
 
-export const checklistStepAudit = pgTable(
+export const checklistStepAudit = appSchema.table(
   "checklist_step_audit",
   {
     id: serial("id").primaryKey(),
@@ -595,7 +603,7 @@ export const checklistStepAudit = pgTable(
 // Missions
 // ---------------------------------------------------------------------------
 
-export const missions = pgTable(
+export const missions = appSchema.table(
   "missions",
   {
     id: serial("id").primaryKey(),
@@ -630,7 +638,7 @@ export const insertMissionSchema = z.object({
   hasDangerousGoods: z.boolean().optional(),
 });
 
-export const missionDocuments = pgTable("mission_documents", {
+export const missionDocuments = appSchema.table("mission_documents", {
   id: serial("id").primaryKey(),
   missionId: integer("mission_id")
     .notNull()
@@ -650,7 +658,7 @@ export const insertMissionDocumentSchema = z.object({
 // Personnel records
 // ---------------------------------------------------------------------------
 
-export const userQualifications = pgTable(
+export const userQualifications = appSchema.table(
   "user_qualifications",
   {
     id: serial("id").primaryKey(),
@@ -671,7 +679,7 @@ export const insertUserQualificationSchema = z.object({
   expiryDate: z.coerce.date().nullable().optional(),
 });
 
-export const flightRecords = pgTable(
+export const flightRecords = appSchema.table(
   "flight_records",
   {
     id: serial("id").primaryKey(),
@@ -706,7 +714,7 @@ export const insertFlightRecordSchema = z.object({
   nightHours: z.number().nonnegative().max(24).optional(),
 });
 
-export const safetyRecords = pgTable(
+export const safetyRecords = appSchema.table(
   "safety_records",
   {
     id: serial("id").primaryKey(),
@@ -754,7 +762,7 @@ export const insertSafetyRecordSchema = z.object({
 // Readiness snapshots (daily, per squadron + ALL)
 // ---------------------------------------------------------------------------
 
-export const readinessSnapshots = pgTable(
+export const readinessSnapshots = appSchema.table(
   "readiness_snapshots",
   {
     id: serial("id").primaryKey(),
@@ -780,7 +788,7 @@ export const readinessSnapshots = pgTable(
 
 export type Contact = { id: string; name: string; phoneNumber: string; description: string };
 
-export const phoneDirectory = pgTable("phone_directory", {
+export const phoneDirectory = appSchema.table("phone_directory", {
   id: serial("id").primaryKey(),
   airbaseCode: text("airbase_code").notNull().unique(),
   airbaseName: text("airbase_name").notNull(),
@@ -801,7 +809,7 @@ export const insertPhoneDirectorySchema = z.object({
   ),
 });
 
-export const chatMessages = pgTable(
+export const chatMessages = appSchema.table(
   "chat_messages",
   {
     id: serial("id").primaryKey(),
@@ -820,7 +828,7 @@ export const insertChatMessageSchema = z.object({
   content: z.string().min(1).max(4000),
 });
 
-export const activityLog = pgTable(
+export const activityLog = appSchema.table(
   "activity_log",
   {
     id: serial("id").primaryKey(),
