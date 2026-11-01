@@ -14,7 +14,7 @@ import { labelledEntries } from "@/components/documents/format";
 import { downloadSubmissionPdf } from "@/components/documents/submission-pdf";
 import { usePersona } from "@/lib/persona";
 import { post } from "@/lib/api";
-import { byPrefix, keys } from "@/lib/keys";
+import { keys } from "@/lib/keys";
 import { useToast } from "@/hooks/use-toast";
 import type { CreatedDocumentSubmission } from "./types";
 
@@ -40,7 +40,7 @@ function FillForm({ doc }: { doc: Document }) {
     mutationFn: (formData: Record<string, unknown>) =>
       post<CreatedDocumentSubmission>(`/api/documents/${doc.id}/submissions`, { documentId: doc.id, formData }),
     onSuccess: (submission, formData) => {
-      qc.invalidateQueries(byPrefix(keys.documents.all));
+      qc.invalidateQueries({ queryKey: keys.documents.all });
       toast({ title: "Form submitted", description: doc.title });
       setDone({ submission, formData });
     },

@@ -11,7 +11,7 @@ import { PageHeader, QueryState, Section, EmptyState } from "@/components/common
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ConfirmDialog } from "@/components/instructor/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ModuleForm } from "@/components/instructor/ModuleForm";
 import { ModuleContentDialog } from "@/components/instructor/ModuleContentDialog";
 import { ModuleVideos } from "@/components/instructor/ModuleVideos";

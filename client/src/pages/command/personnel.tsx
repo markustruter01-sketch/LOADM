@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusPill, personName } from "@/components/command/charts";
-import { ReadinessDialog } from "@/components/command/ReadinessDialog";
+import { ReadinessDialog } from "@/components/ReadinessDialog";
 import type { RosterEntry, RosterFlag } from "./types";
 
 const ANY = "any";

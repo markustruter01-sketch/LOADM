@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { del, post } from "@/lib/api";
-import { byPrefix, keys } from "@/lib/keys";
+import { keys } from "@/lib/keys";
 import { useToast } from "@/hooks/use-toast";
 
 type DocValues = z.infer<typeof insertMissionDocumentSchema>;
@@ -31,7 +31,7 @@ function AddDocumentDialog({ missionId, open, onOpenChange }: { missionId: numbe
   const add = useMutation({
     mutationFn: (body: DocValues) => post<MissionDocument>(`/api/missions/${missionId}/documents`, body),
     onSuccess: () => {
-      qc.invalidateQueries(byPrefix(keys.missions.all));
+      qc.invalidateQueries({ queryKey: keys.missions.all });
       toast({ title: "Document attached" });
       form.reset();
       onOpenChange(false);
@@ -122,7 +122,7 @@ export function MissionDocuments({ missionId, documents }: { missionId: number; 
   const remove = useMutation({
     mutationFn: (docId: number) => del<{ id: number }>(`/api/missions/${missionId}/documents/${docId}`),
     onSuccess: () => {
-      qc.invalidateQueries(byPrefix(keys.missions.all));
+      qc.invalidateQueries({ queryKey: keys.missions.all });
       toast({ title: "Document removed" });
     },
     onError: (e: Error) => toast({ variant: "destructive", title: "Could not remove document", description: e.message }),

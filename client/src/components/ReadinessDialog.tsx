@@ -13,7 +13,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { personName } from "@/components/command/charts";
+
+function personName(u: Pick<PublicUser, "rank" | "firstName" | "lastName">): string {
+  return `${u.rank} ${u.firstName} ${u.lastName}`;
+}
 
 /** Mirrors the server's readiness body (PUT /api/users/:id/readiness). */
 const readinessFormSchema = z

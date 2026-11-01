@@ -19,7 +19,7 @@ import { MissionForm } from "@/components/missions/MissionForm";
 import { MissionStatusBadge } from "@/components/missions/MissionStatusBadge";
 import { MissionDocuments } from "@/components/missions/MissionDocuments";
 import { del, patch } from "@/lib/api";
-import { byPrefix, keys } from "@/lib/keys";
+import { keys } from "@/lib/keys";
 import { useToast } from "@/hooks/use-toast";
 import type { MissionDetail as MissionDetailT } from "./types";
 
@@ -62,7 +62,7 @@ export default function MissionDetail() {
   const update = useMutation({
     mutationFn: (body: MissionPatch) => patch<Mission>(`/api/missions/${missionId}`, body),
     onSuccess: (_m, body) => {
-      qc.invalidateQueries(byPrefix(keys.missions.all));
+      qc.invalidateQueries({ queryKey: keys.missions.all });
       toast({ title: body.isCompleted === undefined ? "Mission updated" : body.isCompleted ? "Mission marked complete" : "Mission reopened" });
       setEditing(false);
     },
@@ -73,7 +73,7 @@ export default function MissionDetail() {
     mutationFn: () => del<{ id: number }>(`/api/missions/${missionId}`),
     onSuccess: () => {
       qc.removeQueries({ queryKey: keys.missions.one(missionId) });
-      qc.invalidateQueries(byPrefix(keys.missions.all));
+      qc.invalidateQueries({ queryKey: keys.missions.all });
       toast({ title: "Mission deleted" });
       navigate("/missions");
     },

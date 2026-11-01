@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ConfirmDialog } from "@/components/instructor/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { RECORD_TYPE_LABELS, SafetyRecordDialog } from "@/components/instructor/SafetyRecordDialog";
 import { personName, StatusBadge } from "@/components/instructor/shared";
 import { cn } from "@/lib/utils";

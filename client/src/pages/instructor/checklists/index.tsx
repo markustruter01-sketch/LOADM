@@ -10,7 +10,7 @@ import { PageHeader, QueryState, EmptyState, formatDate } from "@/components/com
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ConfirmDialog } from "@/components/instructor/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ActiveBadge, aircraftLabel } from "@/components/instructor/shared";
 import { cn } from "@/lib/utils";
 import type { ChecklistListItem } from "../types";

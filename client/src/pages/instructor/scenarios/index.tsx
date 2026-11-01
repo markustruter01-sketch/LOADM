@@ -11,7 +11,7 @@ import { PageHeader, QueryState, EmptyState } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ConfirmDialog } from "@/components/instructor/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ActiveBadge } from "@/components/instructor/shared";
 import { cn } from "@/lib/utils";
 import type { ScenarioListItem } from "../types";

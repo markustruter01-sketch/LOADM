@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ReadinessDialog } from "@/components/instructor/ReadinessDialog";
+import { ReadinessDialog } from "@/components/ReadinessDialog";
 import { personName } from "@/components/instructor/shared";
 import { cn } from "@/lib/utils";
 import type { ProfileActivity, StudentAnalytics, StudentProfile } from "../types";
@@ -98,7 +98,7 @@ function StudentBody({ profile, analytics }: { profile: StudentProfile; analytic
           </div>
         </CardContent>
       </Card>
-      <ReadinessDialog key={`${user.id}-${String(user.isFlightReady)}-${user.notReadyReason ?? ""}`} user={user} open={readinessOpen} onOpenChange={setReadinessOpen} />
+      <ReadinessDialog user={readinessOpen ? user : null} onClose={() => setReadinessOpen(false)} />
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { MissionForm } from "@/components/missions/MissionForm";
 import { MissionStatusBadge } from "@/components/missions/MissionStatusBadge";
 import { usePersona } from "@/lib/persona";
-import { byPrefix, keys } from "@/lib/keys";
+import { keys } from "@/lib/keys";
 import { post } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { MissionListItem } from "./types";
@@ -33,7 +33,7 @@ export default function Missions() {
   const create = useMutation({
     mutationFn: (body: InsertMission) => post<Mission>("/api/missions", body),
     onSuccess: (m) => {
-      qc.invalidateQueries(byPrefix(keys.missions.all));
+      qc.invalidateQueries({ queryKey: keys.missions.all });
       toast({ title: "Mission created", description: m.missionName });
       setCreating(false);
       navigate(`/missions/${m.id}`);
