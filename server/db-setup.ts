@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { sql } from "drizzle-orm";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 import * as schema from "@shared/schema";
@@ -23,7 +24,9 @@ export async function ensureDatabaseSchema(): Promise<void> {
     await client.query("SELECT pg_advisory_lock($1)", [SCHEMA_LOCK_KEY]);
     await db.execute(sql.raw(`CREATE SCHEMA IF NOT EXISTS "${DB_SCHEMA}"`));
 
-    const { pushSchema } = await import("drizzle-kit/api");
+    // drizzle-kit's ESM build (api.mjs) fails with "Dynamic require of fs";
+    // its CommonJS build loads fine.
+    const { pushSchema } = createRequire(import.meta.url)("drizzle-kit/api") as typeof import("drizzle-kit/api");
     const result = await pushSchema(schema, db as unknown as PgDatabase<never>, [DB_SCHEMA]);
     if (result.statementsToExecute.length === 0) {
       logger.info("database schema up to date");
