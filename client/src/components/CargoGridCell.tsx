@@ -24,6 +24,8 @@ interface CargoGridCellProps {
   onDragStart?: (e: React.DragEvent, id: number) => void;
   onClick?: (e: React.MouseEvent) => void;
   aircraftId?: string;
+  /** Overrides the unit shown after the weight (defaults from aircraftId). */
+  unitLabel?: string;
 }
 
 export default function CargoGridCell({
@@ -32,8 +34,10 @@ export default function CargoGridCell({
   cellStyle,
   onDragStart,
   onClick,
-  aircraftId = 'c17'  // Default to C-17 if not specified
+  aircraftId = 'c17',  // Default to C-17 if not specified
+  unitLabel
 }: CargoGridCellProps) {
+  const unit = unitLabel ?? (aircraftId === 'kc30a' ? 'kg' : 'lbs');
   // Determine cell background color based on occupation
   const bgColor = assignedPallet ? 
     'rgba(234, 88, 12, 0.7)' :  // Orange for occupied
@@ -79,7 +83,7 @@ export default function CargoGridCell({
         {assignedPallet && (
           <div className="flex-1 flex flex-col items-center justify-center text-white font-bold">
             {assignedPallet.weight !== null ? 
-              <span>{assignedPallet.weight} {aircraftId === 'kc30a' ? 'kg' : 'lbs'}</span> : 
+              <span>{assignedPallet.weight.toLocaleString()} {unit}</span> : 
               <span className="text-white/80">No weight</span>
             }
           </div>

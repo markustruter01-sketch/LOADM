@@ -20,13 +20,15 @@ interface KC30AGridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
+  unitLabel?: string;
 }
 
 export default function KC30AGrid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart 
+  onDragStart,
+  unitLabel
 }: KC30AGridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -68,6 +70,8 @@ export default function KC30AGrid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
                   aircraftId="kc30a"
                   onClick={(e) => {
                     if (assignedPallet) {
@@ -108,6 +112,8 @@ export default function KC30AGrid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
                   aircraftId="kc30a"
                   onClick={(e) => {
                     if (assignedPallet) {

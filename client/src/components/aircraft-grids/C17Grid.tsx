@@ -20,13 +20,15 @@ interface C17GridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
+  unitLabel?: string;
 }
 
 export default function C17Grid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart 
+  onDragStart,
+  unitLabel
 }: C17GridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -68,6 +70,8 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
                   aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {
@@ -108,6 +112,8 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
+            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
                   aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {

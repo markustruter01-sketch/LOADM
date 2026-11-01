@@ -29,6 +29,8 @@ interface PalletConfigDialogProps {
   dgClass: string;
   isDangerousGoods: boolean;
   maxPalletWeight: number;
+  /** Unit shown on the weight field (defaults to kg). */
+  unitLabel?: string;
   onConfirm: (data: {
     id: number;
     weight: number | null;
@@ -56,6 +58,7 @@ export default function PalletConfigDialog({
   dgClass,
   isDangerousGoods,
   maxPalletWeight,
+  unitLabel = 'kg',
   onConfirm,
   onCancel,
   onWeightChange,
@@ -72,7 +75,8 @@ export default function PalletConfigDialog({
     setConfirmLoading(true);
     
     // Convert weight string to number, or null if empty
-    const weightValue = weight ? parseInt(weight) : null;
+    const parsed = parseFloat(weight);
+    const weightValue = weight && !Number.isNaN(parsed) ? Math.round(parsed) : null;
     
     onConfirm({
       id: palletId,
@@ -97,7 +101,7 @@ export default function PalletConfigDialog({
           {/* Weight Input */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="weight" className="text-right">
-              Weight (kg)
+              Weight ({unitLabel})
             </Label>
             <Input
               id="weight"
@@ -105,7 +109,7 @@ export default function PalletConfigDialog({
               value={weight}
               onChange={(e) => onWeightChange(e.target.value)}
               className="col-span-3"
-              placeholder={`Max: ${maxPalletWeight} kg`}
+              placeholder={`Max: ${maxPalletWeight.toLocaleString()} ${unitLabel}`}
               min="0"
               max={maxPalletWeight}
             />

@@ -20,13 +20,15 @@ interface C27JGridProps {
   pallets: Pallet[];
   onPalletCellClick: (e: React.MouseEvent, pallet: Pallet, posLabel: string) => void;
   onDragStart: (e: React.DragEvent, id: number) => void;
+  unitLabel?: string;
 }
 
 export default function C27JGrid({ 
   config, 
   pallets, 
   onPalletCellClick, 
-  onDragStart 
+  onDragStart,
+  unitLabel
 }: C27JGridProps) {
   // Container ref for debugging
   const gridContainerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +65,7 @@ export default function C27JGrid({
             assignedPallet={assignedPallet}
             cellStyle={cellStyle}
             onDragStart={onDragStart}
+            unitLabel={unitLabel}
             aircraftId="c27j"
             onClick={(e) => {
               if (assignedPallet) {

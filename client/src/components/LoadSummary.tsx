@@ -7,6 +7,8 @@ interface LoadSummaryProps {
   positionsFilled: number;
   totalPositions: number;
   balanceCG: number;
+  /** Display unit for weights (defaults to kg). */
+  unit?: string;
 }
 
 export default function LoadSummary({
@@ -14,12 +16,11 @@ export default function LoadSummary({
   maxPayload,
   positionsFilled,
   totalPositions,
-  balanceCG
+  balanceCG,
+  unit = 'kg'
 }: LoadSummaryProps) {
   // Calculate color for CG value
   const getCGColor = () => {
-    const cgValue = balanceCG;
-    
     // Use interpolated colors similar to the balance scale, but never use red
     if (Math.abs(balanceCG - 53) < 10) {
       return '#22c55e'; // Green center (close to 53 degrees)
@@ -42,12 +43,12 @@ export default function LoadSummary({
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-md p-3 bg-background border border-border">
           <p className="text-xs font-medium">Current Load</p>
-          <p className="text-lg font-semibold">{formatNumber(currentLoad)} kg</p>
+          <p className="text-lg font-semibold">{formatNumber(currentLoad)} {unit}</p>
         </div>
         
         <div className="rounded-md p-3 bg-background border border-border">
           <p className="text-xs font-medium">Maximum Payload</p>
-          <p className="text-lg font-semibold">{formatNumber(maxPayload)} kg</p>
+          <p className="text-lg font-semibold">{formatNumber(maxPayload)} {unit}</p>
         </div>
         
         <div className="rounded-md p-3 bg-background border border-border">
@@ -73,7 +74,7 @@ export default function LoadSummary({
       <div className="flex items-center mt-4 px-3 py-2 bg-primary/10 text-primary rounded text-sm">
         <span className="font-medium">{formatNumber(currentLoad)}</span>
         <span className="mx-1">/</span>
-        <span>{formatNumber(maxPayload)} kg</span>
+        <span>{formatNumber(maxPayload)} {unit}</span>
       </div>
     </div>
   );
