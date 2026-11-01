@@ -204,15 +204,15 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     const typeRating = `${SQUADRON_AIRCRAFT[u.squadron as Squadron]} Type Rating`;
     const quals: { name: string; start: number; expiry: number | null }[] = [
       { name: "Basic Loadmaster Certification", start: rng.int(400, 2000), expiry: null },
-      { name: typeRating, start: rng.int(200, 1500), expiry: rng.int(60, 720) },
-      { name: "Dangerous Goods (DG) Handling", start: rng.int(100, 700), expiry: rng.int(30, 730) },
-      { name: "Annual Proficiency Check", start: rng.int(30, 365), expiry: rng.int(20, 365) },
+      { name: typeRating, start: rng.int(200, 1500), expiry: rng.int(90, 720) },
+      { name: "Dangerous Goods (DG) Handling", start: rng.int(100, 700), expiry: rng.int(75, 730) },
+      { name: "Annual Proficiency Check", start: rng.int(30, 365), expiry: rng.int(70, 365) },
     ];
     if (u.role === "loadmaster") {
-      quals.push({ name: "Night Operations Currency", start: rng.int(30, 300), expiry: rng.int(30, 240) });
-      if (u.squadron === "33SQN") quals.push({ name: "Air-to-Air Refueling (AAR)", start: rng.int(60, 600), expiry: rng.int(0, 500) });
-      if (rng.chance(0.4)) quals.push({ name: "Aeromedical Evacuation", start: rng.int(60, 600), expiry: rng.int(0, 500) });
-      if (rng.chance(0.5)) quals.push({ name: "Combat Readiness", start: rng.int(60, 600), expiry: rng.int(0, 400) });
+      quals.push({ name: "Night Operations Currency", start: rng.int(30, 300), expiry: rng.int(80, 240) });
+      if (u.squadron === "33SQN") quals.push({ name: "Air-to-Air Refueling (AAR)", start: rng.int(60, 600), expiry: rng.int(100, 500) });
+      if (rng.chance(0.4)) quals.push({ name: "Aeromedical Evacuation", start: rng.int(60, 600), expiry: rng.int(100, 500) });
+      if (rng.chance(0.5)) quals.push({ name: "Combat Readiness", start: rng.int(60, 600), expiry: rng.int(100, 400) });
     }
     // Struggling squadrons let more lapse.
     // A few lapsed currencies, concentrated in the squadron under pressure.
