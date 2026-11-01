@@ -2,7 +2,7 @@ import express, { type Express } from "express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
-import { env, isProd } from "./config";
+import { isProd } from "./config";
 import { attachPersona } from "./middleware/persona";
 import { requestLog } from "./middleware/request-log";
 import { errorHandler, notFoundHandler } from "./middleware/errors";
@@ -51,8 +51,6 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: false, limit: "1mb" }));
   app.use(requestLog);
 
-  app.get("/healthz", (_req, res) => res.json({ ok: true, ready, env: env.NODE_ENV }));
-
   // The port opens immediately (hosts expect that); API calls wait for setup.
   app.use("/api", (_req, res, next) => {
     if (ready) return next();
@@ -61,7 +59,6 @@ export function createApp(): Express {
   });
 
   app.use(attachPersona);
-
 
   app.use("/api", apiRouter);
   app.use("/api", notFoundHandler);
