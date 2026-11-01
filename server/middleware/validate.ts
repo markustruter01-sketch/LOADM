@@ -1,5 +1,5 @@
 import type { RequestHandler } from "express";
-import type { ZodTypeAny, z } from "zod";
+import type { ZodTypeAny } from "zod";
 import { BadRequest } from "../lib/errors";
 
 type Source = "body" | "query" | "params";
@@ -20,7 +20,3 @@ export function validate<S extends ZodTypeAny>(schema: S, source: Source = "body
   };
 }
 
-/** Typed accessor for a body validated by `validate(schema)`. */
-export function body<S extends ZodTypeAny>(req: { body: unknown }, _schema: S): z.infer<S> {
-  return req.body as z.infer<S>;
-}

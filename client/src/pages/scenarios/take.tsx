@@ -196,7 +196,7 @@ export default function ScenarioTake() {
                   onChange={(patch) =>
                     setAnswers((prev) => ({
                       ...prev,
-                      [qq.id]: { answer: "", notes: "", showNotes: false, ...prev[qq.id], ...patch },
+                      [qq.id]: { ...(prev[qq.id] ?? { answer: "", notes: "", showNotes: false }), ...patch },
                     }))
                   }
                 />

@@ -66,7 +66,7 @@ personnelRouter.get(
   requireInstruct,
   validate(expiringQuery, "query"),
   asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof expiringQuery>;
+    const q = req.query as unknown as z.infer<typeof expiringQuery>;
     const now = Date.now();
     const until = new Date(now + q.days * DAY_MS);
     const conds = [isNotNull(userQualifications.expiryDate), lte(userQualifications.expiryDate, until), eq(users.isActive, true)];

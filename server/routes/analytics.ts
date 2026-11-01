@@ -58,7 +58,7 @@ analyticsRouter.get(
   "/readiness-history",
   validate(historyQuery, "query"),
   asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof historyQuery>;
+    const q = req.query as unknown as z.infer<typeof historyQuery>;
     res.json(await getReadinessHistory(q.squadron, q.days));
   }),
 );
@@ -96,7 +96,7 @@ analyticsRouter.get(
   "/performance-trend",
   validate(monthsQuery, "query"),
   asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof monthsQuery>;
+    const q = req.query as unknown as z.infer<typeof monthsQuery>;
     res.json(await getPerformanceTrend({ squadron: q.squadron }, q.months));
   }),
 );
@@ -161,7 +161,7 @@ analyticsRouter.get(
   "/qualification-forecast",
   validate(monthsQuery, "query"),
   asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof monthsQuery>;
+    const q = req.query as unknown as z.infer<typeof monthsQuery>;
     res.json(await getQualificationForecast({ squadron: q.squadron }, q.months));
   }),
 );
