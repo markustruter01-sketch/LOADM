@@ -1,201 +1,67 @@
 import { Router } from "express";
 import { z } from "zod";
-import { FLYING_SQUADRONS } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId } from "../lib/ids";
+import { parseSquadron } from "../lib/client-format";
 import { validate } from "../middleware/validate";
-import { requireInstruct, currentUser } from "../middleware/persona";
-import { logActivity } from "../services/activity-service";
+import { requireInstruct } from "../middleware/persona";
+import { captureSnapshot } from "../services/readiness-service";
 import {
-  getOverview, getSquadronReadiness, getReadinessHistory, captureReadinessSnapshot, getSquadronPerformance,
-  getScoreDistribution, getPerformanceTrend, getQuestionDifficulty, getAtRiskStudents, getCertificationReadiness,
-  getModuleCompletion, getFlightHours, getCurrencyStatus, getQualificationForecast, getSafetySummary,
-  getStudentSummary, getInstructorWorkload, getRecommendations,
+  ICC_METRICS, getSquadronReadiness, getReadinessHistory, getCurrencyStatus, getQualificationForecast,
+  getExpiringQualifications, getFlightHours, getSafetySummary, getAtRiskStudents, getCertificationReadiness,
+  getStudentVsSquadron, getModuleCompletion, getQuestionDifficulty, getTopicMastery, getIccPowerLaw,
 } from "../services/analytics-service";
 
 /**
- * Read-only analytics for instructors and command. The router validates the
- * query string and hands a filter to the analytics service, which computes
- * every figure from the tables; nothing here is estimated.
+ * Analytics for instructors and command, in the shapes the workforce,
+ * leadership, advanced-analytics and superadmin screens read. A squadron
+ * parameter may be "33" or "33SQN"; empty or "ALL" means every flying squadron.
  */
 export const analyticsRouter = Router();
 
 analyticsRouter.use(requireInstruct);
 
-// ---- Query schemas -------------------------------------------------------
+const squadron = z.unknown().transform(parseSquadron);
+const optionalDate = z.preprocess((v) => (v === "" ? undefined : v), z.coerce.date().optional());
 
-const squadronQuery = z.object({ squadron: z.enum(FLYING_SQUADRONS).optional() });
+const squadronQuery = z.object({ squadron });
+const rangeQuery = squadronQuery.extend({ startDate: optionalDate, endDate: optionalDate });
+const monthsQuery = squadronQuery.extend({ months: z.coerce.number().int().min(1).max(24).default(6) });
+const historyQuery = squadronQuery.extend({ limit: z.coerce.number().int().min(1).max(3650).default(30) });
+const iccQuery = z.object({ metric: z.enum(ICC_METRICS).catch("assessmentsPassed") });
 
-const daysQuery = z.object({ days: z.coerce.number().int().min(1).max(365).default(90) });
+/** GET route whose query string is validated by `schema` and handed to `handler`. */
+function getWithQuery<S extends z.ZodTypeAny>(path: string, schema: S, handler: (q: z.output<S>) => Promise<unknown>): void {
+  analyticsRouter.get(
+    path,
+    validate(schema, "query"),
+    asyncHandler(async (req, res) => {
+      res.json(await handler(req.query as unknown as z.output<S>));
+    }),
+  );
+}
 
-const monthsQuery = squadronQuery.extend({ months: z.coerce.number().int().min(1).max(365).default(6) });
+function get(path: string, handler: () => Promise<unknown>): void {
+  analyticsRouter.get(path, asyncHandler(async (_req, res) => { res.json(await handler()); }));
+}
 
-const historyQuery = daysQuery.extend({ squadron: z.enum([...FLYING_SQUADRONS, "ALL"] as const).default("ALL") });
-
-const rangeQuery = squadronQuery.extend({ from: z.coerce.date().optional(), to: z.coerce.date().optional() });
-
-// ---- Overview and readiness ----------------------------------------------
-
-analyticsRouter.get(
-  "/overview",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getOverview({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/squadron-readiness",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getSquadronReadiness({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/readiness-history",
-  validate(historyQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as unknown as z.infer<typeof historyQuery>;
-    res.json(await getReadinessHistory(q.squadron, q.days));
-  }),
-);
+getWithQuery("/squadron-readiness", squadronQuery, (q) => getSquadronReadiness(q.squadron));
+getWithQuery("/currency-status", squadronQuery, (q) => getCurrencyStatus(q.squadron));
+getWithQuery("/safety-summary", rangeQuery, (q) => getSafetySummary({ squadron: q.squadron, from: q.startDate, to: q.endDate }));
+getWithQuery("/flight-hours", rangeQuery, (q) => getFlightHours({ squadron: q.squadron, from: q.startDate, to: q.endDate }));
+getWithQuery("/readiness-history", historyQuery, (q) => getReadinessHistory(q.squadron ?? "ALL", q.limit));
+getWithQuery("/qualification-forecast", monthsQuery, (q) => getQualificationForecast(q.squadron, q.months));
+getWithQuery("/expiring-qualifications", monthsQuery, (q) => getExpiringQualifications(q.squadron, q.months));
+getWithQuery("/at-risk-students", squadronQuery, (q) => getAtRiskStudents(q.squadron));
+getWithQuery("/icc-power-law", iccQuery, (q) => getIccPowerLaw(q.metric));
+get("/certification-readiness", getCertificationReadiness);
+get("/student-vs-squadron", getStudentVsSquadron);
+get("/module-completion", getModuleCompletion);
+get("/question-difficulty", getQuestionDifficulty);
+get("/topic-mastery", getTopicMastery);
 
 analyticsRouter.post(
   "/capture-snapshot",
-  asyncHandler(async (req, res) => {
-    const result = await captureReadinessSnapshot();
-    await logActivity({ actor: currentUser(req), action: "CREATE", resourceType: "Readiness snapshot", resourceName: "Daily readiness snapshot", details: `${result.created} rows` });
-    res.json(result);
-  }),
-);
-
-// ---- Performance ---------------------------------------------------------
-
-analyticsRouter.get(
-  "/squadron-performance",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getSquadronPerformance({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/score-distribution",
-  validate(rangeQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof rangeQuery>;
-    res.json(await getScoreDistribution({ squadron: q.squadron, from: q.from, to: q.to }));
-  }),
-);
-
-analyticsRouter.get(
-  "/performance-trend",
-  validate(monthsQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as unknown as z.infer<typeof monthsQuery>;
-    res.json(await getPerformanceTrend({ squadron: q.squadron }, q.months));
-  }),
-);
-
-analyticsRouter.get(
-  "/question-difficulty",
-  validate(rangeQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof rangeQuery>;
-    res.json(await getQuestionDifficulty({ squadron: q.squadron, from: q.from, to: q.to }));
-  }),
-);
-
-// ---- People --------------------------------------------------------------
-
-analyticsRouter.get(
-  "/at-risk-students",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getAtRiskStudents({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/certification-readiness",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getCertificationReadiness({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/module-completion",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getModuleCompletion({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/flight-hours",
-  validate(rangeQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof rangeQuery>;
-    res.json(await getFlightHours({ squadron: q.squadron, from: q.from, to: q.to }));
-  }),
-);
-
-analyticsRouter.get(
-  "/currency-status",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getCurrencyStatus({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/qualification-forecast",
-  validate(monthsQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as unknown as z.infer<typeof monthsQuery>;
-    res.json(await getQualificationForecast({ squadron: q.squadron }, q.months));
-  }),
-);
-
-analyticsRouter.get(
-  "/safety-summary",
-  validate(rangeQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof rangeQuery>;
-    res.json(await getSafetySummary({ squadron: q.squadron, from: q.from, to: q.to }));
-  }),
-);
-
-analyticsRouter.get(
-  "/student/:userId",
-  asyncHandler(async (req, res) => {
-    res.json(await getStudentSummary(parseId(req.params.userId, "userId")));
-  }),
-);
-
-analyticsRouter.get(
-  "/instructor-workload",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getInstructorWorkload({ squadron: q.squadron }));
-  }),
-);
-
-analyticsRouter.get(
-  "/recommendations",
-  validate(squadronQuery, "query"),
-  asyncHandler(async (req, res) => {
-    const q = req.query as z.infer<typeof squadronQuery>;
-    res.json(await getRecommendations({ squadron: q.squadron }));
+  asyncHandler(async (_req, res) => {
+    res.json(await captureSnapshot());
   }),
 );

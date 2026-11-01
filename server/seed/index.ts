@@ -9,7 +9,7 @@ import {
 } from "@shared/schema";
 import {
   FLYING_SQUADRONS, NOT_READY_REASONS, SQUADRON_AIRCRAFT,
-  isPassing, type Squadron, type FlyingSquadron, type AircraftType,
+  isPassing, type Squadron, type FlyingSquadron, type AircraftType, type Category,
 } from "@shared/constants";
 import { Rng, daysAgo, daysFromNow } from "./rng";
 import { buildPeople } from "./people";
@@ -34,6 +34,9 @@ const ROUTES: Array<[string, string]> = [
   ["YAMB", "WSSS"], ["YPDN", "PGUA"], ["YSRI", "YBAS"], ["YAMB", "PHIK"], ["YPEA", "YSRI"],
 ];
 const CAPTAINS = ["SQNLDR Price", "FLTLT Hammond", "FLTLT Nakamura", "SQNLDR Bennett", "FLTLT O'Connor", "FLTLT Dwyer", "SQNLDR Lim"];
+
+/** Bump whenever the seeded data changes shape; running instances reseed on next start. */
+export const SEED_VERSION = "seed-v2";
 
 export interface SeedSummary {
   users: number;
@@ -61,6 +64,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
   const events: { userId: number; action: string; resourceType: string; resourceId: number | null; resourceName: string; details: string | null; performedAt: Date }[] = [];
 
   // ---- People ------------------------------------------------------------
+  const TENURE_DAYS: Record<Category, [number, number]> = { D: [120, 730], C: [730, 1825], B: [1825, 3285], A: [3285, 5110] };
   const people = buildPeople(rng);
   const userRows = await tx
     .insert(users)
@@ -78,7 +82,8 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
         lastActiveAt: daysAgo(rng.chance(0.75) ? rng.int(0, 2) : rng.int(3, 20), rng.int(6, 20), rng.int(0, 59)),
         // Annual access licences: most well in date, a few due for renewal, the posted-out member lapsed.
         licenseExpiresAt: p.isActive === false ? daysAgo(rng.int(10, 60)) : daysFromNow(p.isDemoPersona ? 365 : rng.chance(0.1) ? rng.int(5, 28) : rng.int(60, 365)),
-        createdAt: daysAgo(rng.int(200, 900)),
+        // Years of service follow seniority category.
+        createdAt: daysAgo(rng.int(...TENURE_DAYS[p.category ?? "D"])),
       })),
     )
     .returning();
@@ -507,15 +512,17 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
   events.sort((x, y) => x.performedAt.getTime() - y.performedAt.getTime());
   if (events.length) await tx.insert(activityLog).values(events);
 
-  // ---- Readiness snapshots (last 90 days) ---------------------------------
-  // Computed from the data above so history and "now" agree by construction;
-  // earlier days get a gentle drift so the trend line is not flat.
+  // ---- Readiness snapshots (last 365 days) --------------------------------
+  // The last 90 days are computed from the data above so history and "now"
+  // agree by construction; older days reuse the day-90 figures. Earlier days
+  // get a gentle drift so the trend line is not flat.
   const snapshotValues = [];
-  const todayAll = await computeReadinessForDate(tx, daysAgo(0));
-  for (let d = 90; d >= 0; d--) {
+  let base = await computeReadinessForDate(tx, daysAgo(90, 0));
+  for (let d = 365; d >= 0; d--) {
     const date = daysAgo(d, 0);
-    for (const snap of d === 0 ? todayAll : await computeReadinessForDate(tx, date)) {
-      const drift = d === 0 ? 0 : rng.gauss(0, 2.5, -6, 6) - d * 0.05;
+    if (d <= 90) base = await computeReadinessForDate(tx, date);
+    for (const snap of base) {
+      const drift = d === 0 ? 0 : rng.gauss(0, 2.5, -6, 6) - d * 0.015;
       const ready = Math.max(0, Math.min(snap.totalPersonnel, Math.round(snap.readyCount + (drift * snap.totalPersonnel) / 100)));
       snapshotValues.push({
         snapshotDate: date,
@@ -537,7 +544,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     userId: null,
     action: "RESET",
     resourceType: "Demo data",
-    resourceName: "Seed",
+    resourceName: SEED_VERSION,
     details: `Seeded ${userRows.length} users, ${questionRows.length} questions, ${submissionCount} submissions`,
   });
 

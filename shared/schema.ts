@@ -266,20 +266,6 @@ export const scenarioSubmissions = appSchema.table(
   ],
 );
 
-export const insertScenarioSubmissionSchema = z.object({
-  scenarioId: z.number().int().positive(),
-  answers: z.array(z.object({ questionId: z.string(), answer: z.string(), notes: z.string().optional() })).min(1),
-  submissionType: z.enum(SUBMISSION_TYPES).optional(),
-  timeSpentSeconds: z.number().int().nonnegative().optional(),
-  notes: z.string().max(5000).optional(),
-});
-
-export const reviewScenarioSubmissionSchema = z.object({
-  markedAnswers: z.record(z.boolean()),
-  questionFeedback: z.record(z.string()).optional(),
-  instructorFeedback: z.string().max(10000).optional(),
-});
-
 // ---------------------------------------------------------------------------
 // Quizzes: question bank, quiz definitions, attempts, submissions
 // ---------------------------------------------------------------------------
@@ -395,12 +381,6 @@ export const quizSubmissions = appSchema.table(
   ],
 );
 
-export const submitQuizSchema = z.object({
-  attemptId: z.number().int().positive(),
-  answers: z.array(z.object({ questionId: z.number().int(), answeredIndex: z.number().int().min(-1) })),
-  timeSpentSeconds: z.number().int().nonnegative().optional(),
-});
-
 // ---------------------------------------------------------------------------
 // Training modules
 // ---------------------------------------------------------------------------
@@ -420,19 +400,7 @@ export const trainingModules = appSchema.table("training_modules", {
   ...timestamps,
 });
 
-export const insertTrainingModuleSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().min(1),
-  aircraft: z.enum(AIRCRAFT_TYPES).nullable().optional(),
-  difficulty: z.enum(DIFFICULTIES).optional(),
-  durationMinutes: z.number().int().min(1).max(100000),
-  topics: z.array(z.string()).optional(),
-  objectives: z.array(z.string()).optional(),
-  passingThreshold: z.number().int().min(0).max(100).nullable().optional(),
-  isActive: z.boolean().optional(),
-});
-
-export type ModuleQuizQuestion = { id: string; question: string; options: string[]; correctIndex: number };
+export type ModuleQuizQuestion = { id: string; question: string; options: string[]; correctIndex: number; explanation?: string };
 
 export const trainingModuleContent = appSchema.table(
   "training_module_content",
@@ -455,27 +423,6 @@ export const trainingModuleContent = appSchema.table(
   },
   (t) => [index("training_module_content_module_idx").on(t.moduleId, t.orderIndex)],
 );
-
-export const insertTrainingModuleContentSchema = z.object({
-  title: z.string().min(1).max(200),
-  type: z.enum(MODULE_CONTENT_TYPES),
-  durationMinutes: z.number().int().min(1).optional(),
-  description: z.string().optional(),
-  body: z.string().nullable().optional(),
-  questions: z
-    .array(
-      z.object({
-        id: z.string(),
-        question: z.string().min(1),
-        options: z.array(z.string()).min(2),
-        correctIndex: z.number().int().nonnegative(),
-      }),
-    )
-    .nullable()
-    .optional(),
-  orderIndex: z.number().int().nonnegative().optional(),
-  isActive: z.boolean().optional(),
-});
 
 export const trainingModuleCompletions = appSchema.table(
   "training_module_completions",
@@ -955,17 +902,13 @@ export type ScenarioSubmission = typeof scenarioSubmissions.$inferSelect;
 
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
 export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
-/** A question as served to a student: no answer key. */
-export type StudentQuizQuestion = Omit<QuizQuestion, "correctIndex" | "explanation" | "createdById" | "createdAt" | "updatedAt" | "isActive">;
 export type Quiz = typeof quizzes.$inferSelect;
 export type InsertQuiz = z.infer<typeof insertQuizSchema>;
 export type QuizAttempt = typeof quizAttempts.$inferSelect;
 export type QuizSubmission = typeof quizSubmissions.$inferSelect;
 
 export type TrainingModule = typeof trainingModules.$inferSelect;
-export type InsertTrainingModule = z.infer<typeof insertTrainingModuleSchema>;
 export type TrainingModuleContent = typeof trainingModuleContent.$inferSelect;
-export type InsertTrainingModuleContent = z.infer<typeof insertTrainingModuleContentSchema>;
 export type TrainingModuleCompletion = typeof trainingModuleCompletions.$inferSelect;
 
 export type Checklist = typeof checklists.$inferSelect;

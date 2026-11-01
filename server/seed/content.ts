@@ -449,7 +449,7 @@ export function readingFor(m: SeedModule): string {
   const objectives = m.objectives.map((o, i) => `${i + 1}. ${o}`).join("\n");
   return `## Overview
 
-${m.description}. This lesson is the reading component of the module; the video walkthrough and the end-of-module assessment follow it.
+${m.description}. This lesson is the reading component of the module; the end-of-module assessment follows it.
 
 ## Topics covered
 
@@ -471,9 +471,9 @@ ${objectives}
 
 ## Before the assessment
 
-Review the topics above and complete the video walkthrough. The assessment draws questions from this module's category and must be passed to mark the module complete.`;
+Review the topics above. The assessment draws questions from this module's category and must be passed to mark the module complete.`;
 }
 
-export function moduleQuizFor(questions: { id: number; questionText: string; options: string[]; correctIndex: number }[]): ModuleQuizQuestion[] {
-  return questions.map((q) => ({ id: `bank-${q.id}`, question: q.questionText, options: q.options, correctIndex: q.correctIndex }));
+export function moduleQuizFor(questions: { id: number; questionText: string; options: string[]; correctIndex: number; explanation: string | null }[]): ModuleQuizQuestion[] {
+  return questions.map((q) => ({ id: `bank-${q.id}`, question: q.questionText, options: q.options, correctIndex: q.correctIndex, explanation: q.explanation ?? undefined }));
 }
