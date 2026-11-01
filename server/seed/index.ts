@@ -23,10 +23,10 @@ import { computeReadinessForDate } from "../services/readiness-service";
  * under pressure, 36 is large and average, 37 is improving.
  */
 const SQN_PROFILE: Record<FlyingSquadron, { skill: number; activity: number; safety: number; readyRate: number }> = {
-  "33SQN": { skill: 82, activity: 1.2, safety: 0.6, readyRate: 0.92 },
-  "35SQN": { skill: 68, activity: 0.8, safety: 1.6, readyRate: 0.74 },
-  "36SQN": { skill: 75, activity: 1.0, safety: 1.0, readyRate: 0.85 },
-  "37SQN": { skill: 73, activity: 1.1, safety: 0.9, readyRate: 0.88 },
+  "33SQN": { skill: 84, activity: 1.2, safety: 0.6, readyRate: 0.97 },
+  "35SQN": { skill: 70, activity: 0.8, safety: 1.5, readyRate: 0.82 },
+  "36SQN": { skill: 78, activity: 1.0, safety: 0.9, readyRate: 0.95 },
+  "37SQN": { skill: 76, activity: 1.1, safety: 0.8, readyRate: 0.95 },
 };
 
 const ROUTES: Array<[string, string]> = [
@@ -204,23 +204,24 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     const typeRating = `${SQUADRON_AIRCRAFT[u.squadron as Squadron]} Type Rating`;
     const quals: { name: string; start: number; expiry: number | null }[] = [
       { name: "Basic Loadmaster Certification", start: rng.int(400, 2000), expiry: null },
-      { name: typeRating, start: rng.int(200, 1500), expiry: rng.int(-20, 540) },
-      { name: "Dangerous Goods (DG) Handling", start: rng.int(100, 700), expiry: rng.int(-30, 400) },
-      { name: "Annual Proficiency Check", start: rng.int(30, 365), expiry: rng.int(-15, 350) },
+      { name: typeRating, start: rng.int(200, 1500), expiry: rng.int(60, 720) },
+      { name: "Dangerous Goods (DG) Handling", start: rng.int(100, 700), expiry: rng.int(30, 730) },
+      { name: "Annual Proficiency Check", start: rng.int(30, 365), expiry: rng.int(20, 365) },
     ];
     if (u.role === "loadmaster") {
-      quals.push({ name: "Night Operations Currency", start: rng.int(30, 300), expiry: rng.int(-10, 180) });
+      quals.push({ name: "Night Operations Currency", start: rng.int(30, 300), expiry: rng.int(30, 240) });
       if (u.squadron === "33SQN") quals.push({ name: "Air-to-Air Refueling (AAR)", start: rng.int(60, 600), expiry: rng.int(0, 500) });
       if (rng.chance(0.4)) quals.push({ name: "Aeromedical Evacuation", start: rng.int(60, 600), expiry: rng.int(0, 500) });
       if (rng.chance(0.5)) quals.push({ name: "Combat Readiness", start: rng.int(60, 600), expiry: rng.int(0, 400) });
     }
     // Struggling squadrons let more lapse.
-    const lapseBias = profile(u).readyRate < 0.8 ? -40 : 0;
+    // A few lapsed currencies, concentrated in the squadron under pressure.
+    if (rng.chance(u.squadron === "35SQN" ? 0.3 : 0.05)) quals[rng.int(1, quals.length - 1)].expiry = -rng.int(3, 40);
     const values = quals.map((q) => ({
       userId: u.id,
       name: q.name,
       startDate: daysAgo(q.start),
-      expiryDate: q.expiry === null ? null : daysFromNow(q.expiry + lapseBias),
+      expiryDate: q.expiry === null ? null : daysFromNow(q.expiry),
     }));
     const inserted = await tx.insert(userQualifications).values(values).returning();
     qualRows.push(...inserted.map((r) => ({ userId: r.userId, expiryDate: r.expiryDate })));
@@ -307,7 +308,7 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
       };
     });
     const ageDays = (Date.now() - when.getTime()) / 86_400_000;
-    const reviewed = force ? force === "reviewed-unseen" : ageDays > 7 || rng.chance(0.35);
+    const reviewed = force ? force === "reviewed-unseen" : ageDays > 4 || rng.chance(0.6);
     const correct = Object.values(marked).filter(Boolean).length;
     const score = Math.round((correct / sc.questions.length) * 100);
     const reviewer = reviewerFor(u);
@@ -411,13 +412,13 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
     { type: "commendation", sev: null, text: "Identified a mislabelled Class 8 package before loading; prevented an unsafe carriage.", level: null, phase: "ground" },
     { type: "training_failure", sev: null, text: "Failed the Dangerous Goods Refresher twice; remedial training scheduled.", level: null, phase: null },
     { type: "incident", sev: "minor", text: "Headset cable snagged on the ramp hinge during ramp-open operations.", level: "Level 3 - Marginal", phase: "cruise" },
-    { type: "incident", sev: "major", text: "Vehicle exceeded the ramp load limit during loading; ramp inspected and cleared by maintenance.", level: "Level 2 - Critical", phase: "ground" },
+    { type: "observation", sev: null, text: "Ramp load limit placard faded; replacement requested and crews briefed.", level: "Level 4 - Negligible", phase: "ground" },
     { type: "observation", sev: null, text: "FOD found on the cargo floor after offload; sweep procedure reinforced.", level: "Level 4 - Negligible", phase: "parking" },
     { type: "commendation", sev: null, text: "Exemplary crew coordination during a simulated cargo fire drill.", level: null, phase: null },
   ] as const;
   for (const sqn of FLYING_SQUADRONS) {
     const members = aircrew.filter((a) => a.squadron === sqn);
-    const n = Math.round(8 * SQN_PROFILE[sqn].safety);
+    const n = Math.round(5 * SQN_PROFILE[sqn].safety);
     for (let i = 0; i < n; i++) {
       const t = rng.pick(safetyTemplates);
       const subject = rng.pick(members);
