@@ -32,7 +32,9 @@ export function serveStatic(app: Express): void {
     logger.fatal({ distPath }, "client build not found; run `npm run build`");
     process.exit(1);
   }
-  app.use(express.static(distPath, { maxAge: "1y", immutable: true, index: false }));
+  // Hashed build output can be cached forever; public files (PDFs, icons) cannot.
+  app.use("/assets", express.static(path.join(distPath, "assets"), { maxAge: "1y", immutable: true }));
+  app.use(express.static(distPath, { index: false }));
   app.use("*", (req, res, next) => {
     if (req.originalUrl.startsWith("/api")) return next();
     res.setHeader("Cache-Control", "no-cache");

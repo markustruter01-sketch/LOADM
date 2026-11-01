@@ -26,7 +26,7 @@ export function createApp(): Express {
 
   app.use(
     helmet({
-      // The SPA loads fonts/scripts from itself only; PDF.js worker is self-hosted.
+      // Scripts load from the app itself only; the PDF.js worker is self-hosted.
       contentSecurityPolicy: isProd
         ? {
             directives: {
@@ -36,7 +36,8 @@ export function createApp(): Express {
               fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
               imgSrc: ["'self'", "data:", "blob:"],
               mediaSrc: ["'self'", "blob:"],
-              connectSrc: ["'self'", "ws:", "wss:"],
+              // unpkg: the PDF viewer loads pdf.js character maps and fonts from there.
+              connectSrc: ["'self'", "ws:", "wss:", "https://unpkg.com"],
               workerSrc: ["'self'", "blob:"],
               objectSrc: ["'none'"],
               frameSrc: ["'self'", "blob:"],
