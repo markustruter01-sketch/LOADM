@@ -1,138 +1,78 @@
-@import "./components/ui/micro-interactions.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * One dark theme. Every colour in the app comes from these tokens (via the
+ * Tailwind config) — no hard-coded palettes in components.
+ */
 :root {
-  --background: 0 0% 8%;
-  --foreground: 0 0% 98%;
-  --muted: 0 0% 14%;
-  --muted-foreground: 0 0% 88%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 98%;
-  --card: 0 0% 14%;
-  --card-foreground: 0 0% 98%;
-  --border: 0 0% 22%;
-  --input: 0 0% 22%;
-  --primary: 30 100% 54%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 11%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 30 100% 54%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --ring: 30 100% 54%;
-  --radius: 0.5rem;
-  --chart-1: 30 100% 54%;
-  --chart-2: 209 90% 54%;
-  --chart-3: 150 76% 47%;
-  --chart-4: 270 65% 55%;
-  --chart-5: 0 84% 60%;
-  --sidebar-background: 0 0% 11%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 30 100% 54%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 30 100% 54%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 22%;
-  --sidebar-ring: 30 100% 54%;
-}
+  --background: 220 18% 6%;
+  --foreground: 210 20% 96%;
+  --card: 220 16% 9%;
+  --card-foreground: 210 20% 96%;
+  --popover: 220 16% 10%;
+  --popover-foreground: 210 20% 96%;
+  --primary: 28 96% 55%;
+  --primary-foreground: 220 30% 8%;
+  --secondary: 220 14% 14%;
+  --secondary-foreground: 210 20% 96%;
+  --muted: 220 14% 14%;
+  --muted-foreground: 215 12% 62%;
+  --accent: 220 14% 16%;
+  --accent-foreground: 210 20% 96%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 12% 18%;
+  --input: 220 12% 20%;
+  --ring: 28 96% 55%;
+  --radius: 0.6rem;
 
-.dark {
-  --background: 0 0% 8%;
-  --foreground: 0 0% 98%;
-  --muted: 0 0% 14%;
-  --muted-foreground: 0 0% 88%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 98%;
-  --card: 0 0% 14%;
-  --card-foreground: 0 0% 98%;
-  --border: 0 0% 22%;
-  --input: 0 0% 22%;
-  --primary: 30 100% 54%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 11%;
-  --secondary-foreground: 0 0% 98%;
-  --accent: 30 100% 54%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --ring: 30 100% 54%;
-  --chart-1: 30 100% 54%;
-  --chart-2: 209 90% 54%;
-  --chart-3: 150 76% 47%;
-  --chart-4: 270 65% 55%;
-  --chart-5: 0 84% 60%;
-  --sidebar-background: 0 0% 11%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 30 100% 54%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 30 100% 54%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 22%;
-  --sidebar-ring: 30 100% 54%;
+  --chart-1: 28 96% 55%;
+  --chart-2: 199 89% 55%;
+  --chart-3: 152 60% 48%;
+  --chart-4: 262 70% 66%;
+  --chart-5: 0 72% 58%;
+
+  color-scheme: dark;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-  
   html {
-    background-color: #141414 !important;
+    @apply bg-background;
   }
-
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
   }
-  
-  /* Override blue backgrounds only, preserve other images and gradients */
-  [class*="from-blue"], [class*="to-blue"], [class*="via-blue"] {
-    background: #141414 !important;
-    background-image: none !important;
+  code,
+  kbd,
+  pre {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-medium;
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
   }
-}
-
-@layer components {
-  .gradient-overlay {
-    @apply absolute inset-0 bg-gradient-to-r from-background/80 to-background/40;
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
-  
-  .container-padding {
-    @apply px-4 py-8;
-  }
-  
-  .section-spacing {
-    @apply mb-10;
+  ::selection {
+    @apply bg-primary/30;
   }
 }
 
-/* Quiz Questions Page Overrides */
-.quiz-questions-page {
-  background-color: #f1f5f9 !important; /* slate-100 */
-}
-
-.quiz-question-container {
-  background-color: #e2e8f0 !important; /* slate-200 */
-}
-
-.quiz-question-content {
-  background-color: #f8fafc !important; /* slate-50 */
-}
-
-.quiz-question-text {
-  background-color: #e2e8f0 !important; /* slate-200 */
-  color: #111827 !important; /* gray-900 */
-}
-
-/* Training Module Page Background Override */
-.training-module-page {
-  background-color: #111827 !important; /* gray-900 */
-  background-image: none !important;
-  background: #111827 !important;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
