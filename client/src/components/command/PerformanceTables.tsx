@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Award, AlertTriangle } from "lucide-react";
@@ -13,12 +14,15 @@ import type { AtRiskStudent, CertificationReady, InstructorWorkload, ModuleCompl
 
 const HARDEST_LIMIT = 15;
 
-function Panel({ title, reading, children, className }: { title: string; reading: string; children: React.ReactNode; className?: string }) {
+export function Panel({ title, reading, children, className, actions }: { title: string; reading: string; children: ReactNode; className?: string; actions?: ReactNode }) {
   return (
     <Card className={cn("border-border/60 bg-card/60", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription className="text-xs">{reading}</CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 pb-2">
+        <div className="min-w-0">
+          <CardTitle className="text-base">{title}</CardTitle>
+          <CardDescription className="text-xs">{reading}</CardDescription>
+        </div>
+        {actions}
       </CardHeader>
       <CardContent className="pt-2">{children}</CardContent>
     </Card>
