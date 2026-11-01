@@ -5,7 +5,7 @@ import { db } from "../db";
 import { quizQuestions, insertQuizQuestionSchema } from "@shared/schema";
 import { QUESTION_CATEGORIES, QUESTION_CATEGORY_LABELS, QUESTION_DIFFICULTIES, type QuestionCategory } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId, parseOptionalInt } from "../lib/ids";
+import { parseId, parseOptionalInt, queryFlag } from "../lib/ids";
 import { NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser } from "../middleware/persona";
@@ -42,7 +42,7 @@ questionBankRouter.get(
 const listQuery = z.object({
   category: z.enum(QUESTION_CATEGORIES).optional(),
   difficulty: z.enum(QUESTION_DIFFICULTIES).optional(),
-  includeInactive: z.coerce.boolean().optional(),
+  includeInactive: queryFlag,
 });
 
 /**

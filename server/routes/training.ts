@@ -12,7 +12,7 @@ import {
 } from "@shared/schema";
 import { isPassing, roleHas } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId, parseOptionalInt } from "../lib/ids";
+import { parseId, parseOptionalInt, queryFlag } from "../lib/ids";
 import { BadRequest, NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser } from "../middleware/persona";
@@ -30,7 +30,7 @@ const VIDEO_DIR = path.resolve(env.UPLOAD_DIR, "training-videos");
 // ---- Module listing ------------------------------------------------------
 
 const listQuery = z.object({
-  includeInactive: z.coerce.boolean().optional(),
+  includeInactive: queryFlag,
 });
 
 /** Modules with content count, the caller's best completion and the aircrew completion rate. */

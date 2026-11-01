@@ -12,7 +12,7 @@ import {
 } from "@shared/schema";
 import { ROLES, SQUADRONS, NOT_READY_REASONS, THRESHOLDS, isPassing } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId } from "../lib/ids";
+import { parseId, queryFlag } from "../lib/ids";
 import { BadRequest, Forbidden, NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser, canActFor, invalidatePersonaCache } from "../middleware/persona";
@@ -29,7 +29,7 @@ const DAY_MS = 86_400_000;
 const listQuery = z.object({
   squadron: z.enum(SQUADRONS).optional(),
   role: z.enum(ROLES).optional(),
-  includeInactive: z.coerce.boolean().optional(),
+  includeInactive: queryFlag,
 });
 
 /** Personnel list. Instructors and command see everyone; others see their squadron. */

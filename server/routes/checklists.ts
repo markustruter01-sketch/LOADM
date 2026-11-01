@@ -8,7 +8,7 @@ import {
 } from "@shared/schema";
 import { roleHas } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId, parseOptionalInt } from "../lib/ids";
+import { parseId, parseOptionalInt, queryFlag } from "../lib/ids";
 import { NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser } from "../middleware/persona";
@@ -23,7 +23,7 @@ export const checklistsRouter = Router();
 // ---- Listing -------------------------------------------------------------
 
 const listQuery = z.object({
-  includeInactive: z.coerce.boolean().optional(),
+  includeInactive: queryFlag,
 });
 
 /** Active checklists with their items and the caller's progress. */

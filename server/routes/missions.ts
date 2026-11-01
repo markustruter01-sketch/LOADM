@@ -5,7 +5,7 @@ import { db } from "../db";
 import { missions, missionDocuments, insertMissionSchema, insertMissionDocumentSchema, type Mission } from "@shared/schema";
 import { roleHas } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId } from "../lib/ids";
+import { parseId, queryFlag } from "../lib/ids";
 import { Forbidden, NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requireOperate, currentUser, canActFor } from "../middleware/persona";
@@ -28,7 +28,7 @@ async function requireOwnedMission(req: Request, id: number): Promise<Mission> {
 // ---- Listing -------------------------------------------------------------
 
 const listQuery = z.object({
-  all: z.coerce.boolean().optional(),
+  all: queryFlag,
   limit: z.coerce.number().int().min(1).max(500).optional(),
 });
 

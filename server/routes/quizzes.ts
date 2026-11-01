@@ -5,7 +5,7 @@ import { db } from "../db";
 import { quizzes, quizAttempts, quizSubmissions, insertQuizSchema, submitQuizSchema } from "@shared/schema";
 import { roleHas } from "@shared/constants";
 import { asyncHandler } from "../lib/async";
-import { parseId, parseOptionalInt } from "../lib/ids";
+import { parseId, parseOptionalInt, queryFlag } from "../lib/ids";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../lib/errors";
 import { validate } from "../middleware/validate";
 import { requirePersona, requireInstruct, currentUser, canActFor } from "../middleware/persona";
@@ -20,7 +20,7 @@ export const quizzesRouter = Router();
 // ---- Listing -------------------------------------------------------------
 
 const listQuery = z.object({
-  includeInactive: z.coerce.boolean().optional(),
+  includeInactive: queryFlag,
 });
 
 /** Quizzes. Students see active ones; instructors may include inactive. */

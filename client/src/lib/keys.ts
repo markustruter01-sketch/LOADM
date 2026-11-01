@@ -98,3 +98,18 @@ export const keys = {
   chat: { all: ["/api/chat/messages"] as const },
   activity: { all: ["/api/activity"] as const },
 };
+
+/**
+ * Invalidation filter matching every query whose URL starts with the given
+ * key's URL. Array-prefix matching alone does not do this: `["/api/missions"]`
+ * does not match `["/api/missions/3"]` or `["/api/missions?all=true"]`.
+ * Usage: `qc.invalidateQueries(byPrefix(keys.missions.all))`.
+ */
+export function byPrefix(key: readonly [string]) {
+  return {
+    predicate: (q: { queryKey: readonly unknown[] }) => {
+      const url = q.queryKey[0];
+      return typeof url === "string" && url.startsWith(key[0]);
+    },
+  };
+}

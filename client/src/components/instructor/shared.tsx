@@ -13,6 +13,12 @@ export function personName(u: Pick<PublicUser, "rank" | "firstName" | "lastName"
   return `${u.rank} ${u.firstName} ${u.lastName}`;
 }
 
+/** Short random id for client-created question rows (scenario / module questions). */
+export function newId(prefix = "q"): string {
+  const rand = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID().slice(0, 8) : Math.random().toString(36).slice(2, 10);
+  return `${prefix}-${rand}`;
+}
+
 /** yyyy-mm-dd for <input type="date">. */
 export function toDateInput(d: string | Date | null | undefined): string {
   if (!d) return "";
