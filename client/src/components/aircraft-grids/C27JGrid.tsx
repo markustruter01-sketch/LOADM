@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import CargoGridCell from "../CargoGridCell";
 import { GridConfig } from "@/utils/aircraft-config";
-import { debugLog } from "@/utils/debug-helpers";
 
 interface Pallet {
   id: number;
@@ -65,14 +64,10 @@ export default function C27JGrid({
             assignedPallet={assignedPallet}
             cellStyle={cellStyle}
             onDragStart={onDragStart}
-            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
             aircraftId="c27j"
             onClick={(e) => {
               if (assignedPallet) {
-                debugLog("C27J position clicked", { 
-                  id: assignedPallet.id, 
-                  position: positionLabel 
-                });
                 onPalletCellClick(e, assignedPallet, positionLabel);
               }
             }}

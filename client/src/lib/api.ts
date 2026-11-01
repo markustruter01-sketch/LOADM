@@ -50,10 +50,14 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+interface ErrorBody {
+  error?: { code?: string; message?: string; details?: unknown };
+}
+
 async function parseError(res: Response): Promise<ApiError> {
-  let payload: { error?: { code?: string; message?: string; details?: unknown } } | null = null;
+  let payload: ErrorBody | null = null;
   try {
-    payload = (await res.json()) as typeof payload;
+    payload = (await res.json()) as ErrorBody;
   } catch {
     /* non-JSON error body */
   }

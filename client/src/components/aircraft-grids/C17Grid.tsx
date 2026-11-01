@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import CargoGridCell from "../CargoGridCell";
 import { GridConfig } from "@/utils/aircraft-config";
-import { debugLog } from "@/utils/debug-helpers";
 
 interface Pallet {
   id: number;
@@ -70,14 +69,10 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
                   aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {
-                      debugLog("C17 position clicked", { 
-                        id: assignedPallet.id, 
-                        position: positionLabel 
-                      });
                       onPalletCellClick(e, assignedPallet, positionLabel);
                     }
                   }}
@@ -111,14 +106,10 @@ export default function C17Grid({
                   assignedPallet={assignedPallet}
                   cellStyle={cellStyle}
                   onDragStart={onDragStart}
-            unitLabel={unitLabel}
+                  unitLabel={unitLabel}
                   aircraftId="c17"
                   onClick={(e) => {
                     if (assignedPallet) {
-                      debugLog("C17 position clicked", { 
-                        id: assignedPallet.id, 
-                        position: positionLabel 
-                      });
                       onPalletCellClick(e, assignedPallet, positionLabel);
                     }
                   }}

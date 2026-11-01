@@ -115,18 +115,3 @@ export const keys = {
   chat: { all: ["/api/chat/messages"] as const },
   activity: { all: ["/api/activity"] as const },
 };
-
-/**
- * Invalidation filter matching every query whose URL starts with the given
- * key's URL. With area-prefixed keys `{ queryKey: keys.x.all }` already does
- * this; kept for cross-area prefixes and existing call sites.
- */
-export function byPrefix(key: readonly unknown[]) {
-  const prefix = urlOf(key);
-  return {
-    predicate: (q: { queryKey: readonly unknown[] }) => {
-      const url = q.queryKey[q.queryKey.length - 1];
-      return typeof url === "string" && url.startsWith(prefix);
-    },
-  };
-}
