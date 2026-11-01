@@ -493,6 +493,17 @@ export async function runSeed(tx: Tx): Promise<SeedSummary> {
   for (const u of aircrew.filter((a) => !a.isFlightReady)) {
     events.push({ userId: persona("command").id, action: "UPDATE", resourceType: "Readiness", resourceId: u.id, resourceName: `${u.rank} ${u.firstName} ${u.lastName}`, details: "Marked not ready", performedAt: daysAgo(rng.int(1, 30), rng.int(7, 17)) });
   }
+  // Housekeeping deletions, so the admin deletion log reflects normal use.
+  const DELETIONS: Array<[string, string, number]> = [
+    ["Scenario", "Superseded C-130J pallet drill", 21],
+    ["Quiz", "DG refresher (2025 edition)", 14],
+    ["Checklist", "Draft KC-30A cabin check", 9],
+    ["MissionDocument", "Old load plan v1", 4],
+    ["Chat", "Duplicate question", 2],
+  ];
+  for (const [resourceType, resourceName, day] of DELETIONS) {
+    events.push({ userId: rng.pick(instructors).id, action: "DELETE", resourceType, resourceId: null, resourceName, details: null, performedAt: daysAgo(day, rng.int(8, 16), rng.int(0, 59)) });
+  }
   events.sort((x, y) => x.performedAt.getTime() - y.performedAt.getTime());
   if (events.length) await tx.insert(activityLog).values(events);
 

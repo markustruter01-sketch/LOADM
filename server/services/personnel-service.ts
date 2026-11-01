@@ -4,7 +4,7 @@ import {
   flightRecords, userQualifications, safetyRecords, scenarioSubmissions, scenarios, quizSubmissions, quizzes,
   documentSubmissions, documents, type FlightRecord,
 } from "@shared/schema";
-import { THRESHOLDS, type Squadron } from "@shared/constants";
+import { THRESHOLDS } from "@shared/constants";
 import { aircraftDashed, clientRole, personName } from "../lib/client-format";
 import { getUser } from "./user-service";
 
@@ -230,9 +230,4 @@ export async function buildUserReport(userId: number) {
       commendations: countSafety("commendation"),
     },
   };
-}
-
-/** Squadron of a user, looked up by id (used to denormalise safety records). */
-export async function squadronOfUser(userId: number): Promise<Squadron> {
-  return (await getUser(userId)).squadron;
 }

@@ -1,150 +1,109 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "../db";
 import {
-  trainingModuleContent, trainingModuleCompletions,
-  type TrainingModuleContent, type ModuleQuizQuestion,
+  trainingModuleContent, type TrainingModuleContent, type ModuleQuizQuestion,
 } from "@shared/schema";
-import { listReadinessPersonnel } from "./user-service";
+import { BadRequest } from "../lib/errors";
 
-// ---- Answer-key stripping -------------------------------------------------
+/**
+ * The module screens treat every quiz/assessment question as its own content
+ * item whose `content` is a JSON string. A stored content row can hold
+ * several questions, so each question is served as a pseudo-row with id
+ * "<rowId>-<index>"; readings keep the plain row id.
+ */
 
-/** A module question as served to a student: no answer key. */
-export type StudentModuleQuestion = Omit<ModuleQuizQuestion, "correctIndex">;
-export type StudentModuleContent = Omit<TrainingModuleContent, "questions"> & { questions: StudentModuleQuestion[] | null };
+export interface ContentRef {
+  rowId: number;
+  /** Question index within the row; null for a reading. */
+  index: number | null;
+}
 
-/** Remove `correctIndex` from quiz/assessment content before it reaches a non-instructor. */
-export function stripAnswerKey(content: TrainingModuleContent): StudentModuleContent {
-  const { questions, ...rest } = content;
-  return {
-    ...rest,
-    questions: questions ? questions.map((q) => ({ id: q.id, question: q.question, options: q.options })) : null,
+export function parseContentRef(raw: string): ContentRef {
+  const m = /^(\d+)(?:-(\d+))?$/.exec(raw);
+  if (!m) throw new BadRequest("Invalid content id");
+  return { rowId: Number(m[1]), index: m[2] === undefined ? null : Number(m[2]) };
+}
+
+/** One stored row as the client's content items (one per question, or one reading). */
+export function toClientContent(row: TrainingModuleContent) {
+  const base = {
+    moduleId: row.moduleId,
+    title: row.title,
+    type: row.type,
+    description: row.description,
+    duration: `${row.durationMinutes} min`,
+    orderIndex: row.orderIndex,
   };
+  if (row.type === "reading") return [{ ...base, id: String(row.id), content: row.body ?? "" }];
+  return (row.questions ?? []).map((q, i) => ({
+    ...base,
+    id: `${row.id}-${i}`,
+    content: JSON.stringify({ question: q.question, options: q.options, correct: q.correctIndex, explanation: q.explanation ?? "" }),
+  }));
 }
 
-// ---- Grading --------------------------------------------------------------
+const questionJson = z
+  .object({
+    question: z.string().min(1),
+    options: z.array(z.string()).min(2),
+    correct: z.number().int().nonnegative(),
+    explanation: z.string().optional(),
+  })
+  .refine((q) => q.correct < q.options.length, { message: "correct must point at one of the options" });
 
-export interface AssessmentResult {
-  questionId: string;
-  question: string;
-  options: string[];
-  /** Index the student chose, or null when the question was not answered. */
-  answeredIndex: number | null;
-  correctIndex: number;
-  correct: boolean;
+/** Parse a question item's JSON `content` into a stored question with the given id. */
+export function parseQuestionContent(content: string, id: string): ModuleQuizQuestion {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(content);
+  } catch {
+    throw new BadRequest("Question content must be JSON");
+  }
+  const parsed = questionJson.safeParse(raw);
+  if (!parsed.success) throw new BadRequest("Invalid question content", parsed.error.issues);
+  const { question, options, correct, explanation } = parsed.data;
+  return { id, question, options, correctIndex: correct, explanation };
 }
 
-export interface GradedAssessment {
+export interface RegradedAssessment {
+  score: number;
   correctCount: number;
   totalQuestions: number;
-  /** Whole-number percentage. */
-  score: number;
-  results: AssessmentResult[];
+  /** Chosen option index per client question id ("db-<rowId>-<index>"), -1 when the text matched no option. */
+  answers: Record<string, number>;
 }
 
 /**
- * Grade a set of answers (keyed by question id) against the module's
- * questions. Answers for unknown ids are ignored; missing answers are wrong.
+ * Re-grade the module page's answers (option text per "db-<rowId>-<index>"
+ * question) against the stored questions. Null when any answer is not a
+ * stored question of this module (e.g. the page's built-in fallback questions).
  */
-export function gradeModuleAssessment(questions: ModuleQuizQuestion[], answers: Record<string, number>): GradedAssessment {
-  const results: AssessmentResult[] = questions.map((q) => {
-    const answeredIndex = Object.prototype.hasOwnProperty.call(answers, q.id) ? answers[q.id] : null;
-    return {
-      questionId: q.id,
-      question: q.question,
-      options: q.options,
-      answeredIndex,
-      correctIndex: q.correctIndex,
-      correct: answeredIndex !== null && answeredIndex === q.correctIndex,
-    };
-  });
-  const correctCount = results.filter((r) => r.correct).length;
-  const totalQuestions = questions.length;
-  const score = totalQuestions ? Math.round((correctCount / totalQuestions) * 100) : 0;
-  return { correctCount, totalQuestions, score, results };
-}
-
-/**
- * The content row a module is assessed on: the first active quiz/assessment
- * content (by order) that actually carries questions.
- */
-export async function findAssessmentContent(moduleId: number): Promise<TrainingModuleContent | undefined> {
+export async function regradeModuleAnswers(
+  moduleId: number,
+  answers: Array<{ questionId: string; yourAnswer?: string }>,
+): Promise<RegradedAssessment | null> {
+  const refs = answers.map((a) => /^db-(\d+)-(\d+)$/.exec(a.questionId));
+  const rowIds = refs.flatMap((m) => (m ? [Number(m[1])] : []));
+  if (answers.length === 0 || rowIds.length !== answers.length) return null;
   const rows = await db
     .select()
     .from(trainingModuleContent)
-    .where(
-      and(
-        eq(trainingModuleContent.moduleId, moduleId),
-        eq(trainingModuleContent.isActive, true),
-        inArray(trainingModuleContent.type, ["assessment", "quiz"]),
-      ),
-    )
-    .orderBy(asc(trainingModuleContent.orderIndex), asc(trainingModuleContent.id));
-  return rows.find((r) => r.questions !== null && r.questions.length > 0);
-}
-
-// ---- Per-module statistics ------------------------------------------------
-
-export interface BestCompletion {
-  score: number;
-  passed: boolean;
-  submittedAt: Date;
-}
-
-/** The user's best completion per module (highest score, then most recent). */
-export async function bestCompletionsFor(userId: number, moduleIds: number[]): Promise<Map<number, BestCompletion>> {
-  const best = new Map<number, BestCompletion>();
-  if (moduleIds.length === 0) return best;
-  const rows = await db
-    .select({
-      moduleId: trainingModuleCompletions.moduleId,
-      score: trainingModuleCompletions.score,
-      passed: trainingModuleCompletions.passed,
-      submittedAt: trainingModuleCompletions.submittedAt,
-    })
-    .from(trainingModuleCompletions)
-    .where(and(eq(trainingModuleCompletions.userId, userId), inArray(trainingModuleCompletions.moduleId, moduleIds)))
-    .orderBy(desc(trainingModuleCompletions.score), desc(trainingModuleCompletions.submittedAt));
-  for (const r of rows) {
-    if (!best.has(r.moduleId)) best.set(r.moduleId, { score: r.score, passed: r.passed, submittedAt: r.submittedAt });
+    .where(and(eq(trainingModuleContent.moduleId, moduleId), inArray(trainingModuleContent.id, rowIds)));
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const recorded: Record<string, number> = {};
+  let correctCount = 0;
+  for (let i = 0; i < answers.length; i++) {
+    const q = byId.get(rowIds[i])?.questions?.[Number(refs[i]?.[2])];
+    if (!q) return null;
+    const answeredIndex = q.options.indexOf(answers[i].yourAnswer ?? "");
+    recorded[answers[i].questionId] = answeredIndex;
+    if (answeredIndex === q.correctIndex) correctCount++;
   }
-  return best;
-}
-
-/**
- * Percentage of readiness personnel (active aircrew in a flying squadron)
- * who have passed each module at least once. Modules nobody passed map to 0.
- */
-export async function moduleCompletionRates(moduleIds: number[]): Promise<Map<number, number>> {
-  const rates = new Map<number, number>();
-  if (moduleIds.length === 0) return rates;
-  const aircrew = await listReadinessPersonnel();
-  const aircrewIds = new Set(aircrew.map((u) => u.id));
-  const rows = await db
-    .selectDistinct({ moduleId: trainingModuleCompletions.moduleId, userId: trainingModuleCompletions.userId })
-    .from(trainingModuleCompletions)
-    .where(and(inArray(trainingModuleCompletions.moduleId, moduleIds), eq(trainingModuleCompletions.passed, true)));
-  const passedBy = new Map<number, Set<number>>();
-  for (const r of rows) {
-    if (!aircrewIds.has(r.userId)) continue;
-    const set = passedBy.get(r.moduleId) ?? new Set<number>();
-    set.add(r.userId);
-    passedBy.set(r.moduleId, set);
-  }
-  for (const id of moduleIds) {
-    const n = passedBy.get(id)?.size ?? 0;
-    rates.set(id, aircrewIds.size ? Math.round((n / aircrewIds.size) * 100) : 0);
-  }
-  return rates;
-}
-
-/** Count of active content rows per module. */
-export async function contentCountsFor(moduleIds: number[]): Promise<Map<number, number>> {
-  const counts = new Map<number, number>();
-  if (moduleIds.length === 0) return counts;
-  const rows = await db
-    .select({ moduleId: trainingModuleContent.moduleId, id: trainingModuleContent.id })
-    .from(trainingModuleContent)
-    .where(and(inArray(trainingModuleContent.moduleId, moduleIds), eq(trainingModuleContent.isActive, true)));
-  for (const r of rows) counts.set(r.moduleId, (counts.get(r.moduleId) ?? 0) + 1);
-  return counts;
+  return {
+    score: Math.round((correctCount / answers.length) * 100),
+    correctCount,
+    totalQuestions: answers.length,
+    answers: recorded,
+  };
 }
