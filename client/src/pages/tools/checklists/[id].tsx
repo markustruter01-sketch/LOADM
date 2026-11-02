@@ -80,12 +80,6 @@ export default function ChecklistDetailPage() {
   });
   
   console.log('DEBUG CHECKLIST DETAIL: Query result:', { checklist, isLoading, error });
-  
-  // Add authentication check
-  const { data: authData } = useQuery({
-    queryKey: ['/api/user/check'],
-    retry: false
-  });
 
   // Initialize checked items from user completion data
   useEffect(() => {
