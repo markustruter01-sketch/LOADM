@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import instructorBannerImage from "@assets/unnamed (1)_1764542553672.jpg";
-import ddgLogoImage from "@assets/DDG_Logo_optimized.png";
+import ddgLogoImage from "@assets/ddg-logo.png";
 export default function InstructorsPortal() {
   const { user } = useIsolatedAuth();
   const { toast } = useToast();

@@ -7,12 +7,12 @@ import { Unauthorized, Forbidden } from "../lib/errors";
 
 /**
  * There is no authentication in this showcase. The visitor picks a role on
- * the sign-in screen and the choice is kept in the `demo_role` cookie. Each
+ * the sign-in screen and the choice is kept in the `loadm_role` cookie. Each
  * role maps to exactly one seeded persona user (`users.isDemoPersona`),
  * which becomes `req.user`.
  */
 
-export const DEMO_ROLE_COOKIE = "demo_role";
+export const DEMO_ROLE_COOKIE = "loadm_role";
 
 declare module "express-serve-static-core" {
   interface Request {

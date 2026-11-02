@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useIsolatedAuth } from "@/auth-isolated/auth-context";
-import logoImage from "@assets/DDG_Logo_New_1762131149453.png";
-import nameImage from "@assets/DDG_NAME_New_1762131149454.png";
+import logoImage from "@assets/ddg-logo.png";
+import nameImage from "@assets/ddg-name.png";
 
 interface SimpleLoginModalProps {
   open: boolean;

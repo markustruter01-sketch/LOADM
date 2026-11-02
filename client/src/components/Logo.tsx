@@ -1,16 +1,16 @@
 import React from "react";
-import logoImage from "@assets/DDG_Logo_New_1761874170755.png";
-import nameImage from "@assets/DDG_NAME_New_1761874703030.png";
+import logoImage from "@assets/ddg-logo.png";
+import nameImage from "@assets/ddg-name.png";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-4 ${className}`}>
+    <div className={`flex items-center gap-3 ${className}`}>
       {/* DDG Logo */}
       <div className="flex-shrink-0">
         <img 
           src={logoImage} 
           alt="DDG Logo" 
-          className="h-12 w-auto" 
+          className="h-8 w-auto" 
         />
       </div>
       
@@ -19,7 +19,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <img 
           src={nameImage} 
           alt="Digital Dynamics Group" 
-          className="h-8 w-auto" 
+          className="h-5 w-auto" 
         />
       </div>
     </div>

@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useIsolatedAuth } from './auth-context';
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { ROLES, ROLE_LABELS, type Role } from "@shared/constants";
-import logoImage from "@assets/DDG_Logo_New_1762131149453.png";
-import nameImage from "@assets/DDG_NAME_New_1762131149454.png";
+import logoImage from "@assets/ddg-logo.png";
+import nameImage from "@assets/ddg-name.png";
 
 export function RedesignedLogin() {
   const { login } = useIsolatedAuth();

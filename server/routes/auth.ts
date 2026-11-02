@@ -27,13 +27,8 @@ authRouter.post(
     const { role } = req.body as { role: (typeof ROLES)[number] };
     const persona = await loadPersona(role);
     if (!persona) throw new NotFound(`Persona for role ${role}`);
-    res.cookie(DEMO_ROLE_COOKIE, role, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: isProd,
-      maxAge: 365 * 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    // Session cookie: every new browser session starts at the role picker.
+    res.cookie(DEMO_ROLE_COOKIE, role, { httpOnly: true, sameSite: "lax", secure: isProd, path: "/" });
     res.json(sessionUser(persona));
   }),
 );

@@ -10,6 +10,8 @@ interface User {
   firstName?: string;
   lastName?: string;
   role: string;
+  /** The demo persona chosen on the sign-in screen. */
+  demoRole: Role;
   userRole?: string;
   licenseType?: string;
   squadron?: string;

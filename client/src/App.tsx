@@ -110,7 +110,7 @@ function AuthenticatedApp() {
       <ScrollToTop />
       <div className="App">
         <Header />
-        <main className="main-content pb-20">
+        <main className="main-content pb-20 px-3 sm:px-6 lg:px-10">
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/army" component={ArmyHomePage} />

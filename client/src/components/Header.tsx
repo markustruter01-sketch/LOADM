@@ -5,6 +5,7 @@ import { UserCircle } from "lucide-react";
 import { useIsolatedAuth } from "../auth-isolated/auth-context";
 import SimpleLoginModal from "./SimpleLoginModal";
 import { useState, useEffect } from "react";
+import { ROLE_LABELS } from "@shared/constants";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,7 +53,7 @@ export default function Header() {
 
   return (
     <header className="backdrop-blur-md bg-background/70 border-b border-border shadow-md">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
             <Logo />
@@ -93,14 +94,18 @@ export default function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground p-0">
-                  <UserCircle style={{ height: '2.55rem', width: '2.55rem' }} />
+                <Button variant="ghost" className="text-muted-foreground hover:text-foreground px-2 gap-2 h-auto">
+                  <span className="text-right leading-tight">
+                    <span className="block text-sm font-medium text-foreground">{ROLE_LABELS[user.demoRole]}</span>
+                    <span className="block text-xs">{user.firstName} {user.lastName}</span>
+                  </span>
+                  <UserCircle style={{ height: '1.8rem', width: '1.8rem' }} />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem disabled className="font-medium">
-                  {user.email}
+                  {ROLE_LABELS[user.demoRole]} · {user.email}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
@@ -146,7 +151,7 @@ export default function Header() {
                       onClick={logout} 
                       className="w-full text-left px-2 py-1.5 text-sm"
                     >
-                      Logout
+                      Switch role
                     </button>
                   </div>
                 </DropdownMenuItem>
@@ -160,7 +165,7 @@ export default function Header() {
                 className="text-muted-foreground hover:text-foreground p-0"
                 onClick={() => setShowLoginModal(true)}
               >
-                <UserCircle style={{ height: '2.55rem', width: '2.55rem' }} />
+                <UserCircle style={{ height: '1.8rem', width: '1.8rem' }} />
                 <span className="sr-only">Login</span>
               </Button>
             )
